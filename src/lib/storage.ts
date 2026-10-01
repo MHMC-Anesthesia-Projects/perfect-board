@@ -278,6 +278,7 @@ export function getInitialBoardState(staff: Staff[] = []): BoardState {
     latesList: [],
     latesNotes: '',
     bullpenStaffIds: [],
+    bullpenBreaks: {},
     scraperConfig: {
       portalType: 'oneusap',
       portalUrl: 'https://www.oneusap.com/assignments',
@@ -333,6 +334,9 @@ export function loadBoardState(): BoardState {
   }
   if (!loaded.bullpenStaffIds || !Array.isArray(loaded.bullpenStaffIds)) {
     loaded.bullpenStaffIds = [];
+  }
+  if (!loaded.bullpenBreaks || typeof loaded.bullpenBreaks !== 'object') {
+    loaded.bullpenBreaks = {};
   }
   return loaded;
 }

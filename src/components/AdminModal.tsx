@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential, ScraperPreviewResult } from '@/types/whiteboard';
+import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential, RunnerSlot, ScraperPreviewResult } from '@/types/whiteboard';
 import { 
   Users, UserCheck, ShieldCheck, Layout, Globe, 
   Plus, Trash2, Edit2, Key, RefreshCw, X, Check, RotateCcw, AlertTriangle,
@@ -56,6 +56,36 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   onRefreshData
 }) => {
   const [activeTab, setActiveTab] = useState<'users' | 'staff' | 'layout' | 'scraper'>('users');
+
+  const handleAddRunnerToDept = (deptId: string) => {
+    const updated = departments.map(d => {
+      if (d.id !== deptId) return d;
+      const count = d.runnerSlots.length + 1;
+      const newSlot: RunnerSlot = {
+        id: `runner_${d.id}_${Date.now()}`,
+        title: `Runner ${count}`,
+        staffId: null,
+        breakfastDone: false,
+        lunchDone: false
+      };
+      return {
+        ...d,
+        runnerSlots: [...d.runnerSlots, newSlot]
+      };
+    });
+    onSaveDepartments(updated);
+  };
+
+  const handleRemoveRunnerFromDept = (deptId: string, runnerSlotId: string) => {
+    const updated = departments.map(d => {
+      if (d.id !== deptId) return d;
+      return {
+        ...d,
+        runnerSlots: d.runnerSlots.filter(r => r.id !== runnerSlotId)
+      };
+    });
+    onSaveDepartments(updated);
+  };
 
   // --- User Management State ---
   const [userList, setUserList] = useState<User[]>([]);
@@ -1028,6 +1058,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       <Plus size={12} />
                       <span>Add</span>
                     </button>
+
                   </div>
 
                   {/* Add Department Input */}

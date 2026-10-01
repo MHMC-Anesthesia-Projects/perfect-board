@@ -2,16 +2,19 @@
 
 import React, { useState, useMemo } from 'react';
 import { Staff, UserRole } from '@/types/whiteboard';
-import { PanelLeftClose, Users, Sparkles, LogOut, GripVertical } from 'lucide-react';
+import { MagnetTile } from './MagnetTile';
+import { PanelLeftClose, Users, Sparkles } from 'lucide-react';
 
 interface BullpenSidebarProps {
   bullpenStaffIds: string[];
+  bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; breakfastTime?: string | null; lunchTime?: string | null }>;
   staff: Staff[];
   currentUserRole: UserRole;
   onSelectStaff: (staff: Staff) => void;
   onDropToBullpen: (data: { staffId: string; type: string; id?: string }) => void;
   onMoveStaffToUnassigned: (staffId: string) => void;
   onToggleCollapse: () => void;
+  onToggleBreak?: (breakType: 'breakfast' | 'lunch', staffId: string, currentValue: boolean) => void;
 }
 
 const CREDENTIAL_ORDER: Record<string, number> = {
@@ -37,12 +40,14 @@ const sortStaffByCredThenName = (a: Staff, b: Staff) => {
 
 export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
   bullpenStaffIds,
+  bullpenBreaks,
   staff,
   currentUserRole,
   onSelectStaff,
   onDropToBullpen,
   onMoveStaffToUnassigned,
-  onToggleCollapse
+  onToggleCollapse,
+  onToggleBreak
 }) => {
   const isEditor = currentUserRole !== 'basic_user';
   const [isDragOver, setIsDragOver] = useState(false);
@@ -156,50 +161,29 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
           </div>
         ) : (
           <div className="bullpen-tiles-container">
-            {bullpenStaff.map(s => (
-              <div
-                key={s.id}
-                className="bullpen-staff-card"
-                draggable={isEditor}
-                onDragStart={(e) => handleDragStart(e, s)}
-                onClick={() => onSelectStaff(s)}
-                title={`${s.firstName} ${s.lastName} (${s.credentials}) • Drag to room/runner or tap to view`}
-              >
-                <div className="bullpen-card-left">
-                  <div className="bullpen-drag-handle">
-                    <GripVertical size={13} />
-                  </div>
-                  <div className="bullpen-card-identity">
-                    <div className="bullpen-card-name-row">
-                      <span className="bullpen-card-name">
-                        {s.lastName.toUpperCase()}{s.firstName ? ` ${s.firstName[0]}.` : ''}
-                      </span>
-                      <span className={`magnet-cred cred-${s.credentials}`}>
-                        {s.credentials}
-                      </span>
-                    </div>
-                    <div className="bullpen-card-status">
-                      <span className="bullpen-status-dot" />
-                      <span>Ready for assignment</span>
-                    </div>
-                  </div>
+            {bullpenStaff.map(s => {
+              const b = bullpenBreaks?.[s.id];
+              return (
+                <div key={s.id} className="bullpen-magnet-row">
+                  <MagnetTile
+                    staff={s}
+                    slotId={s.id}
+                    slotType="bullpen"
+                    breakfastDone={b?.breakfastDone ?? false}
+                    lunchDone={b?.lunchDone ?? false}
+                    currentUserRole={currentUserRole}
+                    onToggleBreak={(breakType, currentValue) => {
+                      if (onToggleBreak) {
+                        onToggleBreak(breakType, s.id, currentValue);
+                      }
+                    }}
+                    onSelectStaff={onSelectStaff}
+                    onDragStart={(e, staffMember) => handleDragStart(e, staffMember)}
+                    onUnassign={() => onMoveStaffToUnassigned(s.id)}
+                  />
                 </div>
-
-                {/* Quick actions for touchscreen / editor */}
-                {isEditor && (
-                  <div className="bullpen-card-actions" onClick={e => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      className="bullpen-action-btn"
-                      onClick={() => onMoveStaffToUnassigned(s.id)}
-                      title="Depart for Day / Return to Unassigned Roster"
-                    >
-                      <LogOut size={13} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

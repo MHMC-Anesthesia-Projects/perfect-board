@@ -88,30 +88,26 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
   const bottomDepartments = departments.slice(4);
 
   const renderDepartment = (dept: Department) => {
+    const assignedRoomsCount = dept.rooms.filter(r => r.slots.some(s => !!s.staffId)).length;
+
     return (
       <div key={dept.id} className="dept-column">
         {/* Department Header */}
         <div className="dept-header">
           <div className="dept-title">
-            <span>{dept.name}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className="dept-name-text">{dept.name}</span>
+              <span className="dept-occupancy-pill" title={`${assignedRoomsCount} of ${dept.rooms.length} rooms assigned`}>
+                {assignedRoomsCount}/{dept.rooms.length}
+              </span>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {/* Dynamic Runner Add Button */}
               {isEditor && onAddRunnerSlot && (
                 <button
                   type="button"
                   onClick={() => onAddRunnerSlot(dept.id)}
-                  style={{
-                    padding: '1px 5px',
-                    borderRadius: 3,
-                    background: 'var(--surface-card)',
-                    border: '1px solid var(--border-light)',
-                    fontSize: 10,
-                    fontWeight: 800,
-                    color: 'var(--accent-primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2
-                  }}
+                  className="dept-add-runner-btn"
                   title={`Add extra runner slot to ${dept.name}`}
                 >
                   <Plus size={10} />
@@ -203,6 +199,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
               );
             })}
           </div>
+
         </div>
 
         {/* Rooms List */}
@@ -247,18 +244,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                             onDragStart={handleTileDragStart}
                           />
                         ) : (
-                          <div style={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 4,
-                            color: 'var(--text-muted)',
-                            fontSize: 11,
-                            fontWeight: 600,
-                            padding: '4px'
-                          }}>
-                            <Plus size={12} />
+                          <div className="room-empty-dock">
+                            <Plus size={11} />
                             <span>Assign</span>
                           </div>
                         )}
