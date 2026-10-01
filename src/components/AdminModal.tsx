@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential } from '@/types/whiteboard';
+import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential, ScraperPreviewResult } from '@/types/whiteboard';
 import { 
   Users, UserCheck, ShieldCheck, Layout, Globe, 
-  Plus, Trash2, Edit2, Key, RefreshCw, X, Check, RotateCcw, AlertTriangle 
+  Plus, Trash2, Edit2, Key, RefreshCw, X, Check, RotateCcw, AlertTriangle,
+  Eye, Search, Phone, Building2, CheckCircle2, ChevronRight, Sparkles
 } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
@@ -19,6 +20,29 @@ interface AdminModalProps {
   onResetToPhotoDefault: () => void;
   onRefreshData: () => void;
 }
+
+const CORE_FACILITIES = [
+  { code: 'MHMC', name: 'Memorial Hermann Medical Center', short: 'MHMC' },
+  { code: 'MHVIL-SC', name: 'MH Village Surgery Center', short: 'Village SC' },
+  { code: 'HIVF-SC', name: 'Houston IVF Surgery Center', short: 'Houston IVF' }
+];
+
+const NETWORK_FACILITIES = [
+  { code: 'HMWST', name: 'Methodist West' },
+  { code: 'MHTW', name: 'MH Woodlands' },
+  { code: 'HMH', name: 'Methodist Main' },
+  { code: 'MHGH', name: 'MH Greater Heights' },
+  { code: 'MHPH', name: 'MH Pearland' },
+  { code: 'MHSE', name: 'MH Southeast' },
+  { code: 'MHNE', name: 'MH Northeast' },
+  { code: 'MHCH', name: 'MH Cypress' },
+  { code: 'MHSW', name: 'MH Southwest' },
+  { code: 'MHKTY', name: 'MH Katy' },
+  { code: 'HMWB', name: 'Methodist Willowbrook' },
+  { code: 'MHSL', name: 'MH Sugarland' },
+  { code: 'PSC', name: 'Premier Surgery Center' },
+  { code: 'TCPFW', name: 'TCH Pavilion for Women' }
+];
 
 export const AdminModal: React.FC<AdminModalProps> = ({
   isOpen,
@@ -71,8 +95,20 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [portalPass, setPortalPass] = useState(scraperConfig.password);
   const [autoSyncMins, setAutoSyncMins] = useState(scraperConfig.autoSyncIntervalMinutes);
   const [mockMode, setMockMode] = useState(scraperConfig.mockMode);
+  const [selectedFacilities, setSelectedFacilities] = useState<string[]>(
+    scraperConfig.selectedFacilities || ['MHMC', 'MHVIL-SC', 'HIVF-SC']
+  );
+  const [showNetworkFacilities, setShowNetworkFacilities] = useState(false);
+  const [customFacilityCode, setCustomFacilityCode] = useState('');
   const [scraperSaving, setScraperSaving] = useState(false);
   const [scraperMsg, setScraperMsg] = useState('');
+
+  // --- Test Sync State ---
+  const [isTestSyncing, setIsTestSyncing] = useState(false);
+  const [testSyncResult, setTestSyncResult] = useState<ScraperPreviewResult | null>(null);
+  const [testSyncError, setTestSyncError] = useState('');
+  const [testSyncTab, setTestSyncTab] = useState<'staff' | 'departure' | 'lates' | 'callTeam'>('staff');
+  const [testStaffFilter, setTestStaffFilter] = useState('');
 
   // --- Dynamic Layout Editor State ---
   const [layoutDepts, setLayoutDepts] = useState<Department[]>([]);
@@ -93,6 +129,20 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       }
     }
   }, [isOpen, departments]);
+
+  useEffect(() => {
+    if (scraperConfig) {
+      setPortalType(scraperConfig.portalType);
+      setPortalUrl(scraperConfig.portalUrl);
+      setPortalUser(scraperConfig.username);
+      setPortalPass(scraperConfig.password);
+      setAutoSyncMins(scraperConfig.autoSyncIntervalMinutes);
+      setMockMode(scraperConfig.mockMode);
+      if (scraperConfig.selectedFacilities) {
+        setSelectedFacilities(scraperConfig.selectedFacilities);
+      }
+    }
+  }, [scraperConfig]);
 
   const fetchUsers = async () => {
     try {
@@ -228,6 +278,26 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   };
 
   // --- Handlers for Scraper Config ---
+  const toggleFacility = (facCode: string) => {
+    setSelectedFacilities(prev => {
+      if (prev.includes(facCode)) {
+        if (prev.length === 1) return prev; // Keep at least one facility selected
+        return prev.filter(c => c !== facCode);
+      } else {
+        return [...prev, facCode];
+      }
+    });
+  };
+
+  const handleAddCustomFacility = () => {
+    const trimmed = customFacilityCode.trim().toUpperCase();
+    if (!trimmed) return;
+    if (!selectedFacilities.includes(trimmed)) {
+      setSelectedFacilities(prev => [...prev, trimmed]);
+    }
+    setCustomFacilityCode('');
+  };
+
   const handleSaveScraperConfig = async (e: React.FormEvent) => {
     e.preventDefault();
     setScraperSaving(true);
@@ -241,11 +311,12 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           currentUser,
           config: {
             portalType,
-            portalUrl,
-            username: portalUser,
+            portalUrl: portalType === 'oneusap' && (!portalUrl || !portalUrl.includes('oneusap')) ? 'https://www.oneusap.com/assignments' : portalUrl,
+            username: portalType === 'oneusap' ? '' : portalUser,
             password: portalPass,
             autoSyncIntervalMinutes: Number(autoSyncMins),
-            mockMode
+            mockMode,
+            selectedFacilities
           }
         })
       });
@@ -260,6 +331,40 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       setScraperMsg('Connection error');
     } finally {
       setScraperSaving(false);
+    }
+  };
+
+  const handleTestSync = async () => {
+    setIsTestSyncing(true);
+    setTestSyncError('');
+    setTestSyncResult(null);
+    try {
+      const res = await fetch('/api/scraper', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'TEST_SYNC',
+          currentUser,
+          config: {
+            portalType,
+            portalUrl: portalType === 'oneusap' && (!portalUrl || !portalUrl.includes('oneusap')) ? 'https://www.oneusap.com/assignments' : portalUrl,
+            username: portalUser,
+            password: portalPass || (portalType === 'oneusap' ? '321usap' : ''),
+            selectedFacilities
+          }
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.preview) {
+        setTestSyncResult(data.preview);
+      } else {
+        setTestSyncError(data.error || 'Test sync failed to connect or parse.');
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setTestSyncError(msg || 'Network error running test sync');
+    } finally {
+      setIsTestSyncing(false);
     }
   };
 
@@ -1282,14 +1387,40 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>System Provider</label>
                   <select
                     value={portalType}
-                    onChange={e => setPortalType(e.target.value as any)}
+                    onChange={e => {
+                      const nextType = e.target.value as any;
+                      setPortalType(nextType);
+                      if (nextType === 'oneusap') {
+                        if (!portalUrl || portalUrl.includes('qgenda') || portalUrl.includes('app.qgenda')) {
+                          setPortalUrl('https://www.oneusap.com/assignments');
+                        }
+                        if (!portalPass || portalPass.includes('•••')) {
+                          setPortalPass('321usap');
+                        }
+                      }
+                    }}
                     style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-light)', background: 'var(--surface-hover)' }}
                   >
+                    <option value="oneusap">OneUSAP Scheduling (oneusap.com)</option>
                     <option value="qgenda">QGenda Cloud Portal</option>
                     <option value="amion">Amion Scheduling System</option>
                     <option value="custom">Custom Hospital Portal URL</option>
                   </select>
                 </div>
+
+                {portalType === 'oneusap' && (
+                  <div style={{
+                    padding: '10px 12px',
+                    borderRadius: 6,
+                    background: 'rgba(9, 105, 218, 0.08)',
+                    border: '1px solid rgba(9, 105, 218, 0.25)',
+                    fontSize: 12,
+                    color: 'var(--text-primary)',
+                    lineHeight: 1.4
+                  }}>
+                    <strong>OneUSAP Portal Mode:</strong> Connects directly to <code>https://www.oneusap.com/assignments</code> using passcode authentication. Automatically extracts working providers, phone numbers, departure lists, and late shifts for <strong>MHMC</strong> (Memorial Hermann Medical Center) and <strong>MHVIL-SC</strong> (Village SC).
+                  </div>
+                )}
 
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Portal Login URL</label>
@@ -1302,26 +1433,219 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {portalType === 'oneusap' ? (
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Account Username / Email</label>
-                    <input
-                      type="text"
-                      value={portalUser}
-                      onChange={e => setPortalUser(e.target.value)}
-                      required
-                      style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Account Password</label>
+                    <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>OneUSAP Passcode / Password</label>
                     <input
                       type="password"
                       value={portalPass}
                       onChange={e => setPortalPass(e.target.value)}
+                      placeholder="Enter OneUSAP passcode (e.g. 321usap)"
                       required
                       style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}
                     />
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                      OneUSAP only requires a passcode for access. Username is not required.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Account Username / Email</label>
+                      <input
+                        type="text"
+                        value={portalUser}
+                        onChange={e => setPortalUser(e.target.value)}
+                        required
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Account Password</label>
+                      <input
+                        type="password"
+                        value={portalPass}
+                        onChange={e => setPortalPass(e.target.value)}
+                        required
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Facility Selector for Whiteboard Scope */}
+                <div style={{
+                  padding: '12px 14px',
+                  background: 'var(--surface-hover)',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-light)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Building2 size={16} style={{ color: 'var(--accent-primary)' }} />
+                      <span style={{ fontSize: 13, fontWeight: 800 }}>Facilities to Include on Whiteboard</span>
+                    </div>
+                    <span style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: 10,
+                      background: 'rgba(9, 105, 218, 0.1)',
+                      color: 'var(--accent-primary)'
+                    }}>
+                      {selectedFacilities.length} Selected
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>
+                    Only staff and room assignments for these facilities will populate your whiteboard and Available Staff pool.
+                  </div>
+
+                  {/* Core Active Facilities */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 10 }}>
+                    {CORE_FACILITIES.map(fac => {
+                      const isSel = selectedFacilities.includes(fac.code);
+                      return (
+                        <button
+                          key={fac.code}
+                          type="button"
+                          onClick={() => toggleFacility(fac.code)}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
+                            padding: '8px 10px',
+                            borderRadius: 6,
+                            border: `1.5px solid ${isSel ? 'var(--accent-primary)' : 'var(--border-light)'}`,
+                            background: isSel ? 'rgba(9, 105, 218, 0.08)' : 'var(--surface-card)',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 2 }}>
+                            <span style={{ fontSize: 12, fontWeight: 900, color: isSel ? 'var(--accent-primary)' : 'var(--text-primary)' }}>
+                              {fac.code}
+                            </span>
+                            <div style={{
+                              width: 16,
+                              height: 16,
+                              borderRadius: 4,
+                              background: isSel ? 'var(--accent-primary)' : 'transparent',
+                              border: `1px solid ${isSel ? 'var(--accent-primary)' : 'var(--border-light)'}`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#fff'
+                            }}>
+                              {isSel && <Check size={11} strokeWidth={3} />}
+                            </div>
+                          </div>
+                          <span style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.2 }}>
+                            {fac.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Expand Other Network Facilities */}
+                  <div style={{ marginTop: 4 }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowNetworkFacilities(prev => !prev)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--accent-primary)',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: '4px 0'
+                      }}
+                    >
+                      <ChevronRight size={13} style={{ transform: showNetworkFacilities ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
+                      <span>{showNetworkFacilities ? 'Hide Other Network Facilities' : '+ Show / Add Other Health Network Facilities'}</span>
+                    </button>
+
+                    {showNetworkFacilities && (
+                      <div style={{
+                        marginTop: 8,
+                        padding: 10,
+                        background: 'var(--surface-card)',
+                        borderRadius: 6,
+                        border: '1px solid var(--border-light)'
+                      }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
+                          Click any facility code to include or exclude from this whiteboard:
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                          {NETWORK_FACILITIES.map(fac => {
+                            const isSel = selectedFacilities.includes(fac.code);
+                            return (
+                              <button
+                                key={fac.code}
+                                type="button"
+                                onClick={() => toggleFacility(fac.code)}
+                                style={{
+                                  padding: '4px 8px',
+                                  borderRadius: 4,
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  border: `1px solid ${isSel ? 'var(--accent-primary)' : 'var(--border-light)'}`,
+                                  background: isSel ? 'rgba(9, 105, 218, 0.12)' : 'var(--surface-hover)',
+                                  color: isSel ? 'var(--accent-primary)' : 'var(--text-primary)',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 4
+                                }}
+                              >
+                                {isSel && <Check size={11} strokeWidth={3} />}
+                                <span>{fac.code}</span>
+                                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>({fac.name})</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Custom Code Input */}
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <input
+                            type="text"
+                            placeholder="Add custom facility code (e.g. NWRO-SC)..."
+                            value={customFacilityCode}
+                            onChange={e => setCustomFacilityCode(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomFacility(); } }}
+                            style={{
+                              flex: 1,
+                              padding: '5px 8px',
+                              borderRadius: 4,
+                              border: '1px solid var(--border-light)',
+                              fontSize: 11
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddCustomFacility}
+                            style={{
+                              padding: '5px 12px',
+                              borderRadius: 4,
+                              background: 'var(--accent-primary)',
+                              color: '#fff',
+                              border: 'none',
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1338,23 +1662,640 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={scraperSaving}
-                  style={{
-                    marginTop: 10,
-                    padding: '12px',
+                {testSyncError && (
+                  <div style={{
+                    padding: '8px 12px',
                     borderRadius: 6,
-                    background: 'var(--accent-primary)',
-                    color: '#fff',
-                    fontWeight: 800,
-                    fontSize: 14
-                  }}
-                >
-                  {scraperSaving ? 'Saving Portal Settings...' : 'Save Scraper Credentials'}
-                </button>
+                    background: 'rgba(211, 47, 47, 0.1)',
+                    border: '1px solid rgba(211, 47, 47, 0.25)',
+                    color: 'var(--marker-red)',
+                    fontSize: 12,
+                    fontWeight: 600
+                  }}>
+                    {testSyncError}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                  <button
+                    type="submit"
+                    disabled={scraperSaving || isTestSyncing}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      borderRadius: 6,
+                      background: 'var(--accent-primary)',
+                      color: '#fff',
+                      fontWeight: 800,
+                      fontSize: 13,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {scraperSaving ? 'Saving Portal Settings...' : 'Save Scraper Credentials'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleTestSync}
+                    disabled={scraperSaving || isTestSyncing}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      borderRadius: 6,
+                      background: 'rgba(9, 105, 218, 0.12)',
+                      border: '1.5px solid var(--accent-primary)',
+                      color: 'var(--accent-primary)',
+                      fontWeight: 800,
+                      fontSize: 13,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <RefreshCw size={15} className={isTestSyncing ? 'animate-spin' : ''} />
+                    <span>{isTestSyncing ? 'Scraping OneUSAP...' : 'Test Sync (Preview Data)'}</span>
+                  </button>
+                </div>
               </div>
             </form>
+          )}
+
+          {/* Test Sync Preview Modal Overlay */}
+          {testSyncResult && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.75)',
+                backdropFilter: 'blur(5px)',
+                zIndex: 100,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 20
+              }}
+              onClick={() => setTestSyncResult(null)}
+            >
+              <div
+                style={{
+                  background: 'var(--surface-card)',
+                  borderRadius: 12,
+                  width: 820,
+                  maxWidth: '95vw',
+                  maxHeight: '90vh',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxShadow: '0 25px 60px rgba(0, 0, 0, 0.5)',
+                  border: '1.5px solid var(--border-light)',
+                  overflow: 'hidden'
+                }}
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Preview Header */}
+                <div style={{
+                  padding: '14px 20px',
+                  borderBottom: '1px solid var(--border-light)',
+                  background: 'var(--surface-hover)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      background: 'rgba(46, 160, 67, 0.15)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--marker-green)'
+                    }}>
+                      <CheckCircle2 size={18} />
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 16, fontWeight: 900, textTransform: 'uppercase' }}>
+                          OneUSAP Scrape Preview
+                        </span>
+                        <span style={{
+                          fontSize: 10,
+                          fontWeight: 800,
+                          background: 'rgba(46, 160, 67, 0.15)',
+                          color: 'var(--marker-green)',
+                          padding: '2px 8px',
+                          borderRadius: 10
+                        }}>
+                          CONNECTED • LIVE TEST
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Facilities Included:</span>
+                        {(testSyncResult.selectedFacilities || testSyncResult.facilities || ['MHMC', 'MHVIL-SC', 'HIVF-SC']).map(fac => {
+                          const count = testSyncResult.rawCounts?.facilityStaffCounts?.[fac] ?? (fac === 'MHMC' ? testSyncResult.rawCounts?.mhmcStaffCount : (fac === 'MHVIL-SC' ? testSyncResult.rawCounts?.mhvilStaffCount : undefined));
+                          return (
+                            <span key={fac} style={{
+                              fontSize: 10,
+                              fontWeight: 800,
+                              background: 'var(--surface-hover)',
+                              border: '1px solid var(--border-light)',
+                              padding: '1px 6px',
+                              borderRadius: 4,
+                              color: 'var(--text-primary)'
+                            }}>
+                              {fac} {count !== undefined ? `(${count})` : ''}
+                            </span>
+                          );
+                        })}
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 4 }}>
+                          &bull; Scraped: {new Date(testSyncResult.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setTestSyncResult(null)}
+                    style={{
+                      border: '1px solid var(--border-light)',
+                      background: 'var(--surface-card)',
+                      borderRadius: 6,
+                      padding: 6,
+                      cursor: 'pointer',
+                      color: 'var(--text-muted)'
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                {/* Metrics Summary Grid */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: 10,
+                  padding: '12px 20px',
+                  background: 'rgba(0,0,0,0.02)',
+                  borderBottom: '1px solid var(--border-light)'
+                }}>
+                  <div style={{ padding: '8px 12px', background: 'var(--surface-card)', borderRadius: 8, border: '1px solid var(--border-light)' }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Working Staff Today</div>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--accent-primary)' }}>{testSyncResult.workingStaff.length}</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Scheduled Active on Duty</div>
+                  </div>
+
+                  <div style={{ padding: '8px 12px', background: 'var(--surface-card)', borderRadius: 8, border: '1px solid var(--border-light)' }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Departure Docs</div>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--marker-red)' }}>{testSyncResult.departureCandidates.length}</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                      {testSyncResult.departureCandidates.filter(c => c.category === 'post_call').length} Post-Call &bull; {testSyncResult.departureCandidates.filter(c => c.category === 'non_call').length} Non-Call
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '8px 12px', background: 'var(--surface-card)', borderRadius: 8, border: '1px solid var(--border-light)' }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Late Shifts</div>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: '#f59e0b' }}>{testSyncResult.lateCandidates.length}</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>3p, 4p, 5p, 7p, 8p, Night</div>
+                  </div>
+
+                  <div style={{ padding: '8px 12px', background: 'var(--surface-card)', borderRadius: 8, border: '1px solid var(--border-light)' }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Call Team</div>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--text-primary)' }}>{testSyncResult.callTeamCandidates.length}</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>CV, 1st, 2nd, 3rd, OB</div>
+                  </div>
+                </div>
+
+                {/* Sub-tabs Navigation */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '10px 20px',
+                  borderBottom: '1px solid var(--border-light)',
+                  background: 'var(--surface-card)'
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => setTestSyncTab('staff')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 6,
+                      fontSize: 12,
+                      fontWeight: 800,
+                      background: testSyncTab === 'staff' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                      color: testSyncTab === 'staff' ? '#fff' : 'var(--text-primary)',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Working Staff Today ({testSyncResult.workingStaff.length})
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTestSyncTab('departure')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 6,
+                      fontSize: 12,
+                      fontWeight: 800,
+                      background: testSyncTab === 'departure' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                      color: testSyncTab === 'departure' ? '#fff' : 'var(--text-primary)',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Departure Candidates ({testSyncResult.departureCandidates.length})
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTestSyncTab('lates')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 6,
+                      fontSize: 12,
+                      fontWeight: 800,
+                      background: testSyncTab === 'lates' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                      color: testSyncTab === 'lates' ? '#fff' : 'var(--text-primary)',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Late Shifts ({testSyncResult.lateCandidates.length})
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTestSyncTab('callTeam')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 6,
+                      fontSize: 12,
+                      fontWeight: 800,
+                      background: testSyncTab === 'callTeam' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                      color: testSyncTab === 'callTeam' ? '#fff' : 'var(--text-primary)',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Call Team ({testSyncResult.callTeamCandidates.length})
+                  </button>
+                </div>
+
+                {/* Tab Content Area */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px' }}>
+                  {/* 1. Working Staff Roster */}
+                  {testSyncTab === 'staff' && (
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                          These {testSyncResult.workingStaff.length} providers will populate the <strong>Available Unassigned Staff</strong> pool:
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Filter name, QGenda ID, room, credential..."
+                          value={testStaffFilter}
+                          onChange={e => setTestStaffFilter(e.target.value)}
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: 6,
+                            border: '1px solid var(--border-light)',
+                            fontSize: 12,
+                            width: 250
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ border: '1px solid var(--border-light)', borderRadius: 8, overflow: 'hidden' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                          <thead>
+                            <tr style={{ background: 'var(--surface-hover)', borderBottom: '1px solid var(--border-light)', textAlign: 'left' }}>
+                              <th style={{ padding: '8px 10px' }}>Provider Name</th>
+                              <th style={{ padding: '8px 10px' }}>Order #</th>
+                              <th style={{ padding: '8px 10px' }}>QGenda ID</th>
+                              <th style={{ padding: '8px 10px' }}>Credential</th>
+                              <th style={{ padding: '8px 10px' }}>Assigned Room(s)</th>
+                              <th style={{ padding: '8px 10px' }}>Facility</th>
+                              <th style={{ padding: '8px 10px' }}>Shift</th>
+                              <th style={{ padding: '8px 10px' }}>Phone / SMS</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {testSyncResult.workingStaff
+                              .filter(s => !testStaffFilter.trim() || 
+                                s.displayName.toLowerCase().includes(testStaffFilter.toLowerCase()) ||
+                                (s.qgendaAbbr && s.qgendaAbbr.toLowerCase().includes(testStaffFilter.toLowerCase())) ||
+                                s.facility.toLowerCase().includes(testStaffFilter.toLowerCase()) ||
+                                (s.roomAssignment && s.roomAssignment.toLowerCase().includes(testStaffFilter.toLowerCase())) ||
+                                s.credentials.toLowerCase().includes(testStaffFilter.toLowerCase())
+                              )
+                              .map(s => (
+                                <tr key={s.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
+                                  <td style={{ padding: '8px 10px', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
+                                    {s.displayName}
+                                  </td>
+                                  <td style={{ padding: '8px 10px', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-secondary)' }}>
+                                    {s.orderNumber ? (
+                                      <span style={{
+                                        fontSize: 10,
+                                        fontWeight: 800,
+                                        background: 'rgba(9, 105, 218, 0.08)',
+                                        color: 'var(--accent-primary)',
+                                        padding: '1px 5px',
+                                        borderRadius: 3
+                                      }}>
+                                        #{s.orderNumber}
+                                      </span>
+                                    ) : '—'}
+                                  </td>
+                                  <td style={{ padding: '8px 10px' }}>
+                                    <span style={{
+                                      fontFamily: 'var(--font-mono)',
+                                      fontSize: 11,
+                                      fontWeight: 700,
+                                      background: 'rgba(9, 105, 218, 0.08)',
+                                      color: 'var(--accent-primary)',
+                                      padding: '2px 6px',
+                                      borderRadius: 4,
+                                      border: '1px solid rgba(9, 105, 218, 0.2)'
+                                    }}>
+                                      {s.qgendaAbbr || s.rawId || '—'}
+                                    </span>
+                                  </td>
+                                  <td style={{ padding: '8px 10px' }}>
+                                    <span className={`magnet-cred cred-${s.credentials}`}>
+                                      {s.credentials}
+                                    </span>
+                                  </td>
+                                  <td style={{ padding: '8px 10px' }}>
+                                    {s.roomAssignment ? (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                        <span style={{
+                                          fontWeight: 800,
+                                          fontSize: 11,
+                                          background: 'rgba(46, 160, 67, 0.12)',
+                                          color: 'var(--marker-green)',
+                                          padding: '2px 6px',
+                                          borderRadius: 4,
+                                          border: '1px solid rgba(46, 160, 67, 0.25)'
+                                        }}>
+                                          {s.roomAssignment}
+                                        </span>
+                                        {s.startTime && (
+                                          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>
+                                            ({s.startTime})
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <span style={{
+                                        fontSize: 10,
+                                        color: 'var(--text-muted)',
+                                        fontStyle: 'italic',
+                                        background: 'var(--surface-hover)',
+                                        padding: '2px 6px',
+                                        borderRadius: 4
+                                      }}>
+                                        Unassigned (Bullpen / Runner Candidate)
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td style={{ padding: '8px 10px', color: 'var(--text-muted)' }}>
+                                    {s.facility}
+                                  </td>
+                                  <td style={{ padding: '8px 10px', fontWeight: 700, color: 'var(--accent-primary)' }}>
+                                    {s.shift || 'Day'}
+                                  </td>
+                                  <td style={{ padding: '8px 10px', fontFamily: 'var(--font-mono)' }}>
+                                    {s.phone !== '(555) 000-0000' ? (
+                                      <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{s.phone}</span>
+                                    ) : (
+                                      <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Not listed</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 2. Departure Candidates */}
+                  {testSyncTab === 'departure' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                      {/* Post-Call List */}
+                      <div style={{ border: '1px solid var(--border-light)', borderRadius: 8, padding: 12 }}>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: 'var(--marker-red)', marginBottom: 8 }}>
+                          POST-CALL DOCTORS ({testSyncResult.departureCandidates.filter(c => c.category === 'post_call').length})
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {testSyncResult.departureCandidates
+                            .filter(c => c.category === 'post_call')
+                            .map((c, i) => (
+                              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: 'var(--surface-hover)', borderRadius: 6 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  {c.orderNumber && (
+                                    <span style={{
+                                      fontSize: 10,
+                                      fontWeight: 900,
+                                      color: 'var(--marker-red)',
+                                      background: 'rgba(211, 47, 47, 0.1)',
+                                      border: '1px solid rgba(211, 47, 47, 0.25)',
+                                      padding: '1px 5px',
+                                      borderRadius: 4
+                                    }}>
+                                      #{c.orderNumber}
+                                    </span>
+                                  )}
+                                  <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{c.name}</span>
+                                  {c.qgendaAbbr && (
+                                    <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', background: 'var(--surface-card)', padding: '1px 4px', borderRadius: 3 }}>
+                                      {c.qgendaAbbr}
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  {c.roomAssignment && (
+                                    <span style={{ fontSize: 10, color: 'var(--marker-green)', fontWeight: 700 }}>
+                                      {c.roomAssignment}
+                                    </span>
+                                  )}
+                                  <span style={{ fontSize: 11, color: 'var(--marker-red)', fontWeight: 700 }}>{c.shift || 'Post-Call'}</span>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+
+                      {/* Non-Call List */}
+                      <div style={{ border: '1px solid var(--border-light)', borderRadius: 8, padding: 12 }}>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: 'var(--text-primary)', marginBottom: 8 }}>
+                          NON-CALL DOCTORS ({testSyncResult.departureCandidates.filter(c => c.category === 'non_call').length})
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 340, overflowY: 'auto' }}>
+                          {testSyncResult.departureCandidates
+                            .filter(c => c.category === 'non_call')
+                            .map((c, i) => (
+                              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: 'var(--surface-hover)', borderRadius: 6 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  {c.orderNumber && (
+                                    <span style={{
+                                      fontSize: 10,
+                                      fontWeight: 900,
+                                      color: 'var(--accent-primary)',
+                                      background: 'rgba(9, 105, 218, 0.1)',
+                                      border: '1px solid rgba(9, 105, 218, 0.25)',
+                                      padding: '1px 5px',
+                                      borderRadius: 4
+                                    }}>
+                                      #{c.orderNumber}
+                                    </span>
+                                  )}
+                                  <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{c.name}</span>
+                                  {c.qgendaAbbr && (
+                                    <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', background: 'var(--surface-card)', padding: '1px 4px', borderRadius: 3 }}>
+                                      {c.qgendaAbbr}
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  {c.roomAssignment && (
+                                    <span style={{ fontSize: 10, color: 'var(--marker-green)', fontWeight: 700 }}>
+                                      {c.roomAssignment}
+                                    </span>
+                                  )}
+                                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{c.facility} {c.shift ? `(${c.shift})` : ''}</span>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 3. Late Shift Candidates */}
+                  {testSyncTab === 'lates' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {['3p', '4p', '5p', '7p', '8p', '7p-7a'].map(timeCat => {
+                        const inCat = testSyncResult.lateCandidates.filter(l => l.timeCategory === timeCat);
+                        if (inCat.length === 0) return null;
+                        return (
+                          <div key={timeCat} style={{ border: '1px solid var(--border-light)', borderRadius: 8, padding: 10 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                              <span style={{ fontSize: 13, fontWeight: 900, background: '#f59e0b', color: '#fff', padding: '2px 8px', borderRadius: 4 }}>
+                                {timeCat.toUpperCase()}
+                              </span>
+                              <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 700 }}>
+                                {inCat.length} providers
+                              </span>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 6 }}>
+                              {inCat.map((l, i) => (
+                                <div key={i} style={{ padding: '6px 10px', background: 'var(--surface-hover)', borderRadius: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                      {l.orderNumber && (
+                                        <span style={{
+                                          fontSize: 9,
+                                          fontWeight: 900,
+                                          color: 'var(--text-secondary)',
+                                          background: 'rgba(0,0,0,0.06)',
+                                          border: '1px solid var(--border-light)',
+                                          padding: '1px 4px',
+                                          borderRadius: 3
+                                        }}>
+                                          #{l.orderNumber}
+                                        </span>
+                                      )}
+                                      <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', fontSize: 12 }}>{l.name}</span>
+                                    </div>
+                                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{l.role} &bull; {l.facility}</span>
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 10 }}>
+                                    {l.qgendaAbbr && <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)' }}>{l.qgendaAbbr}</span>}
+                                    {l.roomAssignment && <span style={{ color: 'var(--marker-green)', fontWeight: 700 }}>{l.roomAssignment}</span>}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* 4. Call Team Preview */}
+                  {testSyncTab === 'callTeam' && (
+                    <div style={{ maxWidth: 540 }}>
+                      <div style={{ border: '1px solid var(--border-light)', borderRadius: 8, overflow: 'hidden' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                          <thead>
+                            <tr style={{ background: 'var(--surface-hover)', borderBottom: '1px solid var(--border-light)', textAlign: 'left' }}>
+                              <th style={{ padding: '8px 12px' }}>Role</th>
+                              <th style={{ padding: '8px 12px' }}>Assigned Doctor</th>
+                              <th style={{ padding: '8px 12px' }}>Order #</th>
+                              <th style={{ padding: '8px 12px' }}>QGenda ID</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {testSyncResult.callTeamCandidates.map((c, i) => (
+                              <tr key={i} style={{ borderBottom: '1px solid var(--border-light)' }}>
+                                <td style={{ padding: '8px 12px', fontWeight: 800, color: 'var(--accent-primary)' }}>{c.role}</td>
+                                <td style={{ padding: '8px 12px', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{c.doctorName}</td>
+                                <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-secondary)' }}>
+                                  {c.orderNumber ? `#${c.orderNumber}` : '—'}
+                                </td>
+                                <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-muted)' }}>
+                                  {c.qgendaAbbr || '—'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Preview Footer */}
+                <div style={{
+                  padding: '12px 20px',
+                  borderTop: '1px solid var(--border-light)',
+                  background: 'var(--surface-hover)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    <strong>Note:</strong> This is a live preview test. Your active whiteboard, rooms, and assignments remain unmodified.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTestSyncResult(null)}
+                    style={{
+                      padding: '8px 18px',
+                      borderRadius: 6,
+                      background: 'var(--accent-primary)',
+                      color: '#fff',
+                      fontWeight: 800,
+                      fontSize: 12,
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Close Preview
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>

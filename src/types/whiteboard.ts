@@ -23,6 +23,9 @@ export interface Staff {
   shift?: string;
   active: boolean;
   notes?: string;
+  facility?: string;
+  assignedRoom?: string;
+  qgendaAbbr?: string;
 }
 
 export interface RoomSlot {
@@ -73,6 +76,9 @@ export interface DepartureItem {
   role?: string;
   timeEstimate?: string;
   notes?: string;
+  orderNumber?: number;
+  qgendaAbbr?: string;
+  assignedRoom?: string;
 }
 
 export interface LateShiftItem {
@@ -81,6 +87,10 @@ export interface LateShiftItem {
   timeCategory: string; // e.g. "4p", "5p", "7p", "8p", "7p-7a"
   orderIndex: number;
   notes?: string;
+  orderNumber?: number;
+  qgendaAbbr?: string;
+  assignedRoom?: string;
+  role?: string;
 }
 
 export interface AuditLogEntry {
@@ -120,10 +130,11 @@ export interface CallTeamItem {
   role: string;       // e.g. "CV", "1st Call", "2nd Call", "3rd Call", "OB Call"
   doctorName: string; // e.g. "KD", "SHENOY", "TALL", "LU"
   orderIndex: number;
+  qgendaAbbr?: string;
 }
 
 export interface ScraperConfig {
-  portalType: 'qgenda' | 'amion' | 'custom';
+  portalType: 'oneusap' | 'qgenda' | 'amion' | 'custom';
   portalUrl: string;
   username: string;
   password: string;
@@ -131,6 +142,69 @@ export interface ScraperConfig {
   lastSyncTime?: string | null;
   lastSyncStatus?: 'idle' | 'success' | 'failed';
   mockMode: boolean;
+  selectedFacilities?: string[];
+}
+
+export interface ScrapedWorkingStaffItem {
+  id: string;
+  displayName: string;
+  lastName: string;
+  firstName: string;
+  credentials: StaffCredential;
+  phone: string;
+  facility: string;
+  shift?: string;
+  roomAssignment?: string;
+  assignedRooms?: string[];
+  startTime?: string;
+  rawId?: string;
+  qgendaAbbr?: string;
+  orderNumber?: number;
+}
+
+export interface ScraperPreviewResult {
+  success: boolean;
+  portalType: string;
+  sourceUrl: string;
+  timestamp: string;
+  facilities: string[];
+  selectedFacilities?: string[];
+  availableFacilities?: Array<{ code: string; fullCode: string; name: string }>;
+  workingStaff: ScrapedWorkingStaffItem[];
+  departureCandidates: Array<{
+    name: string;
+    category: 'post_call' | 'non_call';
+    shift?: string;
+    facility: string;
+    qgendaAbbr?: string;
+    roomAssignment?: string;
+    orderNumber?: number;
+  }>;
+  lateCandidates: Array<{
+    name: string;
+    timeCategory: string;
+    facility: string;
+    role: string;
+    qgendaAbbr?: string;
+    roomAssignment?: string;
+    orderNumber?: number;
+  }>;
+  callTeamCandidates: Array<{
+    role: string;
+    doctorName: string;
+    qgendaAbbr?: string;
+    orderNumber?: number;
+  }>;
+  rawCounts: {
+    totalWorkingStaff: number;
+    totalDocs: number;
+    totalAnes: number;
+    mhmcStaffCount: number;
+    mhvilStaffCount: number;
+    phoneNumbersCount: number;
+    facilityStaffCounts?: Record<string, number>;
+  };
+  error?: string;
 }
 
 export interface BoardState {

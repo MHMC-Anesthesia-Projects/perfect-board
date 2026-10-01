@@ -1,5 +1,123 @@
 [
   {
+    "id": "audit_1790891384483_ccden",
+    "timestamp": "2026-10-01T21:49:44.483Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "PATEL",
+    "details": "Unmarked doctor PATEL departure status"
+  },
+  {
+    "id": "audit_1790891383739_io1ll",
+    "timestamp": "2026-10-01T21:49:43.739Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "PATEL",
+    "details": "Marked doctor PATEL as DEPARTED [Strikethrough]"
+  },
+  {
+    "id": "audit_1790891364576_9gkpl",
+    "timestamp": "2026-10-01T21:49:24.576Z",
+    "actionType": "DEPARTURE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
+  },
+  {
+    "id": "audit_1790891233242_yaz3x",
+    "timestamp": "2026-10-01T21:47:13.242Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "TAYLOR",
+    "details": "Unmarked doctor TAYLOR departure status"
+  },
+  {
+    "id": "audit_1790891231997_fgylw",
+    "timestamp": "2026-10-01T21:47:11.997Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "TAYLOR",
+    "details": "Marked doctor TAYLOR as DEPARTED [Strikethrough]"
+  },
+  {
+    "id": "audit_1790891202599_8qk07",
+    "timestamp": "2026-10-01T21:46:42.599Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1790890800681_mqib4",
+    "timestamp": "2026-10-01T21:40:00.681Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated scraper configuration for portal: oneusap (https://www.oneusap.com/assignments)"
+  },
+  {
+    "id": "audit_1790890794261_kwewi",
+    "timestamp": "2026-10-01T21:39:54.261Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated scraper configuration for portal: oneusap (https://www.oneusap.com/assignments)"
+  },
+  {
+    "id": "audit_1790890532319_9pk8n",
+    "timestamp": "2026-10-01T21:35:32.319Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Baerenstecher Baerenstecher",
+    "locationName": "WEST PAV Runner (Runner 2)",
+    "details": "Assigned to WEST PAV Runner (Runner 2)"
+  },
+  {
+    "id": "audit_1790890515830_nr0af",
+    "timestamp": "2026-10-01T21:35:15.830Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Gunn Gunn",
+    "locationName": "WEST PAV Runner (Runner 1)",
+    "details": "Moved from WEST PAV Runner (Runner 2) -> WEST PAV Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1790875602493_gpmue",
+    "timestamp": "2026-10-01T17:26:42.493Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Gashler Gashler",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790875591616_m0lcv",
+    "timestamp": "2026-10-01T17:26:31.616Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Gashler Gashler",
+    "locationName": "Available Unassigned Staff",
+    "details": "Moved from Bullpen -> Available Unassigned Staff"
+  },
+  {
+    "id": "audit_1790875586154_1phcv",
+    "timestamp": "2026-10-01T17:26:26.154Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Gashler Gashler",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Room 3 -> Bullpen (Available Staff)"
+  },
+  {
     "id": "audit_1790875387310_3gmb2",
     "timestamp": "2026-10-01T17:23:07.310Z",
     "actionType": "STAFF_UNASSIGNED",
