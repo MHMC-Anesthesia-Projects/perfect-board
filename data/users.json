@@ -1,0 +1,22 @@
+[
+  {
+    "id": "user_superuser_1",
+    "username": "admin",
+    "displayName": "Dr. Admin (Superuser)",
+    "role": "superuser",
+    "pin": "9999",
+    "password": "admin",
+    "active": true,
+    "createdAt": "2026-10-01T13:20:55.289Z"
+  },
+  {
+    "id": "user_runner_1",
+    "username": "runner",
+    "displayName": "Charge Nurse (Board Runner)",
+    "role": "board_runner",
+    "pin": "1234",
+    "password": "runner",
+    "active": true,
+    "createdAt": "2026-10-01T13:20:55.289Z"
+  }
+]

@@ -1,0 +1,392 @@
+'use client';
+
+import React, { useState } from 'react';
+import { Staff, Department, UserRole } from '@/types/whiteboard';
+import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, CheckCircle, ShieldCheck } from 'lucide-react';
+
+interface StaffModalProps {
+  staff: Staff | null;
+  departments: Department[];
+  currentUserRole: UserRole;
+  onClose: () => void;
+  onAssignToSlot: (targetType: 'room_slot' | 'runner_slot', targetId: string, staffId: string) => void;
+  onUnassign: (staffId: string) => void;
+  onToggleBreak: (targetType: 'room_slot' | 'runner_slot', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
+}
+
+export const StaffModal: React.FC<StaffModalProps> = ({
+  staff,
+  departments,
+  currentUserRole,
+  onClose,
+  onAssignToSlot,
+  onUnassign,
+  onToggleBreak
+}) => {
+  const [selectedDestination, setSelectedDestination] = useState<string>('');
+
+  if (!staff) return null;
+
+  const isEditor = currentUserRole !== 'basic_user';
+
+  // Find where this staff is currently assigned
+  let currentPlacement: {
+    type: 'runner_slot' | 'room_slot';
+    id: string;
+    locationName: string;
+    breakfastDone: boolean;
+    lunchDone: boolean;
+  } | null = null;
+
+  for (const dept of departments) {
+    for (const r of dept.runnerSlots) {
+      if (r.staffId === staff.id) {
+        currentPlacement = {
+          type: 'runner_slot',
+          id: r.id,
+          locationName: `${dept.name} Runner (${r.title})`,
+          breakfastDone: r.breakfastDone,
+          lunchDone: r.lunchDone
+        };
+        break;
+      }
+    }
+    if (currentPlacement) break;
+
+    for (const room of dept.rooms) {
+      for (const slot of room.slots) {
+        if (slot.staffId === staff.id) {
+          currentPlacement = {
+            type: 'room_slot',
+            id: slot.id,
+            locationName: `${dept.name} Room ${room.name}`,
+            breakfastDone: slot.breakfastDone,
+            lunchDone: slot.lunchDone
+          };
+          break;
+        }
+      }
+      if (currentPlacement) break;
+    }
+    if (currentPlacement) break;
+  }
+
+  // Available room & runner slots for quick reassignment
+  const availableSlots: Array<{ id: string; type: 'room_slot' | 'runner_slot'; label: string }> = [];
+  departments.forEach(dept => {
+    dept.runnerSlots.forEach(r => {
+      availableSlots.push({
+        id: r.id,
+        type: 'runner_slot',
+        label: `${dept.name} Runner: ${r.title}`
+      });
+    });
+    dept.rooms.forEach(room => {
+      room.slots.forEach(slot => {
+        availableSlots.push({
+          id: slot.id,
+          type: 'room_slot',
+          label: `${dept.name} Room ${room.name}`
+        });
+      });
+    });
+  });
+
+  const handleReassign = () => {
+    if (!selectedDestination) return;
+    const dest = availableSlots.find(s => s.id === selectedDestination);
+    if (dest) {
+      onAssignToSlot(dest.type, dest.id, staff.id);
+      onClose();
+    }
+  };
+
+  const handleUnassignClick = () => {
+    onUnassign(staff.id);
+    onClose();
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div
+        className="pin-pad-card"
+        onClick={e => e.stopPropagation()}
+        style={{ width: 440, padding: 24, textAlign: 'left', alignItems: 'stretch' }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 900, textTransform: 'uppercase' }}>
+                {staff.lastName}, {staff.firstName || ''}
+              </h2>
+              <span className={`magnet-cred cred-${staff.credentials}`} style={{ fontSize: 11, padding: '2px 6px' }}>
+                {staff.credentials}
+              </span>
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+              ID: {staff.id.split('_').slice(-1)[0]} • Anesthesia Care Team
+            </div>
+          </div>
+          <button onClick={onClose} style={{ color: 'var(--text-muted)' }}>
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Contact & Shift Info */}
+        <div style={{
+          background: 'var(--surface-hover)',
+          borderRadius: 8,
+          padding: '12px 14px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+          border: '1px solid var(--border-light)',
+          marginBottom: 16
+        }}>
+          {/* Phone */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
+              <Phone size={15} style={{ color: 'var(--accent-primary)' }} />
+              <span style={{ fontWeight: 600 }}>Cell Phone:</span>
+              <a
+                href={`tel:${staff.phone}`}
+                style={{ fontWeight: 800, color: 'var(--accent-primary)', textDecoration: 'underline' }}
+              >
+                {staff.phone}
+              </a>
+            </div>
+          </div>
+
+          {/* Shift */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
+            <Clock size={15} style={{ color: 'var(--marker-red)' }} />
+            <span style={{ fontWeight: 600 }}>Scheduled Shift:</span>
+            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{staff.shift || '07:00 - 15:30'}</span>
+          </div>
+
+          {/* Current Assignment */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
+            <MapPin size={15} style={{ color: 'var(--marker-green)' }} />
+            <span style={{ fontWeight: 600 }}>Current Assignment:</span>
+            <span style={{
+              fontWeight: 800,
+              color: currentPlacement ? 'var(--text-primary)' : 'var(--text-muted)',
+              background: currentPlacement ? 'var(--surface-card)' : 'transparent',
+              padding: currentPlacement ? '2px 6px' : '0',
+              borderRadius: 4,
+              border: currentPlacement ? '1px solid var(--border-light)' : 'none'
+            }}>
+              {currentPlacement ? currentPlacement.locationName : 'Bullpen (Unassigned)'}
+            </span>
+          </div>
+        </div>
+
+        {/* Break Management Status (Accessible to ALL users, including Basic User!) */}
+        {currentPlacement && (
+          <div style={{
+            background: 'var(--surface-card)',
+            borderRadius: 8,
+            padding: '12px 14px',
+            border: '1.5px solid var(--border-light)',
+            marginBottom: 16
+          }}>
+            <div style={{
+              fontSize: 12,
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+              color: 'var(--text-secondary)',
+              marginBottom: 10,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <span>Daily Meal & Rest Breaks</span>
+              <span style={{ fontSize: 10, color: 'var(--marker-green)' }}>● Zero-Login Access</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {/* Breakfast Break Toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (currentPlacement) {
+                    onToggleBreak(currentPlacement.type, currentPlacement.id, 'breakfast', !currentPlacement.breakfastDone);
+                  }
+                }}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: 6,
+                  border: currentPlacement.breakfastDone ? '1.5px solid var(--break-done-border)' : '1px solid var(--border-light)',
+                  background: currentPlacement.breakfastDone ? 'rgba(46, 160, 67, 0.12)' : 'var(--surface-hover)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  textAlign: 'left'
+                }}
+              >
+                <div style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: 4,
+                  background: currentPlacement.breakfastDone ? 'var(--break-done-bg)' : 'var(--break-empty-bg)',
+                  color: currentPlacement.breakfastDone ? '#fff' : 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 800,
+                  fontSize: 12
+                }}>
+                  {currentPlacement.breakfastDone ? '✓' : 'B'}
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)' }}>Breakfast</div>
+                  <div style={{ fontSize: 10, color: currentPlacement.breakfastDone ? 'var(--break-done-border)' : 'var(--text-muted)' }}>
+                    {currentPlacement.breakfastDone ? 'Completed [✓]' : 'Pending'}
+                  </div>
+                </div>
+              </button>
+
+              {/* Lunch Break Toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (currentPlacement) {
+                    onToggleBreak(currentPlacement.type, currentPlacement.id, 'lunch', !currentPlacement.lunchDone);
+                  }
+                }}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: 6,
+                  border: currentPlacement.lunchDone ? '1.5px solid var(--break-done-border)' : '1px solid var(--border-light)',
+                  background: currentPlacement.lunchDone ? 'rgba(46, 160, 67, 0.12)' : 'var(--surface-hover)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  textAlign: 'left'
+                }}
+              >
+                <div style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: 4,
+                  background: currentPlacement.lunchDone ? 'var(--break-done-bg)' : 'var(--break-empty-bg)',
+                  color: currentPlacement.lunchDone ? '#fff' : 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 800,
+                  fontSize: 12
+                }}>
+                  {currentPlacement.lunchDone ? '✓' : 'L'}
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)' }}>Lunch</div>
+                  <div style={{ fontSize: 10, color: currentPlacement.lunchDone ? 'var(--break-done-border)' : 'var(--text-muted)' }}>
+                    {currentPlacement.lunchDone ? 'Completed [✓]' : 'Pending'}
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Board Runner / Superuser Assignment Controls */}
+        {isEditor ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {/* Quick Reassign Dropdown */}
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
+                Move or Assign to Room / Runner:
+              </label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <select
+                  value={selectedDestination}
+                  onChange={e => setSelectedDestination(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '8px 10px',
+                    borderRadius: 6,
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--surface-hover)',
+                    color: 'var(--text-primary)',
+                    fontSize: 13,
+                    fontWeight: 600
+                  }}
+                >
+                  <option value="">Select Target Room or Runner...</option>
+                  {availableSlots.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={handleReassign}
+                  disabled={!selectedDestination}
+                  style={{
+                    padding: '8px 14px',
+                    background: selectedDestination ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                    color: selectedDestination ? '#fff' : 'var(--text-muted)',
+                    borderRadius: 6,
+                    fontWeight: 700,
+                    fontSize: 13,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4
+                  }}
+                >
+                  <span>Assign</span>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Unassign back to bullpen if placed */}
+            {currentPlacement && (
+              <button
+                type="button"
+                onClick={handleUnassignClick}
+                style={{
+                  marginTop: 6,
+                  padding: '10px',
+                  borderRadius: 6,
+                  background: 'var(--surface-hover)',
+                  border: '1px solid var(--border-light)',
+                  color: 'var(--marker-red)',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6
+                }}
+              >
+                <CornerDownLeft size={16} />
+                <span>Return to Bullpen</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div style={{
+            padding: 10,
+            borderRadius: 6,
+            background: 'var(--surface-hover)',
+            fontSize: 12,
+            color: 'var(--text-secondary)',
+            textAlign: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6
+          }}>
+            <ShieldCheck size={14} style={{ color: 'var(--text-muted)' }} />
+            <span>Login as Board Runner or Superuser to move staff.</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

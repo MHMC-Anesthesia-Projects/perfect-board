@@ -1,0 +1,2208 @@
+{
+  "version": 1,
+  "lastUpdated": "2026-10-01T13:39:08.234Z",
+  "departments": [
+    {
+      "id": "dept_main_or",
+      "name": "MAIN OR",
+      "orderIndex": 0,
+      "runnerSlots": [
+        {
+          "id": "runner_main_or_1",
+          "title": "CAVANAUGH",
+          "staffId": "staff_cavanaugh_0",
+          "breakfastDone": false,
+          "lunchDone": false
+        },
+        {
+          "id": "runner_main_or_2",
+          "title": "SHENOY",
+          "staffId": "staff_shenoy_1",
+          "breakfastDone": false,
+          "lunchDone": false
+        }
+      ],
+      "rooms": [
+        {
+          "id": "dept_main_or_room_1",
+          "name": "1",
+          "orderIndex": 1,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_main_or_room_1_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_main_or_room_2",
+          "name": "2",
+          "orderIndex": 2,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_main_or_room_2_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_choi_8",
+              "breakfastDone": true,
+              "lunchDone": false,
+              "notes": "",
+              "breakfastTime": "2026-10-01T13:20:44.922Z"
+            }
+          ]
+        },
+        {
+          "id": "dept_main_or_room_3",
+          "name": "3",
+          "orderIndex": 3,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_main_or_room_3_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_gashler_9",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_main_or_room_4",
+          "name": "4",
+          "orderIndex": 4,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_main_or_room_4_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_vantassel_10",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_main_or_room_5",
+          "name": "5",
+          "orderIndex": 5,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_main_or_room_5_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_matre_11",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_main_or_room_6",
+          "name": "6",
+          "orderIndex": 6,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_main_or_room_6_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_mcguire_12",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_main_or_room_7",
+          "name": "7",
+          "orderIndex": 7,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_main_or_room_7_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_main_or_room_8",
+          "name": "8",
+          "orderIndex": 8,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_main_or_room_8_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_chen_r_55",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_main_or_room_9",
+          "name": "9",
+          "orderIndex": 9,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_main_or_room_9_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_njogopa_43",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_main_or_room_10",
+          "name": "10",
+          "orderIndex": 10,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_main_or_room_10_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_main_or_room_11",
+          "name": "11",
+          "orderIndex": 11,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_main_or_room_11_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_kovac_14",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_main_or_room_12",
+          "name": "12",
+          "orderIndex": 12,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_main_or_room_12_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dept_west_pav",
+      "name": "WEST PAV",
+      "orderIndex": 1,
+      "runnerSlots": [
+        {
+          "id": "runner_west_pav_1",
+          "title": "CHUAN",
+          "staffId": "staff_chuan_2",
+          "breakfastDone": false,
+          "lunchDone": false
+        },
+        {
+          "id": "runner_west_pav_2",
+          "title": "PATEL P",
+          "staffId": null,
+          "breakfastDone": false,
+          "lunchDone": false
+        }
+      ],
+      "rooms": [
+        {
+          "id": "dept_west_pav_room_1",
+          "name": "1",
+          "orderIndex": 1,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_west_pav_room_1_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_beard_15",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_west_pav_room_2",
+          "name": "2",
+          "orderIndex": 2,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_west_pav_room_2_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_markette_16",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_west_pav_room_3",
+          "name": "3",
+          "orderIndex": 3,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_west_pav_room_3_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_andes_m_s_17",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_west_pav_room_4",
+          "name": "4",
+          "orderIndex": 4,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_west_pav_room_4_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_walker_18",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_west_pav_room_5",
+          "name": "5",
+          "orderIndex": 5,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_west_pav_room_5_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_west_pav_room_6",
+          "name": "6",
+          "orderIndex": 6,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_west_pav_room_6_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_litina_19",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_west_pav_room_7",
+          "name": "7",
+          "orderIndex": 7,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_west_pav_room_7_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_tran_20",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_west_pav_room_8",
+          "name": "8",
+          "orderIndex": 8,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_west_pav_room_8_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_west_pav_room_9",
+          "name": "9",
+          "orderIndex": 9,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_west_pav_room_9_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_west_pav_room_10",
+          "name": "10",
+          "orderIndex": 10,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_west_pav_room_10_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_west_pav_room_11",
+          "name": "11",
+          "orderIndex": 11,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_west_pav_room_11_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_hiller_21",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_west_pav_room_12",
+          "name": "12",
+          "orderIndex": 12,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_west_pav_room_12_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_tekwe_22",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dept_ortho",
+      "name": "ORTHO",
+      "orderIndex": 2,
+      "runnerSlots": [
+        {
+          "id": "runner_ortho_1",
+          "title": "GUNN",
+          "staffId": "staff_patel_p_3",
+          "breakfastDone": false,
+          "lunchDone": false
+        }
+      ],
+      "rooms": [
+        {
+          "id": "dept_ortho_room_1",
+          "name": "1",
+          "orderIndex": 1,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_ortho_room_1_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_flemming_23",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_ortho_room_2",
+          "name": "2",
+          "orderIndex": 2,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_ortho_room_2_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_louis_24",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_ortho_room_3",
+          "name": "3",
+          "orderIndex": 3,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_ortho_room_3_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_ortho_room_4",
+          "name": "4",
+          "orderIndex": 4,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_ortho_room_4_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_ramesh_25",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_ortho_room_5",
+          "name": "5",
+          "orderIndex": 5,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_ortho_room_5_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_normand_26",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_ortho_room_6",
+          "name": "6",
+          "orderIndex": 6,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_ortho_room_6_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_shevchenko_27",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_ortho_room_7",
+          "name": "7",
+          "orderIndex": 7,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_ortho_room_7_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_song_v_28",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_ortho_room_8",
+          "name": "8",
+          "orderIndex": 8,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_ortho_room_8_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dept_village",
+      "name": "VILLAGE",
+      "orderIndex": 3,
+      "runnerSlots": [
+        {
+          "id": "runner_village_1",
+          "title": "HIRSCH",
+          "staffId": "staff_hirsch_5",
+          "breakfastDone": false,
+          "lunchDone": false
+        }
+      ],
+      "rooms": [
+        {
+          "id": "dept_village_room_1",
+          "name": "1",
+          "orderIndex": 1,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_village_room_1_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_crossley_29",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_village_room_2",
+          "name": "2",
+          "orderIndex": 2,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_village_room_2_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_towne_30",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_village_room_3",
+          "name": "3",
+          "orderIndex": 3,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_village_room_3_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_jeffcoat_31",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_village_room_4",
+          "name": "4",
+          "orderIndex": 4,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_village_room_4_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_holton_32",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_village_room_5",
+          "name": "5",
+          "orderIndex": 5,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_village_room_5_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_mankarious_33",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_village_room_6",
+          "name": "6",
+          "orderIndex": 6,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_village_room_6_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_paloian_34",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": "",
+              "breakfastTime": null,
+              "lunchTime": null
+            }
+          ]
+        },
+        {
+          "id": "dept_village_room_7",
+          "name": "7",
+          "orderIndex": 7,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_village_room_7_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_village_room_8",
+          "name": "8",
+          "orderIndex": 8,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_village_room_8_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_village_room_P1",
+          "name": "P1",
+          "orderIndex": 9,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_village_room_P1_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_village_room_P2",
+          "name": "P2",
+          "orderIndex": 10,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_village_room_P2_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dept_9th_floor",
+      "name": "9th Floor",
+      "orderIndex": 4,
+      "runnerSlots": [],
+      "rooms": [
+        {
+          "id": "dept_9th_floor_room_EP1",
+          "name": "EP1",
+          "orderIndex": 1,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_9th_floor_room_EP1_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_hughes_13",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": "",
+              "breakfastTime": null
+            }
+          ]
+        },
+        {
+          "id": "dept_9th_floor_room_EP2",
+          "name": "EP2",
+          "orderIndex": 2,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_9th_floor_room_EP2_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_9th_floor_room_CCL",
+          "name": "CCL",
+          "orderIndex": 3,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_9th_floor_room_CCL_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": "",
+              "breakfastTime": null
+            }
+          ]
+        },
+        {
+          "id": "dept_9th_floor_room_CCL2",
+          "name": "CCL2",
+          "orderIndex": 4,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_9th_floor_room_CCL2_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_dwarakanath_36",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_9th_floor_room_CCL3",
+          "name": "CCL3",
+          "orderIndex": 5,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_9th_floor_room_CCL3_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_9th_floor_room_IR",
+          "name": "IR",
+          "orderIndex": 6,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_9th_floor_room_IR_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_cut_48",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_9th_floor_room_NIR",
+          "name": "NIR",
+          "orderIndex": 7,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_9th_floor_room_NIR_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_9th_floor_room_TEE",
+          "name": "TEE",
+          "orderIndex": 8,
+          "notes": "1200 / 1230 / 1300",
+          "slots": [
+            {
+              "id": "dept_9th_floor_room_TEE_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dept_endo",
+      "name": "ENDO",
+      "orderIndex": 5,
+      "runnerSlots": [
+        {
+          "id": "runner_endo_1",
+          "title": "MARTINEZ R",
+          "staffId": "staff_martinez_r_6",
+          "breakfastDone": false,
+          "lunchDone": false
+        }
+      ],
+      "rooms": [
+        {
+          "id": "dept_endo_room_1",
+          "name": "1",
+          "orderIndex": 1,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_endo_room_1_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_patagoc_37",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_endo_room_2",
+          "name": "2",
+          "orderIndex": 2,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_endo_room_2_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_endo_room_3",
+          "name": "3",
+          "orderIndex": 3,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_endo_room_3_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_vu_a_38",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_endo_room_4",
+          "name": "4",
+          "orderIndex": 4,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_endo_room_4_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_hudok_39",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_endo_room_MRI",
+          "name": "MRI",
+          "orderIndex": 5,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_endo_room_MRI_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_ataga_51",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dept_ob",
+      "name": "OB",
+      "orderIndex": 6,
+      "runnerSlots": [
+        {
+          "id": "runner_ob_1",
+          "title": "TALLACKSON",
+          "staffId": "staff_tallackson_7",
+          "breakfastDone": false,
+          "lunchDone": false
+        }
+      ],
+      "rooms": [
+        {
+          "id": "dept_ob_room_1",
+          "name": "1",
+          "orderIndex": 1,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_ob_room_1_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_moody_m_40",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_ob_room_2",
+          "name": "2",
+          "orderIndex": 2,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_ob_room_2_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_ob_room_3",
+          "name": "3",
+          "orderIndex": 3,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_ob_room_3_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_song_b_41",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "id": "dept_ob_room_4",
+          "name": "4",
+          "orderIndex": 4,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_ob_room_4_slot_0",
+              "roleType": "primary",
+              "staffId": null,
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dept_ivf",
+      "name": "IVF",
+      "orderIndex": 7,
+      "runnerSlots": [],
+      "rooms": [
+        {
+          "id": "dept_ivf_room_LU",
+          "name": "LU",
+          "orderIndex": 1,
+          "notes": "",
+          "slots": [
+            {
+              "id": "dept_ivf_room_LU_slot_0",
+              "roleType": "primary",
+              "staffId": "staff_lu_42",
+              "breakfastDone": false,
+              "lunchDone": false,
+              "notes": ""
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "staff": [
+    {
+      "id": "staff_cavanaugh_0",
+      "firstName": "Cavanaugh",
+      "lastName": "Cavanaugh",
+      "initials": "C",
+      "credentials": "MD",
+      "phone": "(555) 234-5678",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_shenoy_1",
+      "firstName": "Shenoy",
+      "lastName": "Shenoy",
+      "initials": "S",
+      "credentials": "MD",
+      "phone": "(555) 345-6789",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_chuan_2",
+      "firstName": "Chuan",
+      "lastName": "Chuan",
+      "initials": "C",
+      "credentials": "MD",
+      "phone": "(555) 456-7890",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_patel_p_3",
+      "firstName": "Patel",
+      "lastName": "P",
+      "initials": "PP",
+      "credentials": "MD",
+      "phone": "(555) 567-8901",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_gunn_4",
+      "firstName": "Gunn",
+      "lastName": "Gunn",
+      "initials": "G",
+      "credentials": "MD",
+      "phone": "(555) 678-9012",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_hirsch_5",
+      "firstName": "Hirsch",
+      "lastName": "Hirsch",
+      "initials": "H",
+      "credentials": "MD",
+      "phone": "(555) 789-0123",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_martinez_r_6",
+      "firstName": "Martinez",
+      "lastName": "R",
+      "initials": "MR",
+      "credentials": "MD",
+      "phone": "(555) 890-1234",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_tallackson_7",
+      "firstName": "Tallackson",
+      "lastName": "Tallackson",
+      "initials": "T",
+      "credentials": "MD",
+      "phone": "(555) 901-2345",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_choi_8",
+      "firstName": "Choi",
+      "lastName": "Choi",
+      "initials": "C",
+      "credentials": "CRNA",
+      "phone": "(555) 111-2233",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_gashler_9",
+      "firstName": "Gashler",
+      "lastName": "Gashler",
+      "initials": "G",
+      "credentials": "CRNA",
+      "phone": "(555) 222-3344",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_vantassel_10",
+      "firstName": "Vantassel",
+      "lastName": "Vantassel",
+      "initials": "V",
+      "credentials": "CRNA",
+      "phone": "(555) 333-4455",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_matre_11",
+      "firstName": "Matre",
+      "lastName": "Matre",
+      "initials": "M",
+      "credentials": "CRNA",
+      "phone": "(555) 444-5566",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_mcguire_12",
+      "firstName": "McGuire",
+      "lastName": "McGuire",
+      "initials": "M",
+      "credentials": "CRNA",
+      "phone": "(555) 555-6677",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_hughes_13",
+      "firstName": "Hughes",
+      "lastName": "Hughes",
+      "initials": "H",
+      "credentials": "CRNA",
+      "phone": "(555) 666-7788",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_kovac_14",
+      "firstName": "Kovac",
+      "lastName": "Kovac",
+      "initials": "K",
+      "credentials": "CRNA",
+      "phone": "(555) 777-8899",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_beard_15",
+      "firstName": "Beard",
+      "lastName": "Beard",
+      "initials": "B",
+      "credentials": "CRNA",
+      "phone": "(555) 888-9900",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_markette_16",
+      "firstName": "Markette",
+      "lastName": "Markette",
+      "initials": "M",
+      "credentials": "CRNA",
+      "phone": "(555) 999-0011",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_andes_m_s_17",
+      "firstName": "Andes",
+      "lastName": "M S",
+      "initials": "AM",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4401",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_walker_18",
+      "firstName": "Walker",
+      "lastName": "Walker",
+      "initials": "W",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4402",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_litina_19",
+      "firstName": "Litina",
+      "lastName": "Litina",
+      "initials": "L",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4403",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_tran_20",
+      "firstName": "Tran",
+      "lastName": "Tran",
+      "initials": "T",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4404",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_hiller_21",
+      "firstName": "Hiller",
+      "lastName": "Hiller",
+      "initials": "H",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4405",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_tekwe_22",
+      "firstName": "Tekwe",
+      "lastName": "Tekwe",
+      "initials": "T",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4406",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_flemming_23",
+      "firstName": "Flemming",
+      "lastName": "Flemming",
+      "initials": "F",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4407",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_louis_24",
+      "firstName": "Louis",
+      "lastName": "Louis",
+      "initials": "L",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4408",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_ramesh_25",
+      "firstName": "Ramesh",
+      "lastName": "Ramesh",
+      "initials": "R",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4409",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_normand_26",
+      "firstName": "Normand",
+      "lastName": "Normand",
+      "initials": "N",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4410",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_shevchenko_27",
+      "firstName": "Shevchenko",
+      "lastName": "Shevchenko",
+      "initials": "S",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4411",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_song_v_28",
+      "firstName": "Song",
+      "lastName": "V",
+      "initials": "SV",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4412",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_crossley_29",
+      "firstName": "Crossley",
+      "lastName": "Crossley",
+      "initials": "C",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4413",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_towne_30",
+      "firstName": "Towne",
+      "lastName": "Towne",
+      "initials": "T",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4414",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_jeffcoat_31",
+      "firstName": "Jeffcoat",
+      "lastName": "Jeffcoat",
+      "initials": "J",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4415",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_holton_32",
+      "firstName": "Holton",
+      "lastName": "Holton",
+      "initials": "H",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4416",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_mankarious_33",
+      "firstName": "Mankarious",
+      "lastName": "Mankarious",
+      "initials": "M",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4417",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_paloian_34",
+      "firstName": "Paloian",
+      "lastName": "Paloian",
+      "initials": "P",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4418",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_shirak_35",
+      "firstName": "Shirak",
+      "lastName": "Shirak",
+      "initials": "S",
+      "credentials": "MD",
+      "phone": "(555) 123-4419",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_dwarakanath_36",
+      "firstName": "Dwarakanath",
+      "lastName": "Dwarakanath",
+      "initials": "D",
+      "credentials": "MD",
+      "phone": "(555) 123-4420",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_patagoc_37",
+      "firstName": "Patagoc",
+      "lastName": "Patagoc",
+      "initials": "P",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4421",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_vu_a_38",
+      "firstName": "Vu",
+      "lastName": "A",
+      "initials": "VA",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4422",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_hudok_39",
+      "firstName": "Hudok",
+      "lastName": "Hudok",
+      "initials": "H",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4423",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_moody_m_40",
+      "firstName": "Moody",
+      "lastName": "M",
+      "initials": "MM",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4424",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_song_b_41",
+      "firstName": "Song",
+      "lastName": "B",
+      "initials": "SB",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4425",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_lu_42",
+      "firstName": "Lu",
+      "lastName": "Lu",
+      "initials": "L",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4426",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_njogopa_43",
+      "firstName": "Njogopa",
+      "lastName": "Njogopa",
+      "initials": "N",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4427",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_mann_44",
+      "firstName": "Mann",
+      "lastName": "Mann",
+      "initials": "M",
+      "credentials": "MD",
+      "phone": "(555) 123-4428",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_guye_45",
+      "firstName": "Guye",
+      "lastName": "Guye",
+      "initials": "G",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4429",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_schweikert_46",
+      "firstName": "Schweikert",
+      "lastName": "Schweikert",
+      "initials": "S",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4430",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_li_47",
+      "firstName": "Li",
+      "lastName": "Li",
+      "initials": "L",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4431",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_cut_48",
+      "firstName": "Cut",
+      "lastName": "Cut",
+      "initials": "C",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4432",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_rutas_49",
+      "firstName": "Rutas",
+      "lastName": "Rutas",
+      "initials": "R",
+      "credentials": "CRNA",
+      "phone": "(555) 123-4433",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_alaniz_50",
+      "firstName": "Alaniz",
+      "lastName": "Alaniz",
+      "initials": "A",
+      "credentials": "CRNA",
+      "phone": "(555) 201-0001",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_ataga_51",
+      "firstName": "Ataga",
+      "lastName": "Ataga",
+      "initials": "A",
+      "credentials": "CRNA",
+      "phone": "(555) 201-0002",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_baerenstecher_52",
+      "firstName": "Baerenstecher",
+      "lastName": "Baerenstecher",
+      "initials": "B",
+      "credentials": "CRNA",
+      "phone": "(555) 201-0003",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_bernell_53",
+      "firstName": "Bernell",
+      "lastName": "Bernell",
+      "initials": "B",
+      "credentials": "CRNA",
+      "phone": "(555) 201-0004",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_cuzick_54",
+      "firstName": "Cuzick",
+      "lastName": "Cuzick",
+      "initials": "C",
+      "credentials": "CRNA",
+      "phone": "(555) 201-0005",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_chen_r_55",
+      "firstName": "Chen",
+      "lastName": "R",
+      "initials": "CR",
+      "credentials": "CRNA",
+      "phone": "(555) 201-0006",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_carvajal_56",
+      "firstName": "Carvajal",
+      "lastName": "Carvajal",
+      "initials": "C",
+      "credentials": "CRNA",
+      "phone": "(555) 201-0007",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_chang_57",
+      "firstName": "Chang",
+      "lastName": "Chang",
+      "initials": "C",
+      "credentials": "CRNA",
+      "phone": "(555) 201-0008",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_fuller_58",
+      "firstName": "Fuller",
+      "lastName": "Fuller",
+      "initials": "F",
+      "credentials": "CRNA",
+      "phone": "(555) 201-0009",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_daumerie_59",
+      "firstName": "Daumerie",
+      "lastName": "Daumerie",
+      "initials": "D",
+      "credentials": "CRNA",
+      "phone": "(555) 201-0010",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_isham_60",
+      "firstName": "Isham",
+      "lastName": "Isham",
+      "initials": "I",
+      "credentials": "CRNA",
+      "phone": "(555) 202-0001",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_jansen_61",
+      "firstName": "Jansen",
+      "lastName": "Jansen",
+      "initials": "J",
+      "credentials": "CRNA",
+      "phone": "(555) 202-0002",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_lamba_62",
+      "firstName": "Lamba",
+      "lastName": "Lamba",
+      "initials": "L",
+      "credentials": "CRNA",
+      "phone": "(555) 202-0003",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_lowe_63",
+      "firstName": "Lowe",
+      "lastName": "Lowe",
+      "initials": "L",
+      "credentials": "CRNA",
+      "phone": "(555) 202-0004",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_keyhan_64",
+      "firstName": "Keyhan",
+      "lastName": "Keyhan",
+      "initials": "K",
+      "credentials": "CRNA",
+      "phone": "(555) 202-0005",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_li_tommy_65",
+      "firstName": "Li",
+      "lastName": "Tommy",
+      "initials": "LT",
+      "credentials": "CRNA",
+      "phone": "(555) 202-0006",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_kent_66",
+      "firstName": "Kent",
+      "lastName": "Kent",
+      "initials": "K",
+      "credentials": "CRNA",
+      "phone": "(555) 202-0007",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_lam_v_67",
+      "firstName": "Lam",
+      "lastName": "V",
+      "initials": "LV",
+      "credentials": "CRNA",
+      "phone": "(555) 202-0008",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_mutyala_68",
+      "firstName": "Mutyala",
+      "lastName": "Mutyala",
+      "initials": "M",
+      "credentials": "CRNA",
+      "phone": "(555) 203-0001",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_nguyen_k_69",
+      "firstName": "Nguyen",
+      "lastName": "K",
+      "initials": "NK",
+      "credentials": "CRNA",
+      "phone": "(555) 203-0002",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_panagott_70",
+      "firstName": "Panagott",
+      "lastName": "Panagott",
+      "initials": "P",
+      "credentials": "CRNA",
+      "phone": "(555) 203-0003",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_rojas_71",
+      "firstName": "Rojas",
+      "lastName": "Rojas",
+      "initials": "R",
+      "credentials": "CRNA",
+      "phone": "(555) 203-0004",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_patel_j_72",
+      "firstName": "Patel",
+      "lastName": "J",
+      "initials": "PJ",
+      "credentials": "CRNA",
+      "phone": "(555) 203-0005",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_roach_73",
+      "firstName": "Roach",
+      "lastName": "Roach",
+      "initials": "R",
+      "credentials": "CRNA",
+      "phone": "(555) 203-0006",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_shetty_74",
+      "firstName": "Shetty",
+      "lastName": "Shetty",
+      "initials": "S",
+      "credentials": "CRNA",
+      "phone": "(555) 204-0001",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_shrockel_75",
+      "firstName": "Shrockel",
+      "lastName": "Shrockel",
+      "initials": "S",
+      "credentials": "CRNA",
+      "phone": "(555) 204-0002",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_j_kim_76",
+      "firstName": "J",
+      "lastName": "Kim",
+      "initials": "JK",
+      "credentials": "CRNA",
+      "phone": "(555) 204-0003",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_shich_77",
+      "firstName": "Shich",
+      "lastName": "Shich",
+      "initials": "S",
+      "credentials": "CRNA",
+      "phone": "(555) 204-0004",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_shaw_78",
+      "firstName": "Shaw",
+      "lastName": "Shaw",
+      "initials": "S",
+      "credentials": "CRNA",
+      "phone": "(555) 204-0005",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_schroepfer_79",
+      "firstName": "Schroepfer",
+      "lastName": "Schroepfer",
+      "initials": "S",
+      "credentials": "CRNA",
+      "phone": "(555) 204-0006",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_taylor_80",
+      "firstName": "Taylor",
+      "lastName": "Taylor",
+      "initials": "T",
+      "credentials": "CRNA",
+      "phone": "(555) 204-0007",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_walls_81",
+      "firstName": "Walls",
+      "lastName": "Walls",
+      "initials": "W",
+      "credentials": "CRNA",
+      "phone": "(555) 204-0008",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_zembau_82",
+      "firstName": "Zembau",
+      "lastName": "Zembau",
+      "initials": "Z",
+      "credentials": "CRNA",
+      "phone": "(555) 204-0009",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_yi_83",
+      "firstName": "Yi",
+      "lastName": "Yi",
+      "initials": "Y",
+      "credentials": "CRNA",
+      "phone": "(555) 204-0010",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_young_84",
+      "firstName": "Young",
+      "lastName": "Young",
+      "initials": "Y",
+      "credentials": "CRNA",
+      "phone": "(555) 204-0011",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_uuan_85",
+      "firstName": "Uuan",
+      "lastName": "Uuan",
+      "initials": "U",
+      "credentials": "CRNA",
+      "phone": "(555) 204-0012",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "id": "staff_williams_86",
+      "firstName": "Williams",
+      "lastName": "Williams",
+      "initials": "W",
+      "credentials": "CRNA",
+      "phone": "(555) 204-0013",
+      "shift": "07:00 - 15:30",
+      "active": true,
+      "notes": ""
+    }
+  ],
+  "departureList": [
+    {
+      "id": "dep_1",
+      "name": "KOVAC",
+      "orderIndex": 0
+    },
+    {
+      "id": "dep_2",
+      "name": "MANN",
+      "orderIndex": 1
+    },
+    {
+      "id": "dep_3",
+      "name": "CAV",
+      "orderIndex": 2
+    },
+    {
+      "id": "dep_4",
+      "name": "SHIRAK",
+      "orderIndex": 3
+    },
+    {
+      "id": "dep_5",
+      "name": "GASHLER",
+      "orderIndex": 4
+    },
+    {
+      "id": "dep_6",
+      "name": "PATEL",
+      "orderIndex": 5
+    },
+    {
+      "id": "dep_7",
+      "name": "CHUAN",
+      "orderIndex": 6
+    },
+    {
+      "id": "dep_8",
+      "name": "CHOI",
+      "orderIndex": 7
+    }
+  ],
+  "departureNotes": "RUTS:\nCV - KD\n3 - SHENOY\n2 - TALL\n1 - LU\nOB - LU",
+  "latesList": [
+    {
+      "id": "late_1",
+      "timeCategory": "4p",
+      "name": "CHUAN",
+      "orderIndex": 0
+    },
+    {
+      "id": "late_2",
+      "timeCategory": "5p",
+      "name": "HIRSCH",
+      "orderIndex": 1
+    },
+    {
+      "id": "late_3",
+      "timeCategory": "5p",
+      "name": "ANDES",
+      "orderIndex": 2
+    },
+    {
+      "id": "late_4",
+      "timeCategory": "5p",
+      "name": "MCGUIRE",
+      "orderIndex": 3
+    },
+    {
+      "id": "late_5",
+      "timeCategory": "5p",
+      "name": "SCHWEIKERT",
+      "orderIndex": 4
+    },
+    {
+      "id": "late_6",
+      "timeCategory": "5p",
+      "name": "WALKER",
+      "orderIndex": 5
+    },
+    {
+      "id": "late_7",
+      "timeCategory": "7p",
+      "name": "GUYE",
+      "orderIndex": 6
+    },
+    {
+      "id": "late_8",
+      "timeCategory": "7p",
+      "name": "PATAGOC",
+      "orderIndex": 7
+    },
+    {
+      "id": "late_9",
+      "timeCategory": "7p",
+      "name": "TEKWE",
+      "orderIndex": 8
+    },
+    {
+      "id": "late_10",
+      "timeCategory": "8p",
+      "name": "BEARD",
+      "orderIndex": 9
+    },
+    {
+      "id": "late_11",
+      "timeCategory": "8p",
+      "name": "FLEMMING",
+      "orderIndex": 10
+    },
+    {
+      "id": "late_12",
+      "timeCategory": "8p",
+      "name": "LI",
+      "orderIndex": 11
+    },
+    {
+      "id": "late_13",
+      "timeCategory": "8p",
+      "name": "TRAN",
+      "orderIndex": 12
+    },
+    {
+      "id": "late_14",
+      "timeCategory": "8p",
+      "name": "CUT",
+      "orderIndex": 13
+    },
+    {
+      "id": "late_15",
+      "timeCategory": "7p-7a",
+      "name": "RUTAS",
+      "orderIndex": 14
+    },
+    {
+      "id": "late_16",
+      "timeCategory": "7p-7a",
+      "name": "NORMAND",
+      "orderIndex": 15
+    }
+  ],
+  "latesNotes": "Coverage team in effect after 15:00",
+  "scraperConfig": {
+    "portalType": "qgenda",
+    "portalUrl": "https://app.qgenda.com/login",
+    "username": "or_coordinator@hospital.org",
+    "password": "••••••••••••",
+    "autoSyncIntervalMinutes": 15,
+    "lastSyncTime": "2026-10-01T13:20:40.771Z",
+    "lastSyncStatus": "success",
+    "mockMode": true
+  }
+}
