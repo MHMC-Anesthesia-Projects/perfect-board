@@ -451,6 +451,102 @@ button {
   color: var(--text-muted);
 }
 
+.departure-item.drag-over {
+  border-color: var(--accent-primary);
+  background: var(--accent-surface);
+  box-shadow: 0 0 6px rgba(9, 105, 218, 0.3);
+}
+
+.departure-reorder-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 3px;
+  border-radius: 3px;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.departure-reorder-btn:hover:not(:disabled) {
+  color: var(--accent-primary);
+  background: var(--surface-hover);
+}
+
+.departure-reorder-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+/* CALL TEAM SECTION IN DEPARTURE COLUMN */
+.call-team-area {
+  border-top: 2px solid var(--board-grid-line);
+  background: rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.call-team-header {
+  padding: 5px 8px;
+  background: var(--surface-hover);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 900;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.call-team-list {
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.call-team-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 6px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  transition: all var(--transition-fast);
+}
+
+.call-team-item:hover {
+  border-color: var(--accent-primary);
+}
+
+.call-role-badge {
+  font-size: 10px;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(211, 47, 47, 0.12);
+  color: var(--marker-red);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  min-width: 28px;
+  text-align: center;
+}
+
+.call-doc-name {
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  letter-spacing: 0.3px;
+}
+
 /* Rooms Container within Department */
 .dept-rooms-list {
   flex: 1;

@@ -1,5 +1,63 @@
 [
   {
+    "id": "audit_1790869268777_bx7jt",
+    "timestamp": "2026-10-01T15:41:08.777Z",
+    "actionType": "RUNNER_SLOT_REMOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "ORTHO",
+    "details": "Removed runner slot \"RUNNER 2\" from ORTHO"
+  },
+  {
+    "id": "audit_1790869252986_m0z0q",
+    "timestamp": "2026-10-01T15:40:52.986Z",
+    "actionType": "RUNNER_SLOT_ADDED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "ORTHO",
+    "details": "Added new runner slot \"RUNNER 2\" to ORTHO"
+  },
+  {
+    "id": "audit_1790869248552_tisf3",
+    "timestamp": "2026-10-01T15:40:48.552Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Bernell Bernell",
+    "locationName": "Available Unassigned Staff",
+    "details": "Moved from ORTHO Runner (Runner 1) -> Available Unassigned Staff"
+  },
+  {
+    "id": "audit_1790869234097_bn8n7",
+    "timestamp": "2026-10-01T15:40:34.097Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Bernell Bernell",
+    "locationName": "ORTHO Runner (Runner 1)",
+    "details": "Moved from Bullpen -> ORTHO Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1790869218004_fbxpn",
+    "timestamp": "2026-10-01T15:40:18.004Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Baerenstecher Baerenstecher",
+    "locationName": "WEST PAV Runner (Runner 1)",
+    "details": "Moved from Bullpen -> WEST PAV Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1790869211952_um4bk",
+    "timestamp": "2026-10-01T15:40:11.952Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Gunn Gunn",
+    "locationName": "WEST PAV Runner (Runner 2)",
+    "details": "Moved from Bullpen -> WEST PAV Runner (Runner 2)"
+  },
+  {
     "id": "audit_1790868137374_zd8xs",
     "timestamp": "2026-10-01T15:22:17.374Z",
     "actionType": "DEPARTURE_STRUCK_TOGGLED",

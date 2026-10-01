@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-01T15:22:17.372Z",
+  "lastUpdated": "2026-10-01T15:41:08.775Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -226,14 +226,14 @@
         {
           "id": "runner_west_pav_1",
           "title": "Runner 1",
-          "staffId": null,
+          "staffId": "staff_baerenstecher_52",
           "breakfastDone": false,
           "lunchDone": false
         },
         {
           "id": "runner_west_pav_2",
           "title": "Runner 2",
-          "staffId": null,
+          "staffId": "staff_gunn_4",
           "breakfastDone": false,
           "lunchDone": false
         }
@@ -441,7 +441,7 @@
         {
           "id": "runner_ortho_1",
           "title": "Runner 1",
-          "staffId": "staff_patel_p_3",
+          "staffId": null,
           "breakfastDone": false,
           "lunchDone": false
         }
@@ -2093,7 +2093,39 @@
       "orderIndex": 7
     }
   ],
-  "departureNotes": "RUTS:\nCV - KD\n3 - SHENOY\n2 - TALL\n1 - LU\nOB - LU",
+  "callTeamList": [
+    {
+      "id": "call_1",
+      "role": "CV",
+      "doctorName": "KD",
+      "orderIndex": 0
+    },
+    {
+      "id": "call_2",
+      "role": "3rd Call",
+      "doctorName": "SHENOY",
+      "orderIndex": 1
+    },
+    {
+      "id": "call_3",
+      "role": "2nd Call",
+      "doctorName": "TALL",
+      "orderIndex": 2
+    },
+    {
+      "id": "call_4",
+      "role": "1st Call",
+      "doctorName": "LU",
+      "orderIndex": 3
+    },
+    {
+      "id": "call_5",
+      "role": "OB Call",
+      "doctorName": "LU",
+      "orderIndex": 4
+    }
+  ],
+  "departureNotes": "RUTS:\nRoom Turnover & General Notes",
   "latesList": [
     {
       "id": "late_1",

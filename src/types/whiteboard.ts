@@ -103,12 +103,21 @@ export interface AuditLogEntry {
     | 'USER_UPDATED'
     | 'SCRAPER_SYNCED'
     | 'DEPARTURE_UPDATED'
-    | 'LATES_UPDATED';
+    | 'DEPARTURE_REORDERED'
+    | 'LATES_UPDATED'
+    | 'CALL_TEAM_UPDATED';
   performedBy: string;
   userRole: UserRole;
   targetName?: string;
   locationName?: string;
   details: string;
+}
+
+export interface CallTeamItem {
+  id: string;
+  role: string;       // e.g. "CV", "1st Call", "2nd Call", "3rd Call", "OB Call"
+  doctorName: string; // e.g. "KD", "SHENOY", "TALL", "LU"
+  orderIndex: number;
 }
 
 export interface ScraperConfig {
@@ -128,6 +137,7 @@ export interface BoardState {
   departments: Department[];
   staff: Staff[];
   departureList: DepartureItem[];
+  callTeamList: CallTeamItem[];
   departureNotes: string;
   latesList: LateShiftItem[];
   latesNotes: string;

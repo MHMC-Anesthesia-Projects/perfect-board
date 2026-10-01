@@ -298,22 +298,38 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, state });
       }
 
-      // 5. Update Departure or Lates lists directly
+      // 5. Update Departure, Call Team, or Lates lists directly
       case 'UPDATE_LISTS': {
         if (currentUserRole === 'basic_user') {
           return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
         }
         if (payload.departureList) state.departureList = payload.departureList;
         if (payload.latesList) state.latesList = payload.latesList;
+        if (payload.callTeamList) state.callTeamList = payload.callTeamList;
 
         saveBoardState(state);
         recordAuditLog({
-          actionType: 'DEPARTURE_UPDATED',
+          actionType: payload.isReorder ? 'DEPARTURE_REORDERED' : payload.callTeamList ? 'CALL_TEAM_UPDATED' : 'DEPARTURE_UPDATED',
           performedBy: currentUserName,
           userRole: currentUserRole,
-          details: 'Updated departure or late staff ordering'
+          details: payload.details || 'Updated departure, call team, or late staff ordering'
         });
 
+        return NextResponse.json({ success: true, state });
+      }
+
+      case 'UPDATE_CALL_TEAM': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
+        }
+        if (payload.callTeamList) state.callTeamList = payload.callTeamList;
+        saveBoardState(state);
+        recordAuditLog({
+          actionType: 'CALL_TEAM_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          details: payload.details || 'Updated Call Team assignments'
+        });
         return NextResponse.json({ success: true, state });
       }
 

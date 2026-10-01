@@ -405,7 +405,14 @@ export function getInitialBoardState(staff: Staff[]): BoardState {
       { id: 'dep_7', name: 'CHUAN', orderIndex: 6 },
       { id: 'dep_8', name: 'CHOI', orderIndex: 7 }
     ],
-    departureNotes: `RUTS:\nCV - KD\n3 - SHENOY\n2 - TALL\n1 - LU\nOB - LU`,
+    callTeamList: [
+      { id: 'call_1', role: 'CV', doctorName: 'KD', orderIndex: 0 },
+      { id: 'call_2', role: '3rd Call', doctorName: 'SHENOY', orderIndex: 1 },
+      { id: 'call_3', role: '2nd Call', doctorName: 'TALL', orderIndex: 2 },
+      { id: 'call_4', role: '1st Call', doctorName: 'LU', orderIndex: 3 },
+      { id: 'call_5', role: 'OB Call', doctorName: 'LU', orderIndex: 4 }
+    ],
+    departureNotes: 'RUTS:\nRoom Turnover & General Notes',
     latesList: [
       { id: 'late_1', timeCategory: '4p', name: 'CHUAN', orderIndex: 0 },
       { id: 'late_2', timeCategory: '5p', name: 'HIRSCH', orderIndex: 1 },
@@ -474,7 +481,17 @@ export function loadBoardState(): BoardState {
     safeWriteJSON(STATE_FILE, initialBoard);
     return initialBoard;
   }
-  return safeReadJSON<BoardState>(STATE_FILE, getInitialBoardState(getInitialStaff()));
+  const loaded = safeReadJSON<BoardState>(STATE_FILE, getInitialBoardState(getInitialStaff()));
+  if (!loaded.callTeamList || !Array.isArray(loaded.callTeamList)) {
+    loaded.callTeamList = [
+      { id: 'call_1', role: 'CV', doctorName: 'KD', orderIndex: 0 },
+      { id: 'call_2', role: '3rd Call', doctorName: 'SHENOY', orderIndex: 1 },
+      { id: 'call_3', role: '2nd Call', doctorName: 'TALL', orderIndex: 2 },
+      { id: 'call_4', role: '1st Call', doctorName: 'LU', orderIndex: 3 },
+      { id: 'call_5', role: 'OB Call', doctorName: 'LU', orderIndex: 4 }
+    ];
+  }
+  return loaded;
 }
 
 export function saveBoardState(state: BoardState): void {
