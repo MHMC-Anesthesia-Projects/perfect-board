@@ -189,6 +189,8 @@ button {
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
   position: relative;
   touch-action: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .magnet-tile:active {
@@ -218,6 +220,7 @@ button {
   background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
   letter-spacing: 0.2px;
+  flex-shrink: 0;
 }
 
 /* Credential specific badge colors */
@@ -243,6 +246,7 @@ button {
   align-items: center;
   gap: 3px;
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 .break-toggle-btn {
@@ -408,6 +412,11 @@ button {
   background: var(--accent-surface);
 }
 
+.runner-slot .magnet-tile {
+  width: 100%;
+  height: 100%;
+}
+
 /* Strikethrough style for departed doctors */
 .departure-item {
   display: flex;
@@ -472,6 +481,7 @@ button {
 }
 
 .room-slot-target {
+  width: 100%;
   flex: 1;
   min-height: 30px;
   background: rgba(255, 255, 255, 0.4);
@@ -495,6 +505,11 @@ button {
   border-color: var(--accent-primary);
   background: var(--accent-surface);
   box-shadow: 0 0 8px rgba(9, 105, 218, 0.25);
+}
+
+.room-slot-target .magnet-tile {
+  width: 100%;
+  height: 100%;
 }
 
 /* Right Side: DEPARTURE & LATES Columns */
@@ -638,10 +653,19 @@ button {
   flex: 1;
   overflow-y: auto;
   padding: 6px;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   align-content: flex-start;
-  gap: 4px;
+  gap: 6px;
+}
+
+.bullpen-bin-content .magnet-tile {
+  width: 100%;
+  min-height: 30px;
+}
+
+.bullpen-bin-content > div:only-child {
+  grid-column: 1 / -1;
 }
 
 /* ==========================================================================
