@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-01T22:41:19.886Z",
+  "lastUpdated": "2026-10-01T23:01:52.075Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -799,7 +799,7 @@
             {
               "id": "dept_9th_floor_room_CCL1_slot_0",
               "roleType": "primary",
-              "staffId": "staff_oneusap_doc_shirakmic",
+              "staffId": null,
               "breakfastDone": false,
               "lunchDone": false,
               "notes": ""
@@ -2074,7 +2074,8 @@
       "timeEstimate": "3p",
       "orderNumber": 144,
       "qgendaAbbr": "ShevchenkoYev",
-      "assignedRoom": "MHMC Ortho6"
+      "assignedRoom": "MHMC Ortho6",
+      "departed": false
     },
     {
       "id": "dep_non_8_1790894474994",
@@ -2128,7 +2129,8 @@
       "category": "non_call",
       "orderNumber": 200,
       "qgendaAbbr": "ChoiSeu",
-      "assignedRoom": "MHMC OR2"
+      "assignedRoom": "MHMC OR2",
+      "departed": false
     }
   ],
   "callTeamList": [
@@ -2472,7 +2474,8 @@
   ],
   "latesNotes": "",
   "bullpenStaffIds": [
-    "staff_kovac_14"
+    "staff_kovac_14",
+    "staff_oneusap_doc_shirakmic"
   ],
   "scraperConfig": {
     "portalType": "oneusap",
@@ -2510,6 +2513,10 @@
       "lunchDone": false,
       "breakfastTime": null,
       "lunchTime": null
+    },
+    "staff_oneusap_doc_shirakmic": {
+      "breakfastDone": false,
+      "lunchDone": false
     }
   }
 }

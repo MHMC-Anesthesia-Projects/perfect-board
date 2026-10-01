@@ -1,5 +1,51 @@
 [
   {
+    "id": "audit_1790895712078_q6o9k",
+    "timestamp": "2026-10-01T23:01:52.078Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "CHOI",
+    "details": "Unmarked doctor CHOI departure status"
+  },
+  {
+    "id": "audit_1790895709031_rn0bj",
+    "timestamp": "2026-10-01T23:01:49.031Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "CHOI",
+    "details": "Marked doctor CHOI as DEPARTED [Strikethrough]"
+  },
+  {
+    "id": "audit_1790895529353_9xxx0",
+    "timestamp": "2026-10-01T22:58:49.353Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mic Shirak",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from 9th Floor Room CCL1 -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790895465950_1d3rw",
+    "timestamp": "2026-10-01T22:57:45.950Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "SHEVCHENKO",
+    "details": "Unmarked doctor SHEVCHENKO departure status"
+  },
+  {
+    "id": "audit_1790895464141_a6z1r",
+    "timestamp": "2026-10-01T22:57:44.141Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "SHEVCHENKO",
+    "details": "Marked doctor SHEVCHENKO as DEPARTED [Strikethrough]"
+  },
+  {
     "id": "audit_1790894479887_wgnnp",
     "timestamp": "2026-10-01T22:41:19.887Z",
     "actionType": "STAFF_UPDATED",
