@@ -191,12 +191,23 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
 
   const nonCallDepartures = useMemo(() => {
     return (boardState.departureList || [])
-      .filter(d => d.category !== 'post_call')
+      .filter(d => {
+        if (d.category === 'post_call') return false;
+        const timeEst = (d.timeEstimate || '').toLowerCase().trim();
+        const matchedStaff = (boardState.staff || []).find(s =>
+          s.lastName.toUpperCase() === d.name.toUpperCase() ||
+          (d.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === d.qgendaAbbr.toUpperCase())
+        );
+        const staffShift = (matchedStaff?.shift || '').toLowerCase().trim();
+        const isLate = /4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(timeEst) || /4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(staffShift);
+        if (isLate) return false;
+        return true;
+      })
       .sort((a, b) => a.orderIndex - b.orderIndex);
-  }, [boardState.departureList]);
+  }, [boardState.departureList, boardState.staff]);
 
   // Lates grouped by shift category
-  const timeCategories = ['4p', '5p', '7p', '8p', '7p-7a'];
+  const timeCategories = ['3p', '4p', '5p', '7p', '8p', '7p-7a'];
   const latesGrouped = useMemo(() => {
     const grouped: Record<string, LateShiftItem[]> = {};
     timeCategories.forEach(cat => {
@@ -608,7 +619,33 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                 const isOB = item.role.toUpperCase() === 'OB';
                 const isCV = item.role.toUpperCase() === 'CV';
                 return (
-                  <div key={item.id} className="mobile-card mobile-call-card">
+                  <div
+                    key={item.id}
+                    className="mobile-card mobile-call-card"
+                    style={{ cursor: item.doctorName ? 'pointer' : 'default' }}
+                    onClick={() => {
+                      if (!item.doctorName) return;
+                      const matched = (boardState.staff || []).find(s =>
+                        s.lastName.toUpperCase() === item.doctorName.toUpperCase() ||
+                        (item.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === item.qgendaAbbr.toUpperCase())
+                      );
+                      if (matched) {
+                        onSelectStaff(matched);
+                      } else {
+                        onSelectStaff({
+                          id: item.id || `staff_call_${item.doctorName.toLowerCase()}`,
+                          firstName: '',
+                          lastName: item.doctorName.toUpperCase(),
+                          credentials: 'MD',
+                          phone: '(555) 000-0000',
+                          shift: item.role,
+                          facility: 'MHMC',
+                          active: true,
+                          qgendaAbbr: item.qgendaAbbr
+                        });
+                      }
+                    }}
+                  >
                     <div className="mobile-call-badge-col">
                       <span className={`mobile-call-role-badge ${isOB ? 'role-ob' : isCV ? 'role-cv' : 'role-general'}`}>
                         {item.role}
@@ -619,7 +656,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                         {item.doctorName ? item.doctorName.toUpperCase() : '(Unassigned)'}
                       </span>
                       <span className="mobile-call-status-label">
-                        {item.doctorName ? 'Assigned On-Call' : 'Pending Assignment'}
+                        {item.doctorName ? 'Assigned On-Call (Tap for details)' : 'Pending Assignment'}
                       </span>
                     </div>
                   </div>

@@ -1,5 +1,99 @@
 [
   {
+    "id": "audit_1790897294532_1un00",
+    "timestamp": "2026-10-01T23:28:14.532Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "User",
+    "userRole": "board_runner",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1790896987045_sjm1f",
+    "timestamp": "2026-10-01T23:23:07.045Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Eny Ndujiuba",
+    "locationName": "MAIN OR Room 9",
+    "details": "Marked lunch break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790896986470_3x64f",
+    "timestamp": "2026-10-01T23:23:06.470Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Eny Ndujiuba",
+    "locationName": "MAIN OR Room 9",
+    "details": "Marked lunch break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790896985431_essz1",
+    "timestamp": "2026-10-01T23:23:05.431Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Eny Ndujiuba",
+    "locationName": "MAIN OR Room 9",
+    "details": "Marked breakfast break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790896982199_5eyjk",
+    "timestamp": "2026-10-01T23:23:02.199Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Eny Ndujiuba",
+    "locationName": "MAIN OR Room 9",
+    "details": "Marked breakfast break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790896932902_czx99",
+    "timestamp": "2026-10-01T23:22:12.902Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "HIRSCH",
+    "details": "Unmarked doctor HIRSCH departure status"
+  },
+  {
+    "id": "audit_1790896931192_kxuuj",
+    "timestamp": "2026-10-01T23:22:11.192Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "HIRSCH",
+    "details": "Marked doctor HIRSCH as DEPARTED [Strikethrough]"
+  },
+  {
+    "id": "audit_1790896896849_pvum1",
+    "timestamp": "2026-10-01T23:21:36.849Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Charge Nurse (Board Runner)",
+    "userRole": "board_runner",
+    "targetName": "Kev Chen",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Room 8 -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790896876621_8b965",
+    "timestamp": "2026-10-01T23:21:16.621Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Charge Nurse (Board Runner)",
+    "userRole": "board_runner",
+    "targetName": "CAVANAUGH",
+    "details": "Unmarked doctor CAVANAUGH departure status"
+  },
+  {
+    "id": "audit_1790896875442_4tub7",
+    "timestamp": "2026-10-01T23:21:15.443Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Charge Nurse (Board Runner)",
+    "userRole": "board_runner",
+    "targetName": "CAVANAUGH",
+    "details": "Marked doctor CAVANAUGH as DEPARTED [Strikethrough]"
+  },
+  {
     "id": "audit_1790895712078_q6o9k",
     "timestamp": "2026-10-01T23:01:52.078Z",
     "actionType": "DEPARTURE_STRUCK_TOGGLED",

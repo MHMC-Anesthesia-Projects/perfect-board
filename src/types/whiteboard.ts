@@ -134,6 +134,7 @@ export interface CallTeamItem {
   doctorName: string; // e.g. "KD", "SHENOY", "TALL", "LU"
   orderIndex: number;
   qgendaAbbr?: string;
+  orderNumber?: number;
 }
 
 export interface ScraperConfig {

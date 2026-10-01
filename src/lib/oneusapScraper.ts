@@ -203,9 +203,22 @@ export interface ParseOneUsapResult {
  * Handles cases where e.g. HirschDou or ChuanJos or BaerenstecheJoh have a late shift (5p, 4p, 3p)
  * indicated in either the departure table or embedded in room link tags [5p], [4p], [3p].
  */
-function resolveEffectiveShift(departureShift?: string, roomTag?: string): string {
+function resolveEffectiveShift(departureShift?: string, roomTag?: string, qgendaAbbr?: string): string {
   const dShift = (departureShift || '').trim();
   const rTag = (roomTag || '').trim();
+  const cleanAbbr = (qgendaAbbr || '').replace(/\[.*?\]/g, '').toLowerCase().trim();
+
+  // If known scheduled late providers are working (not PTO / RDO / Off / Vacation):
+  if (!isOffShift(dShift) && !isOffShift(rTag)) {
+    // Dr. Hirsch and Dr. Baerenstecher work until 5p everyday when working
+    if (cleanAbbr.includes('hirsch') || cleanAbbr.includes('baerensteche')) {
+      return '5p';
+    }
+    // Dr. Chuan works until 4p everyday when working
+    if (cleanAbbr.includes('chuan')) {
+      return '4p';
+    }
+  }
 
   if (!dShift && !rTag) return '';
   if (!dShift) return rTag;
@@ -398,7 +411,7 @@ export function parseOneUsapHtml(
     const phone = phoneBook.get(qgendaAbbr) || '(555) 000-0000';
     const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(shift, roomTag);
+    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr);
 
     workingStaffMap.set(cleanId, {
       id: `staff_oneusap_doc_${cleanId}`,
@@ -447,7 +460,7 @@ export function parseOneUsapHtml(
 
     const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(shift, roomTag);
+    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr);
 
     workingStaffMap.set(cleanId, {
       id: `staff_oneusap_anes_${cleanId}`,
@@ -478,7 +491,7 @@ export function parseOneUsapHtml(
     const formatted = formatProviderName(rawName);
     const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(shift, roomTag);
+    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr);
     const upperShift = effectiveShift.toUpperCase();
 
     let facilityLabel = 'MHMC';
@@ -510,6 +523,13 @@ export function parseOneUsapHtml(
       return;
     }
 
+    // If doctor is scheduled for a late shift (e.g. 4p, 5p, 7p, 8p, Night, etc.), do not include in non-call departure list
+    const isLateDoc = /4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(upperShift) ||
+      upperShift === '4P' || upperShift === '5P' || upperShift === '7P' || upperShift === '8P';
+    if (!isPostCall && isLateDoc) {
+      return;
+    }
+
     const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
 
     rawDepartureCandidates.push({
@@ -532,7 +552,7 @@ export function parseOneUsapHtml(
     const formatted = formatProviderName(entry.rawName);
     const qgendaAbbr = entry.rawName.replace(/\[.*?\]/g, '').trim();
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(entry.shift, roomTag);
+    const effectiveShift = resolveEffectiveShift(entry.shift, roomTag, qgendaAbbr);
     const upperShift = effectiveShift.toUpperCase();
     const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
 
@@ -549,7 +569,7 @@ export function parseOneUsapHtml(
     const formatted = formatProviderName(entry.rawName);
     const qgendaAbbr = entry.rawName.replace(/\[.*?\]/g, '').trim();
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(entry.shift, roomTag);
+    const effectiveShift = resolveEffectiveShift(entry.shift, roomTag, qgendaAbbr);
     const upperShift = effectiveShift.toUpperCase();
     const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
 
@@ -611,7 +631,7 @@ export function parseOneUsapHtml(
     const formatted = formatProviderName(rawName);
     const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(shift, roomTag);
+    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr);
     const upperShift = effectiveShift.toUpperCase();
 
     let facilityLabel = 'MHMC';
