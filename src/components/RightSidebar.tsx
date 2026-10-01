@@ -429,6 +429,38 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     )}
                     <span style={{ fontSize: 11, color: 'var(--text-muted)', width: 14 }}>{idx + 1}.</span>
                     <span className="departure-name">{doc.name}</span>
+                    {doc.orderNumber && (
+                      <span
+                        title={`OneUSAP Departure Order #${doc.orderNumber}`}
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 800,
+                          padding: '1px 4px',
+                          borderRadius: 3,
+                          background: 'rgba(9, 105, 218, 0.1)',
+                          color: 'var(--accent-primary)',
+                          border: '1px solid rgba(9, 105, 218, 0.25)',
+                          flexShrink: 0
+                        }}
+                      >
+                        #{doc.orderNumber}
+                      </span>
+                    )}
+                    {doc.timeEstimate && (
+                      <span
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 700,
+                          padding: '1px 4px',
+                          borderRadius: 3,
+                          background: 'rgba(16, 185, 129, 0.1)',
+                          color: '#059669',
+                          flexShrink: 0
+                        }}
+                      >
+                        {doc.timeEstimate}
+                      </span>
+                    )}
                   </div>
                   {isEditor && (
                     <button
@@ -539,6 +571,38 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     )}
                     <span style={{ fontSize: 11, color: 'var(--text-muted)', width: 14 }}>{idx + 1}.</span>
                     <span className="departure-name">{doc.name}</span>
+                    {doc.orderNumber && (
+                      <span
+                        title={`OneUSAP Departure Order #${doc.orderNumber}`}
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 800,
+                          padding: '1px 4px',
+                          borderRadius: 3,
+                          background: 'rgba(9, 105, 218, 0.1)',
+                          color: 'var(--accent-primary)',
+                          border: '1px solid rgba(9, 105, 218, 0.25)',
+                          flexShrink: 0
+                        }}
+                      >
+                        #{doc.orderNumber}
+                      </span>
+                    )}
+                    {doc.timeEstimate && (
+                      <span
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 700,
+                          padding: '1px 4px',
+                          borderRadius: 3,
+                          background: 'rgba(16, 185, 129, 0.1)',
+                          color: '#059669',
+                          flexShrink: 0
+                        }}
+                      >
+                        {doc.timeEstimate}
+                      </span>
+                    )}
                   </div>
                   {isEditor && (
                     <button
@@ -894,7 +958,40 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                         background: 'rgba(0, 0, 0, 0.02)'
                       }}
                     >
-                      <span>{item.name}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <span>{item.name}</span>
+                        {item.role && (
+                          <span
+                            style={{
+                              fontSize: 9,
+                              fontWeight: 800,
+                              padding: '1px 3px',
+                              borderRadius: 3,
+                              background: item.role === 'MD' ? 'rgba(37, 99, 235, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                              color: item.role === 'MD' ? '#2563eb' : '#059669',
+                              border: item.role === 'MD' ? '1px solid rgba(37, 99, 235, 0.25)' : '1px solid rgba(16, 185, 129, 0.25)'
+                            }}
+                          >
+                            {item.role}
+                          </span>
+                        )}
+                        {item.orderNumber && (
+                          <span
+                            title={`OneUSAP Order #${item.orderNumber}`}
+                            style={{
+                              fontSize: 9,
+                              fontWeight: 800,
+                              padding: '1px 4px',
+                              borderRadius: 3,
+                              background: 'rgba(100, 116, 139, 0.12)',
+                              color: 'var(--text-secondary)',
+                              border: '1px solid var(--border-light)'
+                            }}
+                          >
+                            #{item.orderNumber}
+                          </span>
+                        )}
+                      </div>
                       {isEditor && (
                         <button
                           onClick={(e) => handleInitiateRemoveLate(item, category, e)}
