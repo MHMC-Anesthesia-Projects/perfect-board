@@ -6,6 +6,7 @@ import {
   Users, UserCheck, ShieldCheck, Layout, Globe, 
   Plus, Trash2, Edit2, Key, RefreshCw, X, Check, RotateCcw, AlertTriangle 
 } from 'lucide-react';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface AdminModalProps {
   isOpen: boolean;
@@ -73,6 +74,17 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [userActionError, setUserActionError] = useState('');
   const [userActionSuccess, setUserActionSuccess] = useState('');
 
+  // App-themed modal state for confirming deletions
+  const [deleteModalState, setDeleteModalState] = useState<{
+    isOpen: boolean;
+    title: string;
+    itemName: string;
+    itemCategory?: string;
+    message?: string;
+    confirmButtonText?: string;
+    onConfirm: () => void;
+  } | null>(null);
+
   // --- Staff Management State ---
   const [staffSearch, setStaffSearch] = useState('');
   const [isAddingStaff, setIsAddingStaff] = useState(false);
@@ -92,12 +104,25 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [scraperSaving, setScraperSaving] = useState(false);
   const [scraperMsg, setScraperMsg] = useState('');
 
-  // Fetch users when opening modal
+  // --- Dynamic Layout Editor State ---
+  const [layoutDepts, setLayoutDepts] = useState<Department[]>([]);
+  const [selectedDeptId, setSelectedDeptId] = useState<string>('');
+  const [newDeptName, setNewDeptName] = useState('');
+  const [isAddingDept, setIsAddingDept] = useState(false);
+  const [newRoomName, setNewRoomName] = useState('');
+  const [layoutSaveMsg, setLayoutSaveMsg] = useState('');
+
+  // Fetch users & initialize layout when opening modal
   useEffect(() => {
     if (isOpen) {
       fetchUsers();
+      const cloned = JSON.parse(JSON.stringify(departments));
+      setLayoutDepts(cloned);
+      if (cloned.length > 0) {
+        setSelectedDeptId(prev => prev && cloned.some((d: Department) => d.id === prev) ? prev : cloned[0].id);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, departments]);
 
   const fetchUsers = async () => {
     try {
@@ -148,8 +173,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     }
   };
 
-  const handleDeleteUser = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+  const executeDeleteUser = async (id: string) => {
     try {
       const res = await fetch(`/api/users?id=${id}`, {
         method: 'DELETE',
@@ -164,6 +188,17 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     } catch (err) {
       console.error('Failed to delete user:', err);
     }
+  };
+
+  const promptDeleteUser = (u: User) => {
+    setDeleteModalState({
+      isOpen: true,
+      title: 'Delete System User',
+      itemName: `${u.displayName} (@${u.username})`,
+      itemCategory: `${u.role.toUpperCase()} Account`,
+      confirmButtonText: 'Delete User',
+      onConfirm: () => executeDeleteUser(u.id)
+    });
   };
 
   // --- Handlers for Staff Management ---
@@ -194,8 +229,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     }
   };
 
-  const handleDeleteStaff = async (id: string) => {
-    if (!confirm('Are you sure you want to remove this staff member from the roster?')) return;
+  const executeDeleteStaff = async (id: string) => {
     try {
       const res = await fetch(`/api/staff?id=${id}`, {
         method: 'DELETE',
@@ -210,6 +244,17 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     } catch (err) {
       console.error('Error deleting staff:', err);
     }
+  };
+
+  const promptDeleteStaff = (s: Staff) => {
+    setDeleteModalState({
+      isOpen: true,
+      title: 'Remove Staff from Roster',
+      itemName: `${s.lastName}, ${s.firstName} (${s.credentials})`,
+      itemCategory: 'Master Roster',
+      confirmButtonText: 'Remove Staff',
+      onConfirm: () => executeDeleteStaff(s.id)
+    });
   };
 
   // --- Handlers for Scraper Config ---
@@ -246,6 +291,164 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     } finally {
       setScraperSaving(false);
     }
+  };
+
+  // --- Handlers for Layout Editor ---
+  const handleRenameDept = (deptId: string, name: string) => {
+    setLayoutDepts(prev => prev.map(d => d.id === deptId ? { ...d, name: name.toUpperCase() } : d));
+  };
+
+  const handleAddRoom = (deptId: string) => {
+    if (!newRoomName.trim()) return;
+    setLayoutDepts(prev => prev.map(d => {
+      if (d.id !== deptId) return d;
+      const roomNum = d.rooms.length + 1;
+      const name = newRoomName.trim();
+      const newRoom = {
+        id: `${deptId}_room_${name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now()}`,
+        name: name,
+        orderIndex: roomNum,
+        notes: '',
+        slots: [{
+          id: `${deptId}_room_${name}_slot_0`,
+          roleType: 'primary' as const,
+          staffId: null,
+          breakfastDone: false,
+          lunchDone: false
+        }]
+      };
+      return {
+        ...d,
+        rooms: [...d.rooms, newRoom]
+      };
+    }));
+    setNewRoomName('');
+  };
+
+  const handleRemoveRoom = (deptId: string, roomId: string) => {
+    setLayoutDepts(prev => prev.map(d => {
+      if (d.id !== deptId) return d;
+      return {
+        ...d,
+        rooms: d.rooms.filter(r => r.id !== roomId)
+      };
+    }));
+  };
+
+  const handleRenameRoom = (deptId: string, roomId: string, newName: string) => {
+    setLayoutDepts(prev => prev.map(d => {
+      if (d.id !== deptId) return d;
+      return {
+        ...d,
+        rooms: d.rooms.map(r => r.id === roomId ? { ...r, name: newName } : r)
+      };
+    }));
+  };
+
+  const handleAddRunner = (deptId: string) => {
+    setLayoutDepts(prev => prev.map(d => {
+      if (d.id !== deptId) return d;
+      const num = d.runnerSlots.length + 1;
+      return {
+        ...d,
+        runnerSlots: [
+          ...d.runnerSlots,
+          {
+            id: `runner_${deptId}_${Date.now()}`,
+            title: `RUNNER ${num}`,
+            staffId: null,
+            breakfastDone: false,
+            lunchDone: false
+          }
+        ]
+      };
+    }));
+  };
+
+  const handleRemoveRunner = (deptId: string, runnerId: string) => {
+    setLayoutDepts(prev => prev.map(d => {
+      if (d.id !== deptId) return d;
+      return {
+        ...d,
+        runnerSlots: d.runnerSlots.filter(r => r.id !== runnerId)
+      };
+    }));
+  };
+
+  const handleRenameRunner = (deptId: string, runnerId: string, title: string) => {
+    setLayoutDepts(prev => prev.map(d => {
+      if (d.id !== deptId) return d;
+      return {
+        ...d,
+        runnerSlots: d.runnerSlots.map(r => r.id === runnerId ? { ...r, title: title.toUpperCase() } : r)
+      };
+    }));
+  };
+
+  const handleAddDepartment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDeptName.trim()) return;
+    const id = `dept_${newDeptName.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now()}`;
+    const newDept: Department = {
+      id,
+      name: newDeptName.trim().toUpperCase(),
+      orderIndex: layoutDepts.length,
+      runnerSlots: [
+        {
+          id: `runner_${id}_1`,
+          title: 'RUNNER 1',
+          staffId: null,
+          breakfastDone: false,
+          lunchDone: false
+        }
+      ],
+      rooms: [
+        {
+          id: `${id}_room_1`,
+          name: '1',
+          orderIndex: 1,
+          slots: [{
+            id: `${id}_room_1_slot_0`,
+            roleType: 'primary',
+            staffId: null,
+            breakfastDone: false,
+            lunchDone: false
+          }]
+        }
+      ]
+    };
+    setLayoutDepts(prev => [...prev, newDept]);
+    setSelectedDeptId(id);
+    setNewDeptName('');
+    setIsAddingDept(false);
+  };
+
+  const executeDeleteDepartment = (deptId: string) => {
+    const filtered = layoutDepts.filter(d => d.id !== deptId);
+    setLayoutDepts(filtered);
+    if (selectedDeptId === deptId && filtered.length > 0) {
+      setSelectedDeptId(filtered[0].id);
+    }
+  };
+
+  const promptDeleteDepartment = (deptId: string) => {
+    const dept = layoutDepts.find(d => d.id === deptId);
+    if (!dept) return;
+    setDeleteModalState({
+      isOpen: true,
+      title: 'Delete Department',
+      itemName: dept.name,
+      itemCategory: 'Department Column',
+      message: `Are you sure you want to permanently delete department "${dept.name}" and all of its configured rooms from the board?`,
+      confirmButtonText: 'Delete Department',
+      onConfirm: () => executeDeleteDepartment(deptId)
+    });
+  };
+
+  const handleSaveLayoutChanges = () => {
+    onSaveDepartments(layoutDepts);
+    setLayoutSaveMsg('Layout saved and live on the whiteboard!');
+    setTimeout(() => setLayoutSaveMsg(''), 3500);
   };
 
   return (
@@ -492,7 +695,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       <td style={{ padding: '8px 10px', textAlign: 'right' }}>
                         {u.id !== currentUser.id && (
                           <button
-                            onClick={() => handleDeleteUser(u.id)}
+                            onClick={() => promptDeleteUser(u)}
                             style={{ color: 'var(--marker-red)', padding: 4 }}
                             title="Delete user"
                           >
@@ -639,7 +842,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           <td style={{ padding: '8px 10px', color: 'var(--text-secondary)' }}>{s.shift || '07:00 - 15:30'}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'right' }}>
                             <button
-                              onClick={() => handleDeleteStaff(s.id)}
+                              onClick={() => promptDeleteStaff(s)}
                               style={{ color: 'var(--marker-red)', padding: 4 }}
                               title="Delete staff member"
                             >
@@ -656,123 +859,427 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
           {/* ===================== TAB 3: LAYOUT EDITOR ===================== */}
           {activeTab === 'layout' && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 12 }}>
+              {/* Header Controls */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)', paddingBottom: 10 }}>
                 <div>
-                  <h3 style={{ fontSize: 15, fontWeight: 800 }}>Department & Room Structure</h3>
+                  <h3 style={{ fontSize: 16, fontWeight: 900, textTransform: 'uppercase' }}>
+                    Interactive Board Layout & Room Editor
+                  </h3>
                   <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                    Add or remove rooms, runner slots, and customize the surgical suite layout
+                    Fully customize department names, add/edit/delete numbered rooms, and adjust runner slots
                   </p>
                 </div>
-                <button
-                  onClick={() => {
-                    if (confirm('Reset entire whiteboard layout and assignments back to the photo default?')) {
-                      onResetToPhotoDefault();
-                    }
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '6px 12px',
-                    borderRadius: 6,
-                    background: 'rgba(211,47,47,0.1)',
-                    border: '1px solid var(--marker-red)',
-                    color: 'var(--marker-red)',
-                    fontWeight: 700,
-                    fontSize: 12
-                  }}
-                >
-                  <RotateCcw size={14} />
-                  <span>Restore Photo Default</span>
-                </button>
-              </div>
-
-              {/* Department Overview Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-                {departments.map((dept, deptIdx) => (
-                  <div
-                    key={dept.id}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <button
+                    onClick={() => {
+                      setDeleteModalState({
+                        isOpen: true,
+                        title: 'Restore Layout Defaults',
+                        itemName: 'Original Photo Layout & Assignments',
+                        itemCategory: 'Layout Reset',
+                        message: 'Are you sure you want to reset the whiteboard layout, rooms, and assignments back to the photo default?',
+                        confirmButtonText: 'Restore Defaults',
+                        onConfirm: onResetToPhotoDefault
+                      });
+                    }}
                     style={{
-                      background: 'var(--surface-hover)',
-                      borderRadius: 8,
-                      padding: 12,
-                      border: '1px solid var(--border-light)'
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '6px 12px',
+                      borderRadius: 6,
+                      background: 'rgba(211,47,47,0.1)',
+                      border: '1px solid var(--marker-red)',
+                      color: 'var(--marker-red)',
+                      fontWeight: 700,
+                      fontSize: 12
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <span style={{ fontWeight: 800, fontSize: 14, textTransform: 'uppercase' }}>
-                        {dept.name}
-                      </span>
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        {dept.rooms.length} Rooms • {dept.runnerSlots.length} Runners
-                      </span>
-                    </div>
+                    <RotateCcw size={14} />
+                    <span>Restore Photo Default</span>
+                  </button>
 
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>
-                      <strong>Rooms:</strong> {dept.rooms.map(r => r.name).join(', ')}
-                    </div>
+                  <button
+                    onClick={handleSaveLayoutChanges}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '8px 16px',
+                      borderRadius: 6,
+                      background: 'var(--break-done-bg)',
+                      color: '#fff',
+                      fontWeight: 800,
+                      fontSize: 13,
+                      boxShadow: '0 2px 6px rgba(46, 160, 67, 0.3)'
+                    }}
+                  >
+                    <Check size={16} />
+                    <span>Save Layout Changes to Board</span>
+                  </button>
+                </div>
+              </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border-light)' }}>
-                      <div style={{ flex: 1, fontSize: 12, color: 'var(--text-secondary)' }}>
-                        <strong>Runners ({dept.runnerSlots.length}):</strong>
-                        {dept.runnerSlots.length > 0 ? (
-                          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
-                            {dept.runnerSlots.map(r => (
-                              <span
-                                key={r.id}
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: 4,
-                                  background: 'var(--surface-card)',
-                                  padding: '2px 6px',
-                                  borderRadius: 4,
-                                  border: '1px solid var(--border-light)',
-                                  fontSize: 11,
-                                  fontWeight: 600
-                                }}
-                              >
-                                {r.title}
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveRunnerFromDept(dept.id, r.id)}
-                                  style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'flex' }}
-                                  title={`Remove ${r.title}`}
-                                >
-                                  <Trash2 size={11} />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <span style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginLeft: 4 }}>None</span>
+              {layoutSaveMsg && (
+                <div style={{
+                  padding: '8px 12px',
+                  borderRadius: 6,
+                  background: 'rgba(46,160,67,0.15)',
+                  color: 'var(--marker-green)',
+                  fontWeight: 800,
+                  fontSize: 13,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}>
+                  <Check size={16} />
+                  <span>{layoutSaveMsg}</span>
+                </div>
+              )}
+
+              {/* Master Layout Workspace */}
+              <div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 400, overflow: 'hidden' }}>
+                {/* Left: Department List Selector */}
+                <div style={{ width: 220, borderRight: '1px solid var(--border-light)', paddingRight: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                      Departments ({layoutDepts.length})
+                    </span>
+                    <button
+                      onClick={() => setIsAddingDept(prev => !prev)}
+                      style={{ padding: '2px 6px', fontSize: 11, fontWeight: 700, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: 2 }}
+                    >
+                      <Plus size={12} />
+                      <span>Add</span>
+                    </button>
+
+                  </div>
+
+                  {/* Add Department Input */}
+                  {isAddingDept && (
+                    <form onSubmit={handleAddDepartment} style={{ padding: 6, background: 'var(--surface-hover)', borderRadius: 6, marginBottom: 6 }}>
+                      <input
+                        type="text"
+                        placeholder="Department Name..."
+                        value={newDeptName}
+                        onChange={e => setNewDeptName(e.target.value)}
+                        autoFocus
+                        style={{ width: '100%', padding: '4px 6px', fontSize: 12, borderRadius: 4, border: '1px solid var(--border-light)', marginBottom: 4 }}
+                      />
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button type="submit" style={{ flex: 1, padding: 3, background: 'var(--accent-primary)', color: '#fff', borderRadius: 4, fontSize: 11, fontWeight: 700 }}>
+                          Create
+                        </button>
+                        <button type="button" onClick={() => setIsAddingDept(false)} style={{ padding: '3px 6px', fontSize: 11 }}>
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Department Navigation Buttons */}
+                  <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {layoutDepts.map(dept => {
+                      const isSelected = dept.id === selectedDeptId;
+                      return (
+                        <button
+                          key={dept.id}
+                          onClick={() => setSelectedDeptId(dept.id)}
+                          style={{
+                            padding: '8px 10px',
+                            borderRadius: 6,
+                            textAlign: 'left',
+                            background: isSelected ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                            color: isSelected ? '#fff' : 'var(--text-primary)',
+                            fontWeight: 800,
+                            fontSize: 12,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <span style={{ textTransform: 'uppercase' }}>{dept.name}</span>
+                          <span style={{
+                            fontSize: 10,
+                            opacity: 0.85,
+                            background: isSelected ? 'rgba(255,255,255,0.2)' : 'var(--surface-card)',
+                            padding: '1px 5px',
+                            borderRadius: 3
+                          }}>
+                            {dept.rooms.length} R
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Right: Selected Department Detail & Room Editor */}
+                {selectedDeptId && (() => {
+                  const currentDept = layoutDepts.find(d => d.id === selectedDeptId);
+                  if (!currentDept) return null;
+
+                  return (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', paddingRight: 6 }}>
+                      {/* Department Name & Delete Row */}
+                      <div style={{
+                        background: 'var(--surface-hover)',
+                        padding: 12,
+                        borderRadius: 8,
+                        border: '1px solid var(--border-light)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 12
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
+                            Department Name:
+                          </label>
+                          <input
+                            type="text"
+                            value={currentDept.name}
+                            onChange={e => handleRenameDept(currentDept.id, e.target.value)}
+                            style={{
+                              width: '100%',
+                              padding: '6px 10px',
+                              fontSize: 14,
+                              fontWeight: 800,
+                              textTransform: 'uppercase',
+                              borderRadius: 6,
+                              border: '1px solid var(--border-light)',
+                              background: 'var(--surface-card)',
+                              color: 'var(--text-primary)'
+                            }}
+                          />
+                        </div>
+                        {layoutDepts.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => promptDeleteDepartment(currentDept.id)}
+                            style={{
+                              marginTop: 18,
+                              padding: '8px 12px',
+                              borderRadius: 6,
+                              background: 'rgba(211,47,47,0.1)',
+                              border: '1px solid var(--marker-red)',
+                              color: 'var(--marker-red)',
+                              fontWeight: 700,
+                              fontSize: 12,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4
+                            }}
+                            title="Delete this entire department"
+                          >
+                            <Trash2 size={13} />
+                            <span>Delete Dept</span>
+                          </button>
                         )}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleAddRunnerToDept(dept.id)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          padding: '3px 8px',
-                          borderRadius: 4,
-                          background: 'var(--accent-primary)',
-                          color: '#fff',
-                          fontSize: 11,
-                          fontWeight: 700,
-                          border: 'none',
-                          cursor: 'pointer',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        <Plus size={12} />
-                        <span>Add Runner</span>
-                      </button>
+
+                      {/* Runner Slots Config */}
+                      <div style={{
+                        background: 'var(--surface-hover)',
+                        padding: 12,
+                        borderRadius: 8,
+                        border: '1px solid var(--border-light)'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                          <span style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase' }}>
+                            Runner Slots ({currentDept.runnerSlots.length})
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleAddRunner(currentDept.id)}
+                            style={{
+                              padding: '3px 8px',
+                              borderRadius: 4,
+                              background: 'var(--accent-primary)',
+                              color: '#fff',
+                              fontSize: 11,
+                              fontWeight: 700,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 2
+                            }}
+                          >
+                            <Plus size={11} />
+                            <span>Add Runner Slot</span>
+                          </button>
+                        </div>
+
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                          {currentDept.runnerSlots.map(r => (
+                            <div
+                              key={r.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                padding: '4px 8px',
+                                background: 'var(--surface-card)',
+                                border: '1px solid var(--border-light)',
+                                borderRadius: 4
+                              }}
+                            >
+                              <input
+                                type="text"
+                                value={r.title}
+                                onChange={e => handleRenameRunner(currentDept.id, r.id, e.target.value)}
+                                style={{
+                                  border: 'none',
+                                  background: 'transparent',
+                                  fontSize: 12,
+                                  fontWeight: 800,
+                                  textTransform: 'uppercase',
+                                  width: 100
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveRunner(currentDept.id, r.id)}
+                                style={{ color: 'var(--text-muted)', padding: 1 }}
+                                title="Remove runner slot"
+                              >
+                                <X size={13} />
+                              </button>
+                            </div>
+                          ))}
+                          {currentDept.runnerSlots.length === 0 && (
+                            <div style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                              No runner slots. Tap &quot;Add Runner Slot&quot; to configure runners.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Numbered Rooms Display Editor */}
+                      <div style={{
+                        background: 'var(--surface-hover)',
+                        padding: 12,
+                        borderRadius: 8,
+                        border: '1px solid var(--border-light)',
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                          <div>
+                            <span style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase' }}>
+                              Displayed Rooms ({currentDept.rooms.length})
+                            </span>
+                            <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 8 }}>
+                              Modify room numbers, add rooms, or remove rooms
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Add Room Row */}
+                        <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+                          <input
+                            type="text"
+                            placeholder="Room Number or Name (e.g. 13, MRI, Cath 1, P3)..."
+                            value={newRoomName}
+                            onChange={e => setNewRoomName(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddRoom(currentDept.id);
+                              }
+                            }}
+                            style={{
+                              flex: 1,
+                              padding: '6px 10px',
+                              fontSize: 13,
+                              borderRadius: 6,
+                              border: '1px solid var(--border-light)',
+                              background: 'var(--surface-card)',
+                              color: 'var(--text-primary)'
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleAddRoom(currentDept.id)}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: 6,
+                              background: 'var(--accent-primary)',
+                              color: '#fff',
+                              fontWeight: 700,
+                              fontSize: 13,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4
+                            }}
+                          >
+                            <Plus size={14} />
+                            <span>Add Room</span>
+                          </button>
+                        </div>
+
+                        {/* Rooms Grid / Chips */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))',
+                          gap: 8,
+                          maxHeight: 240,
+                          overflowY: 'auto',
+                          padding: 4
+                        }}>
+                          {currentDept.rooms.map((room, rIdx) => (
+                            <div
+                              key={room.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '6px 8px',
+                                background: 'var(--surface-card)',
+                                border: '1px solid var(--border-light)',
+                                borderRadius: 6
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 1, overflow: 'hidden' }}>
+                                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>#{rIdx + 1}</span>
+                                <input
+                                  type="text"
+                                  value={room.name}
+                                  onChange={e => handleRenameRoom(currentDept.id, room.id, e.target.value)}
+                                  style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    fontWeight: 800,
+                                    fontSize: 13,
+                                    width: '100%',
+                                    outline: 'none',
+                                    fontFamily: 'var(--font-mono)'
+                                  }}
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveRoom(currentDept.id, room.id)}
+                                style={{ color: 'var(--text-muted)', padding: 2 }}
+                                title={`Delete Room ${room.name}`}
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+
+                        {currentDept.rooms.length === 0 && (
+                          <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                            No rooms configured in this department. Type a room name above and click Add Room.
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })()}
               </div>
             </div>
           )}
@@ -882,6 +1389,21 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           )}
         </div>
       </div>
+
+      {/* App-Themed Deletion & Reset Confirmation Modal */}
+      {deleteModalState && (
+        <ConfirmDeleteModal
+          isOpen={deleteModalState.isOpen}
+          title={deleteModalState.title}
+          itemName={deleteModalState.itemName}
+          itemCategory={deleteModalState.itemCategory}
+          message={deleteModalState.message}
+          confirmButtonText={deleteModalState.confirmButtonText}
+          cancelButtonText="Cancel"
+          onConfirm={deleteModalState.onConfirm}
+          onClose={() => setDeleteModalState(null)}
+        />
+      )}
     </div>
   );
 };

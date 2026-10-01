@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { BoardState, Staff, Department, UserRole, User } from '@/types/whiteboard';
+import { BoardState, Staff, Department, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem } from '@/types/whiteboard';
 import { HeaderNav } from '@/components/HeaderNav';
 import { DepartmentGrid } from '@/components/DepartmentGrid';
 import { RightSidebar } from '@/components/RightSidebar';
@@ -13,6 +13,7 @@ import { VoiceNoteModal } from '@/components/VoiceNoteModal';
 import { VirtualKeyboard } from '@/components/VirtualKeyboard';
 import { AdminModal } from '@/components/AdminModal';
 import { AuditDrawer } from '@/components/AuditDrawer';
+import { ConfirmDeleteModal } from '@/components/ConfirmDeleteModal';
 
 export default function WhiteboardPage() {
   const [boardState, setBoardState] = useState<BoardState | null>(null);
@@ -44,6 +45,7 @@ export default function WhiteboardPage() {
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isSyncWarningOpen, setIsSyncWarningOpen] = useState(false);
 
   // Initialize theme and load board
   useEffect(() => {
@@ -219,7 +221,7 @@ export default function WhiteboardPage() {
   // 3. Move staff via drag & drop
   const handleDropStaff = async (
     fromData: { staffId: string; type: string; id?: string },
-    toType: 'room_slot' | 'runner_slot',
+    toType: 'room_slot' | 'runner_slot' | 'runner_dept',
     toId: string
   ) => {
     if (currentUserRole === 'basic_user') {
@@ -249,6 +251,86 @@ export default function WhiteboardPage() {
       }
     } catch (err) {
       console.error('Error moving staff:', err);
+    }
+  };
+
+  // Dynamic Runner Slot actions
+  const handleAddRunnerSlot = async (departmentId: string) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'ADD_RUNNER_SLOT',
+          payload: { departmentId },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error adding runner slot:', err);
+    }
+  };
+
+  const handleRemoveRunnerSlot = async (departmentId: string, runnerSlotId: string) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'REMOVE_RUNNER_SLOT',
+          payload: { departmentId, runnerSlotId },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error removing runner slot:', err);
+    }
+  };
+
+  // Toggle Departure Strikethrough
+  const handleToggleDepartureStruck = async (id: string) => {
+    // Optimistic UI update
+    setBoardState(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        departureList: prev.departureList.map(d => d.id === id ? { ...d, departed: !d.departed } : d)
+      };
+    });
+
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'TOGGLE_DEPARTURE_STRUCK',
+          payload: { id },
+          user: currentUser || { role: 'basic_user', displayName: 'Staff' }
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error toggling departure status:', err);
+      fetchBoardState(false);
     }
   };
 
@@ -310,7 +392,7 @@ export default function WhiteboardPage() {
   };
 
   // 6. Update Departure or Lates lists
-  const handleUpdateLists = async (departureList: any, latesList: any) => {
+  const handleUpdateLists = async (departureList: DepartureItem[], latesList: LateShiftItem[], isReorder?: boolean) => {
     if (currentUserRole === 'basic_user') {
       setIsLoginModalOpen(true);
       return;
@@ -322,7 +404,7 @@ export default function WhiteboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'UPDATE_LISTS',
-          payload: { departureList, latesList },
+          payload: { departureList, latesList, isReorder },
           user: currentUser
         })
       });
@@ -335,8 +417,34 @@ export default function WhiteboardPage() {
     }
   };
 
+  // 6b. Update Call Team list
+  const handleUpdateCallTeam = async (callTeamList: CallTeamItem[]) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_CALL_TEAM',
+          payload: { callTeamList },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error updating call team:', err);
+    }
+  };
+
   // 7. Trigger Scraper Portal Sync
-  const handleTriggerSync = async () => {
+  const executeTriggerSync = async () => {
     setIsSyncing(true);
     try {
       const res = await fetch('/api/scraper', {
@@ -358,56 +466,31 @@ export default function WhiteboardPage() {
     }
   };
 
-  // 9. Add Runner slot to department
-  const handleAddRunnerSlot = async (departmentId: string) => {
+  // 7. Trigger Scraper Portal Sync
+  const handleTriggerSync = async () => {
     if (currentUserRole === 'basic_user') {
       setIsLoginModalOpen(true);
       return;
     }
 
-    try {
-      const res = await fetch('/api/board', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'ADD_RUNNER_SLOT',
-          payload: { departmentId },
-          user: currentUser
-        })
-      });
-      const data = await res.json();
-      if (data.state) {
-        setBoardState(data.state);
-      }
-    } catch (err) {
-      console.error('Error adding runner slot:', err);
-    }
-  };
-
-  // 10. Remove Runner slot from department
-  const handleRemoveRunnerSlot = async (departmentId: string, runnerSlotId: string) => {
-    if (currentUserRole === 'basic_user') {
-      setIsLoginModalOpen(true);
+    if (!boardState) {
+      await executeTriggerSync();
       return;
     }
 
-    try {
-      const res = await fetch('/api/board', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'REMOVE_RUNNER_SLOT',
-          payload: { departmentId, runnerSlotId },
-          user: currentUser
-        })
-      });
-      const data = await res.json();
-      if (data.state) {
-        setBoardState(data.state);
-      }
-    } catch (err) {
-      console.error('Error removing runner slot:', err);
+    // Check if changes have been made since last sync
+    const lastSync = boardState.scraperConfig?.lastSyncTime
+      ? new Date(boardState.scraperConfig.lastSyncTime).getTime()
+      : 0;
+    const lastUpdated = new Date(boardState.lastUpdated).getTime();
+
+    // If modifications have occurred since last sync, warn user!
+    if (lastUpdated > lastSync) {
+      setIsSyncWarningOpen(true);
+      return;
     }
+
+    await executeTriggerSync();
   };
 
   // 8. Superuser Layout actions
@@ -519,6 +602,7 @@ export default function WhiteboardPage() {
         {/* Right 2 Columns: DEPARTURE & LATES */}
         <RightSidebar
           departureList={boardState.departureList}
+          callTeamList={boardState.callTeamList || []}
           departureNotes={boardState.departureNotes}
           latesList={boardState.latesList}
           latesNotes={boardState.latesNotes}
@@ -526,9 +610,9 @@ export default function WhiteboardPage() {
           onUpdateDepartureNotes={notes => handleSaveNotes('departure', undefined, notes)}
           onUpdateLatesNotes={notes => handleSaveNotes('lates', undefined, notes)}
           onUpdateLists={handleUpdateLists}
+          onUpdateCallTeam={handleUpdateCallTeam}
           onOpenVoiceNotes={(type, notes) => setVoiceNoteTarget({ type, currentNotes: notes })}
-          onTriggerSync={handleTriggerSync}
-          isSyncing={isSyncing}
+          onToggleDepartureStruck={handleToggleDepartureStruck}
         />
       </main>
 
@@ -605,6 +689,22 @@ export default function WhiteboardPage() {
         isOpen={isAuditDrawerOpen}
         onClose={() => setIsAuditDrawerOpen(false)}
       />
+
+      {/* Portal Sync Overwrite Warning Modal */}
+      <ConfirmDeleteModal
+        isOpen={isSyncWarningOpen}
+        title="Sync Portal Warning"
+        itemName="Manual Changes Detected"
+        itemCategory="External Portal Sync"
+        message="Manual modifications have been made to the whiteboard (assignments, departures, or call team) since the last sync. Synchronizing now will fetch the external portal schedule and may replace or reorder your manual adjustments. Do you want to proceed?"
+        confirmButtonText="Overwrite & Sync Now"
+        cancelButtonText="Cancel (Keep Changes)"
+        onConfirm={async () => {
+          setIsSyncWarningOpen(false);
+          await executeTriggerSync();
+        }}
+        onClose={() => setIsSyncWarningOpen(false)}
+      />
     </div>
   );
-}
+};

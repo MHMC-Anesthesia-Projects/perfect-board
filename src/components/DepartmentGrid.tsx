@@ -12,7 +12,7 @@ interface DepartmentGridProps {
   onToggleBreak: (targetType: 'room_slot' | 'runner_slot', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
   onSelectStaff: (staff: Staff) => void;
   onSelectEmptySlot: (targetType: 'room_slot' | 'runner_slot', targetId: string, label: string) => void;
-  onDropStaff: (fromData: { staffId: string; type: string; id?: string }, targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
+  onDropStaff: (fromData: { staffId: string; type: string; id?: string }, targetType: 'room_slot' | 'runner_slot' | 'runner_dept', targetId: string) => void;
   onOpenVoiceNotes: (targetType: 'room', targetId: string, currentNotes?: string) => void;
   onAddRunnerSlot?: (departmentId: string) => void;
   onRemoveRunnerSlot?: (departmentId: string, runnerSlotId: string) => void;
@@ -31,6 +31,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
   onRemoveRunnerSlot
 }) => {
   const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
+  const isEditor = currentUserRole !== 'basic_user';
 
   const getStaffById = (id: string | null): Staff | undefined => {
     if (!id) return undefined;
@@ -51,7 +52,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
 
   const handleDrop = (
     e: React.DragEvent,
-    targetType: 'room_slot' | 'runner_slot',
+    targetType: 'room_slot' | 'runner_slot' | 'runner_dept',
     targetId: string
   ) => {
     e.preventDefault();
@@ -95,93 +96,136 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
           <div className="dept-title">
             <span>{dept.name}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              {dept.runnerSlots.length > 0 && (
-                <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>
-                  {dept.runnerSlots.length} RUNNER{dept.runnerSlots.length > 1 ? 'S' : ''}
-                </span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>
+                {dept.runnerSlots.length} RUNNER{dept.runnerSlots.length === 1 ? '' : 'S'}
+              </span>
+              {/* Dynamic Runner Add Button */}
+              {isEditor && onAddRunnerSlot && (
+                <button
+                  type="button"
+                  onClick={() => onAddRunnerSlot(dept.id)}
+                  style={{
+                    padding: '1px 5px',
+                    borderRadius: 3,
+                    background: 'var(--surface-card)',
+                    border: '1px solid var(--border-light)',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    color: 'var(--accent-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2
+                  }}
+                  title={`Add extra runner slot to ${dept.name}`}
+                >
+                  <Plus size={10} />
+                  <span>Runner</span>
+                </button>
               )}
-              <button
-                type="button"
-                onClick={() => onAddRunnerSlot?.(dept.id)}
-                className="add-runner-btn"
-                title={`Add a runner slot to ${dept.name}`}
-              >
-                <Plus size={11} />
-                <span>Runner</span>
-              </button>
             </div>
           </div>
 
-          {/* Runner Slots Group */}
-          {dept.runnerSlots.length > 0 ? (
-            <div className="runner-slots-group">
-              {dept.runnerSlots.map(runner => {
-                const assignedStaff = getStaffById(runner.staffId);
-                const isOver = dragOverTarget === runner.id;
+          {/* Runner Slots Group (Also drop zone to dynamically adapt to 2nd or 3rd runner) */}
+          <div
+            className="runner-slots-group"
+            onDragOver={e => handleDragOver(e, `dept_runner_${dept.id}`)}
+            onDragLeave={handleDragLeave}
+            onDrop={e => {
+              // If dropped directly into group container, dynamically assign to runner slot
+              handleDrop(e, 'runner_dept', dept.id);
+            }}
+            style={{
+              padding: '2px',
+              borderRadius: 4,
+              border: dragOverTarget === `dept_runner_${dept.id}` ? '1.5px dashed var(--accent-primary)' : '1px solid transparent',
+              background: dragOverTarget === `dept_runner_${dept.id}` ? 'var(--accent-surface)' : 'transparent',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            {dept.runnerSlots.map(runner => {
+              const assignedStaff = getStaffById(runner.staffId);
+              const isOver = dragOverTarget === runner.id;
 
-                return (
-                  <div
-                    key={runner.id}
-                    className={`runner-slot ${isOver ? 'drag-over' : ''}`}
-                    onDragOver={e => handleDragOver(e, runner.id)}
-                    onDragLeave={handleDragLeave}
-                    onDrop={e => handleDrop(e, 'runner_slot', runner.id)}
-                    onClick={() => {
-                      if (!assignedStaff) {
-                        onSelectEmptySlot('runner_slot', runner.id, `${dept.name} Runner (${runner.title})`);
-                      }
-                    }}
-                  >
-                    {assignedStaff ? (
-                      <div className="runner-slot-magnet-wrapper">
-                        <MagnetTile
-                          staff={assignedStaff}
-                          slotId={runner.id}
-                          slotType="runner_slot"
-                          breakfastDone={runner.breakfastDone}
-                          lunchDone={runner.lunchDone}
-                          currentUserRole={currentUserRole}
-                          onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
-                          onSelectStaff={onSelectStaff}
-                          onDragStart={handleTileDragStart}
-                          isCompact={true}
-                        />
+              return (
+                <div
+                  key={runner.id}
+                  className={`runner-slot ${isOver ? 'drag-over' : ''}`}
+                  onDragOver={e => {
+                    e.stopPropagation();
+                    handleDragOver(e, runner.id);
+                  }}
+                  onDragLeave={e => {
+                    e.stopPropagation();
+                    handleDragLeave();
+                  }}
+                  onDrop={e => {
+                    e.stopPropagation();
+                    handleDrop(e, 'runner_slot', runner.id);
+                  }}
+                  onClick={() => {
+                    if (!assignedStaff) {
+                      onSelectEmptySlot('runner_slot', runner.id, `${dept.name} Runner (${runner.title})`);
+                    }
+                  }}
+                  style={{ position: 'relative' }}
+                >
+                  {assignedStaff ? (
+                    <MagnetTile
+                      staff={assignedStaff}
+                      slotId={runner.id}
+                      slotType="runner_slot"
+                      breakfastDone={runner.breakfastDone}
+                      lunchDone={runner.lunchDone}
+                      currentUserRole={currentUserRole}
+                      onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
+                      onSelectStaff={onSelectStaff}
+                      onDragStart={handleTileDragStart}
+                      isCompact={true}
+                    />
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '2px 4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Plus size={12} />
+                        <span>{runner.title}</span>
                       </div>
-                    ) : (
-                      <div className="runner-slot-empty">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <Plus size={12} />
-                          <span>{runner.title}</span>
-                        </div>
-                        {onRemoveRunnerSlot && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onRemoveRunnerSlot(dept.id, runner.id);
-                            }}
-                            className="remove-runner-slot-btn"
-                            title={`Remove ${runner.title} slot`}
-                          >
-                            <X size={12} />
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div
-              className="runner-slots-empty-prompt"
-              onClick={() => onAddRunnerSlot?.(dept.id)}
-              title={`Click to add a runner to ${dept.name}`}
-            >
-              <Plus size={11} />
-              <span>Add Runner</span>
-            </div>
-          )}
+                      {isEditor && onRemoveRunnerSlot && dept.runnerSlots.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRemoveRunnerSlot(dept.id, runner.id);
+                          }}
+                          style={{ color: 'var(--text-muted)', padding: 1 }}
+                          title="Remove extra empty runner slot"
+                        >
+                          <X size={11} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {dept.runnerSlots.length === 0 && (
+              <div
+                onClick={() => isEditor && onAddRunnerSlot && onAddRunnerSlot(dept.id)}
+                style={{
+                  fontSize: 11,
+                  color: 'var(--text-muted)',
+                  fontStyle: 'italic',
+                  padding: '4px',
+                  cursor: isEditor ? 'pointer' : 'default',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}
+              >
+                {isEditor ? <><Plus size={11} /> Tap to add runner</> : 'No runners assigned'}
+              </div>
+            )}
+          </div>
+
         </div>
 
         {/* Rooms List */}
@@ -289,12 +333,12 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
 
   return (
     <div className="dept-columns-wrapper">
-      {/* Top 4 Departments: MAIN OR, WEST PAV, ORTHO, VILLAGE */}
+      {/* Top 4 Departments */}
       <div className="dept-row-top">
         {topDepartments.map(renderDepartment)}
       </div>
 
-      {/* Bottom 4 Departments: 9th Floor, ENDO, OB, IVF */}
+      {/* Bottom 4 Departments */}
       <div className="dept-row-bottom">
         {bottomDepartments.map(renderDepartment)}
       </div>

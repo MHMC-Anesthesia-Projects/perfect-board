@@ -121,6 +121,26 @@ export async function POST(req: NextRequest) {
               break;
             }
           }
+        } else if (targetType === 'runner_dept') {
+          for (const dept of state.departments) {
+            if (dept.id === targetId) {
+              let emptyRunner = dept.runnerSlots.find(r => !r.staffId);
+              if (!emptyRunner) {
+                emptyRunner = {
+                  id: `runner_${dept.id}_${Date.now()}`,
+                  title: `RUNNER ${dept.runnerSlots.length + 1}`,
+                  staffId: staffId || null,
+                  breakfastDone: false,
+                  lunchDone: false
+                };
+                dept.runnerSlots.push(emptyRunner);
+              } else {
+                emptyRunner.staffId = staffId || null;
+              }
+              locationName = `${dept.name} Runner (${emptyRunner.title})`;
+              break;
+            }
+          }
         } else if (targetType === 'room_slot') {
           for (const dept of state.departments) {
             for (const room of dept.rooms) {
@@ -141,7 +161,7 @@ export async function POST(req: NextRequest) {
           userRole: currentUserRole,
           targetName: staffName,
           locationName,
-          details: staffId ? `Assigned to ${locationName}` : `Cleared from ${locationName} to bullpen`
+          details: staffId ? `Assigned to ${locationName}` : `Cleared from ${locationName} to available staff`
         });
 
         return NextResponse.json({ success: true, state });
@@ -193,6 +213,26 @@ export async function POST(req: NextRequest) {
               toLocation = `${dept.name} Runner (${r.title})`;
             }
           }
+        } else if (toTargetType === 'runner_dept') {
+          for (const dept of state.departments) {
+            if (dept.id === toId) {
+              let emptyRunner = dept.runnerSlots.find(r => !r.staffId);
+              if (!emptyRunner) {
+                emptyRunner = {
+                  id: `runner_${dept.id}_${Date.now()}`,
+                  title: `RUNNER ${dept.runnerSlots.length + 1}`,
+                  staffId: staffId,
+                  breakfastDone: false,
+                  lunchDone: false
+                };
+                dept.runnerSlots.push(emptyRunner);
+              } else {
+                emptyRunner.staffId = staffId;
+              }
+              toLocation = `${dept.name} Runner (${emptyRunner.title})`;
+              break;
+            }
+          }
         } else if (toTargetType === 'room_slot') {
           for (const dept of state.departments) {
             for (const room of dept.rooms) {
@@ -204,7 +244,7 @@ export async function POST(req: NextRequest) {
             }
           }
         } else if (toTargetType === 'bullpen') {
-          toLocation = 'Bullpen';
+          toLocation = 'Available Unassigned Staff';
         }
 
         saveBoardState(state);
@@ -258,26 +298,118 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, state });
       }
 
-      // 5. Update Departure or Lates lists directly
+      // 5. Update Departure, Call Team, or Lates lists directly
       case 'UPDATE_LISTS': {
         if (currentUserRole === 'basic_user') {
           return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
         }
         if (payload.departureList) state.departureList = payload.departureList;
         if (payload.latesList) state.latesList = payload.latesList;
+        if (payload.callTeamList) state.callTeamList = payload.callTeamList;
 
         saveBoardState(state);
         recordAuditLog({
-          actionType: 'DEPARTURE_UPDATED',
+          actionType: payload.isReorder ? 'DEPARTURE_REORDERED' : payload.callTeamList ? 'CALL_TEAM_UPDATED' : 'DEPARTURE_UPDATED',
           performedBy: currentUserName,
           userRole: currentUserRole,
-          details: 'Updated departure or late staff ordering'
+          details: payload.details || 'Updated departure, call team, or late staff ordering'
         });
 
         return NextResponse.json({ success: true, state });
       }
 
-      // 6. Save full state (Superuser only, e.g. after layout editor)
+      case 'UPDATE_CALL_TEAM': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
+        }
+        if (payload.callTeamList) state.callTeamList = payload.callTeamList;
+        saveBoardState(state);
+        recordAuditLog({
+          actionType: 'CALL_TEAM_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          details: payload.details || 'Updated Call Team assignments'
+        });
+        return NextResponse.json({ success: true, state });
+      }
+
+      // 6. Toggle Departure Strikethrough (Mark doc as departed/left)
+      case 'TOGGLE_DEPARTURE_STRUCK': {
+        const { id } = payload;
+        const item = state.departureList.find(d => d.id === id);
+        if (item) {
+          item.departed = !item.departed;
+          saveBoardState(state);
+          recordAuditLog({
+            actionType: 'DEPARTURE_STRUCK_TOGGLED',
+            performedBy: currentUserName,
+            userRole: currentUserRole,
+            targetName: item.name,
+            details: item.departed
+              ? `Marked doctor ${item.name} as DEPARTED [Strikethrough]`
+              : `Unmarked doctor ${item.name} departure status`
+          });
+          return NextResponse.json({ success: true, state });
+        }
+        return NextResponse.json({ error: 'Departure item not found' }, { status: 404 });
+      }
+
+      // 7. Add runner slot to department dynamically
+      case 'ADD_RUNNER_SLOT': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const { departmentId, title } = payload;
+        const dept = state.departments.find(d => d.id === departmentId);
+        if (dept) {
+          const slotNumber = dept.runnerSlots.length + 1;
+          const newSlot = {
+            id: `runner_${dept.id}_${Date.now()}`,
+            title: title || `RUNNER ${slotNumber}`,
+            staffId: null,
+            breakfastDone: false,
+            lunchDone: false
+          };
+          dept.runnerSlots.push(newSlot);
+          saveBoardState(state);
+          recordAuditLog({
+            actionType: 'RUNNER_SLOT_ADDED',
+            performedBy: currentUserName,
+            userRole: currentUserRole,
+            locationName: dept.name,
+            details: `Added new runner slot "${newSlot.title}" to ${dept.name}`
+          });
+          return NextResponse.json({ success: true, state });
+        }
+        return NextResponse.json({ error: 'Department not found' }, { status: 404 });
+      }
+
+      // 8. Remove runner slot from department
+      case 'REMOVE_RUNNER_SLOT': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const { departmentId, runnerSlotId } = payload;
+        const dept = state.departments.find(d => d.id === departmentId);
+        if (dept) {
+          const idx = dept.runnerSlots.findIndex(r => r.id === runnerSlotId);
+          if (idx !== -1) {
+            const removed = dept.runnerSlots.splice(idx, 1)[0];
+            saveBoardState(state);
+            recordAuditLog({
+              actionType: 'RUNNER_SLOT_REMOVED',
+              performedBy: currentUserName,
+              userRole: currentUserRole,
+              locationName: dept.name,
+              details: `Removed runner slot "${removed.title}" from ${dept.name}`
+            });
+            return NextResponse.json({ success: true, state });
+          }
+        }
+        return NextResponse.json({ error: 'Runner slot not found' }, { status: 404 });
+      }
+
+      // 9. Save full state (Superuser only, e.g. after layout editor)
       case 'SAVE_LAYOUT': {
         if (currentUserRole !== 'superuser') {
           return NextResponse.json({ error: 'Superuser permission required to alter board layout.' }, { status: 403 });

@@ -1,25 +1,28 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DepartureItem, LateShiftItem, UserRole } from '@/types/whiteboard';
-import { Clock, Plus, Trash2, Mic, RefreshCw, Edit3 } from 'lucide-react';
+import { DepartureItem, LateShiftItem, CallTeamItem, UserRole } from '@/types/whiteboard';
+import { Plus, Trash2, Mic, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface RightSidebarProps {
   departureList: DepartureItem[];
+  callTeamList: CallTeamItem[];
   departureNotes: string;
   latesList: LateShiftItem[];
   latesNotes: string;
   currentUserRole: UserRole;
   onUpdateDepartureNotes: (notes: string) => void;
   onUpdateLatesNotes: (notes: string) => void;
-  onUpdateLists: (departureList: DepartureItem[], latesList: LateShiftItem[]) => void;
+  onUpdateLists: (departureList: DepartureItem[], latesList: LateShiftItem[], isReorder?: boolean) => void;
+  onUpdateCallTeam: (callTeamList: CallTeamItem[]) => void;
   onOpenVoiceNotes: (targetType: 'departure' | 'lates', currentNotes: string) => void;
-  onTriggerSync: () => void;
-  isSyncing: boolean;
+  onToggleDepartureStruck: (id: string) => void;
 }
 
 export const RightSidebar: React.FC<RightSidebarProps> = ({
   departureList,
+  callTeamList,
   departureNotes,
   latesList,
   latesNotes,
@@ -27,17 +30,36 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   onUpdateDepartureNotes,
   onUpdateLatesNotes,
   onUpdateLists,
+  onUpdateCallTeam,
   onOpenVoiceNotes,
-  onTriggerSync,
-  isSyncing
+  onToggleDepartureStruck
 }) => {
   const isEditor = currentUserRole !== 'basic_user';
+
+  // State for adding departure
   const [newDepartureName, setNewDepartureName] = useState('');
   const [showAddDep, setShowAddDep] = useState(false);
 
+  // State for Call Team
+  const [showAddCall, setShowAddCall] = useState(false);
+  const [newCallRole, setNewCallRole] = useState('');
+  const [newCallDoc, setNewCallDoc] = useState('');
+
+  // Drag-and-drop state for reordering departures
+  const [draggedDepartureIdx, setDraggedDepartureIdx] = useState<number | null>(null);
+  const [dragOverDepartureIdx, setDragOverDepartureIdx] = useState<number | null>(null);
+
+  // State for adding late staff (supports specific category targeted by plus button)
+  const [addingToCategory, setAddingToCategory] = useState<string | null>(null);
   const [newLateName, setNewLateName] = useState('');
-  const [newLateTime, setNewLateTime] = useState('5p');
-  const [showAddLate, setShowAddLate] = useState(false);
+
+  // App-themed modal state for confirming staff deletion
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: 'departure' | 'late' | 'call_team';
+    id: string;
+    name: string;
+    categoryLabel: string;
+  } | null>(null);
 
   // Group lates by time category (4p, 5p, 7p, 8p, 7p-7a)
   const timeCategories = ['4p', '5p', '7p', '8p', '7p-7a'];
@@ -61,7 +83,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
       {
         id: `dep_${Date.now()}`,
         name: newDepartureName.trim().toUpperCase(),
-        orderIndex: departureList.length
+        orderIndex: departureList.length,
+        departed: false
       }
     ];
     onUpdateLists(updated, latesList);
@@ -69,12 +92,55 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     setShowAddDep(false);
   };
 
-  const handleRemoveDeparture = (id: string) => {
-    const updated = departureList.filter(d => d.id !== id);
-    onUpdateLists(updated, latesList);
+  const handleMoveDeparture = (fromIndex: number, toIndex: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (toIndex < 0 || toIndex >= departureList.length) return;
+    const list = [...departureList];
+    const [moved] = list.splice(fromIndex, 1);
+    list.splice(toIndex, 0, moved);
+    const updated = list.map((item, idx) => ({ ...item, orderIndex: idx }));
+    onUpdateLists(updated, latesList, true);
   };
 
-  const handleAddLate = (e: React.FormEvent) => {
+  const handleInitiateRemoveDeparture = (doc: DepartureItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeleteTarget({
+      type: 'departure',
+      id: doc.id,
+      name: `Dr. ${doc.name}`,
+      categoryLabel: 'Departure'
+    });
+  };
+
+  const handleAddCallTeam = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCallRole.trim() || !newCallDoc.trim()) return;
+    const updated = [
+      ...callTeamList,
+      {
+        id: `call_${Date.now()}`,
+        role: newCallRole.trim().toUpperCase(),
+        doctorName: newCallDoc.trim().toUpperCase(),
+        orderIndex: callTeamList.length
+      }
+    ];
+    onUpdateCallTeam(updated);
+    setNewCallRole('');
+    setNewCallDoc('');
+    setShowAddCall(false);
+  };
+
+  const handleInitiateRemoveCallTeam = (item: CallTeamItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeleteTarget({
+      type: 'call_team',
+      id: item.id,
+      name: `Dr. ${item.doctorName}`,
+      categoryLabel: `Call Team (${item.role})`
+    });
+  };
+
+  const handleAddLateToCategory = (category: string, e: React.FormEvent) => {
     e.preventDefault();
     if (!newLateName.trim()) return;
     const updated = [
@@ -82,18 +148,38 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
       {
         id: `late_${Date.now()}`,
         name: newLateName.trim().toUpperCase(),
-        timeCategory: newLateTime,
+        timeCategory: category,
         orderIndex: latesList.length
       }
     ];
     onUpdateLists(departureList, updated);
     setNewLateName('');
-    setShowAddLate(false);
+    setAddingToCategory(null);
   };
 
-  const handleRemoveLate = (id: string) => {
-    const updated = latesList.filter(l => l.id !== id);
-    onUpdateLists(departureList, updated);
+  const handleInitiateRemoveLate = (item: LateShiftItem, category: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeleteTarget({
+      type: 'late',
+      id: item.id,
+      name: item.name,
+      categoryLabel: `${category} Late Shift`
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    if (deleteTarget.type === 'departure') {
+      const updated = departureList.filter(d => d.id !== deleteTarget.id);
+      onUpdateLists(updated, latesList);
+    } else if (deleteTarget.type === 'late') {
+      const updated = latesList.filter(l => l.id !== deleteTarget.id);
+      onUpdateLists(departureList, updated);
+    } else if (deleteTarget.type === 'call_team') {
+      const updated = callTeamList.filter(c => c.id !== deleteTarget.id);
+      onUpdateCallTeam(updated);
+    }
+    setDeleteTarget(null);
   };
 
   return (
@@ -108,32 +194,45 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           {isEditor && (
             <button
               onClick={() => setShowAddDep(prev => !prev)}
-              style={{ padding: 2, color: 'var(--accent-primary)' }}
-              title="Add Doctor to Departure List"
+              style={{
+                width: 22,
+                height: 22,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 4,
+                background: 'var(--surface-card)',
+                border: '1px solid var(--border-light)',
+                color: 'var(--accent-primary)'
+              }}
+              title="Manually Add Doctor to Departure List"
             >
-              <Plus size={16} />
+              <Plus size={14} />
             </button>
           )}
         </div>
 
-        {/* Add Departure Doctor Form */}
+        {/* Manual Add Departure Doctor Form */}
         {showAddDep && isEditor && (
           <form onSubmit={handleAddDeparture} style={{ padding: 6, background: 'var(--surface-hover)', borderBottom: '1px solid var(--border-light)' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 4 }}>
+              Add Doctor to Departure:
+            </div>
             <input
               type="text"
-              placeholder="Doctor Last Name"
+              placeholder="Doctor Last Name (e.g. SMITH)"
               value={newDepartureName}
               onChange={e => setNewDepartureName(e.target.value)}
               autoFocus
               style={{
                 width: '100%',
-                padding: '4px 6px',
+                padding: '5px 8px',
                 fontSize: 12,
                 borderRadius: 4,
                 border: '1px solid var(--border-light)',
                 background: 'var(--surface-card)',
                 color: 'var(--text-primary)',
-                marginBottom: 4
+                marginBottom: 6
               }}
             />
             <div style={{ display: 'flex', gap: 4 }}>
@@ -141,22 +240,23 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 type="submit"
                 style={{
                   flex: 1,
-                  padding: '3px',
+                  padding: '4px',
                   background: 'var(--accent-primary)',
                   color: '#fff',
                   borderRadius: 4,
                   fontSize: 11,
-                  fontWeight: 700
+                  fontWeight: 800
                 }}
               >
-                Add
+                Add Doctor
               </button>
               <button
                 type="button"
                 onClick={() => setShowAddDep(false)}
                 style={{
-                  padding: '3px 8px',
+                  padding: '4px 10px',
                   background: 'var(--surface-card)',
+                  border: '1px solid var(--border-light)',
                   borderRadius: 4,
                   fontSize: 11
                 }}
@@ -169,38 +269,216 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
         {/* Departure Order List */}
         <div className="departure-list-area">
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, padding: '2px 4px' }}>
+            Tap name to mark departed (strikethrough)
+          </div>
+
           {departureList.map((doc, idx) => (
             <div
               key={doc.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '5px 8px',
-                background: 'var(--surface-card)',
-                borderRadius: 4,
-                border: '1px solid var(--border-light)',
-                fontSize: 13,
-                fontWeight: 800,
-                color: 'var(--text-primary)',
-                letterSpacing: 0.5
+              className={`departure-item ${doc.departed ? 'struck' : ''} ${dragOverDepartureIdx === idx ? 'drag-over' : ''} ${draggedDepartureIdx === idx ? 'dragging' : ''}`}
+              onClick={() => onToggleDepartureStruck(doc.id)}
+              draggable={isEditor}
+              onDragStart={(e) => {
+                e.dataTransfer.setData('text/departure-index', String(idx));
+                setDraggedDepartureIdx(idx);
               }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOverDepartureIdx(idx);
+              }}
+              onDragLeave={() => {
+                setDragOverDepartureIdx(null);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                const fromIdx = parseInt(e.dataTransfer.getData('text/departure-index'), 10);
+                if (!isNaN(fromIdx) && fromIdx !== idx) {
+                  handleMoveDeparture(fromIdx, idx);
+                }
+                setDraggedDepartureIdx(null);
+                setDragOverDepartureIdx(null);
+              }}
+              onDragEnd={() => {
+                setDraggedDepartureIdx(null);
+                setDragOverDepartureIdx(null);
+              }}
+              title={doc.departed ? 'Marked departed (Tap to unmark)' : 'Tap to mark departed (Strikethrough)'}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
+                {isEditor && (
+                  <GripVertical size={11} style={{ color: 'var(--text-muted)', cursor: 'grab', flexShrink: 0 }} />
+                )}
                 <span style={{ fontSize: 11, color: 'var(--text-muted)', width: 14 }}>{idx + 1}.</span>
-                <span>{doc.name}</span>
+                <span className="departure-name">{doc.name}</span>
               </div>
               {isEditor && (
-                <button
-                  onClick={() => handleRemoveDeparture(doc.id)}
-                  style={{ color: 'var(--text-muted)', padding: 2 }}
-                  title="Remove from departure list"
-                >
-                  <Trash2 size={12} />
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 1 }} onClick={e => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    onClick={(e) => handleMoveDeparture(idx, idx - 1, e)}
+                    disabled={idx === 0}
+                    className="departure-reorder-btn"
+                    title="Move earlier in departure order"
+                  >
+                    <ChevronUp size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleMoveDeparture(idx, idx + 1, e)}
+                    disabled={idx === departureList.length - 1}
+                    className="departure-reorder-btn"
+                    title="Move later in departure order"
+                  >
+                    <ChevronDown size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleInitiateRemoveDeparture(doc, e)}
+                    style={{ color: 'var(--text-muted)', padding: '2px 4px', borderRadius: 3 }}
+                    title="Remove from departure list"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
               )}
             </div>
           ))}
+
+          {departureList.length === 0 && (
+            <div style={{ padding: 12, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12, fontStyle: 'italic' }}>
+              No doctors on departure list. Tap + to add.
+            </div>
+          )}
+        </div>
+
+        {/* CALL TEAM SECTION AT BOTTOM OF DEPARTURE */}
+        <div className="call-team-area">
+          <div className="call-team-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ color: 'var(--marker-red)' }}>CALL TEAM</span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>({callTeamList.length})</span>
+            </div>
+            {isEditor && (
+              <button
+                type="button"
+                onClick={() => setShowAddCall(prev => !prev)}
+                style={{
+                  width: 20,
+                  height: 20,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 3,
+                  background: 'var(--surface-card)',
+                  border: '1px solid var(--border-light)',
+                  color: 'var(--marker-red)'
+                }}
+                title="Add Doctor to Call Team"
+              >
+                <Plus size={12} />
+              </button>
+            )}
+          </div>
+
+          {/* Add Call Team Doctor Form */}
+          {showAddCall && isEditor && (
+            <form onSubmit={handleAddCallTeam} style={{ padding: 6, background: 'var(--surface-hover)', borderBottom: '1px solid var(--border-light)' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 4 }}>
+                Add Call Doctor:
+              </div>
+              <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
+                <input
+                  type="text"
+                  placeholder="Role (e.g. CV, 1st, 2nd, OB)"
+                  value={newCallRole}
+                  onChange={e => setNewCallRole(e.target.value)}
+                  autoFocus
+                  style={{
+                    width: '45%',
+                    padding: '4px 6px',
+                    fontSize: 11,
+                    borderRadius: 4,
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--surface-card)',
+                    color: 'var(--text-primary)'
+                  }}
+                />
+                <input
+                  type="text"
+                  placeholder="Doctor (e.g. KD, SHENOY)"
+                  value={newCallDoc}
+                  onChange={e => setNewCallDoc(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '4px 6px',
+                    fontSize: 11,
+                    borderRadius: 4,
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--surface-card)',
+                    color: 'var(--text-primary)'
+                  }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <button
+                  type="submit"
+                  style={{
+                    flex: 1,
+                    padding: '4px',
+                    background: 'var(--accent-primary)',
+                    color: '#fff',
+                    borderRadius: 4,
+                    fontSize: 11,
+                    fontWeight: 800
+                  }}
+                >
+                  Save Call Doc
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCall(false)}
+                  style={{
+                    padding: '4px 8px',
+                    background: 'var(--surface-card)',
+                    border: '1px solid var(--border-light)',
+                    borderRadius: 4,
+                    fontSize: 11
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Call Team Members List */}
+          <div className="call-team-list">
+            {callTeamList.map((item) => (
+              <div key={item.id} className="call-team-item">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span className="call-role-badge">{item.role}</span>
+                  <span className="call-doc-name">{item.doctorName}</span>
+                </div>
+                {isEditor && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleInitiateRemoveCallTeam(item, e)}
+                    style={{ color: 'var(--text-muted)', padding: 2, borderRadius: 3 }}
+                    title={`Remove ${item.doctorName} from ${item.role}`}
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                )}
+              </div>
+            ))}
+
+            {callTeamList.length === 0 && (
+              <div style={{ padding: 8, textAlign: 'center', color: 'var(--text-muted)', fontSize: 11, fontStyle: 'italic' }}>
+                No call team assigned. Tap + to add.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Departure Dry-Erase Scratchpad Notes */}
@@ -234,87 +512,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <span>LATES</span>
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>(&gt; 3 PM)</span>
           </div>
-          {isEditor && (
-            <button
-              onClick={() => setShowAddLate(prev => !prev)}
-              style={{ padding: 2, color: 'var(--accent-primary)' }}
-              title="Add Late Shift Staff"
-            >
-              <Plus size={16} />
-            </button>
-          )}
         </div>
-
-        {/* Add Late Shift Staff Form */}
-        {showAddLate && isEditor && (
-          <form onSubmit={handleAddLate} style={{ padding: 6, background: 'var(--surface-hover)', borderBottom: '1px solid var(--border-light)' }}>
-            <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
-              <select
-                value={newLateTime}
-                onChange={e => setNewLateTime(e.target.value)}
-                style={{
-                  padding: '4px',
-                  borderRadius: 4,
-                  fontSize: 12,
-                  border: '1px solid var(--border-light)',
-                  background: 'var(--surface-card)',
-                  color: 'var(--text-primary)',
-                  fontWeight: 700
-                }}
-              >
-                <option value="4p">4p</option>
-                <option value="5p">5p</option>
-                <option value="7p">7p</option>
-                <option value="8p">8p</option>
-                <option value="7p-7a">7p-7a</option>
-              </select>
-              <input
-                type="text"
-                placeholder="Staff Last Name"
-                value={newLateName}
-                onChange={e => setNewLateName(e.target.value)}
-                autoFocus
-                style={{
-                  flex: 1,
-                  padding: '4px 6px',
-                  fontSize: 12,
-                  borderRadius: 4,
-                  border: '1px solid var(--border-light)',
-                  background: 'var(--surface-card)',
-                  color: 'var(--text-primary)'
-                }}
-              />
-            </div>
-            <div style={{ display: 'flex', gap: 4 }}>
-              <button
-                type="submit"
-                style={{
-                  flex: 1,
-                  padding: '3px',
-                  background: 'var(--accent-primary)',
-                  color: '#fff',
-                  borderRadius: 4,
-                  fontSize: 11,
-                  fontWeight: 700
-                }}
-              >
-                Add Late Staff
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowAddLate(false)}
-                style={{
-                  padding: '3px 8px',
-                  background: 'var(--surface-card)',
-                  borderRadius: 4,
-                  fontSize: 11
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
 
         {/* Categorized Late Shifts Area */}
         <div className="lates-list-area">
@@ -322,22 +520,100 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             if (items.length === 0 && !['4p', '5p', '7p', '8p', '7p-7a'].includes(category)) return null;
 
             return (
-              <div key={category} style={{ marginBottom: 8 }}>
-                {/* Category Header (4p, 5p, 7p, 8p, 7p-7a) with authentic handwriting style */}
+              <div key={category} style={{ marginBottom: 10 }}>
+                {/* Category Header (4p, 5p, 7p, 8p, 7p-7a) with + Plus Button */}
                 <div style={{
                   fontSize: 13,
                   fontWeight: 900,
                   color: 'var(--marker-black)',
                   borderBottom: '1.5px solid var(--board-grid-line)',
-                  paddingBottom: 1,
-                  marginBottom: 3,
+                  paddingBottom: 2,
+                  marginBottom: 4,
                   display: 'flex',
-                  alignItems: 'baseline',
+                  alignItems: 'center',
                   justifyContent: 'space-between'
                 }}>
-                  <span style={{ textDecoration: 'underline' }}>{category}</span>
-                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{items.length} staff</span>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span style={{ textDecoration: 'underline' }}>{category}</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>({items.length})</span>
+                  </div>
+
+                  {/* Manual Add Plus Sign next to Time Header */}
+                  {isEditor && (
+                    <button
+                      onClick={() => {
+                        setAddingToCategory(addingToCategory === category ? null : category);
+                        setNewLateName('');
+                      }}
+                      style={{
+                        padding: '1px 5px',
+                        borderRadius: 3,
+                        background: addingToCategory === category ? 'var(--accent-primary)' : 'var(--surface-card)',
+                        color: addingToCategory === category ? '#fff' : 'var(--accent-primary)',
+                        border: '1px solid var(--border-light)',
+                        fontSize: 11,
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2
+                      }}
+                      title={`Add staff to ${category}`}
+                    >
+                      <Plus size={11} />
+                      <span style={{ fontSize: 10 }}>Add</span>
+                    </button>
+                  )}
                 </div>
+
+                {/* Inline Add Input for this specific time category */}
+                {addingToCategory === category && isEditor && (
+                  <form onSubmit={(e) => handleAddLateToCategory(category, e)} style={{ padding: 4, background: 'var(--surface-hover)', borderRadius: 4, marginBottom: 6 }}>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      <input
+                        type="text"
+                        placeholder={`Staff Last Name for ${category}...`}
+                        value={newLateName}
+                        onChange={e => setNewLateName(e.target.value)}
+                        autoFocus
+                        style={{
+                          flex: 1,
+                          padding: '4px 6px',
+                          fontSize: 12,
+                          borderRadius: 4,
+                          border: '1px solid var(--border-light)',
+                          background: 'var(--surface-card)',
+                          color: 'var(--text-primary)'
+                        }}
+                      />
+                      <button
+                        type="submit"
+                        style={{
+                          padding: '3px 8px',
+                          background: 'var(--accent-primary)',
+                          color: '#fff',
+                          borderRadius: 4,
+                          fontSize: 11,
+                          fontWeight: 700
+                        }}
+                      >
+                        Add
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAddingToCategory(null)}
+                        style={{
+                          padding: '3px 6px',
+                          background: 'var(--surface-card)',
+                          border: '1px solid var(--border-light)',
+                          borderRadius: 4,
+                          fontSize: 11
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </form>
+                )}
 
                 {/* Staff names under this time slot */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -348,28 +624,30 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: '2px 6px',
+                        padding: '3px 6px',
                         fontSize: 13,
                         fontWeight: 700,
                         textTransform: 'uppercase',
-                        fontFamily: 'var(--font-main)'
+                        fontFamily: 'var(--font-main)',
+                        borderRadius: 3,
+                        background: 'rgba(0, 0, 0, 0.02)'
                       }}
                     >
                       <span>{item.name}</span>
                       {isEditor && (
                         <button
-                          onClick={() => handleRemoveLate(item.id)}
-                          style={{ color: 'var(--text-muted)', padding: 1 }}
-                          title="Remove late staff"
+                          onClick={(e) => handleInitiateRemoveLate(item, category, e)}
+                          style={{ color: 'var(--text-muted)', padding: 2, borderRadius: 3 }}
+                          title={`Remove ${item.name} from ${category}`}
                         >
-                          <Trash2 size={11} />
+                          <Trash2 size={12} />
                         </button>
                       )}
                     </div>
                   ))}
                   {items.length === 0 && (
                     <div style={{ fontSize: 11, fontStyle: 'italic', color: 'var(--text-muted)', padding: '2px 6px' }}>
-                      No staff scheduled
+                      No staff scheduled for {category}
                     </div>
                   )}
                 </div>
@@ -401,6 +679,24 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           />
         </div>
       </div>
+
+      {/* App-Themed Staff Deletion Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!deleteTarget}
+        title={
+          deleteTarget?.type === 'departure'
+            ? 'Remove Departure Doctor'
+            : deleteTarget?.type === 'call_team'
+            ? 'Remove Call Team Doctor'
+            : 'Remove Late Shift Staff'
+        }
+        itemName={deleteTarget?.name || ''}
+        itemCategory={deleteTarget?.categoryLabel}
+        confirmButtonText="Remove Staff"
+        cancelButtonText="Cancel"
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </aside>
   );
 };
