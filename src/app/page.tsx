@@ -219,7 +219,7 @@ export default function WhiteboardPage() {
   // 3. Move staff via drag & drop
   const handleDropStaff = async (
     fromData: { staffId: string; type: string; id?: string },
-    toType: 'room_slot' | 'runner_slot',
+    toType: 'room_slot' | 'runner_slot' | 'runner_dept',
     toId: string
   ) => {
     if (currentUserRole === 'basic_user') {
@@ -249,6 +249,86 @@ export default function WhiteboardPage() {
       }
     } catch (err) {
       console.error('Error moving staff:', err);
+    }
+  };
+
+  // Dynamic Runner Slot actions
+  const handleAddRunnerSlot = async (departmentId: string) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'ADD_RUNNER_SLOT',
+          payload: { departmentId },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error adding runner slot:', err);
+    }
+  };
+
+  const handleRemoveRunnerSlot = async (departmentId: string, runnerSlotId: string) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'REMOVE_RUNNER_SLOT',
+          payload: { departmentId, runnerSlotId },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error removing runner slot:', err);
+    }
+  };
+
+  // Toggle Departure Strikethrough
+  const handleToggleDepartureStruck = async (id: string) => {
+    // Optimistic UI update
+    setBoardState(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        departureList: prev.departureList.map(d => d.id === id ? { ...d, departed: !d.departed } : d)
+      };
+    });
+
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'TOGGLE_DEPARTURE_STRUCK',
+          payload: { id },
+          user: currentUser || { role: 'basic_user', displayName: 'Staff' }
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error toggling departure status:', err);
+      fetchBoardState(false);
     }
   };
 
@@ -460,6 +540,8 @@ export default function WhiteboardPage() {
           onSelectEmptySlot={(type, id, label) => setSlotAssignTarget({ type, id, label })}
           onDropStaff={handleDropStaff}
           onOpenVoiceNotes={(type, id, currentNotes) => setVoiceNoteTarget({ type, id, currentNotes: currentNotes || '' })}
+          onAddRunnerSlot={handleAddRunnerSlot}
+          onRemoveRunnerSlot={handleRemoveRunnerSlot}
         />
 
         {/* Right 2 Columns: DEPARTURE & LATES */}
@@ -473,8 +555,7 @@ export default function WhiteboardPage() {
           onUpdateLatesNotes={notes => handleSaveNotes('lates', undefined, notes)}
           onUpdateLists={handleUpdateLists}
           onOpenVoiceNotes={(type, notes) => setVoiceNoteTarget({ type, currentNotes: notes })}
-          onTriggerSync={handleTriggerSync}
-          isSyncing={isSyncing}
+          onToggleDepartureStruck={handleToggleDepartureStruck}
         />
       </main>
 

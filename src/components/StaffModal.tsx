@@ -177,7 +177,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
               borderRadius: 4,
               border: currentPlacement ? '1px solid var(--border-light)' : 'none'
             }}>
-              {currentPlacement ? currentPlacement.locationName : 'Bullpen (Unassigned)'}
+              {currentPlacement ? currentPlacement.locationName : 'Available Unassigned Staff'}
             </span>
           </div>
         </div>
@@ -365,7 +365,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                 }}
               >
                 <CornerDownLeft size={16} />
-                <span>Return to Bullpen</span>
+                <span>Return to Available Unassigned Staff</span>
               </button>
             )}
           </div>

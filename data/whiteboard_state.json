@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-01T13:39:08.234Z",
+  "lastUpdated": "2026-10-01T15:22:17.372Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -1087,7 +1087,8 @@
               "staffId": "staff_lu_42",
               "breakfastDone": false,
               "lunchDone": false,
-              "notes": ""
+              "notes": "",
+              "breakfastTime": null
             }
           ]
         }
@@ -2055,19 +2056,16 @@
   ],
   "departureList": [
     {
-      "id": "dep_1",
-      "name": "KOVAC",
-      "orderIndex": 0
-    },
-    {
       "id": "dep_2",
       "name": "MANN",
-      "orderIndex": 1
+      "orderIndex": 1,
+      "departed": true
     },
     {
       "id": "dep_3",
       "name": "CAV",
-      "orderIndex": 2
+      "orderIndex": 2,
+      "departed": false
     },
     {
       "id": "dep_4",

@@ -1,5 +1,78 @@
 [
   {
+    "id": "audit_1790868137374_zd8xs",
+    "timestamp": "2026-10-01T15:22:17.374Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "CAV",
+    "details": "Unmarked doctor CAV departure status"
+  },
+  {
+    "id": "audit_1790868136346_r8q2n",
+    "timestamp": "2026-10-01T15:22:16.346Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "CAV",
+    "details": "Marked doctor CAV as DEPARTED [Strikethrough]"
+  },
+  {
+    "id": "audit_1790868053643_1bxpu",
+    "timestamp": "2026-10-01T15:20:53.643Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "MANN",
+    "details": "Marked doctor MANN as DEPARTED [Strikethrough]"
+  },
+  {
+    "id": "audit_1790868053041_q9b10",
+    "timestamp": "2026-10-01T15:20:53.041Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "MANN",
+    "details": "Unmarked doctor MANN departure status"
+  },
+  {
+    "id": "audit_1790867982574_ez96w",
+    "timestamp": "2026-10-01T15:19:42.574Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Lu Lu",
+    "locationName": "IVF Room LU",
+    "details": "Marked breakfast break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790867979707_z2brz",
+    "timestamp": "2026-10-01T15:19:39.707Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Lu Lu",
+    "locationName": "IVF Room LU",
+    "details": "Marked breakfast break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790867948951_rkitj",
+    "timestamp": "2026-10-01T15:19:08.951Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Test Staff",
+    "userRole": "basic_user",
+    "targetName": "MANN",
+    "details": "Marked doctor MANN as DEPARTED [Strikethrough]"
+  },
+  {
+    "id": "audit_1790867278476_zpsv6",
+    "timestamp": "2026-10-01T15:07:58.477Z",
+    "actionType": "DEPARTURE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure or late staff ordering"
+  },
+  {
     "id": "audit_1790861948236_jjjs5",
     "timestamp": "2026-10-01T13:39:08.236Z",
     "actionType": "STAFF_MOVED",

@@ -68,6 +68,7 @@ export interface DepartureItem {
   id: string;
   name: string;
   orderIndex: number;
+  departed?: boolean; // When true, struck through on the board
   role?: string;
   timeEstimate?: string;
   notes?: string;
@@ -92,6 +93,9 @@ export interface AuditLogEntry {
     | 'LUNCH_TOGGLED' 
     | 'NOTE_UPDATED' 
     | 'RUNNER_ASSIGNED'
+    | 'RUNNER_SLOT_ADDED'
+    | 'RUNNER_SLOT_REMOVED'
+    | 'DEPARTURE_STRUCK_TOGGLED'
     | 'LAYOUT_CHANGED'
     | 'STAFF_CREATED'
     | 'STAFF_UPDATED'
