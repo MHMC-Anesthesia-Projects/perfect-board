@@ -195,14 +195,14 @@ export function getInitialBoardState(staff: Staff[]): BoardState {
       runnerSlots: [
         {
           id: 'runner_main_or_1',
-          title: 'CAVANAUGH',
+          title: 'Runner 1',
           staffId: staffByName('Cavanaugh'),
           breakfastDone: false,
           lunchDone: false
         },
         {
           id: 'runner_main_or_2',
-          title: 'SHENOY',
+          title: 'Runner 2',
           staffId: staffByName('Shenoy'),
           breakfastDone: false,
           lunchDone: false
@@ -232,14 +232,14 @@ export function getInitialBoardState(staff: Staff[]): BoardState {
       runnerSlots: [
         {
           id: 'runner_west_pav_1',
-          title: 'CHUAN',
+          title: 'Runner 1',
           staffId: staffByName('Chuan'),
           breakfastDone: false,
           lunchDone: false
         },
         {
           id: 'runner_west_pav_2',
-          title: 'PATEL P',
+          title: 'Runner 2',
           staffId: staffByName('Patel P'),
           breakfastDone: false,
           lunchDone: false
@@ -269,7 +269,7 @@ export function getInitialBoardState(staff: Staff[]): BoardState {
       runnerSlots: [
         {
           id: 'runner_ortho_1',
-          title: 'GUNN',
+          title: 'Runner 1',
           staffId: staffByName('Gunn'),
           breakfastDone: false,
           lunchDone: false
@@ -295,7 +295,7 @@ export function getInitialBoardState(staff: Staff[]): BoardState {
       runnerSlots: [
         {
           id: 'runner_village_1',
-          title: 'HIRSCH',
+          title: 'Runner 1',
           staffId: staffByName('Hirsch'),
           breakfastDone: false,
           lunchDone: false
@@ -341,7 +341,7 @@ export function getInitialBoardState(staff: Staff[]): BoardState {
       runnerSlots: [
         {
           id: 'runner_endo_1',
-          title: 'MARTINEZ R',
+          title: 'Runner 1',
           staffId: staffByName('Martinez R'),
           breakfastDone: false,
           lunchDone: false
@@ -364,7 +364,7 @@ export function getInitialBoardState(staff: Staff[]): BoardState {
       runnerSlots: [
         {
           id: 'runner_ob_1',
-          title: 'TALLACKSON',
+          title: 'Runner 1',
           staffId: staffByName('Tallackson'),
           breakfastDone: false,
           lunchDone: false

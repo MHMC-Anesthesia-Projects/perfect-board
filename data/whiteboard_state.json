@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-01T13:39:08.234Z",
+  "lastUpdated": "2026-10-01T15:07:00.366Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -9,14 +9,14 @@
       "runnerSlots": [
         {
           "id": "runner_main_or_1",
-          "title": "CAVANAUGH",
+          "title": "Runner 1",
           "staffId": "staff_cavanaugh_0",
           "breakfastDone": false,
           "lunchDone": false
         },
         {
           "id": "runner_main_or_2",
-          "title": "SHENOY",
+          "title": "Runner 2",
           "staffId": "staff_shenoy_1",
           "breakfastDone": false,
           "lunchDone": false
@@ -225,14 +225,14 @@
       "runnerSlots": [
         {
           "id": "runner_west_pav_1",
-          "title": "CHUAN",
-          "staffId": "staff_chuan_2",
+          "title": "Runner 1",
+          "staffId": null,
           "breakfastDone": false,
           "lunchDone": false
         },
         {
           "id": "runner_west_pav_2",
-          "title": "PATEL P",
+          "title": "Runner 2",
           "staffId": null,
           "breakfastDone": false,
           "lunchDone": false
@@ -440,7 +440,7 @@
       "runnerSlots": [
         {
           "id": "runner_ortho_1",
-          "title": "GUNN",
+          "title": "Runner 1",
           "staffId": "staff_patel_p_3",
           "breakfastDone": false,
           "lunchDone": false
@@ -584,7 +584,7 @@
       "runnerSlots": [
         {
           "id": "runner_village_1",
-          "title": "HIRSCH",
+          "title": "Runner 1",
           "staffId": "staff_hirsch_5",
           "breakfastDone": false,
           "lunchDone": false
@@ -900,7 +900,7 @@
       "runnerSlots": [
         {
           "id": "runner_endo_1",
-          "title": "MARTINEZ R",
+          "title": "Runner 1",
           "staffId": "staff_martinez_r_6",
           "breakfastDone": false,
           "lunchDone": false
@@ -996,7 +996,7 @@
       "runnerSlots": [
         {
           "id": "runner_ob_1",
-          "title": "TALLACKSON",
+          "title": "Runner 1",
           "staffId": "staff_tallackson_7",
           "breakfastDone": false,
           "lunchDone": false
@@ -1084,7 +1084,7 @@
             {
               "id": "dept_ivf_room_LU_slot_0",
               "roleType": "primary",
-              "staffId": "staff_lu_42",
+              "staffId": null,
               "breakfastDone": false,
               "lunchDone": false,
               "notes": ""
