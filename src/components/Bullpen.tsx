@@ -13,28 +13,19 @@ interface BullpenProps {
   currentUserRole: UserRole;
   onSelectStaff: (staff: Staff) => void;
   onOpenAddStaff: () => void;
-  onDropToBullpen: (data: { staffId: string; type: string; id?: string }) => void;
+  onDropToBullpen: (data: { staffId: string; type: string; id?: string; targetGroup?: 'MD' | 'CRNA' | 'Infrequent' }) => void;
   onToggleBreak?: (breakType: 'breakfast' | 'lunch', staffId: string, currentValue: boolean) => void;
+  onSetStaffInfrequent?: (staffId: string, isInfrequent: boolean) => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
 }
 
-const CREDENTIAL_ORDER: Record<string, number> = {
-  MD: 1,
-  Fellow: 2,
-  CRNA: 3,
-  Resident: 4,
-  SRNA: 5,
-  PA: 6,
-  RN: 7
+const isPhysician = (s: Staff) => {
+  const cred = s.credentials;
+  return cred === 'MD' || cred === 'Resident' || cred === 'Fellow';
 };
 
-const sortStaffByCredThenName = (a: Staff, b: Staff) => {
-  const rankA = CREDENTIAL_ORDER[a.credentials] ?? 99;
-  const rankB = CREDENTIAL_ORDER[b.credentials] ?? 99;
-  if (rankA !== rankB) {
-    return rankA - rankB;
-  }
+const sortAlphabetical = (a: Staff, b: Staff) => {
   const lastComp = a.lastName.localeCompare(b.lastName, undefined, { sensitivity: 'base' });
   if (lastComp !== 0) return lastComp;
   return a.firstName.localeCompare(b.firstName, undefined, { sensitivity: 'base' });
@@ -50,6 +41,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
   onOpenAddStaff,
   onDropToBullpen,
   onToggleBreak,
+  onSetStaffInfrequent,
   isCollapsed: propIsCollapsed,
   onToggleCollapse
 }) => {
@@ -63,6 +55,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
+  const [hoveredBin, setHoveredBin] = useState<'MD' | 'CRNA' | 'Infrequent' | null>(null);
 
   // Find all assigned staff IDs across rooms and runners
   const assignedStaffIds = useMemo(() => {
@@ -98,17 +91,54 @@ export const Bullpen: React.FC<BullpenProps> = ({
     );
   }, [unassignedStaff, searchQuery]);
 
-  // Group into Alphabetical Bins
+  // Group into 3 Groups: MD, CRNA, Infrequent - sorted alphabetically
   const bins = useMemo(() => {
-    const aToF = filteredStaff.filter(s => /^[a-f]/i.test(s.lastName)).sort(sortStaffByCredThenName);
-    const gToL = filteredStaff.filter(s => /^[g-l]/i.test(s.lastName)).sort(sortStaffByCredThenName);
-    const mToR = filteredStaff.filter(s => /^[m-r]/i.test(s.lastName)).sort(sortStaffByCredThenName);
-    const sToZ = filteredStaff.filter(s => /^[s-z]/i.test(s.lastName)).sort(sortStaffByCredThenName);
+    const mdList: Staff[] = [];
+    const crnaList: Staff[] = [];
+    const infrequentList: Staff[] = [];
+
+    for (const s of filteredStaff) {
+      if (s.isInfrequent) {
+        infrequentList.push(s);
+      } else if (isPhysician(s)) {
+        mdList.push(s);
+      } else {
+        crnaList.push(s);
+      }
+    }
+
+    mdList.sort(sortAlphabetical);
+    crnaList.sort(sortAlphabetical);
+    infrequentList.sort(sortAlphabetical);
+
     return [
-      { key: 'A-F', label: 'A - F', items: aToF },
-      { key: 'G-L', label: 'G - L', items: gToL },
-      { key: 'M-R', label: 'M - R', items: mToR },
-      { key: 'S-Z', label: 'S - Z', items: sToZ }
+      {
+        key: 'MD' as const,
+        label: 'MD',
+        title: 'MD / PHYSICIANS',
+        headerClass: 'header-md',
+        binClass: 'bin-md',
+        items: mdList,
+        emptyMsg: 'No unassigned MD staff available'
+      },
+      {
+        key: 'CRNA' as const,
+        label: 'CRNA',
+        title: 'CRNA / ANESTHETISTS',
+        headerClass: 'header-crna',
+        binClass: 'bin-crna',
+        items: crnaList,
+        emptyMsg: 'No unassigned CRNA staff available'
+      },
+      {
+        key: 'Infrequent' as const,
+        label: 'Infrequent',
+        title: 'INFREQUENT / PRN',
+        headerClass: 'header-infrequent',
+        binClass: 'bin-infrequent',
+        items: infrequentList,
+        emptyMsg: 'No infrequent staff. Drag staff here to remember them as Infrequent.'
+      }
     ];
   }, [filteredStaff]);
 
@@ -125,6 +155,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
+    setHoveredBin(null);
     try {
       const raw = e.dataTransfer.getData('application/json');
       if (raw) {
@@ -133,6 +164,45 @@ export const Bullpen: React.FC<BullpenProps> = ({
       }
     } catch (err) {
       console.error('Error dropping to bullpen:', err);
+    }
+  };
+
+  const handleBinDragOver = (e: React.DragEvent, binKey: 'MD' | 'CRNA' | 'Infrequent') => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    if (hoveredBin !== binKey) setHoveredBin(binKey);
+  };
+
+  const handleBinDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setHoveredBin(null);
+  };
+
+  const handleBinDrop = (e: React.DragEvent, binKey: 'MD' | 'CRNA' | 'Infrequent') => {
+    e.preventDefault();
+    e.stopPropagation();
+    setHoveredBin(null);
+    setIsDragOver(false);
+    try {
+      const raw = e.dataTransfer.getData('application/json');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (binKey === 'Infrequent') {
+          if (onSetStaffInfrequent) {
+            onSetStaffInfrequent(parsed.staffId, true);
+          }
+          onDropToBullpen({ ...parsed, targetGroup: 'Infrequent' });
+        } else {
+          if (onSetStaffInfrequent) {
+            onSetStaffInfrequent(parsed.staffId, false);
+          }
+          onDropToBullpen({ ...parsed, targetGroup: binKey });
+        }
+      }
+    } catch (err) {
+      console.error('Error dropping to bin:', err);
     }
   };
 
@@ -180,9 +250,19 @@ export const Bullpen: React.FC<BullpenProps> = ({
           }}>
             {unassignedStaff.length} AVAILABLE
           </span>
-          {isDragOver && (
+          {isDragOver && !hoveredBin && (
             <span style={{ fontSize: 11, color: 'var(--accent-primary)', fontWeight: 800, marginLeft: 8 }}>
               • Drop here to unassign
+            </span>
+          )}
+          {hoveredBin && (
+            <span style={{
+              fontSize: 11,
+              fontWeight: 800,
+              marginLeft: 8,
+              color: hoveredBin === 'Infrequent' ? '#d97706' : (hoveredBin === 'MD' ? '#0969da' : '#1a7f37')
+            }}>
+              • Drop to place in {hoveredBin === 'Infrequent' ? 'Infrequent (PRN)' : hoveredBin} group
             </span>
           )}
         </div>
@@ -279,48 +359,64 @@ export const Bullpen: React.FC<BullpenProps> = ({
         </div>
       </div>
 
-      {/* Alphabetical Bins (Hidden when collapsed) */}
+      {/* 3 Groups: MD, CRNA, Infrequent - Sorted Alphabetically (Hidden when collapsed) */}
       {!isCollapsed && (
         <div className="bullpen-bins-container">
-          {bins.map(bin => (
-            <div key={bin.key} className="bullpen-bin">
-              <div className="bullpen-bin-header">
-                {bin.label} ({bin.items.length})
+          {bins.map(bin => {
+            const isTarget = hoveredBin === bin.key;
+            return (
+              <div
+                key={bin.key}
+                className={`bullpen-bin ${bin.binClass} ${isTarget ? 'drag-target' : ''}`}
+                onDragOver={(e) => handleBinDragOver(e, bin.key)}
+                onDragLeave={handleBinDragLeave}
+                onDrop={(e) => handleBinDrop(e, bin.key)}
+              >
+                <div className={`bullpen-bin-header ${bin.headerClass}`}>
+                  <span>{bin.title}</span>
+                  <span className="bullpen-bin-count" style={{ fontWeight: 800, opacity: 0.9 }}>({bin.items.length})</span>
+                  {isTarget && (
+                    <span style={{ fontSize: 10, fontWeight: 800, marginLeft: 4 }}>
+                      • Drop to set as {bin.label}
+                    </span>
+                  )}
+                </div>
+                <div className="bullpen-bin-content">
+                  {bin.items.map(s => (
+                    <MagnetTile
+                      key={s.id}
+                      staff={s}
+                      slotId={s.id}
+                      slotType="bullpen"
+                      breakfastDone={bullpenBreaks[s.id]?.breakfastDone ?? false}
+                      lunchDone={bullpenBreaks[s.id]?.lunchDone ?? false}
+                      currentUserRole={currentUserRole}
+                      onToggleBreak={(breakType, currentValue) => {
+                        if (onToggleBreak) {
+                          onToggleBreak(breakType, s.id, currentValue);
+                        }
+                      }}
+                      onSelectStaff={onSelectStaff}
+                      onDragStart={(e) => handleTileDragStart(e, s)}
+                    />
+                  ))}
+                  {bin.items.length === 0 && (
+                    <div style={{
+                      width: '100%',
+                      textAlign: 'center',
+                      padding: 16,
+                      fontSize: 11,
+                      color: 'var(--text-muted)',
+                      fontStyle: 'italic',
+                      lineHeight: 1.4
+                    }}>
+                      {bin.emptyMsg}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="bullpen-bin-content">
-                {bin.items.map(s => (
-                  <MagnetTile
-                    key={s.id}
-                    staff={s}
-                    slotId={s.id}
-                    slotType="bullpen"
-                    breakfastDone={bullpenBreaks[s.id]?.breakfastDone ?? false}
-                    lunchDone={bullpenBreaks[s.id]?.lunchDone ?? false}
-                    currentUserRole={currentUserRole}
-                    onToggleBreak={(breakType, currentValue) => {
-                      if (onToggleBreak) {
-                        onToggleBreak(breakType, s.id, currentValue);
-                      }
-                    }}
-                    onSelectStaff={onSelectStaff}
-                    onDragStart={(e) => handleTileDragStart(e, s)}
-                  />
-                ))}
-                {bin.items.length === 0 && (
-                  <div style={{
-                    width: '100%',
-                    textAlign: 'center',
-                    padding: 12,
-                    fontSize: 11,
-                    color: 'var(--text-muted)',
-                    fontStyle: 'italic'
-                  }}>
-                    No staff in {bin.label}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </footer>

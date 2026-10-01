@@ -16,6 +16,7 @@ interface StaffModalProps {
   onMoveToBullpen?: (staffId: string) => void;
   onToggleBreak: (targetType: 'room_slot' | 'runner_slot' | 'bullpen', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
   onUpdateShift?: (staffId: string, newShift: string, lastName?: string, credentials?: Staff['credentials']) => void;
+  onSetStaffInfrequent?: (staffId: string, isInfrequent: boolean) => void;
 }
 
 export const StaffModal: React.FC<StaffModalProps> = ({
@@ -29,7 +30,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   onUnassign,
   onMoveToBullpen,
   onToggleBreak,
-  onUpdateShift
+  onUpdateShift,
+  onSetStaffInfrequent
 }) => {
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [isEditingShift, setIsEditingShift] = useState(false);
@@ -492,6 +494,40 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                 </button>
               </div>
             </div>
+
+            {/* Infrequent Staff Grouping Toggle */}
+            {onSetStaffInfrequent && (
+              <div style={{ marginTop: 4 }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSetStaffInfrequent(staff.id, !staff.isInfrequent);
+                    onClose();
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: 6,
+                    background: staff.isInfrequent ? 'var(--surface-active, rgba(0,0,0,0.06))' : 'var(--surface-hover)',
+                    border: staff.isInfrequent ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                    color: staff.isInfrequent ? 'var(--accent-primary)' : 'var(--text-primary)',
+                    fontWeight: 700,
+                    fontSize: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <span>
+                    {staff.isInfrequent
+                      ? 'Infrequent Staff • Click to return to Regular MD/CRNA'
+                      : 'Move to Infrequent Group (PRN / Occasional)'}
+                  </span>
+                </button>
+              </div>
+            )}
 
             {/* Unassign or move to bullpen if placed */}
             {currentPlacement && (

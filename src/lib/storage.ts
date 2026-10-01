@@ -279,6 +279,9 @@ export function getInitialBoardState(staff: Staff[] = []): BoardState {
     latesNotes: '',
     bullpenStaffIds: [],
     bullpenBreaks: {},
+    lastBreakResetDate: getLatest1AmThreshold(),
+    infrequentStaffIds: [],
+    infrequentStaffKeys: [],
     scraperConfig: {
       portalType: 'oneusap',
       portalUrl: 'https://www.oneusap.com/assignments',
@@ -319,6 +322,64 @@ export function getInitialUsers(): User[] {
 }
 
 // -------------------------------------------------------------
+// DAILY 1:00 AM BREAK RESET LOGIC
+// -------------------------------------------------------------
+
+/**
+ * Calculates the date identifier for the most recent 1:00 AM cycle (YYYY-MM-DD).
+ * Before 1:00 AM local time, the cycle belongs to yesterday; at or after 1:00 AM, it belongs to today.
+ */
+export function getLatest1AmThreshold(d: Date = new Date()): string {
+  const target = new Date(d);
+  if (target.getHours() < 1) {
+    target.setDate(target.getDate() - 1);
+  }
+  const year = target.getFullYear();
+  const month = String(target.getMonth() + 1).padStart(2, '0');
+  const day = String(target.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Resets break and lunch status across all rooms, runner slots, and bullpen breaks.
+ */
+export function resetDailyBreaks(state: BoardState): boolean {
+  let modified = false;
+
+  for (const dept of state.departments || []) {
+    for (const runner of dept.runnerSlots || []) {
+      if (runner.breakfastDone || runner.lunchDone || runner.breakfastTime || runner.lunchTime) {
+        runner.breakfastDone = false;
+        runner.lunchDone = false;
+        runner.breakfastTime = null;
+        runner.lunchTime = null;
+        modified = true;
+      }
+    }
+    for (const room of dept.rooms || []) {
+      for (const slot of room.slots || []) {
+        if (slot.breakfastDone || slot.lunchDone || slot.breakfastTime || slot.lunchTime) {
+          slot.breakfastDone = false;
+          slot.lunchDone = false;
+          slot.breakfastTime = null;
+          slot.lunchTime = null;
+          modified = true;
+        }
+      }
+    }
+  }
+
+  if (state.bullpenBreaks && Object.keys(state.bullpenBreaks).length > 0) {
+    state.bullpenBreaks = {};
+    modified = true;
+  }
+
+  state.lastBreakResetDate = getLatest1AmThreshold();
+
+  return modified;
+}
+
+// -------------------------------------------------------------
 // PUBLIC STORAGE API
 // -------------------------------------------------------------
 
@@ -338,6 +399,50 @@ export function loadBoardState(): BoardState {
   if (!loaded.bullpenBreaks || typeof loaded.bullpenBreaks !== 'object') {
     loaded.bullpenBreaks = {};
   }
+  if (!loaded.infrequentStaffIds || !Array.isArray(loaded.infrequentStaffIds)) {
+    loaded.infrequentStaffIds = [];
+  }
+  if (!loaded.infrequentStaffKeys || !Array.isArray(loaded.infrequentStaffKeys)) {
+    loaded.infrequentStaffKeys = [];
+  }
+
+  // Automatic Daily 1:00 AM Break Reset check
+  const threshold1Am = getLatest1AmThreshold();
+  if (loaded.lastBreakResetDate !== threshold1Am) {
+    const wasModified = resetDailyBreaks(loaded);
+    loaded.lastBreakResetDate = threshold1Am;
+    safeWriteJSON(STATE_FILE, loaded);
+    if (wasModified) {
+      recordAuditLog({
+        actionType: 'BREAKFAST_TOGGLED',
+        performedBy: 'System Scheduler (1:00 AM Auto-Reset)',
+        userRole: 'superuser',
+        details: 'Daily 1:00 AM reset: Cleared breakfast and lunch break completion for all rooms, runners, and bullpen staff'
+      });
+      broadcastStateChange();
+    }
+  }
+
+  // Bidirectional sync for infrequent staff
+  const infrequentIdSet = new Set(loaded.infrequentStaffIds);
+  const infrequentKeySet = new Set((loaded.infrequentStaffKeys || []).map(k => k.toLowerCase()));
+
+  for (const s of loaded.staff || []) {
+    const qKey = (s.qgendaAbbr || '').toLowerCase();
+    const lastKey = (s.lastName || '').toLowerCase();
+
+    if (s.isInfrequent) {
+      infrequentIdSet.add(s.id);
+      if (qKey) infrequentKeySet.add(qKey);
+      if (lastKey) infrequentKeySet.add(lastKey);
+    } else if (infrequentIdSet.has(s.id) || (qKey && infrequentKeySet.has(qKey)) || (lastKey && infrequentKeySet.has(lastKey))) {
+      s.isInfrequent = true;
+    }
+  }
+
+  loaded.infrequentStaffIds = Array.from(infrequentIdSet);
+  loaded.infrequentStaffKeys = Array.from(infrequentKeySet);
+
   return loaded;
 }
 
@@ -402,3 +507,57 @@ export function broadcastStateChange(): void {
     }
   }
 }
+
+// Background timer to automatically fire break reset at 1:00 AM every day
+let timerInitialized = false;
+
+export function initDaily1AmTimer(): void {
+  if (timerInitialized) return;
+  timerInitialized = true;
+
+  const scheduleNext = () => {
+    const now = new Date();
+    const next1Am = new Date(now);
+    if (now.getHours() >= 1) {
+      next1Am.setDate(next1Am.getDate() + 1);
+    }
+    next1Am.setHours(1, 0, 0, 0);
+
+    const msUntil1Am = Math.max(1000, next1Am.getTime() - now.getTime());
+    const timer = setTimeout(() => {
+      try {
+        const state = loadBoardState();
+        const threshold = getLatest1AmThreshold();
+        if (state.lastBreakResetDate !== threshold) {
+          const wasModified = resetDailyBreaks(state);
+          state.lastBreakResetDate = threshold;
+          safeWriteJSON(STATE_FILE, state);
+          if (wasModified) {
+            recordAuditLog({
+              actionType: 'BREAKFAST_TOGGLED',
+              performedBy: 'System Scheduler (1:00 AM Auto-Reset)',
+              userRole: 'superuser',
+              details: 'Daily 1:00 AM reset: Cleared breakfast and lunch break status across all rooms, runners, and bullpen staff'
+            });
+            broadcastStateChange();
+          }
+        }
+      } catch (err) {
+        console.error('Error during 1:00 AM break reset:', err);
+      }
+      scheduleNext();
+    }, msUntil1Am);
+
+    if (timer && typeof timer.unref === 'function') {
+      timer.unref();
+    }
+  };
+
+  scheduleNext();
+}
+
+// Auto-start on module evaluation
+if (typeof process !== 'undefined') {
+  initDaily1AmTimer();
+}
+

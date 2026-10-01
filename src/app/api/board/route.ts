@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadBoardState, saveBoardState, recordAuditLog, getInitialBoardState } from '@/lib/storage';
+import { loadBoardState, saveBoardState, recordAuditLog, getInitialBoardState, resetDailyBreaks } from '@/lib/storage';
 import { UserRole, RunnerSlot } from '@/types/whiteboard';
 import { autoAssignBoardState } from '@/lib/autoAssign';
 
@@ -297,7 +297,7 @@ export async function POST(req: NextRequest) {
             }
           }
           toLocation = 'Bullpen (Available Staff)';
-        } else if (toTargetType === 'unassigned') {
+        } else if (toTargetType === 'unassigned' || toTargetType === 'infrequent' || toTargetType === 'md' || toTargetType === 'crna') {
           if (staffId) {
             state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
           }
@@ -311,7 +311,39 @@ export async function POST(req: NextRequest) {
               }
             }
           }
-          toLocation = 'Available Unassigned Staff';
+
+          state.infrequentStaffIds = state.infrequentStaffIds || [];
+          state.infrequentStaffKeys = state.infrequentStaffKeys || [];
+
+          const targetMember = state.staff.find(st => st.id === staffId);
+          const targetGroup = payload.targetGroup || (toTargetType === 'infrequent' ? 'Infrequent' : (toTargetType === 'md' ? 'MD' : (toTargetType === 'crna' ? 'CRNA' : undefined)));
+
+          if (targetMember && targetGroup) {
+            const qKey = (targetMember.qgendaAbbr || '').toLowerCase();
+            const lastKey = (targetMember.lastName || '').toLowerCase();
+
+            if (targetGroup === 'Infrequent') {
+              targetMember.isInfrequent = true;
+              if (!state.infrequentStaffIds.includes(targetMember.id)) {
+                state.infrequentStaffIds.push(targetMember.id);
+              }
+              if (qKey && !state.infrequentStaffKeys.includes(qKey)) {
+                state.infrequentStaffKeys.push(qKey);
+              }
+              if (lastKey && !state.infrequentStaffKeys.includes(lastKey)) {
+                state.infrequentStaffKeys.push(lastKey);
+              }
+              toLocation = 'Infrequent Staff Group';
+            } else if (targetGroup === 'MD' || targetGroup === 'CRNA') {
+              targetMember.isInfrequent = false;
+              state.infrequentStaffIds = state.infrequentStaffIds.filter(id => id !== targetMember.id);
+              if (qKey) state.infrequentStaffKeys = state.infrequentStaffKeys.filter(k => k !== qKey);
+              if (lastKey) state.infrequentStaffKeys = state.infrequentStaffKeys.filter(k => k !== lastKey);
+              toLocation = `${targetGroup} Staff Group`;
+            }
+          } else {
+            toLocation = 'Available Unassigned Staff';
+          }
         } else if (toTargetType === 'runner_slot') {
           if (staffId) {
             state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
@@ -592,6 +624,73 @@ export async function POST(req: NextRequest) {
         });
 
         return NextResponse.json({ success: true, state });
+      }
+
+      // 6c. Set staff infrequent status (remembers infrequent MD/CRNA grouping)
+      case 'SET_STAFF_INFREQUENT': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const { staffId, isInfrequent } = payload;
+        const s = state.staff.find(st => st.id === staffId);
+        if (!s) {
+          return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
+        }
+
+        s.isInfrequent = Boolean(isInfrequent);
+
+        state.infrequentStaffIds = state.infrequentStaffIds || [];
+        state.infrequentStaffKeys = state.infrequentStaffKeys || [];
+
+        const staffName = `${s.firstName} ${s.lastName}`.trim();
+        const qKey = (s.qgendaAbbr || '').toLowerCase();
+        const lastKey = (s.lastName || '').toLowerCase();
+
+        if (s.isInfrequent) {
+          if (!state.infrequentStaffIds.includes(s.id)) {
+            state.infrequentStaffIds.push(s.id);
+          }
+          if (qKey && !state.infrequentStaffKeys.includes(qKey)) {
+            state.infrequentStaffKeys.push(qKey);
+          }
+          if (lastKey && !state.infrequentStaffKeys.includes(lastKey)) {
+            state.infrequentStaffKeys.push(lastKey);
+          }
+        } else {
+          state.infrequentStaffIds = state.infrequentStaffIds.filter(id => id !== s.id);
+          if (qKey) {
+            state.infrequentStaffKeys = state.infrequentStaffKeys.filter(k => k !== qKey);
+          }
+          if (lastKey) {
+            state.infrequentStaffKeys = state.infrequentStaffKeys.filter(k => k !== lastKey);
+          }
+        }
+
+        saveBoardState(state);
+        recordAuditLog({
+          actionType: 'STAFF_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          targetName: staffName,
+          details: s.isInfrequent
+            ? `Marked ${staffName} as Infrequent / PRN staff`
+            : `Moved ${staffName} to regular ${s.credentials === 'MD' ? 'MD' : 'CRNA'} staff group`
+        });
+
+        return NextResponse.json({ success: true, state });
+      }
+
+      // 6d. Manual or testing trigger for 1:00 AM break reset
+      case 'RESET_DAILY_BREAKS': {
+        const wasModified = resetDailyBreaks(state);
+        saveBoardState(state);
+        recordAuditLog({
+          actionType: 'BREAKFAST_TOGGLED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          details: 'Daily break reset: Cleared breakfast and lunch breaks for all staff'
+        });
+        return NextResponse.json({ success: true, state, wasModified });
       }
 
       // 7. Add runner slot to department dynamically

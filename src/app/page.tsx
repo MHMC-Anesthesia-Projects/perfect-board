@@ -486,7 +486,10 @@ export default function WhiteboardPage() {
   };
 
   // 4b. Move staff directly to Unassigned Staff (leaving for day)
-  const handleMoveStaffToUnassigned = async (staffId: string, fromData?: { type?: string; id?: string }) => {
+  const handleMoveStaffToUnassigned = async (
+    staffId: string,
+    fromData?: { type?: string; id?: string; targetGroup?: 'MD' | 'CRNA' | 'Infrequent' }
+  ) => {
     if (currentUserRole === 'basic_user') {
       setIsLoginModalOpen(true);
       return;
@@ -501,7 +504,8 @@ export default function WhiteboardPage() {
           payload: {
             fromTargetType: fromData?.type || 'bullpen',
             fromId: fromData?.id,
-            toTargetType: 'unassigned',
+            toTargetType: fromData?.targetGroup === 'Infrequent' ? 'infrequent' : (fromData?.targetGroup === 'MD' ? 'md' : (fromData?.targetGroup === 'CRNA' ? 'crna' : 'unassigned')),
+            targetGroup: fromData?.targetGroup,
             staffId: staffId
           },
           user: currentUser
@@ -516,11 +520,42 @@ export default function WhiteboardPage() {
     }
   };
 
-  // 4c. Dropped onto bottom "AVAILABLE UNASSIGNED STAFF" drawer:
-  // If dragged from whiteboard (room or runner), prompt if they want to go to Bullpen or leaving for the day!
-  const handleDropToUnassignedDrawer = (fromData: { staffId: string; type: string; id?: string }) => {
+  // 4c. Set staff infrequent status
+  const handleSetStaffInfrequent = async (staffId: string, isInfrequent: boolean) => {
     if (currentUserRole === 'basic_user') {
       setIsLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SET_STAFF_INFREQUENT',
+          payload: { staffId, isInfrequent },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error setting staff infrequent:', err);
+    }
+  };
+
+  // 4d. Dropped onto bottom "AVAILABLE UNASSIGNED STAFF" drawer:
+  const handleDropToUnassignedDrawer = (fromData: { staffId: string; type: string; id?: string; targetGroup?: 'MD' | 'CRNA' | 'Infrequent' }) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    // If explicitly dropped into MD, CRNA, or Infrequent bin, apply immediately
+    if (fromData.targetGroup || fromData.type === 'unassigned') {
+      handleMoveStaffToUnassigned(fromData.staffId, fromData);
       return;
     }
 
@@ -990,6 +1025,7 @@ export default function WhiteboardPage() {
         onOpenAddStaff={() => setIsAdminModalOpen(true)}
         onDropToBullpen={handleDropToUnassignedDrawer}
         onToggleBreak={(breakType, staffId, currentValue) => handleToggleBreak('bullpen', staffId, breakType, currentValue)}
+        onSetStaffInfrequent={handleSetStaffInfrequent}
         isCollapsed={isBullpenCollapsed}
         onToggleCollapse={() => setIsBullpenCollapsed(prev => !prev)}
       />
@@ -1015,6 +1051,7 @@ export default function WhiteboardPage() {
         onUnassign={staffId => handleMoveStaffToUnassigned(staffId)}
         onToggleBreak={handleToggleBreak}
         onUpdateShift={handleUpdateStaffShift}
+        onSetStaffInfrequent={handleSetStaffInfrequent}
       />
 
       <SlotAssignModal
