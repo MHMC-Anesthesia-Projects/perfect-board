@@ -221,6 +221,11 @@ export async function POST(req: NextRequest) {
           const lastKey = ws.lastName.toLowerCase();
           const existing = existingStaffMap.get(qKey) || existingStaffMap.get(lastKey);
           
+          const isInfrequent = Boolean(existing?.isInfrequent) ||
+            Boolean(state.infrequentStaffIds?.includes(ws.id)) ||
+            Boolean(ws.qgendaAbbr && state.infrequentStaffKeys?.includes(ws.qgendaAbbr.toLowerCase())) ||
+            Boolean(state.infrequentStaffKeys?.includes(ws.lastName.toLowerCase()));
+
           if (existing) {
             existing.phone = ws.phone || existing.phone;
             existing.shift = ws.shift || existing.shift;
@@ -229,6 +234,7 @@ export async function POST(req: NextRequest) {
             existing.assignedRooms = ws.assignedRooms || (ws.roomAssignment ? ws.roomAssignment.split(',').map(s => s.trim()) : existing.assignedRooms);
             existing.qgendaAbbr = ws.qgendaAbbr || existing.qgendaAbbr;
             existing.orderNumber = ws.orderNumber || existing.orderNumber;
+            existing.isInfrequent = isInfrequent;
             existing.active = true;
             updatedStaffList.push(existing);
             existingStaffMap.delete(qKey);
@@ -246,6 +252,7 @@ export async function POST(req: NextRequest) {
               assignedRooms: ws.assignedRooms || (ws.roomAssignment ? ws.roomAssignment.split(',').map(s => s.trim()) : undefined),
               qgendaAbbr: ws.qgendaAbbr,
               orderNumber: ws.orderNumber,
+              isInfrequent,
               active: true
             });
           }

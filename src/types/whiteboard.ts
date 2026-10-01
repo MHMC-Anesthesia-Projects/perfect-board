@@ -28,6 +28,7 @@ export interface Staff {
   assignedRooms?: string[];
   qgendaAbbr?: string;
   orderNumber?: number;
+  isInfrequent?: boolean;
 }
 
 export interface RoomSlot {
@@ -241,6 +242,9 @@ export interface BoardState {
   callTeamList: CallTeamItem[];
   bullpenStaffIds?: string[];
   bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; breakfastTime?: string | null; lunchTime?: string | null }>;
+  lastBreakResetDate?: string;
+  infrequentStaffIds?: string[];
+  infrequentStaffKeys?: string[];
   departureNotes: string;
   latesList: LateShiftItem[];
   latesNotes: string;

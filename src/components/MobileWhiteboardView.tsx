@@ -150,6 +150,13 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
       category: 'roster'
     });
 
+    views.push({
+      key: 'available_staff',
+      label: `📋 Available Staff (MD, CRNA, Infrequent)`,
+      shortLabel: 'Available Staff',
+      category: 'roster'
+    });
+
     return views;
   }, [boardState]);
 
@@ -255,6 +262,64 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
       default: return 'mobile-badge-default';
     }
   };
+
+  const isPhysician = (s: Staff) => {
+    const cred = s.credentials;
+    return cred === 'MD' || cred === 'Resident' || cred === 'Fellow';
+  };
+
+  const sortAlphabetical = (a: Staff, b: Staff) => {
+    const lastComp = a.lastName.localeCompare(b.lastName, undefined, { sensitivity: 'base' });
+    if (lastComp !== 0) return lastComp;
+    return a.firstName.localeCompare(b.firstName, undefined, { sensitivity: 'base' });
+  };
+
+  // Find all assigned staff IDs across rooms, runners, and bullpen
+  const assignedStaffIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const dept of boardState.departments) {
+      for (const r of dept.runnerSlots) {
+        if (r.staffId) ids.add(r.staffId);
+      }
+      for (const room of dept.rooms) {
+        for (const slot of room.slots) {
+          if (slot.staffId) ids.add(slot.staffId);
+        }
+      }
+    }
+    for (const id of boardState.bullpenStaffIds || []) {
+      ids.add(id);
+    }
+    return ids;
+  }, [boardState]);
+
+  // Available unassigned staff partitioned into MD, CRNA, and Infrequent (alphabetical)
+  const mobileAvailableStaffGroups = useMemo(() => {
+    const unassigned = (boardState.staff || []).filter(s => s.active && !assignedStaffIds.has(s.id));
+    const mdList: Staff[] = [];
+    const crnaList: Staff[] = [];
+    const infrequentList: Staff[] = [];
+
+    for (const s of unassigned) {
+      if (s.isInfrequent) {
+        infrequentList.push(s);
+      } else if (isPhysician(s)) {
+        mdList.push(s);
+      } else {
+        crnaList.push(s);
+      }
+    }
+
+    mdList.sort(sortAlphabetical);
+    crnaList.sort(sortAlphabetical);
+    infrequentList.sort(sortAlphabetical);
+
+    return [
+      { key: 'md', label: 'MD / Physicians', title: 'MD / PHYSICIANS', color: '#0969da', items: mdList },
+      { key: 'crna', label: 'CRNA / Anesthetists', title: 'CRNA / ANESTHETISTS', color: '#1a7f37', items: crnaList },
+      { key: 'infrequent', label: 'Infrequent / PRN', title: 'INFREQUENT / PRN', color: '#d97706', items: infrequentList }
+    ];
+  }, [boardState.staff, assignedStaffIds]);
 
   return (
     <div className="mobile-whiteboard-root">
@@ -832,6 +897,63 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* ======================= VIEW F: AVAILABLE STAFF SCREEN ======================= */}
+        {selectedView === 'available_staff' && (
+          <div className="mobile-screen-container">
+            <div className="mobile-card mobile-dept-header-card">
+              <div className="mobile-dept-title-row">
+                <div>
+                  <h1 className="mobile-dept-heading">Available Staff</h1>
+                  <span className="mobile-dept-subtext">
+                    3 Groups: MD, CRNA, Infrequent (Alphabetical)
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {mobileAvailableStaffGroups.map(grp => (
+              <div key={grp.key} style={{ marginBottom: 16 }}>
+                <div
+                  className="mobile-section-label"
+                  style={{
+                    color: grp.color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontWeight: 800
+                  }}
+                >
+                  <span>{grp.title}</span>
+                  <span style={{ fontSize: 11 }}>({grp.items.length})</span>
+                </div>
+                <div className="mobile-card mobile-list-card" style={{ padding: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {grp.items.length === 0 ? (
+                    <div className="mobile-empty-state">No unassigned staff in {grp.label}</div>
+                  ) : (
+                    grp.items.map(s => {
+                      const breakStatus = boardState.bullpenBreaks?.[s.id] || { breakfastDone: false, lunchDone: false };
+                      return (
+                        <div key={s.id} style={{ height: 26, minHeight: 26 }}>
+                          <MagnetTile
+                            staff={s}
+                            slotId={s.id}
+                            slotType="bullpen"
+                            breakfastDone={breakStatus.breakfastDone}
+                            lunchDone={breakStatus.lunchDone}
+                            currentUserRole={currentUserRole}
+                            onToggleBreak={(type, val) => onToggleBreak('bullpen', s.id, type, val)}
+                            onSelectStaff={onSelectStaff}
+                          />
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </main>

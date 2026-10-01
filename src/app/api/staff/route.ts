@@ -30,10 +30,17 @@ export async function POST(req: NextRequest) {
       phone: phone.trim(),
       shift: shift || '07:00 - 15:30',
       active: true,
+      isInfrequent: Boolean(body.isInfrequent),
       notes: ''
     };
 
     state.staff.push(newStaff);
+    if (newStaff.isInfrequent) {
+      state.infrequentStaffIds = state.infrequentStaffIds || [];
+      if (!state.infrequentStaffIds.includes(newStaff.id)) {
+        state.infrequentStaffIds.push(newStaff.id);
+      }
+    }
     saveBoardState(state);
 
     recordAuditLog({
@@ -53,7 +60,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, firstName, lastName, credentials, phone, shift, active, currentUser } = body;
+    const { id, firstName, lastName, credentials, phone, shift, active, isInfrequent, currentUser } = body;
 
     if (currentUser?.role === 'basic_user') {
       return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
@@ -72,6 +79,17 @@ export async function PUT(req: NextRequest) {
     if (phone !== undefined) staffMember.phone = phone.trim();
     if (shift !== undefined) staffMember.shift = shift;
     if (active !== undefined) staffMember.active = active;
+    if (isInfrequent !== undefined) {
+      staffMember.isInfrequent = Boolean(isInfrequent);
+      state.infrequentStaffIds = state.infrequentStaffIds || [];
+      if (staffMember.isInfrequent) {
+        if (!state.infrequentStaffIds.includes(staffMember.id)) {
+          state.infrequentStaffIds.push(staffMember.id);
+        }
+      } else {
+        state.infrequentStaffIds = state.infrequentStaffIds.filter(sid => sid !== staffMember.id);
+      }
+    }
 
     saveBoardState(state);
 

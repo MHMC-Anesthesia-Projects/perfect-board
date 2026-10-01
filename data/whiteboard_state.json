@@ -1816,7 +1816,8 @@
       "assignedRooms": [
         "MHMC Endo1"
       ],
-      "orderNumber": 342
+      "orderNumber": 342,
+      "isInfrequent": true
     },
     {
       "id": "staff_oneusap_anes_tekwechr",
@@ -1944,7 +1945,8 @@
       "facility": "MH Memorial City",
       "qgendaAbbr": "RojasArt",
       "active": true,
-      "orderNumber": 427
+      "orderNumber": 427,
+      "isInfrequent": true
     }
   ],
   "departureList": [
@@ -2601,5 +2603,16 @@
       "active": true,
       "notes": "Atypical 2pm departure - shows blue badge in Special departure section"
     }
-  ]
+  ],
+  "infrequentStaffIds": [
+    "staff_oneusap_anes_patagocsun",
+    "staff_oneusap_anes_rojasart"
+  ],
+  "infrequentStaffKeys": [
+    "patagocsun",
+    "patagoc",
+    "rojasart",
+    "rojas"
+  ],
+  "lastBreakResetDate": "2026-10-01"
 }
