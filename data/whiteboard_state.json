@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-01T21:49:44.480Z",
+  "lastUpdated": "2026-10-01T21:51:49.718Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -2300,12 +2300,6 @@
       "orderNumber": 427,
       "role": "CRNA",
       "qgendaAbbr": "RojasArt"
-    },
-    {
-      "id": "late_1790891364489",
-      "name": "CHUAN",
-      "timeCategory": "4p",
-      "orderIndex": 29
     }
   ],
   "latesNotes": "",

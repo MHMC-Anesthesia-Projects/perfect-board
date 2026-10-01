@@ -1,5 +1,13 @@
 [
   {
+    "id": "audit_1790891509720_sx2xl",
+    "timestamp": "2026-10-01T21:51:49.720Z",
+    "actionType": "DEPARTURE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
+  },
+  {
     "id": "audit_1790891384483_ccden",
     "timestamp": "2026-10-01T21:49:44.483Z",
     "actionType": "DEPARTURE_STRUCK_TOGGLED",
