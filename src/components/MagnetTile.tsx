@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Staff, UserRole } from '@/types/whiteboard';
+import { LogOut } from 'lucide-react';
 
 interface MagnetTileProps {
   staff: Staff;
@@ -13,6 +14,7 @@ interface MagnetTileProps {
   onToggleBreak?: (breakType: 'breakfast' | 'lunch', currentValue: boolean) => void;
   onSelectStaff?: (staff: Staff) => void;
   onDragStart?: (e: React.DragEvent, staff: Staff, source: { type: string; id?: string }) => void;
+  onUnassign?: () => void;
   isCompact?: boolean;
 }
 
@@ -26,6 +28,7 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   onToggleBreak,
   onSelectStaff,
   onDragStart,
+  onUnassign,
   isCompact = false
 }) => {
   const isDraggable = currentUserRole !== 'basic_user';
@@ -62,9 +65,7 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
       onClick={handleTileClick}
       title={`${staff.firstName} ${staff.lastName} (${staff.credentials}) • Phone: ${staff.phone}`}
       style={{
-        cursor: isDraggable ? 'grab' : 'pointer',
-        padding: isCompact ? '3px 6px' : '4px 8px',
-        fontSize: isCompact ? '12px' : '13px'
+        cursor: isDraggable ? 'grab' : 'pointer'
       }}
     >
       {/* Staff Name & Credential Badge (credential next to name) */}
@@ -78,14 +79,15 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
         </span>
       </div>
 
-      {/* Breakfast & Lunch Checkboxes (Only shown on assigned room or runner slots, not bullpen) */}
-      {slotType !== 'bullpen' && onToggleBreak && (
+      {/* Breakfast & Lunch Checkboxes */}
+      {(onToggleBreak || breakfastDone || lunchDone) && (
         <div className="break-controls">
           {/* Breakfast Checkbox [B] */}
           <button
             type="button"
             className={`break-toggle-btn ${breakfastDone ? 'done' : ''}`}
             onClick={(e) => handleBreakClick(e, 'breakfast', breakfastDone)}
+            disabled={!onToggleBreak}
             title={`Breakfast Break: ${breakfastDone ? 'Completed (Tap to undo)' : 'Pending (Tap to mark done)'}`}
           >
             {breakfastDone ? '✓' : 'B'}
@@ -96,11 +98,27 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
             type="button"
             className={`break-toggle-btn ${lunchDone ? 'done' : ''}`}
             onClick={(e) => handleBreakClick(e, 'lunch', lunchDone)}
+            disabled={!onToggleBreak}
             title={`Lunch Break: ${lunchDone ? 'Completed (Tap to undo)' : 'Pending (Tap to mark done)'}`}
           >
             {lunchDone ? '✓' : 'L'}
           </button>
         </div>
+      )}
+
+      {/* Quick Unassign Button for Bullpen Magnets */}
+      {slotType === 'bullpen' && onUnassign && isDraggable && (
+        <button
+          type="button"
+          className="magnet-unassign-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            onUnassign();
+          }}
+          title="Depart for Day / Return to Unassigned Roster"
+        >
+          <LogOut size={12} />
+        </button>
       )}
     </div>
   );

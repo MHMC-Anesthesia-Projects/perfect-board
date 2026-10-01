@@ -7,17 +7,21 @@ import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, 
 interface StaffModalProps {
   staff: Staff | null;
   departments: Department[];
+  bullpenStaffIds?: string[];
+  bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; breakfastTime?: string | null; lunchTime?: string | null }>;
   currentUserRole: UserRole;
   onClose: () => void;
   onAssignToSlot: (targetType: 'room_slot' | 'runner_slot', targetId: string, staffId: string) => void;
   onUnassign: (staffId: string) => void;
   onMoveToBullpen?: (staffId: string) => void;
-  onToggleBreak: (targetType: 'room_slot' | 'runner_slot', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
+  onToggleBreak: (targetType: 'room_slot' | 'runner_slot' | 'bullpen', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
 }
 
 export const StaffModal: React.FC<StaffModalProps> = ({
   staff,
   departments,
+  bullpenStaffIds = [],
+  bullpenBreaks = {},
   currentUserRole,
   onClose,
   onAssignToSlot,
@@ -33,7 +37,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
 
   // Find where this staff is currently assigned
   let currentPlacement: {
-    type: 'runner_slot' | 'room_slot';
+    type: 'runner_slot' | 'room_slot' | 'bullpen';
     id: string;
     locationName: string;
     breakfastDone: boolean;
@@ -71,6 +75,17 @@ export const StaffModal: React.FC<StaffModalProps> = ({
       if (currentPlacement) break;
     }
     if (currentPlacement) break;
+  }
+
+  if (!currentPlacement && bullpenStaffIds.includes(staff.id)) {
+    const b = bullpenBreaks[staff.id];
+    currentPlacement = {
+      type: 'bullpen',
+      id: staff.id,
+      locationName: 'Bullpen (Available Staff)',
+      breakfastDone: b?.breakfastDone ?? false,
+      lunchDone: b?.lunchDone ?? false
+    };
   }
 
   // Available room & runner slots for quick reassignment

@@ -781,7 +781,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             if (items.length === 0 && !['4p', '5p', '7p', '8p', '7p-7a'].includes(category)) return null;
 
             return (
-              <div key={category} style={{ marginBottom: 10 }}>
+              <div key={category} style={{ marginBottom: 4 }}>
                 {/* Category Header (4p, 5p, 7p, 8p, 7p-7a) with + Plus Button */}
                 <div style={{
                   fontSize: 13,
@@ -885,8 +885,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: '3px 6px',
-                        fontSize: 13,
+                        padding: '2px 5px',
+                        fontSize: 12,
                         fontWeight: 700,
                         textTransform: 'uppercase',
                         fontFamily: 'var(--font-main)',

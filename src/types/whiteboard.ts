@@ -141,6 +141,7 @@ export interface BoardState {
   departureList: DepartureItem[];
   callTeamList: CallTeamItem[];
   bullpenStaffIds?: string[];
+  bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; breakfastTime?: string | null; lunchTime?: string | null }>;
   departureNotes: string;
   latesList: LateShiftItem[];
   latesNotes: string;

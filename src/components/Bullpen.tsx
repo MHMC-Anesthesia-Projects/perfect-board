@@ -9,10 +9,12 @@ interface BullpenProps {
   staff: Staff[];
   departments: Department[];
   bullpenStaffIds?: string[];
+  bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; breakfastTime?: string | null; lunchTime?: string | null }>;
   currentUserRole: UserRole;
   onSelectStaff: (staff: Staff) => void;
   onOpenAddStaff: () => void;
   onDropToBullpen: (data: { staffId: string; type: string; id?: string }) => void;
+  onToggleBreak?: (breakType: 'breakfast' | 'lunch', staffId: string, currentValue: boolean) => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
 }
@@ -42,10 +44,12 @@ export const Bullpen: React.FC<BullpenProps> = ({
   staff,
   departments,
   bullpenStaffIds = [],
+  bullpenBreaks = {},
   currentUserRole,
   onSelectStaff,
   onOpenAddStaff,
   onDropToBullpen,
+  onToggleBreak,
   isCollapsed: propIsCollapsed,
   onToggleCollapse
 }) => {
@@ -288,8 +292,16 @@ export const Bullpen: React.FC<BullpenProps> = ({
                   <MagnetTile
                     key={s.id}
                     staff={s}
+                    slotId={s.id}
                     slotType="bullpen"
+                    breakfastDone={bullpenBreaks[s.id]?.breakfastDone ?? false}
+                    lunchDone={bullpenBreaks[s.id]?.lunchDone ?? false}
                     currentUserRole={currentUserRole}
+                    onToggleBreak={(breakType, currentValue) => {
+                      if (onToggleBreak) {
+                        onToggleBreak(breakType, s.id, currentValue);
+                      }
+                    }}
                     onSelectStaff={onSelectStaff}
                     onDragStart={(e) => handleTileDragStart(e, s)}
                   />

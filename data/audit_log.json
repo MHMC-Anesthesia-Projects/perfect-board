@@ -1,5 +1,125 @@
 [
   {
+    "id": "audit_1790891567147_kvwrv",
+    "timestamp": "2026-10-01T21:52:47.147Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Choi Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Marked breakfast break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790891566342_ug3p5",
+    "timestamp": "2026-10-01T21:52:46.342Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Choi Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Marked breakfast break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790891528631_pofqk",
+    "timestamp": "2026-10-01T21:52:08.631Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Test",
+    "userRole": "basic_user",
+    "targetName": "Choi Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Marked lunch break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790891528576_nndm4",
+    "timestamp": "2026-10-01T21:52:08.576Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Test",
+    "userRole": "basic_user",
+    "targetName": "Choi Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Marked breakfast break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790891524225_dq5kx",
+    "timestamp": "2026-10-01T21:52:04.225Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Test",
+    "userRole": "basic_user",
+    "targetName": "Choi Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Marked lunch break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790891519623_juc2x",
+    "timestamp": "2026-10-01T21:51:59.623Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Test",
+    "userRole": "basic_user",
+    "targetName": "Choi Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Marked breakfast break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790890387827_ordt7",
+    "timestamp": "2026-10-01T21:33:07.827Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Gashler Gashler",
+    "locationName": "MAIN OR Room 3",
+    "details": "Moved from Bullpen -> MAIN OR Room 3"
+  },
+  {
+    "id": "audit_1790890383721_9qsg8",
+    "timestamp": "2026-10-01T21:33:03.721Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Gashler Gashler",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Room 3 -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790890382144_stbxm",
+    "timestamp": "2026-10-01T21:33:02.144Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Gashler Gashler",
+    "locationName": "MAIN OR Room 3",
+    "details": "Marked breakfast break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790890381026_vvrc1",
+    "timestamp": "2026-10-01T21:33:01.026Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Gashler Gashler",
+    "locationName": "MAIN OR Room 3",
+    "details": "Moved from Bullpen -> MAIN OR Room 3"
+  },
+  {
+    "id": "audit_1790890378745_mbkkr",
+    "timestamp": "2026-10-01T21:32:58.745Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Gashler Gashler",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Room 3 -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790887690680_wyv5y",
+    "timestamp": "2026-10-01T20:48:10.680Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Choi Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Room 2 -> Bullpen (Available Staff)"
+  },
+  {
     "id": "audit_1790875387310_3gmb2",
     "timestamp": "2026-10-01T17:23:07.310Z",
     "actionType": "STAFF_UNASSIGNED",

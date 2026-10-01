@@ -156,7 +156,7 @@ export default function WhiteboardPage() {
 
   // 1. Break toggle (Basic User Allowed!)
   const handleToggleBreak = async (
-    targetType: 'room_slot' | 'runner_slot',
+    targetType: 'room_slot' | 'runner_slot' | 'bullpen',
     targetId: string,
     breakType: 'breakfast' | 'lunch',
     value: boolean
@@ -165,12 +165,36 @@ export default function WhiteboardPage() {
     setBoardState(prev => {
       if (!prev) return prev;
       const updated = { ...prev };
+      if (targetType === 'bullpen') {
+        const existing = updated.bullpenBreaks?.[targetId] || { breakfastDone: false, lunchDone: false };
+        updated.bullpenBreaks = {
+          ...(updated.bullpenBreaks || {}),
+          [targetId]: {
+            ...existing,
+            ...(breakType === 'breakfast'
+              ? { breakfastDone: value, breakfastTime: value ? new Date().toISOString() : null }
+              : { lunchDone: value, lunchTime: value ? new Date().toISOString() : null })
+          }
+        };
+        return updated;
+      }
       for (const dept of updated.departments) {
         if (targetType === 'runner_slot') {
           const r = dept.runnerSlots.find(slot => slot.id === targetId);
           if (r) {
             if (breakType === 'breakfast') r.breakfastDone = value;
             if (breakType === 'lunch') r.lunchDone = value;
+            if (r.staffId) {
+              updated.bullpenBreaks = {
+                ...(updated.bullpenBreaks || {}),
+                [r.staffId]: {
+                  breakfastDone: r.breakfastDone,
+                  lunchDone: r.lunchDone,
+                  breakfastTime: r.breakfastTime,
+                  lunchTime: r.lunchTime
+                }
+              };
+            }
             break;
           }
         } else {
@@ -179,6 +203,17 @@ export default function WhiteboardPage() {
             if (s) {
               if (breakType === 'breakfast') s.breakfastDone = value;
               if (breakType === 'lunch') s.lunchDone = value;
+              if (s.staffId) {
+                updated.bullpenBreaks = {
+                  ...(updated.bullpenBreaks || {}),
+                  [s.staffId]: {
+                    breakfastDone: s.breakfastDone,
+                    lunchDone: s.lunchDone,
+                    breakfastTime: s.breakfastTime,
+                    lunchTime: s.lunchTime
+                  }
+                };
+              }
               break;
             }
           }
@@ -712,12 +747,14 @@ export default function WhiteboardPage() {
         {isBullpenOpen ? (
           <BullpenSidebar
             bullpenStaffIds={boardState.bullpenStaffIds || []}
+            bullpenBreaks={boardState.bullpenBreaks || {}}
             staff={boardState.staff}
             currentUserRole={currentUserRole}
             onSelectStaff={staff => setSelectedStaff(staff)}
             onDropToBullpen={handleDropToBullpen}
             onMoveStaffToUnassigned={handleMoveStaffToUnassigned}
             onToggleCollapse={() => setIsBullpenOpen(false)}
+            onToggleBreak={(breakType, staffId, currentValue) => handleToggleBreak('bullpen', staffId, breakType, currentValue)}
           />
         ) : (
           /* Expand Tab on Left Edge to slide Bullpen back open */
@@ -784,10 +821,12 @@ export default function WhiteboardPage() {
         staff={boardState.staff}
         departments={boardState.departments}
         bullpenStaffIds={boardState.bullpenStaffIds || []}
+        bullpenBreaks={boardState.bullpenBreaks || {}}
         currentUserRole={currentUserRole}
         onSelectStaff={staff => setSelectedStaff(staff)}
         onOpenAddStaff={() => setIsAdminModalOpen(true)}
         onDropToBullpen={handleDropToUnassignedDrawer}
+        onToggleBreak={(breakType, staffId, currentValue) => handleToggleBreak('bullpen', staffId, breakType, currentValue)}
         isCollapsed={isBullpenCollapsed}
         onToggleCollapse={() => setIsBullpenCollapsed(prev => !prev)}
       />
@@ -802,6 +841,8 @@ export default function WhiteboardPage() {
       <StaffModal
         staff={selectedStaff}
         departments={boardState.departments}
+        bullpenStaffIds={boardState.bullpenStaffIds || []}
+        bullpenBreaks={boardState.bullpenBreaks || {}}
         currentUserRole={currentUserRole}
         onClose={() => setSelectedStaff(null)}
         onAssignToSlot={handleAssignStaff}

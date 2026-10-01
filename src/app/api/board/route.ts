@@ -40,6 +40,15 @@ export async function POST(req: NextRequest) {
                 runner.lunchDone = value;
                 runner.lunchTime = value ? new Date().toISOString() : null;
               }
+              if (runner.staffId) {
+                state.bullpenBreaks = state.bullpenBreaks || {};
+                state.bullpenBreaks[runner.staffId] = {
+                  breakfastDone: runner.breakfastDone,
+                  lunchDone: runner.lunchDone,
+                  breakfastTime: runner.breakfastTime,
+                  lunchTime: runner.lunchTime
+                };
+              }
               break;
             }
           }
@@ -60,10 +69,32 @@ export async function POST(req: NextRequest) {
                   slot.lunchDone = value;
                   slot.lunchTime = value ? new Date().toISOString() : null;
                 }
+                if (slot.staffId) {
+                  state.bullpenBreaks = state.bullpenBreaks || {};
+                  state.bullpenBreaks[slot.staffId] = {
+                    breakfastDone: slot.breakfastDone,
+                    lunchDone: slot.lunchDone,
+                    breakfastTime: slot.breakfastTime,
+                    lunchTime: slot.lunchTime
+                  };
+                }
                 break;
               }
             }
           }
+        } else if (targetType === 'bullpen') {
+          state.bullpenBreaks = state.bullpenBreaks || {};
+          const existing = state.bullpenBreaks[targetId] || { breakfastDone: false, lunchDone: false };
+          const s = state.staff.find(st => st.id === targetId);
+          if (s) staffName = `${s.firstName} ${s.lastName}`.trim();
+          locationName = 'Bullpen (Available Staff)';
+
+          state.bullpenBreaks[targetId] = {
+            ...existing,
+            ...(breakType === 'breakfast'
+              ? { breakfastDone: value, breakfastTime: value ? new Date().toISOString() : null }
+              : { lunchDone: value, lunchTime: value ? new Date().toISOString() : null })
+          };
         }
 
         saveBoardState(state);
@@ -118,6 +149,12 @@ export async function POST(req: NextRequest) {
             const runner = dept.runnerSlots.find(r => r.id === targetId);
             if (runner) {
               runner.staffId = staffId || null;
+              if (staffId && state.bullpenBreaks?.[staffId]) {
+                runner.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
+                runner.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
+                runner.breakfastTime = state.bullpenBreaks[staffId].breakfastTime || null;
+                runner.lunchTime = state.bullpenBreaks[staffId].lunchTime || null;
+              }
               locationName = `${dept.name} Runner (${runner.title})`;
               break;
             }
@@ -131,12 +168,20 @@ export async function POST(req: NextRequest) {
                   id: `runner_${dept.id}_${Date.now()}`,
                   title: `RUNNER ${dept.runnerSlots.length + 1}`,
                   staffId: staffId || null,
-                  breakfastDone: false,
-                  lunchDone: false
+                  breakfastDone: (staffId && state.bullpenBreaks?.[staffId]?.breakfastDone) || false,
+                  lunchDone: (staffId && state.bullpenBreaks?.[staffId]?.lunchDone) || false,
+                  breakfastTime: (staffId && state.bullpenBreaks?.[staffId]?.breakfastTime) || null,
+                  lunchTime: (staffId && state.bullpenBreaks?.[staffId]?.lunchTime) || null
                 };
                 dept.runnerSlots.push(emptyRunner);
               } else {
                 emptyRunner.staffId = staffId || null;
+                if (staffId && state.bullpenBreaks?.[staffId]) {
+                  emptyRunner.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
+                  emptyRunner.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
+                  emptyRunner.breakfastTime = state.bullpenBreaks[staffId].breakfastTime || null;
+                  emptyRunner.lunchTime = state.bullpenBreaks[staffId].lunchTime || null;
+                }
               }
               locationName = `${dept.name} Runner (${emptyRunner.title})`;
               break;
@@ -148,6 +193,12 @@ export async function POST(req: NextRequest) {
               const slot = room.slots.find(s => s.id === targetId);
               if (slot) {
                 slot.staffId = staffId || null;
+                if (staffId && state.bullpenBreaks?.[staffId]) {
+                  slot.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
+                  slot.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
+                  slot.breakfastTime = state.bullpenBreaks[staffId].breakfastTime || null;
+                  slot.lunchTime = state.bullpenBreaks[staffId].lunchTime || null;
+                }
                 locationName = `${dept.name} Room ${room.name}`;
                 break;
               }
@@ -186,7 +237,7 @@ export async function POST(req: NextRequest) {
           if (s) staffName = `${s.firstName} ${s.lastName}`.trim();
         }
 
-        // Clear source
+        // Clear source & preserve source break status if available
         if (fromTargetType === 'bullpen') {
           state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
           fromLocation = 'Bullpen';
@@ -194,6 +245,15 @@ export async function POST(req: NextRequest) {
           for (const dept of state.departments) {
             const r = dept.runnerSlots.find(slot => slot.id === fromId);
             if (r) {
+              if (staffId) {
+                state.bullpenBreaks = state.bullpenBreaks || {};
+                state.bullpenBreaks[staffId] = {
+                  breakfastDone: r.breakfastDone,
+                  lunchDone: r.lunchDone,
+                  breakfastTime: r.breakfastTime,
+                  lunchTime: r.lunchTime
+                };
+              }
               r.staffId = null;
               fromLocation = `${dept.name} Runner (${r.title})`;
             }
@@ -203,6 +263,15 @@ export async function POST(req: NextRequest) {
             for (const room of dept.rooms) {
               const slot = room.slots.find(s => s.id === fromId);
               if (slot) {
+                if (staffId) {
+                  state.bullpenBreaks = state.bullpenBreaks || {};
+                  state.bullpenBreaks[staffId] = {
+                    breakfastDone: slot.breakfastDone,
+                    lunchDone: slot.lunchDone,
+                    breakfastTime: slot.breakfastTime,
+                    lunchTime: slot.lunchTime
+                  };
+                }
                 slot.staffId = null;
                 fromLocation = `${dept.name} Room ${room.name}`;
               }
@@ -250,6 +319,12 @@ export async function POST(req: NextRequest) {
             const r = dept.runnerSlots.find(slot => slot.id === toId);
             if (r) {
               r.staffId = staffId;
+              if (staffId && state.bullpenBreaks?.[staffId]) {
+                r.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
+                r.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
+                r.breakfastTime = state.bullpenBreaks[staffId].breakfastTime || null;
+                r.lunchTime = state.bullpenBreaks[staffId].lunchTime || null;
+              }
               toLocation = `${dept.name} Runner (${r.title})`;
             }
           }
@@ -265,12 +340,20 @@ export async function POST(req: NextRequest) {
                   id: `runner_${dept.id}_${Date.now()}`,
                   title: `RUNNER ${dept.runnerSlots.length + 1}`,
                   staffId: staffId,
-                  breakfastDone: false,
-                  lunchDone: false
+                  breakfastDone: (staffId && state.bullpenBreaks?.[staffId]?.breakfastDone) || false,
+                  lunchDone: (staffId && state.bullpenBreaks?.[staffId]?.lunchDone) || false,
+                  breakfastTime: (staffId && state.bullpenBreaks?.[staffId]?.breakfastTime) || null,
+                  lunchTime: (staffId && state.bullpenBreaks?.[staffId]?.lunchTime) || null
                 };
                 dept.runnerSlots.push(emptyRunner);
               } else {
                 emptyRunner.staffId = staffId;
+                if (staffId && state.bullpenBreaks?.[staffId]) {
+                  emptyRunner.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
+                  emptyRunner.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
+                  emptyRunner.breakfastTime = state.bullpenBreaks[staffId].breakfastTime || null;
+                  emptyRunner.lunchTime = state.bullpenBreaks[staffId].lunchTime || null;
+                }
               }
               toLocation = `${dept.name} Runner (${emptyRunner.title})`;
               break;
@@ -285,6 +368,12 @@ export async function POST(req: NextRequest) {
               const slot = room.slots.find(s => s.id === toId);
               if (slot) {
                 slot.staffId = staffId;
+                if (staffId && state.bullpenBreaks?.[staffId]) {
+                  slot.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
+                  slot.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
+                  slot.breakfastTime = state.bullpenBreaks[staffId].breakfastTime || null;
+                  slot.lunchTime = state.bullpenBreaks[staffId].lunchTime || null;
+                }
                 toLocation = `${dept.name} Room ${room.name}`;
               }
             }

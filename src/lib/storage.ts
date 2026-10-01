@@ -433,6 +433,7 @@ export function getInitialBoardState(staff: Staff[]): BoardState {
     ],
     latesNotes: 'Coverage team in effect after 15:00',
     bullpenStaffIds: [],
+    bullpenBreaks: {},
     scraperConfig: {
       portalType: 'qgenda',
       portalUrl: 'https://app.qgenda.com/login',
@@ -494,6 +495,9 @@ export function loadBoardState(): BoardState {
   }
   if (!loaded.bullpenStaffIds || !Array.isArray(loaded.bullpenStaffIds)) {
     loaded.bullpenStaffIds = [];
+  }
+  if (!loaded.bullpenBreaks || typeof loaded.bullpenBreaks !== 'object') {
+    loaded.bullpenBreaks = {};
   }
   return loaded;
 }

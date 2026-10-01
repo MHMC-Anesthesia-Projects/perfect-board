@@ -19,105 +19,106 @@
 }
 
 /* 1. PHYSICAL WHITEBOARD THEME (Default - Exact Real Twin) */
+/* 1. PHYSICAL WHITEBOARD THEME (Elevated Surgical Command Center) */
 [data-theme='whiteboard'] {
-  --bg-app: #eef1f5;
-  --bg-board: #fbfcfd;
-  --board-grid-line: #1c2128;
-  --board-tape: #14171a;
-  --board-inner-line: #d1d9e0;
+  --bg-app: #f1f5f9;
+  --bg-board: #ffffff;
+  --board-grid-line: #cbd5e1;
+  --board-tape: #64748b;
+  --board-inner-line: #e2e8f0;
   
-  --surface-header: #ffffff;
+  --surface-header: rgba(255, 255, 255, 0.96);
   --surface-card: #ffffff;
-  --surface-hover: #f1f4f8;
-  --surface-active: #e3e8ee;
+  --surface-hover: #f8fafc;
+  --surface-active: #f1f5f9;
   
-  --text-primary: #121820;
-  --text-secondary: #57606a;
-  --text-muted: #8c959f;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
   
-  /* Authentic dry-erase marker colors */
-  --marker-red: #d32f2f;
-  --marker-blue: #0969da;
-  --marker-green: #1a7f37;
-  --marker-black: #1f2328;
+  /* Authentic clinical marker colors */
+  --marker-red: #dc2626;
+  --marker-blue: #0284c7;
+  --marker-green: #16a34a;
+  --marker-black: #0f172a;
   
-  /* Magnet tile design tokens (textured black plastic magnets with crisp white lettering) */
-  --magnet-bg: linear-gradient(180deg, #2b3035 0%, #171a1d 100%);
-  --magnet-border: #0d0f11;
+  /* Magnet tile design tokens (crisp obsidian acrylic magnets with top specular highlight) */
+  --magnet-bg: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  --magnet-border: #0f172a;
   --magnet-text: #ffffff;
-  --magnet-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.4);
-  --magnet-shadow-drag: 0 12px 24px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --magnet-shadow: 0 2px 4px rgba(15, 23, 42, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --magnet-shadow-drag: 0 14px 28px rgba(15, 23, 42, 0.4), 0 0 0 2px #38bdf8;
 
   /* Runner header tile */
-  --runner-bg: #fff8e6;
-  --runner-border: #d4a72c;
-  --runner-text: #664d03;
+  --runner-bg: #fffbeb;
+  --runner-border: #f59e0b;
+  --runner-text: #b45309;
   
   /* Break badges */
-  --break-empty-bg: #e1e4e8;
-  --break-empty-border: #8c959f;
-  --break-empty-text: #484f58;
-  --break-done-bg: #2da44e;
-  --break-done-border: #1a7f37;
+  --break-empty-bg: #334155;
+  --break-empty-border: #475569;
+  --break-empty-text: #94a3b8;
+  --break-done-bg: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --break-done-border: #047857;
   --break-done-text: #ffffff;
   
   /* UI Accents */
-  --accent-primary: #0969da;
-  --accent-primary-hover: #0856b3;
-  --accent-surface: #eef6ff;
-  --accent-border: #54aeff;
+  --accent-primary: #2563eb;
+  --accent-primary-hover: #1d4ed8;
+  --accent-surface: #eff6ff;
+  --accent-border: #60a5fa;
 
-  --border-light: #d0d7de;
-  --shadow-panel: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --border-light: #e2e8f0;
+  --shadow-panel: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
 }
 
 /* 2. OR DARK THEME (Surgical Suite High-Contrast Mode) */
 [data-theme='dark'] {
-  --bg-app: #080c10;
-  --bg-board: #0e141b;
-  --board-grid-line: #30363d;
-  --board-tape: #21262d;
-  --board-inner-line: #212830;
+  --bg-app: #080c14;
+  --bg-board: #0c121e;
+  --board-grid-line: #1e293b;
+  --board-tape: #334155;
+  --board-inner-line: #151f30;
   
-  --surface-header: #141b24;
-  --surface-card: #161e27;
-  --surface-hover: #1f2937;
-  --surface-active: #283546;
+  --surface-header: rgba(15, 23, 42, 0.96);
+  --surface-card: #111827;
+  --surface-hover: #1e293b;
+  --surface-active: #243046;
   
-  --text-primary: #f0f6fc;
-  --text-secondary: #8b949e;
-  --text-muted: #6e7681;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
   
-  --marker-red: #ff7b72;
-  --marker-blue: #58a6ff;
-  --marker-green: #3fb950;
-  --marker-black: #c9d1d9;
+  --marker-red: #f87171;
+  --marker-blue: #38bdf8;
+  --marker-green: #4ade80;
+  --marker-black: #cbd5e1;
   
   /* Magnet tile design tokens */
-  --magnet-bg: linear-gradient(180deg, #242c37 0%, #151a22 100%);
-  --magnet-border: #3b4554;
+  --magnet-bg: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  --magnet-border: #334155;
   --magnet-text: #ffffff;
-  --magnet-shadow: 0 3px 8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
-  --magnet-shadow-drag: 0 14px 28px rgba(0, 0, 0, 0.7), 0 0 0 2px #58a6ff;
+  --magnet-shadow: 0 3px 8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  --magnet-shadow-drag: 0 14px 28px rgba(0, 0, 0, 0.8), 0 0 0 2px #38bdf8;
   
-  --runner-bg: #2d2410;
-  --runner-border: #bb8009;
-  --runner-text: #f0b72f;
+  --runner-bg: #2d2305;
+  --runner-border: #d97706;
+  --runner-text: #fbbf24;
 
-  --break-empty-bg: #21262d;
-  --break-empty-border: #484f58;
-  --break-empty-text: #8b949e;
-  --break-done-bg: #238636;
-  --break-done-border: #2ea043;
+  --break-empty-bg: #1e293b;
+  --break-empty-border: #334155;
+  --break-empty-text: #64748b;
+  --break-done-bg: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --break-done-border: #047857;
   --break-done-text: #ffffff;
 
-  --accent-primary: #2f81f7;
-  --accent-primary-hover: #1f6feb;
-  --accent-surface: #121d2f;
-  --accent-border: #388bfd;
+  --accent-primary: #3b82f6;
+  --accent-primary-hover: #2563eb;
+  --accent-surface: #0f1e36;
+  --accent-border: #38bdf8;
 
-  --border-light: #30363d;
-  --shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --border-light: #1e293b;
+  --shadow-panel: 0 12px 30px rgba(0, 0, 0, 0.6);
 }
 
 /* ==========================================================================
@@ -172,25 +173,34 @@ button {
 
 .magnet-tile {
   background: var(--magnet-bg);
-  border: 1.5px solid var(--magnet-border);
+  border: 1px solid var(--magnet-border);
   color: var(--magnet-text);
   border-radius: var(--radius-sm);
   box-shadow: var(--magnet-shadow);
-  padding: 4px 8px;
+  padding: 0 6px;
+  height: 100%;
+  min-height: 20px;
+  max-height: 26px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 5px;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   text-transform: uppercase;
-  font-size: 13px;
+  font-size: 11.5px;
+  font-family: var(--font-mono);
   cursor: grab;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
   position: relative;
   touch-action: none;
   width: 100%;
   box-sizing: border-box;
+}
+
+.magnet-tile:hover {
+  filter: brightness(1.12);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 .magnet-tile:active {
@@ -199,8 +209,8 @@ button {
 
 .magnet-tile.dragging {
   cursor: grabbing;
-  opacity: 0.9;
-  transform: scale(1.05) rotate(-1deg);
+  opacity: 0.95;
+  transform: scale(1.04) rotate(-0.5deg);
   box-shadow: var(--magnet-shadow-drag);
   z-index: 9999;
 }
@@ -208,15 +218,19 @@ button {
 .magnet-identity {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
   overflow: hidden;
+  flex: 1;
 }
 
 .magnet-name {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 0.3px;
 }
 
 .magnet-cred {
@@ -224,43 +238,56 @@ button {
   font-weight: 800;
   padding: 1px 4px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.3px;
   flex-shrink: 0;
+  line-height: 1.2;
 }
 
 /* Credential specific badge colors */
 .cred-MD {
-  background: #b91c1c;
+  background: #dc2626;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.35);
 }
 .cred-CRNA {
   background: #0284c7;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.35);
 }
 .cred-Resident {
   background: #d97706;
+  box-shadow: 0 1px 3px rgba(217, 119, 6, 0.35);
 }
 .cred-SRNA {
-  background: #7c3aed;
+  background: #8b5cf6;
+  box-shadow: 0 1px 3px rgba(139, 92, 246, 0.35);
+}
+.cred-Fellow {
+  background: #6366f1;
+  box-shadow: 0 1px 3px rgba(99, 102, 241, 0.35);
+}
+.cred-PA {
+  background: #059669;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.35);
+}
+.cred-RN {
+  background: #e11d48;
+  box-shadow: 0 1px 3px rgba(225, 29, 72, 0.35);
 }
 
-/* ==========================================================================
-   BREAK STATUS BADGES (Breakfast B & Lunch L)
-   ========================================================================== */
-
+/* Break controls */
 .break-controls {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   margin-left: auto;
   flex-shrink: 0;
 }
 
 .break-toggle-btn {
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  font-size: 11px;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  font-size: 9.5px;
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -273,15 +300,33 @@ button {
 }
 
 .break-toggle-btn:hover {
-  filter: brightness(1.1);
-  transform: scale(1.05);
+  filter: brightness(1.2);
+  transform: scale(1.08);
 }
 
 .break-toggle-btn.done {
   background: var(--break-done-bg);
   border-color: var(--break-done-border);
   color: var(--break-done-text);
-  box-shadow: 0 0 6px rgba(46, 160, 67, 0.4);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+/* Quick Unassign Button for Bullpen Magnets */
+.magnet-unassign-btn {
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: rgba(255, 255, 255, 0.6);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  margin-left: 4px;
+}
+
+.magnet-unassign-btn:hover {
+  color: #ff6b6b;
+  background: rgba(239, 68, 68, 0.25);
 }
 
 /* ==========================================================================
@@ -319,24 +364,30 @@ button {
 }
 
 /* The Left 8 Departments Grid */
+/* The Left 8 Departments Grid */
 .dept-columns-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-right: 3px solid var(--board-grid-line);
+  border-right: 2px solid var(--board-grid-line);
+  min-height: 0;
 }
 
-.dept-row-top,
+.dept-row-top {
+  flex: 1.35;
+  display: flex;
+  border-bottom: 2px solid var(--board-grid-line);
+  overflow: hidden;
+  min-height: 0;
+}
+
 .dept-row-bottom {
   flex: 1;
   display: flex;
-  border-bottom: 3px solid var(--board-grid-line);
-  overflow: hidden;
-}
-
-.dept-row-bottom {
   border-bottom: none;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .dept-column {
@@ -346,6 +397,8 @@ button {
   flex-direction: column;
   overflow: hidden;
   background: var(--bg-board);
+  min-width: 0;
+  min-height: 0;
 }
 
 .dept-column:last-child {
@@ -354,50 +407,92 @@ button {
 
 /* Department Header with Runner Magnet Slots */
 .dept-header {
-  border-bottom: 2px solid var(--board-grid-line);
-  padding: 4px 6px;
+  border-bottom: 1.5px solid var(--board-grid-line);
+  padding: 3px 6px;
   background: var(--surface-hover);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+  flex-shrink: 0;
 }
 
 .dept-title {
-  font-weight: 800;
-  font-size: 13px;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  line-height: 1.2;
+}
+
+.dept-name-text {
+  font-weight: 800;
+  font-size: 11.5px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  font-family: var(--font-main);
+}
+
+.dept-occupancy-pill {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: var(--border-light);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.dept-add-runner-btn {
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  font-size: 9.5px;
+  font-weight: 800;
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.dept-add-runner-btn:hover {
+  background: var(--accent-surface);
+  border-color: var(--accent-primary);
 }
 
 .runner-slots-group {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   flex-wrap: wrap;
 }
 
 .runner-slot {
   flex: 1;
-  min-width: 90px;
-  min-height: 28px;
-  background: var(--surface-card);
-  border: 1.5px dashed var(--board-inner-line);
+  min-width: 80px;
+  height: 24px;
+  min-height: 24px;
+  max-height: 24px;
+  background: var(--runner-bg);
+  border: 1px dashed var(--runner-border);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  color: var(--text-muted);
+  font-size: 10.5px;
+  color: var(--runner-text);
+  font-weight: 700;
   cursor: pointer;
   transition: all var(--transition-fast);
+  box-sizing: border-box;
+  padding: 0 2px;
 }
 
 .runner-slot.drag-over {
   border-color: var(--accent-primary);
   background: var(--accent-surface);
+  box-shadow: 0 0 6px rgba(37, 99, 235, 0.3);
 }
 
 .add-runner-btn {
@@ -429,16 +524,17 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 5px 8px;
+  padding: 3px 6px;
   background: var(--surface-card);
   border-radius: 4px;
   border: 1px solid var(--border-light);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--text-primary);
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all var(--transition-fast);
+  user-select: none;
 }
 
 .departure-item:hover {
@@ -487,16 +583,19 @@ button {
   cursor: default;
 }
 
-/* CALL TEAM SECTION IN DEPARTURE COLUMN */
+/* CALL TEAM SECTION IN DEPARTURE COLUMN - ZERO SCROLLBARS */
 .call-team-area {
   border-top: 2px solid var(--board-grid-line);
   background: rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
 .call-team-header {
-  padding: 5px 8px;
+  padding: 4px 8px;
   background: var(--surface-hover);
   border-bottom: 1px solid var(--border-light);
   display: flex;
@@ -509,23 +608,30 @@ button {
 }
 
 .call-team-list {
-  padding: 4px 6px;
+  padding: 3px 6px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  max-height: 160px;
+  gap: 2px;
   overflow-y: auto;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.call-team-list::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .call-team-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 3px 6px;
+  padding: 2px 6px;
   background: var(--surface-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: 11.5px;
   transition: all var(--transition-fast);
 }
 
@@ -554,43 +660,64 @@ button {
   letter-spacing: 0.3px;
 }
 
-/* Rooms Container within Department */
+/* Rooms Container within Department - ZERO SCROLLBARS */
 .dept-rooms-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 2px 4px;
+  flex: 1 1 0;
+  overflow: hidden !important; /* CRITICAL: Absolutely no scroll bars in individual departments */
+  padding: 1px 3px;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  min-height: 0;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.dept-rooms-list::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .room-row {
   display: flex;
   align-items: center;
-  height: 32px;
-  min-height: 32px;
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: 28px;
   border-bottom: 1px solid var(--board-inner-line);
-  padding: 2px 2px;
-  gap: 6px;
+  padding: 1px 1px;
+  gap: 4px;
   box-sizing: border-box;
 }
 
+.room-row:last-child {
+  border-bottom: none;
+}
+
 .room-label {
-  min-width: 36px;
-  font-size: 13px;
+  min-width: 32px;
+  max-width: 36px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-hover);
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+  font-size: 11px;
   font-weight: 800;
-  text-align: center;
-  color: var(--marker-black);
+  color: var(--text-primary);
   font-family: var(--font-mono);
   flex-shrink: 0;
-  padding: 0 2px;
   letter-spacing: -0.2px;
 }
 
 .room-slot-target {
   width: 100%;
   flex: 1;
-  height: 26px;
-  min-height: 26px;
+  height: 22px;
+  min-height: 0;
   background: rgba(255, 255, 255, 0.4);
   border: 1.5px dashed transparent;
   border-radius: var(--radius-sm);
@@ -602,18 +729,18 @@ button {
 
 .room-slot-target.empty {
   border-color: var(--board-inner-line);
-  background: var(--surface-card);
+  background: rgba(248, 250, 252, 0.6);
 }
 
 .room-slot-target.empty:hover {
-  background: var(--surface-hover);
+  background: var(--accent-surface);
   border-color: var(--accent-primary);
 }
 
 .room-slot-target.drag-over {
   border-color: var(--accent-primary);
   background: var(--accent-surface);
-  box-shadow: 0 0 8px rgba(9, 105, 218, 0.25);
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
 }
 
 .room-slot-target .magnet-tile {
@@ -621,11 +748,36 @@ button {
   height: 100%;
 }
 
-/* Right Side: DEPARTURE & LATES Columns */
+.room-empty-dock {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1px 4px;
+}
+
+/* Right Side: DEPARTURE & LATES Columns - ZERO SCROLLBARS */
 .right-sidebar-columns {
   width: 380px;
   display: flex;
   background: var(--bg-board);
+}
+
+.right-sidebar-columns,
+.right-sidebar-columns * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.right-sidebar-columns::-webkit-scrollbar,
+.right-sidebar-columns *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .sidebar-col {
@@ -634,6 +786,8 @@ button {
   flex-direction: column;
   border-right: 2px solid var(--board-grid-line);
   overflow: hidden;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
 .sidebar-col:last-child {
@@ -641,7 +795,7 @@ button {
 }
 
 .sidebar-col-header {
-  padding: 6px 8px;
+  padding: 5px 8px;
   background: var(--surface-hover);
   border-bottom: 2px solid var(--board-grid-line);
   font-weight: 900;
@@ -651,27 +805,37 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
 .departure-list-area,
 .lates-list-area {
-  flex: 1;
+  flex: 1 1 0;
   overflow-y: auto;
-  padding: 6px;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  padding: 4px 6px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+}
+
+.departure-list-area::-webkit-scrollbar,
+.lates-list-area::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Departure Subsections: Post-Call and Non-Call */
 .departure-sub-section {
   display: flex;
   flex-direction: column;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .departure-sub-header {
-  padding: 4px 6px;
+  padding: 3px 6px;
   background: var(--surface-hover);
   border-top: 1px solid var(--border-light);
   border-bottom: 1px solid var(--border-light);
@@ -695,9 +859,17 @@ button {
 .departure-sub-list {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 3px 0;
-  min-height: 24px;
+  gap: 2px;
+  padding: 2px 0;
+  min-height: 20px;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.departure-sub-list::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .departure-empty-hint {
@@ -925,6 +1097,17 @@ button {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.bullpen-magnet-row {
+  width: 100%;
+  height: 26px;
+  display: flex;
+}
+
+.bullpen-magnet-row .magnet-tile {
+  width: 100%;
+  height: 100%;
 }
 
 .bullpen-staff-card {
