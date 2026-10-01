@@ -172,6 +172,7 @@ export async function POST(req: NextRequest) {
             role: c.role,
             doctorName: c.doctorName,
             qgendaAbbr: c.qgendaAbbr,
+            orderNumber: c.orderNumber,
             orderIndex: i
           }));
         }

@@ -577,6 +577,11 @@ export async function POST(req: NextRequest) {
           state.staff.push(s);
         }
 
+        // Synchronize Late List
+        const upperShift = (shift || '').toUpperCase().trim();
+        const isLateShift = /^[0-9]+[PA]?$|^(?:3P|4P|5P|7P|8P|7P-7A|11A-11P)/i.test(upperShift) ||
+          upperShift.includes('7P') || upperShift.includes('4P') || upperShift.includes('5P') || upperShift.includes('3P') || upperShift.includes('8P');
+
         // Synchronize Departure List
         const depItem = state.departureList.find(d =>
           d.id === staffId ||
@@ -584,13 +589,16 @@ export async function POST(req: NextRequest) {
           (s?.qgendaAbbr && d.qgendaAbbr?.toUpperCase() === s.qgendaAbbr.toUpperCase())
         );
         if (depItem) {
-          depItem.timeEstimate = shift;
+          if (isLateShift && depItem.category === 'non_call') {
+            // Late doctors (e.g. 4p, 5p) must not exist in the non-call area of departure list
+            state.departureList = state.departureList.filter(d => d.id !== depItem.id);
+            const postList = state.departureList.filter(d => d.category === 'post_call');
+            const nonList = state.departureList.filter(d => d.category === 'non_call').map((d, i) => ({ ...d, orderIndex: postList.length + i }));
+            state.departureList = [...postList, ...nonList];
+          } else {
+            depItem.timeEstimate = shift;
+          }
         }
-
-        // Synchronize Late List
-        const upperShift = (shift || '').toUpperCase().trim();
-        const isLateShift = /^[0-9]+[PA]?$|^(?:3P|4P|5P|7P|8P|7P-7A|11A-11P)/i.test(upperShift) ||
-          upperShift.includes('7P') || upperShift.includes('4P') || upperShift.includes('5P') || upperShift.includes('3P') || upperShift.includes('8P');
 
         const lateIdx = state.latesList.findIndex(l =>
           l.id === staffId ||

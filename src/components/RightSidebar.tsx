@@ -124,10 +124,13 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   ) => {
     if (!onSelectStaff) return;
 
+    const cleanLast = lastName.trim().toUpperCase();
     const matched = staff.find(s =>
-      s.lastName.toUpperCase() === lastName.toUpperCase() ||
+      s.lastName.toUpperCase() === cleanLast ||
       (qgendaAbbr && s.qgendaAbbr?.toUpperCase() === qgendaAbbr.toUpperCase()) ||
-      (id && s.id === id)
+      (id && s.id === id) ||
+      (cleanLast === 'KD' && (s.lastName.toUpperCase().includes('DWARAK') || s.qgendaAbbr?.toUpperCase().includes('DWARAK'))) ||
+      (cleanLast === 'TALL' && (s.lastName.toUpperCase().includes('TALLACK') || s.qgendaAbbr?.toUpperCase().includes('TALLACK')))
     );
 
     if (matched) {
@@ -138,9 +141,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
       });
     } else {
       const fallbackStaff: Staff = {
-        id: id || `staff_roster_${lastName.toLowerCase()}`,
+        id: id || `staff_roster_${cleanLast.toLowerCase()}`,
         firstName: '',
-        lastName: lastName.toUpperCase(),
+        lastName: cleanLast,
         credentials: fallbackCreds,
         phone: '(555) 000-0000',
         shift: shift || 'Day',
@@ -176,9 +179,21 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
   const nonCallList = useMemo(() => {
     return departureList
-      .filter(d => d.category !== 'post_call')
+      .filter(d => {
+        if (d.category === 'post_call') return false;
+        // If doctor has a late shift (e.g. 4p, 5p, 7p, 8p, night, 7p-7a), they belong in the Late list, not non-call
+        const timeEst = (d.timeEstimate || '').toLowerCase().trim();
+        const matchedStaff = staff.find(s =>
+          s.lastName.toUpperCase() === d.name.toUpperCase() ||
+          (d.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === d.qgendaAbbr.toUpperCase())
+        );
+        const staffShift = (matchedStaff?.shift || '').toLowerCase().trim();
+        const isLate = /4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(timeEst) || /4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(staffShift);
+        if (isLate) return false;
+        return true;
+      })
       .sort((a, b) => a.orderIndex - b.orderIndex);
-  }, [departureList]);
+  }, [departureList, staff]);
 
   // State for adding late staff (supports specific category targeted by plus button)
   const [addingToCategory, setAddingToCategory] = useState<string | null>(null);
@@ -844,21 +859,17 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           {/* Call Team Members List */}
           <div className="call-team-list">
             {callTeamList.map((item) => (
-              <div key={item.id} className="call-team-item">
+              <div
+                key={item.id}
+                className="call-team-item clickable"
+                onClick={() => handleStaffClick(item.doctorName, item.id, item.qgendaAbbr, item.orderNumber, item.role, 'MD')}
+                style={{ cursor: 'pointer' }}
+                title={`Click to view/edit details for Dr. ${item.doctorName}`}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span className="call-role-badge">{item.role}</span>
                   <span className="call-doc-name">{item.doctorName}</span>
                 </div>
-                {isEditor && (
-                  <button
-                    type="button"
-                    onClick={(e) => handleInitiateRemoveCallTeam(item, e)}
-                    style={{ color: 'var(--text-muted)', padding: 2, borderRadius: 3 }}
-                    title={`Remove ${item.doctorName} from ${item.role}`}
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                )}
               </div>
             ))}
 

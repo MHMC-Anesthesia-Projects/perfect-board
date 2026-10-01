@@ -1,195 +1,143 @@
 [
   {
-    "id": "audit_1790897211442_pifkb",
-    "timestamp": "2026-10-01T23:26:51.442Z",
-    "actionType": "STAFF_MOVED",
-    "performedBy": "Dr. Admin (Superuser)",
-    "userRole": "superuser",
-    "targetName": "Arthur Rojas",
-    "locationName": "Infrequent Staff Group",
-    "details": "Moved from Staff Pool -> Infrequent Staff Group"
-  },
-  {
-    "id": "audit_1790897211404_zfrqy",
-    "timestamp": "2026-10-01T23:26:51.404Z",
-    "actionType": "STAFF_UPDATED",
-    "performedBy": "Dr. Admin (Superuser)",
-    "userRole": "superuser",
-    "targetName": "Arthur Rojas",
-    "details": "Marked Arthur Rojas as Infrequent / PRN staff"
-  },
-  {
-    "id": "audit_1790897136326_bbsj7",
-    "timestamp": "2026-10-01T23:25:36.326Z",
-    "actionType": "STAFF_UPDATED",
-    "performedBy": "Charge Nurse (Board Runner)",
+    "id": "audit_1790897294532_1un00",
+    "timestamp": "2026-10-01T23:28:14.532Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "User",
     "userRole": "board_runner",
-    "targetName": "Ver Hudzik",
-    "details": "Moved Ver Hudzik to regular CRNA staff group"
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
   },
   {
-    "id": "audit_1790897030181_8x0he",
-    "timestamp": "2026-10-01T23:23:50.181Z",
-    "actionType": "BREAKFAST_TOGGLED",
-    "performedBy": "Anonymous Staff",
-    "userRole": "basic_user",
-    "details": "Daily break reset: Cleared breakfast and lunch breaks for all staff"
-  },
-  {
-    "id": "audit_1790896888286_sdw57",
-    "timestamp": "2026-10-01T23:21:28.286Z",
-    "actionType": "BREAKFAST_TOGGLED",
-    "performedBy": "Charge Nurse (Board Runner)",
-    "userRole": "board_runner",
-    "targetName": "Vikram Shenoy",
-    "locationName": "MAIN OR Runner (Runner 2)",
-    "details": "Marked breakfast break as DONE [✓]"
-  },
-  {
-    "id": "audit_1790896845179_2n3cy",
-    "timestamp": "2026-10-01T23:20:45.179Z",
+    "id": "audit_1790896987045_sjm1f",
+    "timestamp": "2026-10-01T23:23:07.045Z",
     "actionType": "LUNCH_TOGGLED",
-    "performedBy": "Charge Nurse (Board Runner)",
-    "userRole": "board_runner",
-    "targetName": "Mark Cavanaugh",
-    "locationName": "MAIN OR Runner (Runner 1)",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Eny Ndujiuba",
+    "locationName": "MAIN OR Room 9",
+    "details": "Marked lunch break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790896986470_3x64f",
+    "timestamp": "2026-10-01T23:23:06.470Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Eny Ndujiuba",
+    "locationName": "MAIN OR Room 9",
     "details": "Marked lunch break as DONE [✓]"
   },
   {
-    "id": "audit_1790896837327_iakps",
-    "timestamp": "2026-10-01T23:20:37.327Z",
+    "id": "audit_1790896985431_essz1",
+    "timestamp": "2026-10-01T23:23:05.431Z",
     "actionType": "BREAKFAST_TOGGLED",
-    "performedBy": "Charge Nurse (Board Runner)",
-    "userRole": "board_runner",
-    "targetName": "Mark Cavanaugh",
-    "locationName": "MAIN OR Runner (Runner 1)",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Eny Ndujiuba",
+    "locationName": "MAIN OR Room 9",
+    "details": "Marked breakfast break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790896982199_5eyjk",
+    "timestamp": "2026-10-01T23:23:02.199Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Eny Ndujiuba",
+    "locationName": "MAIN OR Room 9",
     "details": "Marked breakfast break as DONE [✓]"
   },
   {
-    "id": "audit_1790896816365_d19zx",
-    "timestamp": "2026-10-01T23:20:16.365Z",
-    "actionType": "STAFF_UPDATED",
-    "performedBy": "Charge Nurse (Board Runner)",
-    "userRole": "board_runner",
-    "targetName": "Ver Hudzik",
-    "details": "Marked Ver Hudzik as Infrequent / PRN staff"
-  },
-  {
-    "id": "audit_1790896816330_hm6c1",
-    "timestamp": "2026-10-01T23:20:16.330Z",
-    "actionType": "BREAKFAST_TOGGLED",
-    "performedBy": "System Scheduler (1:00 AM Auto-Reset)",
-    "userRole": "superuser",
-    "details": "Daily 1:00 AM reset: Cleared breakfast and lunch break completion for all rooms, runners, and bullpen staff"
-  },
-  {
-    "id": "audit_1790896538045_roslg",
-    "timestamp": "2026-10-01T23:15:38.045Z",
-    "actionType": "STAFF_MOVED",
-    "performedBy": "Charge Nurse (Board Runner)",
-    "userRole": "board_runner",
-    "targetName": "Sun Patagoc",
-    "locationName": "Infrequent Staff Group",
-    "details": "Moved from Staff Pool -> Infrequent Staff Group"
-  },
-  {
-    "id": "audit_1790896538015_la7h0",
-    "timestamp": "2026-10-01T23:15:38.015Z",
-    "actionType": "STAFF_UPDATED",
-    "performedBy": "Charge Nurse (Board Runner)",
-    "userRole": "board_runner",
-    "targetName": "Sun Patagoc",
-    "details": "Marked Sun Patagoc as Infrequent / PRN staff"
-  },
-  {
-    "id": "audit_1790896535472_9yih3",
-    "timestamp": "2026-10-01T23:15:35.472Z",
-    "actionType": "STAFF_MOVED",
-    "performedBy": "Charge Nurse (Board Runner)",
-    "userRole": "board_runner",
-    "targetName": "Sun Patagoc",
-    "locationName": "CRNA Staff Group",
-    "details": "Moved from ENDO Room 1 -> CRNA Staff Group"
-  },
-  {
-    "id": "audit_1790896535441_xwebb",
-    "timestamp": "2026-10-01T23:15:35.441Z",
-    "actionType": "STAFF_UPDATED",
-    "performedBy": "Charge Nurse (Board Runner)",
-    "userRole": "board_runner",
-    "targetName": "Sun Patagoc",
-    "details": "Moved Sun Patagoc to regular CRNA staff group"
-  },
-  {
-    "id": "audit_1790896531939_lvy1z",
-    "timestamp": "2026-10-01T23:15:31.939Z",
-    "actionType": "STAFF_MOVED",
-    "performedBy": "Charge Nurse (Board Runner)",
-    "userRole": "board_runner",
-    "targetName": "Ver Hudzik",
-    "locationName": "MD Staff Group",
-    "details": "Moved from ENDO Room 4 -> MD Staff Group"
-  },
-  {
-    "id": "audit_1790896531906_9s0pd",
-    "timestamp": "2026-10-01T23:15:31.906Z",
-    "actionType": "STAFF_UPDATED",
-    "performedBy": "Charge Nurse (Board Runner)",
-    "userRole": "board_runner",
-    "targetName": "Ver Hudzik",
-    "details": "Moved Ver Hudzik to regular CRNA staff group"
-  },
-  {
-    "id": "audit_1790896316990_ysxa7",
-    "timestamp": "2026-10-01T23:11:56.990Z",
-    "actionType": "STAFF_UPDATED",
-    "performedBy": "Charge Nurse (Board Runner)",
-    "userRole": "board_runner",
-    "targetName": "Pedro Alaniz",
-    "details": "Moved Pedro Alaniz to regular MD staff group"
-  },
-  {
-    "id": "audit_1790896280197_pikld",
-    "timestamp": "2026-10-01T23:11:20.197Z",
-    "actionType": "STAFF_UPDATED",
-    "performedBy": "Charge Nurse (Board Runner)",
-    "userRole": "board_runner",
-    "targetName": "Pedro Alaniz",
-    "details": "Marked Pedro Alaniz as Infrequent / PRN staff"
-  },
-  {
-    "id": "audit_1790895403954_op8nf",
-    "timestamp": "2026-10-01T22:56:43.954Z",
+    "id": "audit_1790896932902_czx99",
+    "timestamp": "2026-10-01T23:22:12.902Z",
     "actionType": "DEPARTURE_STRUCK_TOGGLED",
-    "performedBy": "Dr. Admin (Superuser)",
-    "userRole": "superuser",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
     "targetName": "HIRSCH",
     "details": "Unmarked doctor HIRSCH departure status"
   },
   {
-    "id": "audit_1790895402571_amc0i",
-    "timestamp": "2026-10-01T22:56:42.571Z",
+    "id": "audit_1790896931192_kxuuj",
+    "timestamp": "2026-10-01T23:22:11.192Z",
     "actionType": "DEPARTURE_STRUCK_TOGGLED",
-    "performedBy": "Dr. Admin (Superuser)",
-    "userRole": "superuser",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
     "targetName": "HIRSCH",
     "details": "Marked doctor HIRSCH as DEPARTED [Strikethrough]"
   },
   {
-    "id": "audit_1790895397471_3um1z",
-    "timestamp": "2026-10-01T22:56:37.471Z",
-    "actionType": "DEPARTURE_REORDERED",
-    "performedBy": "Dr. Admin (Superuser)",
-    "userRole": "superuser",
-    "details": "Updated departure, call team, or late staff ordering"
+    "id": "audit_1790896896849_pvum1",
+    "timestamp": "2026-10-01T23:21:36.849Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Charge Nurse (Board Runner)",
+    "userRole": "board_runner",
+    "targetName": "Kev Chen",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Room 8 -> Bullpen (Available Staff)"
   },
   {
-    "id": "audit_1790895395779_elkvv",
-    "timestamp": "2026-10-01T22:56:35.779Z",
-    "actionType": "DEPARTURE_REORDERED",
+    "id": "audit_1790896876621_8b965",
+    "timestamp": "2026-10-01T23:21:16.621Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Charge Nurse (Board Runner)",
+    "userRole": "board_runner",
+    "targetName": "CAVANAUGH",
+    "details": "Unmarked doctor CAVANAUGH departure status"
+  },
+  {
+    "id": "audit_1790896875442_4tub7",
+    "timestamp": "2026-10-01T23:21:15.443Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Charge Nurse (Board Runner)",
+    "userRole": "board_runner",
+    "targetName": "CAVANAUGH",
+    "details": "Marked doctor CAVANAUGH as DEPARTED [Strikethrough]"
+  },
+  {
+    "id": "audit_1790895712078_q6o9k",
+    "timestamp": "2026-10-01T23:01:52.078Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "CHOI",
+    "details": "Unmarked doctor CHOI departure status"
+  },
+  {
+    "id": "audit_1790895709031_rn0bj",
+    "timestamp": "2026-10-01T23:01:49.031Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "CHOI",
+    "details": "Marked doctor CHOI as DEPARTED [Strikethrough]"
+  },
+  {
+    "id": "audit_1790895529353_9xxx0",
+    "timestamp": "2026-10-01T22:58:49.353Z",
+    "actionType": "BULLPEN_UPDATED",
     "performedBy": "Dr. Admin (Superuser)",
     "userRole": "superuser",
-    "details": "Updated departure, call team, or late staff ordering"
+    "targetName": "Mic Shirak",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from 9th Floor Room CCL1 -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790895465950_1d3rw",
+    "timestamp": "2026-10-01T22:57:45.950Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "SHEVCHENKO",
+    "details": "Unmarked doctor SHEVCHENKO departure status"
+  },
+  {
+    "id": "audit_1790895464141_a6z1r",
+    "timestamp": "2026-10-01T22:57:44.141Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "SHEVCHENKO",
+    "details": "Marked doctor SHEVCHENKO as DEPARTED [Strikethrough]"
   },
   {
     "id": "audit_1790894479887_wgnnp",
