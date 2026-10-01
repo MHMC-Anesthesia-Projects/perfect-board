@@ -6,6 +6,8 @@ import { HeaderNav } from '@/components/HeaderNav';
 import { DepartmentGrid } from '@/components/DepartmentGrid';
 import { RightSidebar } from '@/components/RightSidebar';
 import { Bullpen } from '@/components/Bullpen';
+import { BullpenSidebar } from '@/components/BullpenSidebar';
+import { StaffUnassignModal } from '@/components/StaffUnassignModal';
 import { PinPadModal } from '@/components/PinPadModal';
 import { StaffModal } from '@/components/StaffModal';
 import { SlotAssignModal } from '@/components/SlotAssignModal';
@@ -14,7 +16,7 @@ import { VirtualKeyboard } from '@/components/VirtualKeyboard';
 import { AdminModal } from '@/components/AdminModal';
 import { AuditDrawer } from '@/components/AuditDrawer';
 import { ConfirmDeleteModal } from '@/components/ConfirmDeleteModal';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function WhiteboardPage() {
   const [boardState, setBoardState] = useState<BoardState | null>(null);
@@ -31,7 +33,15 @@ export default function WhiteboardPage() {
 
   // Layout screen real estate toggles
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
+  const [isBullpenOpen, setIsBullpenOpen] = useState(true);
   const [isBullpenCollapsed, setIsBullpenCollapsed] = useState(false);
+
+  // Accidental unassign routing prompt (Whiteboard -> Unassigned Staff)
+  const [unassignPromptTarget, setUnassignPromptTarget] = useState<{
+    staff: Staff;
+    fromData: { staffId: string; type: string; id?: string };
+    fromLocationName: string;
+  } | null>(null);
 
   // Modals
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -339,7 +349,7 @@ export default function WhiteboardPage() {
     }
   };
 
-  // 4. Return to Bullpen
+  // 4a. Move staff directly to Bullpen (available for breaks & cases)
   const handleDropToBullpen = async (fromData: { staffId: string; type: string; id?: string }) => {
     if (currentUserRole === 'basic_user') {
       setIsLoginModalOpen(true);
@@ -366,8 +376,110 @@ export default function WhiteboardPage() {
         setBoardState(data.state);
       }
     } catch (err) {
-      console.error('Error unassigning to bullpen:', err);
+      console.error('Error placing staff in bullpen:', err);
     }
+  };
+
+  // 4b. Move staff directly to Unassigned Staff (leaving for day)
+  const handleMoveStaffToUnassigned = async (staffId: string, fromData?: { type?: string; id?: string }) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'MOVE_STAFF',
+          payload: {
+            fromTargetType: fromData?.type || 'bullpen',
+            fromId: fromData?.id,
+            toTargetType: 'unassigned',
+            staffId: staffId
+          },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error moving staff to unassigned:', err);
+    }
+  };
+
+  // 4c. Dropped onto bottom "AVAILABLE UNASSIGNED STAFF" drawer:
+  // If dragged from whiteboard (room or runner), prompt if they want to go to Bullpen or leaving for the day!
+  const handleDropToUnassignedDrawer = (fromData: { staffId: string; type: string; id?: string }) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    if (fromData.type === 'room_slot' || fromData.type === 'runner_slot') {
+      const staffMember = boardState?.staff.find(s => s.id === fromData.staffId);
+      let locName = 'Whiteboard';
+      if (boardState) {
+        for (const dept of boardState.departments) {
+          if (fromData.type === 'runner_slot') {
+            const runner = dept.runnerSlots.find(r => r.id === fromData.id);
+            if (runner) {
+              locName = `${dept.name} (${runner.title})`;
+              break;
+            }
+          } else {
+            for (const room of dept.rooms) {
+              const slot = room.slots.find(s => s.id === fromData.id);
+              if (slot) {
+                locName = `${dept.name} Room ${room.name}`;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (staffMember) {
+        setUnassignPromptTarget({
+          staff: staffMember,
+          fromData,
+          fromLocationName: locName
+        });
+        return;
+      }
+    }
+
+    if (fromData.type === 'bullpen') {
+      const staffMember = boardState?.staff.find(s => s.id === fromData.staffId);
+      if (staffMember) {
+        setUnassignPromptTarget({
+          staff: staffMember,
+          fromData,
+          fromLocationName: 'Bullpen'
+        });
+        return;
+      }
+    }
+
+    // Default: move directly to unassigned
+    handleMoveStaffToUnassigned(fromData.staffId, fromData);
+  };
+
+  const handleConfirmUnassignToBullpen = async () => {
+    if (!unassignPromptTarget) return;
+    const { fromData } = unassignPromptTarget;
+    setUnassignPromptTarget(null);
+    await handleDropToBullpen(fromData);
+  };
+
+  const handleConfirmUnassignLeaving = async () => {
+    if (!unassignPromptTarget) return;
+    const { staff, fromData } = unassignPromptTarget;
+    setUnassignPromptTarget(null);
+    await handleMoveStaffToUnassigned(staff.id, fromData);
   };
 
   // 5. Update Notes
@@ -588,11 +700,40 @@ export default function WhiteboardPage() {
         lastSyncTime={boardState.scraperConfig.lastSyncTime}
         isRightSidebarOpen={isRightSidebarOpen}
         onToggleRightSidebar={() => setIsRightSidebarOpen(prev => !prev)}
+        isBullpenOpen={isBullpenOpen}
+        onToggleBullpen={() => setIsBullpenOpen(prev => !prev)}
+        bullpenCount={boardState.bullpenStaffIds?.length || 0}
       />
 
       {/* Main Whiteboard Display Area */}
       <main className="board-main-area">
-        {/* Left 8 Departments (Main OR, West Pav, Ortho, Village, 9th Floor, Endo, OB, IVF) */}
+        {/* Left Bullpen (Expandable left-sided vertical menu for available staff) */}
+        {isBullpenOpen ? (
+          <BullpenSidebar
+            bullpenStaffIds={boardState.bullpenStaffIds || []}
+            staff={boardState.staff}
+            currentUserRole={currentUserRole}
+            onSelectStaff={staff => setSelectedStaff(staff)}
+            onDropToBullpen={handleDropToBullpen}
+            onMoveStaffToUnassigned={handleMoveStaffToUnassigned}
+            onToggleCollapse={() => setIsBullpenOpen(false)}
+          />
+        ) : (
+          /* Expand Tab on Left Edge to slide Bullpen back open */
+          <button
+            type="button"
+            className="bullpen-expand-tab"
+            onClick={() => setIsBullpenOpen(true)}
+            title="Show Bullpen (Available Staff for Breaks / Cases)"
+          >
+            <ChevronRight size={16} />
+            <span className="bullpen-expand-tab-text">
+              BULLPEN {(boardState.bullpenStaffIds?.length ?? 0) > 0 ? `(${boardState.bullpenStaffIds?.length})` : ''}
+            </span>
+          </button>
+        )}
+
+        {/* 8 Departments (Main OR, West Pav, Ortho, Village, 9th Floor, Endo, OB, IVF) */}
         <DepartmentGrid
           departments={boardState.departments}
           staff={boardState.staff}
@@ -637,14 +778,15 @@ export default function WhiteboardPage() {
         )}
       </main>
 
-      {/* Bottom Bullpen (Alphabetical Staff Holding Bins - Collapsible to Bottom) */}
+      {/* Bottom Available Unassigned Staff (Alphabetical Staff Holding Bins - Collapsible to Bottom) */}
       <Bullpen
         staff={boardState.staff}
         departments={boardState.departments}
+        bullpenStaffIds={boardState.bullpenStaffIds || []}
         currentUserRole={currentUserRole}
         onSelectStaff={staff => setSelectedStaff(staff)}
         onOpenAddStaff={() => setIsAdminModalOpen(true)}
-        onDropToBullpen={handleDropToBullpen}
+        onDropToBullpen={handleDropToUnassignedDrawer}
         isCollapsed={isBullpenCollapsed}
         onToggleCollapse={() => setIsBullpenCollapsed(prev => !prev)}
       />
@@ -662,7 +804,8 @@ export default function WhiteboardPage() {
         currentUserRole={currentUserRole}
         onClose={() => setSelectedStaff(null)}
         onAssignToSlot={handleAssignStaff}
-        onUnassign={staffId => handleDropToBullpen({ staffId, type: 'room_slot' })}
+        onMoveToBullpen={staffId => handleDropToBullpen({ staffId, type: 'room_slot' })}
+        onUnassign={staffId => handleMoveStaffToUnassigned(staffId)}
         onToggleBreak={handleToggleBreak}
       />
 
@@ -727,6 +870,16 @@ export default function WhiteboardPage() {
           await executeTriggerSync();
         }}
         onClose={() => setIsSyncWarningOpen(false)}
+      />
+
+      {/* Staff Unassign / Availability Routing Modal */}
+      <StaffUnassignModal
+        isOpen={!!unassignPromptTarget}
+        staff={unassignPromptTarget?.staff || null}
+        fromLocationName={unassignPromptTarget?.fromLocationName}
+        onSendToBullpen={handleConfirmUnassignToBullpen}
+        onMarkLeaving={handleConfirmUnassignLeaving}
+        onClose={() => setUnassignPromptTarget(null)}
       />
     </div>
   );

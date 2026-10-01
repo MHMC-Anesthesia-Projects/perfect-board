@@ -106,7 +106,8 @@ export interface AuditLogEntry {
     | 'DEPARTURE_UPDATED'
     | 'DEPARTURE_REORDERED'
     | 'LATES_UPDATED'
-    | 'CALL_TEAM_UPDATED';
+    | 'CALL_TEAM_UPDATED'
+    | 'BULLPEN_UPDATED';
   performedBy: string;
   userRole: UserRole;
   targetName?: string;
@@ -139,6 +140,7 @@ export interface BoardState {
   staff: Staff[];
   departureList: DepartureItem[];
   callTeamList: CallTeamItem[];
+  bullpenStaffIds?: string[];
   departureNotes: string;
   latesList: LateShiftItem[];
   latesNotes: string;

@@ -8,6 +8,7 @@ import { Search, UserPlus, Users, X, ChevronDown, ChevronUp } from 'lucide-react
 interface BullpenProps {
   staff: Staff[];
   departments: Department[];
+  bullpenStaffIds?: string[];
   currentUserRole: UserRole;
   onSelectStaff: (staff: Staff) => void;
   onOpenAddStaff: () => void;
@@ -40,6 +41,7 @@ const sortStaffByCredThenName = (a: Staff, b: Staff) => {
 export const Bullpen: React.FC<BullpenProps> = ({
   staff,
   departments,
+  bullpenStaffIds = [],
   currentUserRole,
   onSelectStaff,
   onOpenAddStaff,
@@ -74,10 +76,11 @@ export const Bullpen: React.FC<BullpenProps> = ({
     return ids;
   }, [departments]);
 
-  // Unassigned staff members in bullpen
+  // Unassigned staff members in pool (excluding rooms/runners and active bullpen)
   const unassignedStaff = useMemo(() => {
-    return staff.filter(s => s.active && !assignedStaffIds.has(s.id));
-  }, [staff, assignedStaffIds]);
+    const bullpenSet = new Set(bullpenStaffIds);
+    return staff.filter(s => s.active && !assignedStaffIds.has(s.id) && !bullpenSet.has(s.id));
+  }, [staff, assignedStaffIds, bullpenStaffIds]);
 
   // Filtered by search
   const filteredStaff = useMemo(() => {
@@ -137,7 +140,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
       'application/json',
       JSON.stringify({
         staffId: staffMember.id,
-        type: 'bullpen'
+        type: 'unassigned'
       })
     );
     e.dataTransfer.effectAllowed = 'move';

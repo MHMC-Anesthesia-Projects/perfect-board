@@ -6,7 +6,8 @@ import {
   Sun, Moon, Shield, Lock, LogIn, LogOut, 
   RotateCw, FileSpreadsheet, Settings, 
   Keyboard, Clock, CheckCircle2, Mic,
-  PanelRightClose, PanelRightOpen 
+  PanelRightClose, PanelRightOpen,
+  PanelLeftClose, PanelLeftOpen 
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -25,6 +26,9 @@ interface HeaderNavProps {
   lastSyncTime?: string | null;
   isRightSidebarOpen?: boolean;
   onToggleRightSidebar?: () => void;
+  isBullpenOpen?: boolean;
+  onToggleBullpen?: () => void;
+  bullpenCount?: number;
 }
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({
@@ -42,7 +46,10 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   isSyncing,
   lastSyncTime,
   isRightSidebarOpen = true,
-  onToggleRightSidebar
+  onToggleRightSidebar,
+  isBullpenOpen = true,
+  onToggleBullpen,
+  bullpenCount = 0
 }) => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [currentDate, setCurrentDate] = useState<string>('');
@@ -213,6 +220,32 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           </button>
         )}
 
+        {/* Toggle Bullpen Button (Left Menu) */}
+        {onToggleBullpen && (
+          <button
+            onClick={onToggleBullpen}
+            title={isBullpenOpen ? 'Hide Bullpen (Expand Whiteboard)' : 'Show Bullpen (Available Staff)'}
+            style={{
+              padding: '6px 10px',
+              borderRadius: 6,
+              background: isBullpenOpen ? 'var(--surface-hover)' : 'rgba(9, 105, 218, 0.12)',
+              border: isBullpenOpen ? '1px solid var(--border-light)' : '1.5px solid var(--accent-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              fontSize: 12,
+              fontWeight: 700,
+              color: isBullpenOpen ? 'var(--text-primary)' : 'var(--accent-primary)',
+              cursor: 'pointer'
+            }}
+          >
+            {isBullpenOpen ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />}
+            <span style={{ fontSize: 11 }}>
+              Bullpen{bullpenCount > 0 ? ` (${bullpenCount})` : ''}
+            </span>
+          </button>
+        )}
+
         {/* Toggle Right Sidebar Button (Departure & Lates) */}
         {onToggleRightSidebar && (
           <button
@@ -233,7 +266,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             }}
           >
             {isRightSidebarOpen ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
-            <span style={{ fontSize: 11 }}>Sidebar</span>
+            <span style={{ fontSize: 11 }}>Departure</span>
           </button>
         )}
 
