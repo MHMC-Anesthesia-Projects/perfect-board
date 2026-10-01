@@ -1,5 +1,45 @@
 [
   {
+    "id": "audit_1790874116652_11o4t",
+    "timestamp": "2026-10-01T17:01:56.652Z",
+    "actionType": "CALL_TEAM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated Call Team assignments"
+  },
+  {
+    "id": "audit_1790874097237_1z9ox",
+    "timestamp": "2026-10-01T17:01:37.237Z",
+    "actionType": "CALL_TEAM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated Call Team assignments"
+  },
+  {
+    "id": "audit_1790873215876_rn8cp",
+    "timestamp": "2026-10-01T16:46:55.876Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Altered department and room layout structure"
+  },
+  {
+    "id": "audit_1790873123980_0o5by",
+    "timestamp": "2026-10-01T16:45:23.980Z",
+    "actionType": "DEPARTURE_REORDERED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
+  },
+  {
+    "id": "audit_1790873122252_1o3js",
+    "timestamp": "2026-10-01T16:45:22.252Z",
+    "actionType": "DEPARTURE_REORDERED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
+  },
+  {
     "id": "audit_1790872450385_cd7zf",
     "timestamp": "2026-10-01T16:34:10.385Z",
     "actionType": "RUNNER_SLOT_ADDED",

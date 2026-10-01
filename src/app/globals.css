@@ -558,50 +558,56 @@ button {
 .dept-rooms-list {
   flex: 1;
   overflow-y: auto;
-  padding: 4px;
+  padding: 2px 4px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
 }
 
 .room-row {
   display: flex;
   align-items: center;
+  height: 32px;
   min-height: 32px;
   border-bottom: 1px solid var(--board-inner-line);
-  padding-bottom: 2px;
-  gap: 4px;
+  padding: 2px 2px;
+  gap: 6px;
+  box-sizing: border-box;
 }
 
 .room-label {
-  width: 28px;
-  font-size: 14px;
+  min-width: 36px;
+  font-size: 13px;
   font-weight: 800;
   text-align: center;
   color: var(--marker-black);
   font-family: var(--font-mono);
   flex-shrink: 0;
+  padding: 0 2px;
+  letter-spacing: -0.2px;
 }
 
 .room-slot-target {
   width: 100%;
   flex: 1;
-  min-height: 30px;
+  height: 26px;
+  min-height: 26px;
   background: rgba(255, 255, 255, 0.4);
-  border: 1px dashed transparent;
+  border: 1.5px dashed transparent;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   transition: all var(--transition-fast);
+  box-sizing: border-box;
 }
 
 .room-slot-target.empty {
   border-color: var(--board-inner-line);
+  background: var(--surface-card);
 }
 
 .room-slot-target.empty:hover {
   background: var(--surface-hover);
-  border-color: var(--text-muted);
+  border-color: var(--accent-primary);
 }
 
 .room-slot-target.drag-over {

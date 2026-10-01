@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-01T16:34:10.383Z",
+  "lastUpdated": "2026-10-01T17:01:56.649Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -759,15 +759,7 @@
       "id": "dept_9th_floor",
       "name": "9th Floor",
       "orderIndex": 4,
-      "runnerSlots": [
-        {
-          "id": "runner_dept_9th_floor_1790872450383",
-          "title": "RUNNER 1",
-          "staffId": null,
-          "breakfastDone": false,
-          "lunchDone": false
-        }
-      ],
+      "runnerSlots": [],
       "rooms": [
         {
           "id": "dept_9th_floor_room_EP1",
@@ -804,7 +796,7 @@
         },
         {
           "id": "dept_9th_floor_room_CCL",
-          "name": "CCL",
+          "name": "CCL1",
           "orderIndex": 3,
           "notes": "",
           "slots": [
@@ -887,7 +879,7 @@
           "id": "dept_9th_floor_room_TEE",
           "name": "TEE",
           "orderIndex": 8,
-          "notes": "1200 / 1230 / 1300",
+          "notes": "",
           "slots": [
             {
               "id": "dept_9th_floor_room_TEE_slot_0",

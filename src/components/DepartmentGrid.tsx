@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Department, Staff, UserRole } from '@/types/whiteboard';
 import { MagnetTile } from './MagnetTile';
-import { Plus, Mic, MessageSquare, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 
 interface DepartmentGridProps {
   departments: Department[];
@@ -13,7 +13,7 @@ interface DepartmentGridProps {
   onSelectStaff: (staff: Staff) => void;
   onSelectEmptySlot: (targetType: 'room_slot' | 'runner_slot', targetId: string, label: string) => void;
   onDropStaff: (fromData: { staffId: string; type: string; id?: string }, targetType: 'room_slot' | 'runner_slot' | 'runner_dept', targetId: string) => void;
-  onOpenVoiceNotes: (targetType: 'room', targetId: string, currentNotes?: string) => void;
+  onOpenVoiceNotes?: (targetType: 'room', targetId: string, currentNotes?: string) => void;
   onAddRunnerSlot?: (departmentId: string) => void;
   onRemoveRunnerSlot?: (departmentId: string, runnerSlotId: string) => void;
 }
@@ -26,7 +26,6 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
   onSelectStaff,
   onSelectEmptySlot,
   onDropStaff,
-  onOpenVoiceNotes,
   onAddRunnerSlot,
   onRemoveRunnerSlot
 }) => {
@@ -185,7 +184,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                         <Plus size={12} />
                         <span>{runner.title}</span>
                       </div>
-                      {isEditor && onRemoveRunnerSlot && dept.runnerSlots.length > 1 && (
+                      {isEditor && onRemoveRunnerSlot && (!runner.staffId || dept.runnerSlots.length > 1) && (
                         <button
                           type="button"
                           onClick={(e) => {
@@ -203,24 +202,6 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                 </div>
               );
             })}
-
-            {dept.runnerSlots.length === 0 && (
-              <div
-                onClick={() => isEditor && onAddRunnerSlot && onAddRunnerSlot(dept.id)}
-                style={{
-                  fontSize: 11,
-                  color: 'var(--text-muted)',
-                  fontStyle: 'italic',
-                  padding: '4px',
-                  cursor: isEditor ? 'pointer' : 'default',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4
-                }}
-              >
-                {isEditor ? <><Plus size={11} /> Tap to add runner</> : 'No runners assigned'}
-              </div>
-            )}
           </div>
         </div>
 
@@ -284,40 +265,6 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                       </div>
                     );
                   })}
-
-                  {/* Room Notes (e.g. TEE 1200/1230, PACU delay, procedure) */}
-                  {room.notes && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      fontSize: 11,
-                      color: 'var(--marker-red)',
-                      fontFamily: 'var(--font-mono)',
-                      fontWeight: 700,
-                      padding: '1px 6px',
-                      background: 'rgba(211, 47, 47, 0.05)',
-                      borderRadius: 3
-                    }}>
-                      <span>{room.notes}</span>
-                      {currentUserRole !== 'basic_user' && (
-                        <button
-                          onClick={() => onOpenVoiceNotes('room', room.id, room.notes)}
-                          title="Edit room notes with voice AI"
-                          style={{ color: 'var(--marker-red)', padding: 1 }}
-                        >
-                          <Mic size={11} />
-                        </button>
-                      )}
-                    </div>
-                  )}
-                  {!room.notes && currentUserRole !== 'basic_user' && (
-                    <div style={{ display: 'none' }}>
-                      <button onClick={() => onOpenVoiceNotes('room', room.id, '')}>
-                        <MessageSquare size={10} />
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             );
