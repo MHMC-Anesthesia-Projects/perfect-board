@@ -469,7 +469,7 @@ export function parseOneUsapHtml(
 
   // 8. Build Departure Candidates (Working Doctors)
   const rawDepartureCandidates: ParseOneUsapResult['departureCandidates'] = [];
-  const callTeamMap = new Map<string, { doctorName: string; qgendaAbbr: string; orderNumber?: number }>();
+  const callTeamMap = new Map<string, { doctorName: string; qgendaAbbr: string; orderNumber?: number; isCombined?: boolean }>();
 
   targetDocs.forEach(entry => {
     const { rawName, facility, shift, orderNumber } = entry;
@@ -505,24 +505,67 @@ export function parseOneUsapHtml(
       roomAssignment: roomInfo.roomString || undefined,
       orderNumber
     });
+  });
 
-    // Call Team detection from shift codes
-    if (upperShift.includes('POSTCV') || upperShift.includes('CV')) {
+  // Call Team detection from shift codes:
+  // Hospital calls are named: Call 1, Call 2, Call 3, CV, OB.
+  // Sorted in order: CV, Call 3, Call 2, Call 1, OB.
+  // Pass 1: Providers listed with "C1,OB" (like Dr. Lu) are both Call 1 and OB today.
+  targetDocs.forEach(entry => {
+    if (isOffShift(entry.shift)) return;
+    const formatted = formatProviderName(entry.rawName);
+    const qgendaAbbr = entry.rawName.replace(/\[.*?\]/g, '').trim();
+    const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
+    const effectiveShift = resolveEffectiveShift(entry.shift, roomTag);
+    const upperShift = effectiveShift.toUpperCase();
+    const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
+
+    const isC1OB = upperShift.includes('C1,OB') || (shiftParts.includes('C1') && shiftParts.includes('OB'));
+    if (isC1OB) {
+      callTeamMap.set('Call 1', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber, isCombined: true });
+      callTeamMap.set('OB', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber, isCombined: true });
+    }
+  });
+
+  // Pass 2: Remaining call roles (CV, Call 3, Call 2, Call 1, OB)
+  targetDocs.forEach(entry => {
+    if (isOffShift(entry.shift)) return;
+    const formatted = formatProviderName(entry.rawName);
+    const qgendaAbbr = entry.rawName.replace(/\[.*?\]/g, '').trim();
+    const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
+    const effectiveShift = resolveEffectiveShift(entry.shift, roomTag);
+    const upperShift = effectiveShift.toUpperCase();
+    const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
+
+    // CV
+    if (shiftParts.some(p => (p === 'CV' || p.startsWith('CV-') || p.startsWith('CV ')) && !p.startsWith('POST') && !p.startsWith('PRE'))) {
       const alias = formatted.lastName === 'Dwarakanath' ? 'KD' : formatted.lastName.toUpperCase();
-      callTeamMap.set('CV', { doctorName: alias, qgendaAbbr, orderNumber });
+      callTeamMap.set('CV', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
     }
-    if (upperShift.includes('POSTC1') || upperShift === '1ST' || upperShift.includes('C1')) {
-      callTeamMap.set('1st Call', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber });
+
+    // Call 3
+    if (shiftParts.some(p => (p === 'C3' || p === '3RD' || p === 'CALL 3' || p === 'CALL3') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
+      callTeamMap.set('Call 3', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber });
     }
-    if (upperShift.includes('POSTC2') || upperShift.includes('C2')) {
+
+    // Call 2
+    if (shiftParts.some(p => (p === 'C2' || p === '2ND' || p === 'CALL 2' || p === 'CALL2') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
       const alias = formatted.lastName === 'Tallackson' ? 'TALL' : formatted.lastName.toUpperCase();
-      callTeamMap.set('2nd Call', { doctorName: alias, qgendaAbbr, orderNumber });
+      callTeamMap.set('Call 2', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
     }
-    if (upperShift.includes('POSTC3') || upperShift.includes('C3')) {
-      callTeamMap.set('3rd Call', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber });
+
+    // Call 1 (only if not already claimed by a combined C1,OB doctor)
+    if (shiftParts.some(p => (p === 'C1' || p === '1ST' || p === 'CALL 1' || p === 'CALL1') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
+      if (!callTeamMap.get('Call 1')?.isCombined && !callTeamMap.has('Call 1')) {
+        callTeamMap.set('Call 1', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber });
+      }
     }
-    if (upperShift.includes('POSTOB') || upperShift.includes('OB')) {
-      callTeamMap.set('OB Call', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber });
+
+    // OB (only if not already claimed by a combined C1,OB doctor)
+    if (shiftParts.some(p => (p === 'OB' || p === 'OBCALL') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
+      if (!callTeamMap.get('OB')?.isCombined && !callTeamMap.has('OB')) {
+        callTeamMap.set('OB', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber });
+      }
     }
   });
 
@@ -594,8 +637,8 @@ export function parseOneUsapHtml(
     return (a.orderNumber ?? 999) - (b.orderNumber ?? 999);
   });
 
-  // Build Call Team List
-  const callTeamOrder = ['CV', '1st Call', '2nd Call', '3rd Call', 'OB Call'];
+  // Build Call Team List in exact order: CV, Call 3, Call 2, Call 1, OB
+  const callTeamOrder = ['CV', 'Call 3', 'Call 2', 'Call 1', 'OB'];
   const callTeamCandidates = callTeamOrder
     .filter(role => callTeamMap.has(role))
     .map(role => ({
@@ -723,6 +766,7 @@ export async function fetchAndScrapeOneUsap(options: {
       departureCandidates: parsed.departureCandidates,
       lateCandidates: parsed.lateCandidates,
       callTeamCandidates: parsed.callTeamCandidates,
+      roomAssignments: parsed.roomAssignments,
       rawCounts: parsed.rawCounts
     };
   } catch (err: unknown) {

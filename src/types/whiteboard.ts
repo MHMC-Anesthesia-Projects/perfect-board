@@ -25,6 +25,7 @@ export interface Staff {
   notes?: string;
   facility?: string;
   assignedRoom?: string;
+  assignedRooms?: string[];
   qgendaAbbr?: string;
 }
 
@@ -117,7 +118,8 @@ export interface AuditLogEntry {
     | 'DEPARTURE_REORDERED'
     | 'LATES_UPDATED'
     | 'CALL_TEAM_UPDATED'
-    | 'BULLPEN_UPDATED';
+    | 'BULLPEN_UPDATED'
+    | 'AUTO_ASSIGNED_ROOMS';
   performedBy: string;
   userRole: UserRole;
   targetName?: string;
@@ -127,7 +129,7 @@ export interface AuditLogEntry {
 
 export interface CallTeamItem {
   id: string;
-  role: string;       // e.g. "CV", "1st Call", "2nd Call", "3rd Call", "OB Call"
+  role: string;       // e.g. "CV", "Call 3", "Call 2", "Call 1", "OB"
   doctorName: string; // e.g. "KD", "SHENOY", "TALL", "LU"
   orderIndex: number;
   qgendaAbbr?: string;
@@ -194,6 +196,13 @@ export interface ScraperPreviewResult {
     doctorName: string;
     qgendaAbbr?: string;
     orderNumber?: number;
+  }>;
+  roomAssignments?: Array<{
+    facility: string;
+    room: string;
+    time: string;
+    doc: string;
+    anes: string;
   }>;
   rawCounts: {
     totalWorkingStaff: number;

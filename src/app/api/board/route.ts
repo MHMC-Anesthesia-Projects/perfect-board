@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadBoardState, saveBoardState, recordAuditLog, getInitialBoardState } from '@/lib/storage';
 import { UserRole } from '@/types/whiteboard';
+import { autoAssignBoardState } from '@/lib/autoAssign';
 
 export async function GET() {
   const state = loadBoardState();
@@ -375,6 +376,32 @@ export async function POST(req: NextRequest) {
           details: payload.details || 'Updated Call Team assignments'
         });
         return NextResponse.json({ success: true, state });
+      }
+
+      // 5c. Auto-Assign magnets to department rooms and runner slots
+      case 'AUTO_ASSIGN_ROOMS': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+
+        const result = autoAssignBoardState(state);
+        state.departments = result.departments;
+        state.bullpenStaffIds = result.bullpenStaffIds;
+
+        saveBoardState(state);
+        recordAuditLog({
+          actionType: 'STAFF_ASSIGNED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          details: `Auto-assigned ${result.assignedCount} staff magnets to department rooms and runner slots based on portal schedule`
+        });
+
+        return NextResponse.json({
+          success: true,
+          state,
+          assignedCount: result.assignedCount,
+          message: `Auto-assigned ${result.assignedCount} staff magnets to department rooms and runner slots`
+        });
       }
 
       // 6. Toggle Departure Strikethrough (Mark doc as departed/left)

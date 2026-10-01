@@ -5,7 +5,7 @@ import { UserRole } from '@/types/whiteboard';
 import { 
   Sun, Moon, Shield, Lock, LogIn, LogOut, 
   RotateCw, FileSpreadsheet, Settings, 
-  Keyboard, Clock, CheckCircle2, Mic,
+  Keyboard, Clock, CheckCircle2, Mic, Sparkles,
   PanelRightClose, PanelRightOpen,
   PanelLeftClose, PanelLeftOpen 
 } from 'lucide-react';
@@ -22,6 +22,8 @@ interface HeaderNavProps {
   isKeyboardOpen: boolean;
   onTriggerSync: () => void;
   onOpenVoiceAi?: () => void;
+  onAutoAssign?: () => void;
+  isAutoAssigning?: boolean;
   isSyncing: boolean;
   lastSyncTime?: string | null;
   isRightSidebarOpen?: boolean;
@@ -43,6 +45,8 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   isKeyboardOpen,
   onTriggerSync,
   onOpenVoiceAi,
+  onAutoAssign,
+  isAutoAssigning = false,
   isSyncing,
   lastSyncTime,
   isRightSidebarOpen = true,
@@ -198,6 +202,31 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           <RotateCw size={14} className={isSyncing ? 'spin-animation' : ''} />
           <span>{isSyncing ? 'Syncing...' : 'Sync Portal'}</span>
         </button>
+
+        {/* Auto-Assign Magnets Button */}
+        {onAutoAssign && (
+          <button
+            onClick={onAutoAssign}
+            disabled={isAutoAssigning}
+            title="Auto-assign staff magnets to department rooms and runner slots based on portal schedule"
+            style={{
+              padding: '6px 12px',
+              borderRadius: 6,
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 700,
+              color: 'var(--accent-primary)',
+              cursor: isAutoAssigning ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <Sparkles size={14} className={isAutoAssigning ? 'spin-animation' : ''} />
+            <span>{isAutoAssigning ? 'Assigning...' : 'Auto-Assign'}</span>
+          </button>
+        )}
 
         {/* Voice AI Transcription Button */}
         {onOpenVoiceAi && (

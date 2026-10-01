@@ -664,7 +664,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
                 <input
                   type="text"
-                  placeholder="Role (e.g. CV, 1st, 2nd, OB)"
+                  placeholder="Role (e.g. CV, Call 3, Call 2, Call 1, OB)"
                   value={newCallRole}
                   onChange={e => setNewCallRole(e.target.value)}
                   autoFocus

@@ -1,5 +1,47 @@
 [
   {
+    "id": "audit_1790892406089_xbsi7",
+    "timestamp": "2026-10-01T22:06:46.089Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Auto-assigned 47 staff magnets to department rooms and runner slots based on portal schedule"
+  },
+  {
+    "id": "audit_1790892357042_bd251",
+    "timestamp": "2026-10-01T22:05:57.042Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Auto-assigned 46 staff magnets to department rooms and runner slots based on portal schedule"
+  },
+  {
+    "id": "audit_1790892349020_iwdq2",
+    "timestamp": "2026-10-01T22:05:49.020Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1790891919524_9tgtn",
+    "timestamp": "2026-10-01T21:58:39.524Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "CHUAN",
+    "details": "Unmarked doctor CHUAN departure status"
+  },
+  {
+    "id": "audit_1790891918365_ee1nn",
+    "timestamp": "2026-10-01T21:58:38.365Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "CHUAN",
+    "details": "Marked doctor CHUAN as DEPARTED [Strikethrough]"
+  },
+  {
     "id": "audit_1790891509720_sx2xl",
     "timestamp": "2026-10-01T21:51:49.720Z",
     "actionType": "DEPARTURE_UPDATED",

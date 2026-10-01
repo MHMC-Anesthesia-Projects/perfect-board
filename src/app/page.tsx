@@ -61,6 +61,8 @@ export default function WhiteboardPage() {
   const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSyncWarningOpen, setIsSyncWarningOpen] = useState(false);
+  const [isAutoAssigning, setIsAutoAssigning] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Initialize theme and load board
   useEffect(() => {
@@ -575,9 +577,13 @@ export default function WhiteboardPage() {
       const data = await res.json();
       if (data.success) {
         fetchBoardState(false);
+        setToastMessage('✓ Synchronized Departure, Lates, Call Team and Staff Roster!');
+        setTimeout(() => setToastMessage(null), 4000);
       }
     } catch (err) {
       console.error('Scraper sync failed:', err);
+      setToastMessage('Portal sync failed. Please check credentials or network.');
+      setTimeout(() => setToastMessage(null), 4000);
     } finally {
       setIsSyncing(false);
     }
@@ -607,6 +613,41 @@ export default function WhiteboardPage() {
     }
 
     await executeTriggerSync();
+  };
+
+  // 7b. Trigger Auto-Assign of Magnets to Rooms and Runner Slots
+  const handleAutoAssign = async () => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    setIsAutoAssigning(true);
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'AUTO_ASSIGN_ROOMS',
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.state) {
+        setBoardState(data.state);
+        setToastMessage(`✓ Auto-assigned ${data.assignedCount || 0} staff magnets to department rooms and runner slots!`);
+        setTimeout(() => setToastMessage(null), 4500);
+      } else {
+        setToastMessage(`Auto-assign error: ${data.error || 'Failed'}`);
+        setTimeout(() => setToastMessage(null), 4000);
+      }
+    } catch (err) {
+      console.error('Error auto-assigning rooms:', err);
+      setToastMessage('Error auto-assigning staff magnets.');
+      setTimeout(() => setToastMessage(null), 4000);
+    } finally {
+      setIsAutoAssigning(false);
+    }
   };
 
   // 8. Superuser Layout actions
@@ -696,6 +737,8 @@ export default function WhiteboardPage() {
         isKeyboardOpen={isVirtualKeyboardOpen}
         onTriggerSync={handleTriggerSync}
         onOpenVoiceAi={() => setVoiceNoteTarget({ type: 'general', currentNotes: '' })}
+        onAutoAssign={handleAutoAssign}
+        isAutoAssigning={isAutoAssigning}
         isSyncing={isSyncing}
         lastSyncTime={boardState.scraperConfig.lastSyncTime}
         isRightSidebarOpen={isRightSidebarOpen}
@@ -881,6 +924,45 @@ export default function WhiteboardPage() {
         onMarkLeaving={handleConfirmUnassignLeaving}
         onClose={() => setUnassignPromptTarget(null)}
       />
+
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 50,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 99999,
+            background: 'var(--surface-card)',
+            color: 'var(--text-primary)',
+            padding: '10px 20px',
+            borderRadius: 8,
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.28)',
+            border: '1.5px solid var(--accent-primary)',
+            fontWeight: 700,
+            fontSize: 13,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12
+          }}
+        >
+          <span>{toastMessage}</span>
+          <button
+            onClick={() => setToastMessage(null)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              padding: 2,
+              fontWeight: 800
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 };

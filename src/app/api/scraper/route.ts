@@ -209,6 +209,7 @@ export async function POST(req: NextRequest) {
             existing.shift = ws.shift || existing.shift;
             existing.facility = ws.facility || existing.facility;
             existing.assignedRoom = ws.roomAssignment || existing.assignedRoom;
+            existing.assignedRooms = ws.assignedRooms || (ws.roomAssignment ? ws.roomAssignment.split(',').map(s => s.trim()) : existing.assignedRooms);
             existing.qgendaAbbr = ws.qgendaAbbr || existing.qgendaAbbr;
             existing.active = true;
             updatedStaffList.push(existing);
@@ -224,6 +225,7 @@ export async function POST(req: NextRequest) {
               shift: ws.shift,
               facility: ws.facility,
               assignedRoom: ws.roomAssignment,
+              assignedRooms: ws.assignedRooms || (ws.roomAssignment ? ws.roomAssignment.split(',').map(s => s.trim()) : undefined),
               qgendaAbbr: ws.qgendaAbbr,
               active: true
             });
