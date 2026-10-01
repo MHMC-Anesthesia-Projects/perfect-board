@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Staff, Department, UserRole } from '@/types/whiteboard';
 import { MagnetTile } from './MagnetTile';
-import { Search, UserPlus, Users, X } from 'lucide-react';
+import { Search, UserPlus, Users, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface BullpenProps {
   staff: Staff[];
@@ -12,6 +12,8 @@ interface BullpenProps {
   onSelectStaff: (staff: Staff) => void;
   onOpenAddStaff: () => void;
   onDropToBullpen: (data: { staffId: string; type: string; id?: string }) => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 const CREDENTIAL_ORDER: Record<string, number> = {
@@ -41,8 +43,18 @@ export const Bullpen: React.FC<BullpenProps> = ({
   currentUserRole,
   onSelectStaff,
   onOpenAddStaff,
-  onDropToBullpen
+  onDropToBullpen,
+  isCollapsed: propIsCollapsed,
+  onToggleCollapse
 }) => {
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const isCollapsed = propIsCollapsed !== undefined ? propIsCollapsed : internalCollapsed;
+
+  const handleToggle = () => {
+    if (onToggleCollapse) onToggleCollapse();
+    else setInternalCollapsed(prev => !prev);
+  };
+
   const [searchQuery, setSearchQuery] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -133,7 +145,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
 
   return (
     <footer
-      className={`bullpen-drawer ${isDragOver ? 'drag-over' : ''}`}
+      className={`bullpen-drawer ${isCollapsed ? 'collapsed' : ''} ${isDragOver ? 'drag-over' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -143,7 +155,11 @@ export const Bullpen: React.FC<BullpenProps> = ({
       }}
     >
       {/* Bullpen Header */}
-      <div className="bullpen-header">
+      <div
+        className="bullpen-header"
+        onClick={handleToggle}
+        style={{ cursor: 'pointer', userSelect: 'none' }}
+      >
         <div className="bullpen-title">
           <Users size={16} style={{ color: 'var(--accent-primary)' }} />
           <span>AVAILABLE UNASSIGNED STAFF</span>
@@ -157,98 +173,141 @@ export const Bullpen: React.FC<BullpenProps> = ({
           }}>
             {unassignedStaff.length} AVAILABLE
           </span>
-        </div>
-
-        {/* Search & Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            background: 'var(--surface-card)',
-            border: '1px solid var(--border-light)',
-            borderRadius: 6,
-            padding: '2px 8px'
-          }}>
-            <Search size={14} style={{ color: 'var(--text-muted)' }} />
-            <input
-              type="text"
-              placeholder="Filter staff by name or credential..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                outline: 'none',
-                fontSize: 12,
-                color: 'var(--text-primary)',
-                width: 220
-              }}
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery('')} style={{ color: 'var(--text-muted)' }}>
-                <X size={12} />
-              </button>
-            )}
-          </div>
-
-          {currentUserRole !== 'basic_user' && (
-            <button
-              onClick={onOpenAddStaff}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                padding: '4px 10px',
-                borderRadius: 6,
-                background: 'var(--surface-hover)',
-                border: '1px solid var(--border-light)',
-                fontSize: 12,
-                fontWeight: 700,
-                color: 'var(--text-primary)'
-              }}
-            >
-              <UserPlus size={14} />
-              <span>Add Staff</span>
-            </button>
+          {isDragOver && (
+            <span style={{ fontSize: 11, color: 'var(--accent-primary)', fontWeight: 800, marginLeft: 8 }}>
+              • Drop here to unassign
+            </span>
           )}
         </div>
+
+        {/* Search, Actions & Collapse Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} onClick={e => e.stopPropagation()}>
+          {!isCollapsed && (
+            <>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'var(--surface-card)',
+                border: '1px solid var(--border-light)',
+                borderRadius: 6,
+                padding: '2px 8px'
+              }}>
+                <Search size={14} style={{ color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  placeholder="Filter staff by name or credential..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    outline: 'none',
+                    fontSize: 12,
+                    color: 'var(--text-primary)',
+                    width: 220
+                  }}
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} style={{ color: 'var(--text-muted)' }}>
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+
+              {currentUserRole !== 'basic_user' && (
+                <button
+                  onClick={onOpenAddStaff}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                    background: 'var(--surface-hover)',
+                    border: '1px solid var(--border-light)',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: 'var(--text-primary)'
+                  }}
+                >
+                  <UserPlus size={14} />
+                  <span>Add Staff</span>
+                </button>
+              )}
+            </>
+          )}
+
+          {/* Collapse/Expand Toggle Button */}
+          <button
+            type="button"
+            onClick={handleToggle}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '4px 9px',
+              borderRadius: 6,
+              background: isCollapsed ? 'rgba(9, 105, 218, 0.12)' : 'var(--surface-card)',
+              border: isCollapsed ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-light)',
+              color: isCollapsed ? 'var(--accent-primary)' : 'var(--text-secondary)',
+              fontSize: 11,
+              fontWeight: 800,
+              cursor: 'pointer'
+            }}
+            title={isCollapsed ? 'Expand Unassigned Staff Section' : 'Collapse Staff Section to Bottom'}
+          >
+            {isCollapsed ? (
+              <>
+                <ChevronUp size={14} />
+                <span>Show Staff</span>
+              </>
+            ) : (
+              <>
+                <ChevronDown size={14} />
+                <span>Hide</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Alphabetical Bins */}
-      <div className="bullpen-bins-container">
-        {bins.map(bin => (
-          <div key={bin.key} className="bullpen-bin">
-            <div className="bullpen-bin-header">
-              {bin.label} ({bin.items.length})
+      {/* Alphabetical Bins (Hidden when collapsed) */}
+      {!isCollapsed && (
+        <div className="bullpen-bins-container">
+          {bins.map(bin => (
+            <div key={bin.key} className="bullpen-bin">
+              <div className="bullpen-bin-header">
+                {bin.label} ({bin.items.length})
+              </div>
+              <div className="bullpen-bin-content">
+                {bin.items.map(s => (
+                  <MagnetTile
+                    key={s.id}
+                    staff={s}
+                    slotType="bullpen"
+                    currentUserRole={currentUserRole}
+                    onSelectStaff={onSelectStaff}
+                    onDragStart={(e) => handleTileDragStart(e, s)}
+                  />
+                ))}
+                {bin.items.length === 0 && (
+                  <div style={{
+                    width: '100%',
+                    textAlign: 'center',
+                    padding: 12,
+                    fontSize: 11,
+                    color: 'var(--text-muted)',
+                    fontStyle: 'italic'
+                  }}>
+                    No staff in {bin.label}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="bullpen-bin-content">
-              {bin.items.map(s => (
-                <MagnetTile
-                  key={s.id}
-                  staff={s}
-                  slotType="bullpen"
-                  currentUserRole={currentUserRole}
-                  onSelectStaff={onSelectStaff}
-                  onDragStart={(e) => handleTileDragStart(e, s)}
-                />
-              ))}
-              {bin.items.length === 0 && (
-                <div style={{
-                  width: '100%',
-                  textAlign: 'center',
-                  padding: 12,
-                  fontSize: 11,
-                  color: 'var(--text-muted)',
-                  fontStyle: 'italic'
-                }}>
-                  No staff in {bin.label}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </footer>
   );
 };

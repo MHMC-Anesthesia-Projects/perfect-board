@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { DepartureItem, LateShiftItem, CallTeamItem, UserRole } from '@/types/whiteboard';
-import { Plus, Trash2, Mic, GripVertical, StickyNote, X } from 'lucide-react';
+import { Plus, Trash2, Mic, GripVertical, StickyNote, X, ChevronRight } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface RightSidebarProps {
@@ -18,6 +18,7 @@ interface RightSidebarProps {
   onUpdateCallTeam: (callTeamList: CallTeamItem[]) => void;
   onOpenVoiceNotes: (targetType: 'departure' | 'lates', currentNotes: string) => void;
   onToggleDepartureStruck: (id: string) => void;
+  onToggleCollapse?: () => void;
 }
 
 export const RightSidebar: React.FC<RightSidebarProps> = ({
@@ -30,12 +31,14 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   onUpdateLists,
   onUpdateCallTeam,
   onOpenVoiceNotes,
-  onToggleDepartureStruck
+  onToggleDepartureStruck,
+  onToggleCollapse
 }) => {
   const isEditor = currentUserRole !== 'basic_user';
 
   // State for adding departure
   const [newDepartureName, setNewDepartureName] = useState('');
+  const [newDepartureCategory, setNewDepartureCategory] = useState<'post_call' | 'non_call'>('non_call');
   const [showAddDep, setShowAddDep] = useState(false);
 
   // State for Call Team
@@ -44,8 +47,21 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   const [newCallDoc, setNewCallDoc] = useState('');
 
   // Drag-and-drop state for reordering departures
-  const [draggedDepartureIdx, setDraggedDepartureIdx] = useState<number | null>(null);
-  const [dragOverDepartureIdx, setDragOverDepartureIdx] = useState<number | null>(null);
+  const [draggedDepartureId, setDraggedDepartureId] = useState<string | null>(null);
+  const [dragOverDepartureId, setDragOverDepartureId] = useState<string | null>(null);
+
+  // Separate Departure List into Post-Call and Non-Call sections
+  const postCallList = useMemo(() => {
+    return departureList
+      .filter(d => d.category === 'post_call')
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+  }, [departureList]);
+
+  const nonCallList = useMemo(() => {
+    return departureList
+      .filter(d => d.category !== 'post_call')
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+  }, [departureList]);
 
   // State for adding late staff (supports specific category targeted by plus button)
   const [addingToCategory, setAddingToCategory] = useState<string | null>(null);
@@ -77,37 +93,57 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   const handleAddDeparture = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDepartureName.trim()) return;
-    const updated = [
-      ...departureList,
-      {
-        id: `dep_${Date.now()}`,
-        name: newDepartureName.trim().toUpperCase(),
-        orderIndex: departureList.length,
-        departed: false
-      }
-    ];
+    const targetCat = newDepartureCategory;
+    const targetSubList = targetCat === 'post_call' ? postCallList : nonCallList;
+
+    const newItem: DepartureItem = {
+      id: `dep_${Date.now()}`,
+      name: newDepartureName.trim().toUpperCase(),
+      category: targetCat,
+      orderIndex: targetSubList.length,
+      departed: false
+    };
+
+    const updated = [...departureList, newItem];
     onUpdateLists(updated, latesList);
     setNewDepartureName('');
     setShowAddDep(false);
   };
 
-  const handleMoveDeparture = (fromIndex: number, toIndex: number, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    if (toIndex < 0 || toIndex >= departureList.length) return;
-    const list = [...departureList];
-    const [moved] = list.splice(fromIndex, 1);
-    list.splice(toIndex, 0, moved);
-    const updated = list.map((item, idx) => ({ ...item, orderIndex: idx }));
-    onUpdateLists(updated, latesList, true);
+  const handleMoveDeparture = (draggedId: string, targetCategory: 'post_call' | 'non_call', targetIndex: number) => {
+    const itemToMove = departureList.find(d => d.id === draggedId);
+    if (!itemToMove) return;
+
+    let postList = postCallList.filter(d => d.id !== draggedId);
+    let nonList = nonCallList.filter(d => d.id !== draggedId);
+
+    const updatedItem: DepartureItem = {
+      ...itemToMove,
+      category: targetCategory
+    };
+
+    if (targetCategory === 'post_call') {
+      const insertAt = Math.max(0, Math.min(targetIndex, postList.length));
+      postList.splice(insertAt, 0, updatedItem);
+    } else {
+      const insertAt = Math.max(0, Math.min(targetIndex, nonList.length));
+      nonList.splice(insertAt, 0, updatedItem);
+    }
+
+    postList = postList.map((d, idx) => ({ ...d, orderIndex: idx, category: 'post_call' }));
+    nonList = nonList.map((d, idx) => ({ ...d, orderIndex: idx, category: 'non_call' }));
+
+    onUpdateLists([...postList, ...nonList], latesList, true);
   };
 
   const handleInitiateRemoveDeparture = (doc: DepartureItem, e: React.MouseEvent) => {
     e.stopPropagation();
+    const catLabel = doc.category === 'post_call' ? 'Post-Call' : 'Non-Call';
     setDeleteTarget({
       type: 'departure',
       id: doc.id,
       name: `Dr. ${doc.name}`,
-      categoryLabel: 'Departure'
+      categoryLabel: `${catLabel} Departure`
     });
   };
 
@@ -217,6 +253,43 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 4 }}>
               Add Doctor to Departure:
             </div>
+            {/* Category Selector */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+              <button
+                type="button"
+                onClick={() => setNewDepartureCategory('post_call')}
+                style={{
+                  flex: 1,
+                  padding: '4px',
+                  borderRadius: 4,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  border: newDepartureCategory === 'post_call' ? '1.5px solid var(--marker-red)' : '1px solid var(--border-light)',
+                  background: newDepartureCategory === 'post_call' ? 'rgba(211, 47, 47, 0.12)' : 'var(--surface-card)',
+                  color: newDepartureCategory === 'post_call' ? 'var(--marker-red)' : 'var(--text-secondary)',
+                  cursor: 'pointer'
+                }}
+              >
+                Post-Call
+              </button>
+              <button
+                type="button"
+                onClick={() => setNewDepartureCategory('non_call')}
+                style={{
+                  flex: 1,
+                  padding: '4px',
+                  borderRadius: 4,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  border: newDepartureCategory === 'non_call' ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                  background: newDepartureCategory === 'non_call' ? 'var(--accent-surface)' : 'var(--surface-card)',
+                  color: newDepartureCategory === 'non_call' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  cursor: 'pointer'
+                }}
+              >
+                Non-Call
+              </button>
+            </div>
             <input
               type="text"
               placeholder="Doctor Last Name (e.g. SMITH)"
@@ -247,7 +320,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   fontWeight: 800
                 }}
               >
-                Add Doctor
+                Add to {newDepartureCategory === 'post_call' ? 'Post-Call' : 'Non-Call'}
               </button>
               <button
                 type="button"
@@ -268,67 +341,225 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
         {/* Departure Order List */}
         <div className="departure-list-area">
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, padding: '2px 4px' }}>
-            Tap name to mark departed (strikethrough)
-          </div>
-
-          {departureList.map((doc, idx) => (
-            <div
-              key={doc.id}
-              className={`departure-item ${doc.departed ? 'struck' : ''} ${dragOverDepartureIdx === idx ? 'drag-over' : ''} ${draggedDepartureIdx === idx ? 'dragging' : ''}`}
-              onClick={() => onToggleDepartureStruck(doc.id)}
-              draggable={isEditor}
-              onDragStart={(e) => {
-                e.dataTransfer.setData('text/departure-index', String(idx));
-                setDraggedDepartureIdx(idx);
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragOverDepartureIdx(idx);
-              }}
-              onDragLeave={() => {
-                setDragOverDepartureIdx(null);
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                const fromIdx = parseInt(e.dataTransfer.getData('text/departure-index'), 10);
-                if (!isNaN(fromIdx) && fromIdx !== idx) {
-                  handleMoveDeparture(fromIdx, idx);
-                }
-                setDraggedDepartureIdx(null);
-                setDragOverDepartureIdx(null);
-              }}
-              onDragEnd={() => {
-                setDraggedDepartureIdx(null);
-                setDragOverDepartureIdx(null);
-              }}
-              title={doc.departed ? 'Marked departed (Tap to unmark)' : 'Tap to mark departed (Strikethrough)'}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
-                {isEditor && (
-                  <GripVertical size={11} style={{ color: 'var(--text-muted)', cursor: 'grab', flexShrink: 0 }} />
-                )}
-                <span style={{ fontSize: 11, color: 'var(--text-muted)', width: 14 }}>{idx + 1}.</span>
-                <span className="departure-name">{doc.name}</span>
+          {/* 1.1 POST-CALL SECTION (Above Non-Call) */}
+          <div className="departure-sub-section">
+            <div className="departure-sub-header post-call-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontWeight: 800, color: 'var(--marker-red)', fontSize: 11 }}>POST-CALL</span>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>({postCallList.length})</span>
               </div>
               {isEditor && (
                 <button
                   type="button"
-                  onClick={(e) => handleInitiateRemoveDeparture(doc, e)}
-                  style={{ color: 'var(--text-muted)', padding: '2px 4px', borderRadius: 3 }}
-                  title="Remove from departure list"
+                  onClick={() => {
+                    setNewDepartureCategory('post_call');
+                    setShowAddDep(true);
+                  }}
+                  style={{
+                    width: 18,
+                    height: 18,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 3,
+                    background: 'var(--surface-card)',
+                    border: '1px solid var(--border-light)',
+                    color: 'var(--marker-red)',
+                    cursor: 'pointer'
+                  }}
+                  title="Add Doctor to Post-Call"
                 >
-                  <Trash2 size={13} />
+                  <Plus size={11} />
                 </button>
               )}
             </div>
-          ))}
 
-          {departureList.length === 0 && (
-            <div style={{ padding: 12, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12, fontStyle: 'italic' }}>
-              No doctors on departure list. Tap + to add.
+            <div
+              className="departure-sub-list"
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                const draggedId = e.dataTransfer.getData('text/departure-id');
+                if (draggedId) {
+                  handleMoveDeparture(draggedId, 'post_call', postCallList.length);
+                }
+                setDraggedDepartureId(null);
+                setDragOverDepartureId(null);
+              }}
+            >
+              {postCallList.map((doc, idx) => (
+                <div
+                  key={doc.id}
+                  className={`departure-item ${doc.departed ? 'struck' : ''} ${dragOverDepartureId === doc.id ? 'drag-over' : ''} ${draggedDepartureId === doc.id ? 'dragging' : ''}`}
+                  onClick={() => onToggleDepartureStruck(doc.id)}
+                  draggable={isEditor}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('text/departure-id', doc.id);
+                    setDraggedDepartureId(doc.id);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOverDepartureId(doc.id);
+                  }}
+                  onDragLeave={() => {
+                    setDragOverDepartureId(null);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const draggedId = e.dataTransfer.getData('text/departure-id');
+                    if (draggedId && draggedId !== doc.id) {
+                      handleMoveDeparture(draggedId, 'post_call', idx);
+                    }
+                    setDraggedDepartureId(null);
+                    setDragOverDepartureId(null);
+                  }}
+                  onDragEnd={() => {
+                    setDraggedDepartureId(null);
+                    setDragOverDepartureId(null);
+                  }}
+                  title={doc.departed ? 'Marked departed (Tap to unmark)' : 'Tap to mark departed (Strikethrough)'}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
+                    {isEditor && (
+                      <GripVertical size={11} style={{ color: 'var(--text-muted)', cursor: 'grab', flexShrink: 0 }} />
+                    )}
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)', width: 14 }}>{idx + 1}.</span>
+                    <span className="departure-name">{doc.name}</span>
+                  </div>
+                  {isEditor && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleInitiateRemoveDeparture(doc, e)}
+                      style={{ color: 'var(--text-muted)', padding: '2px 4px', borderRadius: 3 }}
+                      title="Remove from departure list"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              {postCallList.length === 0 && (
+                <div className="departure-empty-hint">
+                  No doctors on post-call list.
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
+          {/* 1.2 NON-CALL SECTION */}
+          <div className="departure-sub-section">
+            <div className="departure-sub-header non-call-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: 11 }}>NON-CALL</span>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>({nonCallList.length})</span>
+              </div>
+              {isEditor && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewDepartureCategory('non_call');
+                    setShowAddDep(true);
+                  }}
+                  style={{
+                    width: 18,
+                    height: 18,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 3,
+                    background: 'var(--surface-card)',
+                    border: '1px solid var(--border-light)',
+                    color: 'var(--accent-primary)',
+                    cursor: 'pointer'
+                  }}
+                  title="Add Doctor to Non-Call"
+                >
+                  <Plus size={11} />
+                </button>
+              )}
+            </div>
+
+            <div
+              className="departure-sub-list"
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                const draggedId = e.dataTransfer.getData('text/departure-id');
+                if (draggedId) {
+                  handleMoveDeparture(draggedId, 'non_call', nonCallList.length);
+                }
+                setDraggedDepartureId(null);
+                setDragOverDepartureId(null);
+              }}
+            >
+              {nonCallList.map((doc, idx) => (
+                <div
+                  key={doc.id}
+                  className={`departure-item ${doc.departed ? 'struck' : ''} ${dragOverDepartureId === doc.id ? 'drag-over' : ''} ${draggedDepartureId === doc.id ? 'dragging' : ''}`}
+                  onClick={() => onToggleDepartureStruck(doc.id)}
+                  draggable={isEditor}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('text/departure-id', doc.id);
+                    setDraggedDepartureId(doc.id);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOverDepartureId(doc.id);
+                  }}
+                  onDragLeave={() => {
+                    setDragOverDepartureId(null);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const draggedId = e.dataTransfer.getData('text/departure-id');
+                    if (draggedId && draggedId !== doc.id) {
+                      handleMoveDeparture(draggedId, 'non_call', idx);
+                    }
+                    setDraggedDepartureId(null);
+                    setDragOverDepartureId(null);
+                  }}
+                  onDragEnd={() => {
+                    setDraggedDepartureId(null);
+                    setDragOverDepartureId(null);
+                  }}
+                  title={doc.departed ? 'Marked departed (Tap to unmark)' : 'Tap to mark departed (Strikethrough)'}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
+                    {isEditor && (
+                      <GripVertical size={11} style={{ color: 'var(--text-muted)', cursor: 'grab', flexShrink: 0 }} />
+                    )}
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)', width: 14 }}>{idx + 1}.</span>
+                    <span className="departure-name">{doc.name}</span>
+                  </div>
+                  {isEditor && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleInitiateRemoveDeparture(doc, e)}
+                      style={{ color: 'var(--text-muted)', padding: '2px 4px', borderRadius: 3 }}
+                      title="Remove from departure list"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              {nonCallList.length === 0 && (
+                <div className="departure-empty-hint">
+                  No doctors on non-call list.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* CALL TEAM SECTION AT BOTTOM OF DEPARTURE */}
@@ -471,51 +702,77 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>(&gt; 3 PM)</span>
           </div>
 
-          {/* Notes icon on far right with badge if note exists */}
-          <button
-            type="button"
-            onClick={() => setShowLatesNotesModal(true)}
-            style={{
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 24,
-              height: 24,
-              borderRadius: 4,
-              background: latesNotes.trim() ? 'rgba(9, 105, 218, 0.12)' : 'var(--surface-card)',
-              border: latesNotes.trim() ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-light)',
-              color: latesNotes.trim() ? 'var(--accent-primary)' : 'var(--text-muted)',
-              cursor: 'pointer',
-              padding: 0
-            }}
-            title={latesNotes.trim() ? `Late Shift Notes: "${latesNotes.slice(0, 30)}..."` : 'Add/View Late Shift Notes'}
-          >
-            <StickyNote size={14} />
-            {latesNotes.trim().length > 0 && (
-              <span
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {/* Notes icon on far right with badge if note exists */}
+            <button
+              type="button"
+              onClick={() => setShowLatesNotesModal(true)}
+              style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 24,
+                height: 24,
+                borderRadius: 4,
+                background: latesNotes.trim() ? 'rgba(9, 105, 218, 0.12)' : 'var(--surface-card)',
+                border: latesNotes.trim() ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                color: latesNotes.trim() ? 'var(--accent-primary)' : 'var(--text-muted)',
+                cursor: 'pointer',
+                padding: 0
+              }}
+              title={latesNotes.trim() ? `Late Shift Notes: "${latesNotes.slice(0, 30)}..."` : 'Add/View Late Shift Notes'}
+            >
+              <StickyNote size={14} />
+              {latesNotes.trim().length > 0 && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: -5,
+                    right: -5,
+                    background: 'var(--accent-primary)',
+                    color: '#ffffff',
+                    fontSize: 9,
+                    fontWeight: 900,
+                    width: 14,
+                    height: 14,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+                    lineHeight: 1
+                  }}
+                >
+                  1
+                </span>
+              )}
+            </button>
+
+            {/* Collapse/Hide Sidebar Button */}
+            {onToggleCollapse && (
+              <button
+                type="button"
+                onClick={onToggleCollapse}
                 style={{
-                  position: 'absolute',
-                  top: -5,
-                  right: -5,
-                  background: 'var(--accent-primary)',
-                  color: '#ffffff',
-                  fontSize: 9,
-                  fontWeight: 900,
-                  width: 14,
-                  height: 14,
-                  borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
-                  lineHeight: 1
+                  width: 24,
+                  height: 24,
+                  borderRadius: 4,
+                  background: 'var(--surface-card)',
+                  border: '1px solid var(--border-light)',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  padding: 0
                 }}
+                title="Hide Departure & Lates (Expand Whiteboard)"
               >
-                1
-              </span>
+                <ChevronRight size={15} />
+              </button>
             )}
-          </button>
+          </div>
         </div>
 
         {/* Categorized Late Shifts Area */}

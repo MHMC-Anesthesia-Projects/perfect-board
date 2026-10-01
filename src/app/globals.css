@@ -205,11 +205,18 @@ button {
   z-index: 9999;
 }
 
+.magnet-identity {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
 .magnet-name {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 1;
 }
 
 .magnet-cred {
@@ -650,6 +657,89 @@ button {
   gap: 4px;
 }
 
+/* Departure Subsections: Post-Call and Non-Call */
+.departure-sub-section {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 6px;
+}
+
+.departure-sub-header {
+  padding: 4px 6px;
+  background: var(--surface-hover);
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 11px;
+}
+
+.departure-sub-header.post-call-header {
+  background: rgba(211, 47, 47, 0.08);
+  border-color: rgba(211, 47, 47, 0.25);
+}
+
+.departure-sub-header.non-call-header {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.departure-sub-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 3px 0;
+  min-height: 24px;
+}
+
+.departure-empty-hint {
+  padding: 6px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* Sidebar Expand Tab (Shown along the right edge when Departure & Lates is hidden) */
+.sidebar-expand-tab {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--surface-card);
+  border: 1.5px solid var(--accent-primary);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  box-shadow: -3px 0 12px rgba(0, 0, 0, 0.15);
+  padding: 14px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  z-index: 45;
+  color: var(--accent-primary);
+  transition: all 0.2s ease;
+}
+
+.sidebar-expand-tab:hover {
+  background: var(--accent-surface);
+  box-shadow: -4px 0 16px rgba(9, 105, 218, 0.25);
+  padding-right: 8px;
+}
+
+.sidebar-expand-tab-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+}
+
 /* Dry-erase marker handwritten notes area */
 .scratchpad-notes {
   border-top: 2px dashed var(--board-inner-line);
@@ -695,6 +785,14 @@ button {
   flex-direction: column;
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
   z-index: 40;
+  transition: height 0.2s ease;
+}
+
+.bullpen-drawer.collapsed {
+  height: 38px !important;
+  min-height: 38px !important;
+  overflow: hidden;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .bullpen-header {

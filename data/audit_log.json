@@ -1,5 +1,14 @@
 [
   {
+    "id": "audit_1790872450385_cd7zf",
+    "timestamp": "2026-10-01T16:34:10.385Z",
+    "actionType": "RUNNER_SLOT_ADDED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "9th Floor",
+    "details": "Added new runner slot \"RUNNER 1\" to 9th Floor"
+  },
+  {
     "id": "audit_1790870004053_qdr6t",
     "timestamp": "2026-10-01T15:53:24.053Z",
     "actionType": "DEPARTURE_REORDERED",

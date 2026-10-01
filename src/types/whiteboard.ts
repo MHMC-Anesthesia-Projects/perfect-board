@@ -69,6 +69,7 @@ export interface DepartureItem {
   name: string;
   orderIndex: number;
   departed?: boolean; // When true, struck through on the board
+  category?: 'post_call' | 'non_call'; // 'post_call' or 'non_call' (defaults to 'non_call')
   role?: string;
   timeEstimate?: string;
   notes?: string;

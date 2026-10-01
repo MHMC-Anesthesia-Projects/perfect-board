@@ -67,16 +67,16 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
         fontSize: isCompact ? '12px' : '13px'
       }}
     >
-      {/* Staff Name */}
-      <span className="magnet-name">
-        {staff.lastName.toUpperCase()}
-        {staff.firstName ? ` ${staff.firstName[0]}.` : ''}
-      </span>
-
-      {/* Credential Badge */}
-      <span className={`magnet-cred cred-${staff.credentials}`}>
-        {staff.credentials}
-      </span>
+      {/* Staff Name & Credential Badge (credential next to name) */}
+      <div className="magnet-identity">
+        <span className="magnet-name">
+          {staff.lastName.toUpperCase()}
+          {staff.firstName ? ` ${staff.firstName[0]}.` : ''}
+        </span>
+        <span className={`magnet-cred cred-${staff.credentials}`}>
+          {staff.credentials}
+        </span>
+      </div>
 
       {/* Breakfast & Lunch Checkboxes (Only shown on assigned room or runner slots, not bullpen) */}
       {slotType !== 'bullpen' && onToggleBreak && (

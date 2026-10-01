@@ -14,6 +14,7 @@ import { VirtualKeyboard } from '@/components/VirtualKeyboard';
 import { AdminModal } from '@/components/AdminModal';
 import { AuditDrawer } from '@/components/AuditDrawer';
 import { ConfirmDeleteModal } from '@/components/ConfirmDeleteModal';
+import { ChevronLeft } from 'lucide-react';
 
 export default function WhiteboardPage() {
   const [boardState, setBoardState] = useState<BoardState | null>(null);
@@ -27,6 +28,10 @@ export default function WhiteboardPage() {
     displayName: string;
     role: UserRole;
   } | null>(null);
+
+  // Layout screen real estate toggles
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
+  const [isBullpenCollapsed, setIsBullpenCollapsed] = useState(false);
 
   // Modals
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -581,6 +586,8 @@ export default function WhiteboardPage() {
         onOpenVoiceAi={() => setVoiceNoteTarget({ type: 'general', currentNotes: '' })}
         isSyncing={isSyncing}
         lastSyncTime={boardState.scraperConfig.lastSyncTime}
+        isRightSidebarOpen={isRightSidebarOpen}
+        onToggleRightSidebar={() => setIsRightSidebarOpen(prev => !prev)}
       />
 
       {/* Main Whiteboard Display Area */}
@@ -599,24 +606,38 @@ export default function WhiteboardPage() {
           onRemoveRunnerSlot={handleRemoveRunnerSlot}
         />
 
-        {/* Right 2 Columns: DEPARTURE & LATES */}
-        <RightSidebar
-          departureList={boardState.departureList}
-          callTeamList={boardState.callTeamList || []}
-          departureNotes={boardState.departureNotes}
-          latesList={boardState.latesList}
-          latesNotes={boardState.latesNotes}
-          currentUserRole={currentUserRole}
-          onUpdateDepartureNotes={notes => handleSaveNotes('departure', undefined, notes)}
-          onUpdateLatesNotes={notes => handleSaveNotes('lates', undefined, notes)}
-          onUpdateLists={handleUpdateLists}
-          onUpdateCallTeam={handleUpdateCallTeam}
-          onOpenVoiceNotes={(type, notes) => setVoiceNoteTarget({ type, currentNotes: notes })}
-          onToggleDepartureStruck={handleToggleDepartureStruck}
-        />
+        {/* Right 2 Columns: DEPARTURE & LATES (Can be hidden to the right) */}
+        {isRightSidebarOpen ? (
+          <RightSidebar
+            departureList={boardState.departureList}
+            callTeamList={boardState.callTeamList || []}
+            departureNotes={boardState.departureNotes}
+            latesList={boardState.latesList}
+            latesNotes={boardState.latesNotes}
+            currentUserRole={currentUserRole}
+            onUpdateDepartureNotes={notes => handleSaveNotes('departure', undefined, notes)}
+            onUpdateLatesNotes={notes => handleSaveNotes('lates', undefined, notes)}
+            onUpdateLists={handleUpdateLists}
+            onUpdateCallTeam={handleUpdateCallTeam}
+            onOpenVoiceNotes={(type, notes) => setVoiceNoteTarget({ type, currentNotes: notes })}
+            onToggleDepartureStruck={handleToggleDepartureStruck}
+            onToggleCollapse={() => setIsRightSidebarOpen(false)}
+          />
+        ) : (
+          /* Expand Tab on Right Edge to slide Departure & Lates back open */
+          <button
+            type="button"
+            className="sidebar-expand-tab"
+            onClick={() => setIsRightSidebarOpen(true)}
+            title="Show Departure & Lates (Expand Whiteboard)"
+          >
+            <ChevronLeft size={16} />
+            <span className="sidebar-expand-tab-text">DEPARTURE &amp; LATES</span>
+          </button>
+        )}
       </main>
 
-      {/* Bottom Bullpen (Alphabetical Staff Holding Bins) */}
+      {/* Bottom Bullpen (Alphabetical Staff Holding Bins - Collapsible to Bottom) */}
       <Bullpen
         staff={boardState.staff}
         departments={boardState.departments}
@@ -624,6 +645,8 @@ export default function WhiteboardPage() {
         onSelectStaff={staff => setSelectedStaff(staff)}
         onOpenAddStaff={() => setIsAdminModalOpen(true)}
         onDropToBullpen={handleDropToBullpen}
+        isCollapsed={isBullpenCollapsed}
+        onToggleCollapse={() => setIsBullpenCollapsed(prev => !prev)}
       />
 
       {/* Modals & Slide-outs */}

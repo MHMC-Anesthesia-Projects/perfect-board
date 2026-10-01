@@ -5,7 +5,8 @@ import { UserRole } from '@/types/whiteboard';
 import { 
   Sun, Moon, Shield, Lock, LogIn, LogOut, 
   RotateCw, FileSpreadsheet, Settings, 
-  Keyboard, Clock, CheckCircle2, Mic 
+  Keyboard, Clock, CheckCircle2, Mic,
+  PanelRightClose, PanelRightOpen 
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -22,6 +23,8 @@ interface HeaderNavProps {
   onOpenVoiceAi?: () => void;
   isSyncing: boolean;
   lastSyncTime?: string | null;
+  isRightSidebarOpen?: boolean;
+  onToggleRightSidebar?: () => void;
 }
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({
@@ -37,7 +40,9 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onTriggerSync,
   onOpenVoiceAi,
   isSyncing,
-  lastSyncTime
+  lastSyncTime,
+  isRightSidebarOpen = true,
+  onToggleRightSidebar
 }) => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [currentDate, setCurrentDate] = useState<string>('');
@@ -205,6 +210,30 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             }}
           >
             <Mic size={15} />
+          </button>
+        )}
+
+        {/* Toggle Right Sidebar Button (Departure & Lates) */}
+        {onToggleRightSidebar && (
+          <button
+            onClick={onToggleRightSidebar}
+            title={isRightSidebarOpen ? 'Hide Departure & Lates (Expand Whiteboard)' : 'Show Departure & Lates'}
+            style={{
+              padding: '6px 10px',
+              borderRadius: 6,
+              background: isRightSidebarOpen ? 'var(--surface-hover)' : 'rgba(9, 105, 218, 0.12)',
+              border: isRightSidebarOpen ? '1px solid var(--border-light)' : '1.5px solid var(--accent-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              fontSize: 12,
+              fontWeight: 700,
+              color: isRightSidebarOpen ? 'var(--text-primary)' : 'var(--accent-primary)',
+              cursor: 'pointer'
+            }}
+          >
+            {isRightSidebarOpen ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
+            <span style={{ fontSize: 11 }}>Sidebar</span>
           </button>
         )}
 
