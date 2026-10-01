@@ -1,5 +1,109 @@
 [
   {
+    "id": "audit_1790893035739_vs6bl",
+    "timestamp": "2026-10-01T22:17:15.740Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Altered department and room layout structure"
+  },
+  {
+    "id": "audit_1790893018227_ad9mv",
+    "timestamp": "2026-10-01T22:16:58.227Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Auto-assigned 47 staff magnets to department rooms and runner slots based on portal schedule"
+  },
+  {
+    "id": "audit_1790892894917_6tf11",
+    "timestamp": "2026-10-01T22:14:54.917Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Jua Ruiz",
+    "locationName": "9th Floor Room TEE",
+    "details": "Marked lunch break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790892893949_9bta0",
+    "timestamp": "2026-10-01T22:14:53.950Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Jua Ruiz",
+    "locationName": "9th Floor Room TEE",
+    "details": "Marked lunch break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790892891965_vtsl5",
+    "timestamp": "2026-10-01T22:14:51.965Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Jua Ruiz",
+    "locationName": "9th Floor Room TEE",
+    "details": "Marked breakfast break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790892890233_4b55e",
+    "timestamp": "2026-10-01T22:14:50.233Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Jua Ruiz",
+    "locationName": "9th Floor Room TEE",
+    "details": "Marked breakfast break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790892887061_fnyiq",
+    "timestamp": "2026-10-01T22:14:47.061Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Jua Ruiz",
+    "locationName": "9th Floor Room TEE",
+    "details": "Moved from 9th Floor Room NIR -> 9th Floor Room TEE"
+  },
+  {
+    "id": "audit_1790892884905_dvruo",
+    "timestamp": "2026-10-01T22:14:44.905Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Jua Ruiz",
+    "locationName": "9th Floor Room NIR",
+    "details": "Moved from 9th Floor Room TEE -> 9th Floor Room NIR"
+  },
+  {
+    "id": "audit_1790892786347_wwsqd",
+    "timestamp": "2026-10-01T22:13:06.347Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1790892729969_9c65t",
+    "timestamp": "2026-10-01T22:12:09.969Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Carmen Mateo",
+    "locationName": "MAIN OR Room 5",
+    "details": "Moved from MAIN OR Room 5 -> MAIN OR Room 5"
+  },
+  {
+    "id": "audit_1790892728166_8p4rz",
+    "timestamp": "2026-10-01T22:12:08.166Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Carmen Mateo",
+    "locationName": "MAIN OR Room 5",
+    "details": "Moved from MAIN OR Room 5 -> MAIN OR Room 5"
+  },
+  {
     "id": "audit_1790892652670_c48dw",
     "timestamp": "2026-10-01T22:10:52.670Z",
     "actionType": "RUNNER_SLOT_REMOVED",

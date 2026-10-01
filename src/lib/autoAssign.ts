@@ -160,15 +160,29 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
   // Deep clone departments so we don't mutate unexpectedly
   const departments: Department[] = JSON.parse(JSON.stringify(state.departments));
 
-  // 1. Reset all room slot and runner slot staff assignments
+  // 1. Reset all room slots and runner slots cleanly
   departments.forEach(dept => {
+    // Keep default runner slot count (2 for Main OR / West Pav, 0 for 9th Floor / IVF, 1 for others)
+    const defaultRunnerSlots = (dept.id.includes('main_or') || dept.id.includes('west_pav'))
+      ? 2
+      : (dept.id.includes('9th') || dept.id.includes('ivf'))
+        ? 0
+        : 1;
+    dept.runnerSlots = dept.runnerSlots.slice(0, defaultRunnerSlots);
     dept.runnerSlots.forEach(slot => {
       slot.staffId = null;
     });
+
+    // Ensure each room starts with exactly 1 primary slot
     dept.rooms.forEach(room => {
-      room.slots.forEach(slot => {
-        slot.staffId = null;
-      });
+      room.slots = [{
+        id: `${dept.id}_room_${room.name}_slot_0`,
+        roleType: 'primary',
+        staffId: null,
+        breakfastDone: false,
+        lunchDone: false,
+        notes: ''
+      }];
     });
   });
 

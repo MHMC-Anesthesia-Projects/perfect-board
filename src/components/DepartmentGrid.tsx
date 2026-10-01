@@ -213,8 +213,10 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                 </div>
 
                 {/* Slots inside Room */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {room.slots.map(slot => {
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 3, alignItems: 'center', height: '100%', minWidth: 0 }}>
+                  {room.slots
+                    .filter((slot, idx) => idx === 0 || !!slot.staffId)
+                    .map(slot => {
                     const assignedStaff = getStaffById(slot.staffId);
                     const isOver = dragOverTarget === slot.id;
 
