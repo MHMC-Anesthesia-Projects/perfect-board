@@ -7,7 +7,8 @@ import {
   RotateCw, FileSpreadsheet, Settings, 
   Keyboard, Clock, CheckCircle2, Mic, Sparkles,
   PanelRightClose, PanelRightOpen,
-  PanelLeftClose, PanelLeftOpen 
+  PanelLeftClose, PanelLeftOpen,
+  Smartphone 
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -31,6 +32,7 @@ interface HeaderNavProps {
   isBullpenOpen?: boolean;
   onToggleBullpen?: () => void;
   bullpenCount?: number;
+  onSwitchToMobile?: () => void;
 }
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({
@@ -53,7 +55,8 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onToggleRightSidebar,
   isBullpenOpen = true,
   onToggleBullpen,
-  bullpenCount = 0
+  bullpenCount = 0,
+  onSwitchToMobile
 }) => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [currentDate, setCurrentDate] = useState<string>('');
@@ -381,6 +384,29 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           {theme === 'whiteboard' ? <Moon size={15} /> : <Sun size={15} />}
           <span>{theme === 'whiteboard' ? 'OR Dark' : 'Whiteboard'}</span>
         </button>
+
+        {/* Mobile View Switcher (Desktop Preview / Switch) */}
+        {onSwitchToMobile && (
+          <button
+            onClick={onSwitchToMobile}
+            style={{
+              padding: '6px 10px',
+              borderRadius: 6,
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--border-light)',
+              color: 'var(--text-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              fontSize: 12,
+              fontWeight: 700
+            }}
+            title="Switch to Mobile / Small Screen View"
+          >
+            <Smartphone size={15} />
+            <span>Mobile</span>
+          </button>
+        )}
 
         {/* Auth / Login Button */}
         {currentUser && currentUser.role !== 'basic_user' ? (

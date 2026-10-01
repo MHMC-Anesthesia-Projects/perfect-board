@@ -16,6 +16,7 @@ import { VirtualKeyboard } from '@/components/VirtualKeyboard';
 import { AdminModal } from '@/components/AdminModal';
 import { AuditDrawer } from '@/components/AuditDrawer';
 import { ConfirmDeleteModal } from '@/components/ConfirmDeleteModal';
+import { MobileWhiteboardView } from '@/components/MobileWhiteboardView';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function WhiteboardPage() {
@@ -23,6 +24,10 @@ export default function WhiteboardPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [theme, setTheme] = useState<'whiteboard' | 'dark'>('whiteboard');
+
+  // Mobile responsive detection & manual toggle
+  const [isMobileScreen, setIsMobileScreen] = useState(false);
+  const [forcedDesktop, setForcedDesktop] = useState(false);
 
   // Active User session (Defaults to basic_user for zero-login friction!)
   const [currentUser, setCurrentUser] = useState<{
@@ -79,6 +84,16 @@ export default function WhiteboardPage() {
     }
 
     fetchBoardState();
+  }, []);
+
+  // Responsive mobile screen detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobileScreen(window.innerWidth <= 850);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Set up real-time SSE listener
@@ -796,30 +811,56 @@ export default function WhiteboardPage() {
   }
 
   return (
-    <div className="whiteboard-container">
-      {/* Top Navigation & Status Bar */}
-      <HeaderNav
-        currentUser={currentUser}
-        onOpenLogin={() => setIsLoginModalOpen(true)}
-        onLogout={handleLogout}
-        theme={theme}
-        onToggleTheme={handleToggleTheme}
-        onOpenAdmin={() => setIsAdminModalOpen(true)}
-        onOpenAudit={() => setIsAuditDrawerOpen(true)}
-        onToggleKeyboard={() => setIsVirtualKeyboardOpen(prev => !prev)}
-        isKeyboardOpen={isVirtualKeyboardOpen}
-        onTriggerSync={handleTriggerSync}
-        onOpenVoiceAi={() => setVoiceNoteTarget({ type: 'general', currentNotes: '' })}
-        onAutoAssign={handleAutoAssign}
-        isAutoAssigning={isAutoAssigning}
-        isSyncing={isSyncing}
-        lastSyncTime={boardState.scraperConfig.lastSyncTime}
-        isRightSidebarOpen={isRightSidebarOpen}
-        onToggleRightSidebar={() => setIsRightSidebarOpen(prev => !prev)}
-        isBullpenOpen={isBullpenOpen}
-        onToggleBullpen={() => setIsBullpenOpen(prev => !prev)}
-        bullpenCount={boardState.bullpenStaffIds?.length || 0}
-      />
+    <>
+      {isMobileScreen && !forcedDesktop ? (
+        <MobileWhiteboardView
+          boardState={boardState}
+          currentUser={currentUser}
+          currentUserRole={currentUserRole}
+          theme={theme}
+          onToggleTheme={handleToggleTheme}
+          onOpenLogin={() => setIsLoginModalOpen(true)}
+          onLogout={handleLogout}
+          onToggleBreak={handleToggleBreak}
+          onSelectStaff={staff => setSelectedStaff(staff)}
+          onSelectEmptySlot={(type, id, label) => setSlotAssignTarget({ type, id, label })}
+          onToggleDepartureStruck={handleToggleDepartureStruck}
+          onUpdateLists={handleUpdateLists}
+          onUpdateCallTeam={handleUpdateCallTeam}
+          onSaveNotes={handleSaveNotes}
+          onOpenVoiceNotes={(type, id, currentNotes) => setVoiceNoteTarget({ type, id, currentNotes: currentNotes || '' })}
+          onAddRunnerSlot={handleAddRunnerSlot}
+          onRemoveRunnerSlot={handleRemoveRunnerSlot}
+          onAutoAssign={handleAutoAssign}
+          isAutoAssigning={isAutoAssigning}
+          onSwitchToDesktop={() => setForcedDesktop(true)}
+        />
+      ) : (
+        <div className="whiteboard-container">
+          {/* Top Navigation & Status Bar */}
+          <HeaderNav
+            currentUser={currentUser}
+            onOpenLogin={() => setIsLoginModalOpen(true)}
+            onLogout={handleLogout}
+            theme={theme}
+            onToggleTheme={handleToggleTheme}
+            onOpenAdmin={() => setIsAdminModalOpen(true)}
+            onOpenAudit={() => setIsAuditDrawerOpen(true)}
+            onToggleKeyboard={() => setIsVirtualKeyboardOpen(prev => !prev)}
+            isKeyboardOpen={isVirtualKeyboardOpen}
+            onTriggerSync={handleTriggerSync}
+            onOpenVoiceAi={() => setVoiceNoteTarget({ type: 'general', currentNotes: '' })}
+            onAutoAssign={handleAutoAssign}
+            isAutoAssigning={isAutoAssigning}
+            isSyncing={isSyncing}
+            lastSyncTime={boardState.scraperConfig.lastSyncTime}
+            isRightSidebarOpen={isRightSidebarOpen}
+            onToggleRightSidebar={() => setIsRightSidebarOpen(prev => !prev)}
+            isBullpenOpen={isBullpenOpen}
+            onToggleBullpen={() => setIsBullpenOpen(prev => !prev)}
+            bullpenCount={boardState.bullpenStaffIds?.length || 0}
+            onSwitchToMobile={() => setForcedDesktop(false)}
+          />
 
       {/* Main Whiteboard Display Area */}
       <main className="board-main-area">
@@ -910,6 +951,8 @@ export default function WhiteboardPage() {
         isCollapsed={isBullpenCollapsed}
         onToggleCollapse={() => setIsBullpenCollapsed(prev => !prev)}
       />
+        </div>
+      )}
 
       {/* Modals & Slide-outs */}
       <PinPadModal
@@ -1042,6 +1085,6 @@ export default function WhiteboardPage() {
           </button>
         </div>
       )}
-    </div>
+    </>
   );
 };
