@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
 
         // First remove this staff member from any other room/runner slot to prevent duplicate placement
         if (staffId) {
+          state.bullpenStaffIds = (state.bullpenStaffIds || []).filter(id => id !== staffId);
           for (const dept of state.departments) {
             for (const runner of dept.runnerSlots) {
               if (runner.staffId === staffId && runner.id !== targetId) {
@@ -178,13 +179,18 @@ export async function POST(req: NextRequest) {
         let fromLocation = '';
         let toLocation = '';
 
+        state.bullpenStaffIds = state.bullpenStaffIds || [];
+
         if (staffId) {
           const s = state.staff.find(st => st.id === staffId);
           if (s) staffName = `${s.firstName} ${s.lastName}`.trim();
         }
 
         // Clear source
-        if (fromTargetType === 'runner_slot') {
+        if (fromTargetType === 'bullpen') {
+          state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
+          fromLocation = 'Bullpen';
+        } else if (fromTargetType === 'runner_slot') {
           for (const dept of state.departments) {
             const r = dept.runnerSlots.find(slot => slot.id === fromId);
             if (r) {
@@ -204,8 +210,42 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Set destination (if not moving to bullpen)
-        if (toTargetType === 'runner_slot') {
+        // Handle destinations
+        if (toTargetType === 'bullpen') {
+          if (staffId && !state.bullpenStaffIds.includes(staffId)) {
+            state.bullpenStaffIds.push(staffId);
+          }
+          // Ensure cleared from any room or runner
+          for (const dept of state.departments) {
+            for (const runner of dept.runnerSlots) {
+              if (runner.staffId === staffId) runner.staffId = null;
+            }
+            for (const room of dept.rooms) {
+              for (const slot of room.slots) {
+                if (slot.staffId === staffId) slot.staffId = null;
+              }
+            }
+          }
+          toLocation = 'Bullpen (Available Staff)';
+        } else if (toTargetType === 'unassigned') {
+          if (staffId) {
+            state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
+          }
+          for (const dept of state.departments) {
+            for (const runner of dept.runnerSlots) {
+              if (runner.staffId === staffId) runner.staffId = null;
+            }
+            for (const room of dept.rooms) {
+              for (const slot of room.slots) {
+                if (slot.staffId === staffId) slot.staffId = null;
+              }
+            }
+          }
+          toLocation = 'Available Unassigned Staff';
+        } else if (toTargetType === 'runner_slot') {
+          if (staffId) {
+            state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
+          }
           for (const dept of state.departments) {
             const r = dept.runnerSlots.find(slot => slot.id === toId);
             if (r) {
@@ -214,6 +254,9 @@ export async function POST(req: NextRequest) {
             }
           }
         } else if (toTargetType === 'runner_dept') {
+          if (staffId) {
+            state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
+          }
           for (const dept of state.departments) {
             if (dept.id === toId) {
               let emptyRunner = dept.runnerSlots.find(r => !r.staffId);
@@ -234,6 +277,9 @@ export async function POST(req: NextRequest) {
             }
           }
         } else if (toTargetType === 'room_slot') {
+          if (staffId) {
+            state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
+          }
           for (const dept of state.departments) {
             for (const room of dept.rooms) {
               const slot = room.slots.find(s => s.id === toId);
@@ -243,18 +289,16 @@ export async function POST(req: NextRequest) {
               }
             }
           }
-        } else if (toTargetType === 'bullpen') {
-          toLocation = 'Available Unassigned Staff';
         }
 
         saveBoardState(state);
         recordAuditLog({
-          actionType: 'STAFF_MOVED',
+          actionType: toTargetType === 'bullpen' ? 'BULLPEN_UPDATED' : (toTargetType === 'unassigned' ? 'STAFF_UNASSIGNED' : 'STAFF_MOVED'),
           performedBy: currentUserName,
           userRole: currentUserRole,
           targetName: staffName,
           locationName: toLocation,
-          details: `Moved from ${fromLocation || 'Bullpen'} -> ${toLocation}`
+          details: `Moved from ${fromLocation || 'Staff Pool'} -> ${toLocation}`
         });
 
         return NextResponse.json({ success: true, state });

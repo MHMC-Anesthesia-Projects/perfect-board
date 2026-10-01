@@ -69,6 +69,7 @@ export interface DepartureItem {
   name: string;
   orderIndex: number;
   departed?: boolean; // When true, struck through on the board
+  category?: 'post_call' | 'non_call'; // 'post_call' or 'non_call' (defaults to 'non_call')
   role?: string;
   timeEstimate?: string;
   notes?: string;
@@ -105,7 +106,8 @@ export interface AuditLogEntry {
     | 'DEPARTURE_UPDATED'
     | 'DEPARTURE_REORDERED'
     | 'LATES_UPDATED'
-    | 'CALL_TEAM_UPDATED';
+    | 'CALL_TEAM_UPDATED'
+    | 'BULLPEN_UPDATED';
   performedBy: string;
   userRole: UserRole;
   targetName?: string;
@@ -138,6 +140,7 @@ export interface BoardState {
   staff: Staff[];
   departureList: DepartureItem[];
   callTeamList: CallTeamItem[];
+  bullpenStaffIds?: string[];
   departureNotes: string;
   latesList: LateShiftItem[];
   latesNotes: string;

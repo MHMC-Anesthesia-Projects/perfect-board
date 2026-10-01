@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Staff, Department, UserRole } from '@/types/whiteboard';
-import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, CheckCircle, ShieldCheck } from 'lucide-react';
+import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, CheckCircle, ShieldCheck, Sparkles } from 'lucide-react';
 
 interface StaffModalProps {
   staff: Staff | null;
@@ -11,6 +11,7 @@ interface StaffModalProps {
   onClose: () => void;
   onAssignToSlot: (targetType: 'room_slot' | 'runner_slot', targetId: string, staffId: string) => void;
   onUnassign: (staffId: string) => void;
+  onMoveToBullpen?: (staffId: string) => void;
   onToggleBreak: (targetType: 'room_slot' | 'runner_slot', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
 }
 
@@ -21,6 +22,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   onClose,
   onAssignToSlot,
   onUnassign,
+  onMoveToBullpen,
   onToggleBreak
 }) => {
   const [selectedDestination, setSelectedDestination] = useState<string>('');
@@ -344,29 +346,57 @@ export const StaffModal: React.FC<StaffModalProps> = ({
               </div>
             </div>
 
-            {/* Unassign back to bullpen if placed */}
+            {/* Unassign or move to bullpen if placed */}
             {currentPlacement && (
-              <button
-                type="button"
-                onClick={handleUnassignClick}
-                style={{
-                  marginTop: 6,
-                  padding: '10px',
-                  borderRadius: 6,
-                  background: 'var(--surface-hover)',
-                  border: '1px solid var(--border-light)',
-                  color: 'var(--marker-red)',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6
-                }}
-              >
-                <CornerDownLeft size={16} />
-                <span>Return to Available Unassigned Staff</span>
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+                {onMoveToBullpen && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onMoveToBullpen(staff.id);
+                      onClose();
+                    }}
+                    style={{
+                      padding: '10px',
+                      borderRadius: 6,
+                      background: 'rgba(9, 105, 218, 0.08)',
+                      border: '1.5px solid var(--accent-primary)',
+                      color: 'var(--accent-primary)',
+                      fontWeight: 700,
+                      fontSize: 13,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Sparkles size={16} />
+                    <span>Move to Bullpen (Available for Breaks / Cases)</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleUnassignClick}
+                  style={{
+                    padding: '10px',
+                    borderRadius: 6,
+                    background: 'var(--surface-hover)',
+                    border: '1px solid var(--border-light)',
+                    color: 'var(--marker-red)',
+                    fontWeight: 700,
+                    fontSize: 13,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <CornerDownLeft size={16} />
+                  <span>Return to Available Unassigned Staff</span>
+                </button>
+              </div>
             )}
           </div>
         ) : (

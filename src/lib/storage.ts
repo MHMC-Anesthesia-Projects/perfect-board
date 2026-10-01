@@ -329,7 +329,7 @@ export function getInitialBoardState(staff: Staff[]): BoardState {
         createRoom('dept_9th_floor', 'CCL3', 5),
         createRoom('dept_9th_floor', 'IR', 6),
         createRoom('dept_9th_floor', 'NIR', 7),
-        createRoom('dept_9th_floor', 'TEE', 8, undefined, '1200 / 1230 / 1300')
+        createRoom('dept_9th_floor', 'TEE', 8)
       ]
     },
 
@@ -432,6 +432,7 @@ export function getInitialBoardState(staff: Staff[]): BoardState {
       { id: 'late_16', timeCategory: '7p-7a', name: 'NORMAND', orderIndex: 15 }
     ],
     latesNotes: 'Coverage team in effect after 15:00',
+    bullpenStaffIds: [],
     scraperConfig: {
       portalType: 'qgenda',
       portalUrl: 'https://app.qgenda.com/login',
@@ -490,6 +491,9 @@ export function loadBoardState(): BoardState {
       { id: 'call_4', role: '1st Call', doctorName: 'LU', orderIndex: 3 },
       { id: 'call_5', role: 'OB Call', doctorName: 'LU', orderIndex: 4 }
     ];
+  }
+  if (!loaded.bullpenStaffIds || !Array.isArray(loaded.bullpenStaffIds)) {
+    loaded.bullpenStaffIds = [];
   }
   return loaded;
 }

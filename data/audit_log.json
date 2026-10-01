@@ -1,5 +1,184 @@
 [
   {
+    "id": "audit_1790875387310_3gmb2",
+    "timestamp": "2026-10-01T17:23:07.310Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Patel P",
+    "locationName": "Available Unassigned Staff",
+    "details": "Moved from Bullpen -> Available Unassigned Staff"
+  },
+  {
+    "id": "audit_1790875380602_x058d",
+    "timestamp": "2026-10-01T17:23:00.602Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Patel P",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790874510577_fv5a6",
+    "timestamp": "2026-10-01T17:08:30.577Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Jeffcoat Jeffcoat",
+    "locationName": "Available Unassigned Staff",
+    "details": "Moved from Bullpen -> Available Unassigned Staff"
+  },
+  {
+    "id": "audit_1790874497208_ol0n1",
+    "timestamp": "2026-10-01T17:08:17.208Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Towne Towne",
+    "locationName": "Available Unassigned Staff",
+    "details": "Moved from VILLAGE Room 1 -> Available Unassigned Staff"
+  },
+  {
+    "id": "audit_1790874489080_h0qz3",
+    "timestamp": "2026-10-01T17:08:09.080Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Towne Towne",
+    "locationName": "Available Unassigned Staff",
+    "details": "Moved from Bullpen -> Available Unassigned Staff"
+  },
+  {
+    "id": "audit_1790874485185_4tute",
+    "timestamp": "2026-10-01T17:08:05.185Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Paloian Paloian",
+    "locationName": "Available Unassigned Staff",
+    "details": "Moved from Bullpen -> Available Unassigned Staff"
+  },
+  {
+    "id": "audit_1790874467431_bwl1e",
+    "timestamp": "2026-10-01T17:07:47.431Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Towne Towne",
+    "locationName": "VILLAGE Room 1",
+    "details": "Marked lunch break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790874466689_8cwgl",
+    "timestamp": "2026-10-01T17:07:46.689Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Towne Towne",
+    "locationName": "VILLAGE Room 1",
+    "details": "Marked breakfast break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790874466026_yv2pd",
+    "timestamp": "2026-10-01T17:07:46.026Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Towne Towne",
+    "locationName": "VILLAGE Room 1",
+    "details": "Marked lunch break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790874465026_fzf5a",
+    "timestamp": "2026-10-01T17:07:45.026Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Towne Towne",
+    "locationName": "VILLAGE Room 1",
+    "details": "Marked breakfast break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790874461446_g00lh",
+    "timestamp": "2026-10-01T17:07:41.446Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Towne Towne",
+    "locationName": "VILLAGE Room 1",
+    "details": "Moved from VILLAGE Room 2 -> VILLAGE Room 1"
+  },
+  {
+    "id": "audit_1790874420070_vja22",
+    "timestamp": "2026-10-01T17:07:00.070Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Crossley Crossley",
+    "locationName": "Available Unassigned Staff",
+    "details": "Moved from VILLAGE Room 8 -> Available Unassigned Staff"
+  },
+  {
+    "id": "audit_1790874417881_2v99c",
+    "timestamp": "2026-10-01T17:06:57.881Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Crossley Crossley",
+    "locationName": "VILLAGE Room 8",
+    "details": "Moved from VILLAGE Room 1 -> VILLAGE Room 8"
+  },
+  {
+    "id": "audit_1790874116652_11o4t",
+    "timestamp": "2026-10-01T17:01:56.652Z",
+    "actionType": "CALL_TEAM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated Call Team assignments"
+  },
+  {
+    "id": "audit_1790874097237_1z9ox",
+    "timestamp": "2026-10-01T17:01:37.237Z",
+    "actionType": "CALL_TEAM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated Call Team assignments"
+  },
+  {
+    "id": "audit_1790873215876_rn8cp",
+    "timestamp": "2026-10-01T16:46:55.876Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Altered department and room layout structure"
+  },
+  {
+    "id": "audit_1790873123980_0o5by",
+    "timestamp": "2026-10-01T16:45:23.980Z",
+    "actionType": "DEPARTURE_REORDERED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
+  },
+  {
+    "id": "audit_1790873122252_1o3js",
+    "timestamp": "2026-10-01T16:45:22.252Z",
+    "actionType": "DEPARTURE_REORDERED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
+  },
+  {
+    "id": "audit_1790872450385_cd7zf",
+    "timestamp": "2026-10-01T16:34:10.385Z",
+    "actionType": "RUNNER_SLOT_ADDED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "9th Floor",
+    "details": "Added new runner slot \"RUNNER 1\" to 9th Floor"
+  },
+  {
     "id": "audit_1790870108460_a9d9d",
     "timestamp": "2026-10-01T15:55:08.460Z",
     "actionType": "LUNCH_TOGGLED",
@@ -73,6 +252,38 @@
     "targetName": "Lu Lu",
     "locationName": "ORTHO Runner (Runner 1)",
     "details": "Moved from Bullpen -> ORTHO Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1790870004053_qdr6t",
+    "timestamp": "2026-10-01T15:53:24.053Z",
+    "actionType": "DEPARTURE_REORDERED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
+  },
+  {
+    "id": "audit_1790870002828_n3bxk",
+    "timestamp": "2026-10-01T15:53:22.828Z",
+    "actionType": "DEPARTURE_REORDERED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
+  },
+  {
+    "id": "audit_1790869995485_pxejl",
+    "timestamp": "2026-10-01T15:53:15.485Z",
+    "actionType": "DEPARTURE_REORDERED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
+  },
+  {
+    "id": "audit_1790869993780_zos98",
+    "timestamp": "2026-10-01T15:53:13.780Z",
+    "actionType": "DEPARTURE_REORDERED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
   },
   {
     "id": "audit_1790869581009_zrst1",

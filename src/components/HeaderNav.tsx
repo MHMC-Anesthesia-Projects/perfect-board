@@ -5,7 +5,9 @@ import { UserRole } from '@/types/whiteboard';
 import { 
   Sun, Moon, Shield, Lock, LogIn, LogOut, 
   RotateCw, FileSpreadsheet, Settings, 
-  Keyboard, Clock, User as UserIcon, CheckCircle2 
+  Keyboard, Clock, CheckCircle2, Mic,
+  PanelRightClose, PanelRightOpen,
+  PanelLeftClose, PanelLeftOpen 
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -19,8 +21,14 @@ interface HeaderNavProps {
   onToggleKeyboard: () => void;
   isKeyboardOpen: boolean;
   onTriggerSync: () => void;
+  onOpenVoiceAi?: () => void;
   isSyncing: boolean;
   lastSyncTime?: string | null;
+  isRightSidebarOpen?: boolean;
+  onToggleRightSidebar?: () => void;
+  isBullpenOpen?: boolean;
+  onToggleBullpen?: () => void;
+  bullpenCount?: number;
 }
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({
@@ -34,8 +42,14 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onToggleKeyboard,
   isKeyboardOpen,
   onTriggerSync,
+  onOpenVoiceAi,
   isSyncing,
-  lastSyncTime
+  lastSyncTime,
+  isRightSidebarOpen = true,
+  onToggleRightSidebar,
+  isBullpenOpen = true,
+  onToggleBullpen,
+  bullpenCount = 0
 }) => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [currentDate, setCurrentDate] = useState<string>('');
@@ -184,6 +198,77 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           <RotateCw size={14} className={isSyncing ? 'spin-animation' : ''} />
           <span>{isSyncing ? 'Syncing...' : 'Sync Portal'}</span>
         </button>
+
+        {/* Voice AI Transcription Button */}
+        {onOpenVoiceAi && (
+          <button
+            onClick={onOpenVoiceAi}
+            title="Open Voice AI Clinical Notes & Dictation"
+            style={{
+              padding: '6px 10px',
+              borderRadius: 6,
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--marker-red)',
+              cursor: 'pointer'
+            }}
+          >
+            <Mic size={15} />
+          </button>
+        )}
+
+        {/* Toggle Bullpen Button (Left Menu) */}
+        {onToggleBullpen && (
+          <button
+            onClick={onToggleBullpen}
+            title={isBullpenOpen ? 'Hide Bullpen (Expand Whiteboard)' : 'Show Bullpen (Available Staff)'}
+            style={{
+              padding: '6px 10px',
+              borderRadius: 6,
+              background: isBullpenOpen ? 'var(--surface-hover)' : 'rgba(9, 105, 218, 0.12)',
+              border: isBullpenOpen ? '1px solid var(--border-light)' : '1.5px solid var(--accent-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              fontSize: 12,
+              fontWeight: 700,
+              color: isBullpenOpen ? 'var(--text-primary)' : 'var(--accent-primary)',
+              cursor: 'pointer'
+            }}
+          >
+            {isBullpenOpen ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />}
+            <span style={{ fontSize: 11 }}>
+              Bullpen{bullpenCount > 0 ? ` (${bullpenCount})` : ''}
+            </span>
+          </button>
+        )}
+
+        {/* Toggle Right Sidebar Button (Departure & Lates) */}
+        {onToggleRightSidebar && (
+          <button
+            onClick={onToggleRightSidebar}
+            title={isRightSidebarOpen ? 'Hide Departure & Lates (Expand Whiteboard)' : 'Show Departure & Lates'}
+            style={{
+              padding: '6px 10px',
+              borderRadius: 6,
+              background: isRightSidebarOpen ? 'var(--surface-hover)' : 'rgba(9, 105, 218, 0.12)',
+              border: isRightSidebarOpen ? '1px solid var(--border-light)' : '1.5px solid var(--accent-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              fontSize: 12,
+              fontWeight: 700,
+              color: isRightSidebarOpen ? 'var(--text-primary)' : 'var(--accent-primary)',
+              cursor: 'pointer'
+            }}
+          >
+            {isRightSidebarOpen ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
+            <span style={{ fontSize: 11 }}>Departure</span>
+          </button>
+        )}
 
         {/* Audit Log / Historical Ledger Button */}
         <button
