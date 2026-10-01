@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-01T15:07:00.366Z",
+  "lastUpdated": "2026-10-01T15:55:08.445Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -52,7 +52,8 @@
               "breakfastDone": true,
               "lunchDone": false,
               "notes": "",
-              "breakfastTime": "2026-10-01T13:20:44.922Z"
+              "breakfastTime": "2026-10-01T13:20:44.922Z",
+              "lunchTime": null
             }
           ]
         },
@@ -441,7 +442,7 @@
         {
           "id": "runner_ortho_1",
           "title": "Runner 1",
-          "staffId": "staff_patel_p_3",
+          "staffId": "staff_lu_42",
           "breakfastDone": false,
           "lunchDone": false
         }

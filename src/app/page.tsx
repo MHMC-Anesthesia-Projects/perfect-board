@@ -358,6 +358,58 @@ export default function WhiteboardPage() {
     }
   };
 
+  // 9. Add Runner slot to department
+  const handleAddRunnerSlot = async (departmentId: string) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'ADD_RUNNER_SLOT',
+          payload: { departmentId },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error adding runner slot:', err);
+    }
+  };
+
+  // 10. Remove Runner slot from department
+  const handleRemoveRunnerSlot = async (departmentId: string, runnerSlotId: string) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'REMOVE_RUNNER_SLOT',
+          payload: { departmentId, runnerSlotId },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error removing runner slot:', err);
+    }
+  };
+
   // 8. Superuser Layout actions
   const handleSaveDepartments = async (departments: Department[]) => {
     try {
@@ -460,6 +512,8 @@ export default function WhiteboardPage() {
           onSelectEmptySlot={(type, id, label) => setSlotAssignTarget({ type, id, label })}
           onDropStaff={handleDropStaff}
           onOpenVoiceNotes={(type, id, currentNotes) => setVoiceNoteTarget({ type, id, currentNotes: currentNotes || '' })}
+          onAddRunnerSlot={handleAddRunnerSlot}
+          onRemoveRunnerSlot={handleRemoveRunnerSlot}
         />
 
         {/* Right 2 Columns: DEPARTURE & LATES */}

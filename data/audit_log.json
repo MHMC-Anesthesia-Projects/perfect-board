@@ -1,5 +1,127 @@
 [
   {
+    "id": "audit_1790870108460_a9d9d",
+    "timestamp": "2026-10-01T15:55:08.460Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Choi Choi",
+    "locationName": "MAIN OR Room 2",
+    "details": "Marked lunch break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790870107635_vz63r",
+    "timestamp": "2026-10-01T15:55:07.635Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Choi Choi",
+    "locationName": "MAIN OR Room 2",
+    "details": "Marked lunch break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790870098598_xnl5l",
+    "timestamp": "2026-10-01T15:54:58.598Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR",
+    "details": "Removed runner slot \"Runner 3\" from MAIN OR"
+  },
+  {
+    "id": "audit_1790870091501_c6q6s",
+    "timestamp": "2026-10-01T15:54:51.501Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "ORTHO",
+    "details": "Removed runner slot \"Runner 3\" from ORTHO"
+  },
+  {
+    "id": "audit_1790870090802_9nxgo",
+    "timestamp": "2026-10-01T15:54:50.803Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "ORTHO",
+    "details": "Removed runner slot \"Runner 2\" from ORTHO"
+  },
+  {
+    "id": "audit_1790870089206_gcyuw",
+    "timestamp": "2026-10-01T15:54:49.207Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "ORTHO",
+    "details": "Added new runner slot \"Runner 3\" to ORTHO"
+  },
+  {
+    "id": "audit_1790870087611_v8m0j",
+    "timestamp": "2026-10-01T15:54:47.611Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "ORTHO",
+    "details": "Added new runner slot \"Runner 2\" to ORTHO"
+  },
+  {
+    "id": "audit_1790870086454_94f2w",
+    "timestamp": "2026-10-01T15:54:46.454Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Lu Lu",
+    "locationName": "ORTHO Runner (Runner 1)",
+    "details": "Moved from Bullpen -> ORTHO Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1790869581009_zrst1",
+    "timestamp": "2026-10-01T15:46:21.009Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Charge Nurse (Board Runner)",
+    "userRole": "board_runner",
+    "locationName": "MAIN OR",
+    "details": "Added new runner slot \"Runner 3\" to MAIN OR"
+  },
+  {
+    "id": "audit_1790869292162_dcoez",
+    "timestamp": "2026-10-01T15:41:32.162Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "ORTHO",
+    "details": "Removed runner slot \"Runner 2\" from ORTHO"
+  },
+  {
+    "id": "audit_1790869281931_idzdv",
+    "timestamp": "2026-10-01T15:41:21.931Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "ORTHO",
+    "details": "Added new runner slot \"Runner 2\" to ORTHO"
+  },
+  {
+    "id": "audit_1790868693240_mtc0p",
+    "timestamp": "2026-10-01T15:31:33.240Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Chuan Chuan",
+    "locationName": "ORTHO Runner (Runner 1)",
+    "details": "Assigned to ORTHO Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1790868687271_iqaij",
+    "timestamp": "2026-10-01T15:31:27.271Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Patel P",
+    "locationName": "Bullpen",
+    "details": "Moved from ORTHO Runner (Runner 1) -> Bullpen"
+  },
+  {
     "id": "audit_1790867220384_j1h5z",
     "timestamp": "2026-10-01T15:07:00.384Z",
     "actionType": "STAFF_MOVED",

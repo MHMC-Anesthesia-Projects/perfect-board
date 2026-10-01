@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential } from '@/types/whiteboard';
+import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential, RunnerSlot } from '@/types/whiteboard';
 import { 
   Users, UserCheck, ShieldCheck, Layout, Globe, 
   Plus, Trash2, Edit2, Key, RefreshCw, X, Check, RotateCcw, AlertTriangle 
@@ -31,6 +31,36 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   onRefreshData
 }) => {
   const [activeTab, setActiveTab] = useState<'users' | 'staff' | 'layout' | 'scraper'>('users');
+
+  const handleAddRunnerToDept = (deptId: string) => {
+    const updated = departments.map(d => {
+      if (d.id !== deptId) return d;
+      const count = d.runnerSlots.length + 1;
+      const newSlot: RunnerSlot = {
+        id: `runner_${d.id}_${Date.now()}`,
+        title: `Runner ${count}`,
+        staffId: null,
+        breakfastDone: false,
+        lunchDone: false
+      };
+      return {
+        ...d,
+        runnerSlots: [...d.runnerSlots, newSlot]
+      };
+    });
+    onSaveDepartments(updated);
+  };
+
+  const handleRemoveRunnerFromDept = (deptId: string, runnerSlotId: string) => {
+    const updated = departments.map(d => {
+      if (d.id !== deptId) return d;
+      return {
+        ...d,
+        runnerSlots: d.runnerSlots.filter(r => r.id !== runnerSlotId)
+      };
+    });
+    onSaveDepartments(updated);
+  };
 
   // --- User Management State ---
   const [userList, setUserList] = useState<User[]>([]);
@@ -683,11 +713,64 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       <strong>Rooms:</strong> {dept.rooms.map(r => r.name).join(', ')}
                     </div>
 
-                    {dept.runnerSlots.length > 0 && (
-                      <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                        <strong>Runners:</strong> {dept.runnerSlots.map(r => r.title).join(', ')}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border-light)' }}>
+                      <div style={{ flex: 1, fontSize: 12, color: 'var(--text-secondary)' }}>
+                        <strong>Runners ({dept.runnerSlots.length}):</strong>
+                        {dept.runnerSlots.length > 0 ? (
+                          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+                            {dept.runnerSlots.map(r => (
+                              <span
+                                key={r.id}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  background: 'var(--surface-card)',
+                                  padding: '2px 6px',
+                                  borderRadius: 4,
+                                  border: '1px solid var(--border-light)',
+                                  fontSize: 11,
+                                  fontWeight: 600
+                                }}
+                              >
+                                {r.title}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveRunnerFromDept(dept.id, r.id)}
+                                  style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'flex' }}
+                                  title={`Remove ${r.title}`}
+                                >
+                                  <Trash2 size={11} />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginLeft: 4 }}>None</span>
+                        )}
                       </div>
-                    )}
+                      <button
+                        type="button"
+                        onClick={() => handleAddRunnerToDept(dept.id)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '3px 8px',
+                          borderRadius: 4,
+                          background: 'var(--accent-primary)',
+                          color: '#fff',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          border: 'none',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        <Plus size={12} />
+                        <span>Add Runner</span>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

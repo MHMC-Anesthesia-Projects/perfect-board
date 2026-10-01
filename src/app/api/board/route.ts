@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadBoardState, saveBoardState, recordAuditLog, getInitialBoardState } from '@/lib/storage';
-import { UserRole } from '@/types/whiteboard';
+import { UserRole, RunnerSlot } from '@/types/whiteboard';
 
 export async function GET() {
   const state = loadBoardState();
@@ -310,6 +310,78 @@ export async function POST(req: NextRequest) {
           details: 'Restored board layout and assignments to initial photo default'
         });
         return NextResponse.json({ success: true, state: freshBoard });
+      }
+
+      // 8. Add runner slot to department (Board Runner or Superuser)
+      case 'ADD_RUNNER_SLOT': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const { departmentId, title } = payload;
+        const dept = state.departments.find(d => d.id === departmentId);
+        if (!dept) {
+          return NextResponse.json({ error: 'Department not found' }, { status: 404 });
+        }
+
+        const runnerIndex = dept.runnerSlots.length + 1;
+        const newSlotTitle = title?.trim() || `Runner ${runnerIndex}`;
+        const newRunner: RunnerSlot = {
+          id: `runner_${dept.id}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          title: newSlotTitle,
+          staffId: null,
+          breakfastDone: false,
+          lunchDone: false
+        };
+
+        dept.runnerSlots.push(newRunner);
+
+        saveBoardState(state);
+        recordAuditLog({
+          actionType: 'LAYOUT_CHANGED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          locationName: dept.name,
+          details: `Added new runner slot "${newSlotTitle}" to ${dept.name}`
+        });
+
+        return NextResponse.json({ success: true, state });
+      }
+
+      // 9. Remove runner slot from department (Board Runner or Superuser)
+      case 'REMOVE_RUNNER_SLOT': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const { departmentId, runnerSlotId } = payload;
+        const dept = state.departments.find(d => d.id === departmentId);
+        if (!dept) {
+          return NextResponse.json({ error: 'Department not found' }, { status: 404 });
+        }
+
+        const slotIndex = dept.runnerSlots.findIndex(r => r.id === runnerSlotId);
+        if (slotIndex === -1) {
+          return NextResponse.json({ error: 'Runner slot not found' }, { status: 404 });
+        }
+
+        const removedSlot = dept.runnerSlots[slotIndex];
+        let staffName = '';
+        if (removedSlot.staffId) {
+          const s = state.staff.find(st => st.id === removedSlot.staffId);
+          if (s) staffName = `${s.firstName} ${s.lastName}`.trim();
+        }
+
+        dept.runnerSlots.splice(slotIndex, 1);
+
+        saveBoardState(state);
+        recordAuditLog({
+          actionType: 'LAYOUT_CHANGED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          locationName: dept.name,
+          details: `Removed runner slot "${removedSlot.title}" from ${dept.name}${staffName ? ` (Returned ${staffName} to bullpen)` : ''}`
+        });
+
+        return NextResponse.json({ success: true, state });
       }
 
       default:
