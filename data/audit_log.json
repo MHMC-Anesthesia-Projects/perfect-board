@@ -1,5 +1,45 @@
 [
   {
+    "id": "audit_1790892135125_xare3",
+    "timestamp": "2026-10-01T22:02:15.125Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Purvi Patel",
+    "locationName": "MAIN OR Room 3",
+    "details": "Moved from Bullpen -> MAIN OR Room 3"
+  },
+  {
+    "id": "audit_1790892132623_vcflp",
+    "timestamp": "2026-10-01T22:02:12.623Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Purvi Patel",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Room 2 -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790892131431_0j3ja",
+    "timestamp": "2026-10-01T22:02:11.431Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Purvi Patel",
+    "locationName": "MAIN OR Room 2",
+    "details": "Marked breakfast break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790892128951_wmtxb",
+    "timestamp": "2026-10-01T22:02:08.951Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Purvi Patel",
+    "locationName": "MAIN OR Room 2",
+    "details": "Assigned to MAIN OR Room 2"
+  },
+  {
     "id": "audit_1790892109084_1ae39",
     "timestamp": "2026-10-01T22:01:49.084Z",
     "actionType": "BULLPEN_UPDATED",

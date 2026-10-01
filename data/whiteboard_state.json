@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-01T22:01:49.077Z",
+  "lastUpdated": "2026-10-01T22:02:15.117Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -49,9 +49,10 @@
               "id": "dept_main_or_room_2_slot_0",
               "roleType": "primary",
               "staffId": null,
-              "breakfastDone": false,
+              "breakfastDone": true,
               "lunchDone": false,
-              "notes": ""
+              "notes": "",
+              "breakfastTime": "2026-10-01T22:02:11.419Z"
             }
           ]
         },
@@ -64,10 +65,12 @@
             {
               "id": "dept_main_or_room_3_slot_0",
               "roleType": "primary",
-              "staffId": null,
-              "breakfastDone": false,
+              "staffId": "staff_oneusap_doc_patelpur",
+              "breakfastDone": true,
               "lunchDone": false,
-              "notes": ""
+              "notes": "",
+              "breakfastTime": "2026-10-01T22:02:11.419Z",
+              "lunchTime": null
             }
           ]
         },
@@ -2325,6 +2328,11 @@
     "staff_kovac_14": {
       "breakfastDone": false,
       "lunchDone": false
+    },
+    "staff_oneusap_doc_patelpur": {
+      "breakfastDone": true,
+      "lunchDone": false,
+      "breakfastTime": "2026-10-01T22:02:11.419Z"
     }
   }
 }
