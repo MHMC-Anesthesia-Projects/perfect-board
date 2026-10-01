@@ -96,9 +96,6 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
           <div className="dept-title">
             <span>{dept.name}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>
-                {dept.runnerSlots.length} RUNNER{dept.runnerSlots.length === 1 ? '' : 'S'}
-              </span>
               {/* Dynamic Runner Add Button */}
               {isEditor && onAddRunnerSlot && (
                 <button

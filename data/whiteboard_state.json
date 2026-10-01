@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-01T15:41:08.775Z",
+  "lastUpdated": "2026-10-01T15:53:24.050Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -2056,6 +2056,11 @@
   ],
   "departureList": [
     {
+      "id": "dep_4",
+      "name": "SHIRAK",
+      "orderIndex": 0
+    },
+    {
       "id": "dep_2",
       "name": "MANN",
       "orderIndex": 1,
@@ -2068,29 +2073,24 @@
       "departed": false
     },
     {
-      "id": "dep_4",
-      "name": "SHIRAK",
-      "orderIndex": 3
-    },
-    {
       "id": "dep_5",
       "name": "GASHLER",
-      "orderIndex": 4
+      "orderIndex": 3
     },
     {
       "id": "dep_6",
       "name": "PATEL",
-      "orderIndex": 5
+      "orderIndex": 4
     },
     {
       "id": "dep_7",
       "name": "CHUAN",
-      "orderIndex": 6
+      "orderIndex": 5
     },
     {
       "id": "dep_8",
       "name": "CHOI",
-      "orderIndex": 7
+      "orderIndex": 6
     }
   ],
   "callTeamList": [

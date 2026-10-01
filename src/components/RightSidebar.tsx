@@ -2,17 +2,17 @@
 
 import React, { useState } from 'react';
 import { DepartureItem, LateShiftItem, CallTeamItem, UserRole } from '@/types/whiteboard';
-import { Plus, Trash2, Mic, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Mic, GripVertical, StickyNote, X } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface RightSidebarProps {
   departureList: DepartureItem[];
   callTeamList: CallTeamItem[];
-  departureNotes: string;
+  departureNotes?: string;
   latesList: LateShiftItem[];
   latesNotes: string;
   currentUserRole: UserRole;
-  onUpdateDepartureNotes: (notes: string) => void;
+  onUpdateDepartureNotes?: (notes: string) => void;
   onUpdateLatesNotes: (notes: string) => void;
   onUpdateLists: (departureList: DepartureItem[], latesList: LateShiftItem[], isReorder?: boolean) => void;
   onUpdateCallTeam: (callTeamList: CallTeamItem[]) => void;
@@ -23,11 +23,9 @@ interface RightSidebarProps {
 export const RightSidebar: React.FC<RightSidebarProps> = ({
   departureList,
   callTeamList,
-  departureNotes,
   latesList,
   latesNotes,
   currentUserRole,
-  onUpdateDepartureNotes,
   onUpdateLatesNotes,
   onUpdateLists,
   onUpdateCallTeam,
@@ -52,6 +50,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   // State for adding late staff (supports specific category targeted by plus button)
   const [addingToCategory, setAddingToCategory] = useState<string | null>(null);
   const [newLateName, setNewLateName] = useState('');
+  const [showLatesNotesModal, setShowLatesNotesModal] = useState(false);
 
   // App-themed modal state for confirming staff deletion
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -313,34 +312,14 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 <span className="departure-name">{doc.name}</span>
               </div>
               {isEditor && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 1 }} onClick={e => e.stopPropagation()}>
-                  <button
-                    type="button"
-                    onClick={(e) => handleMoveDeparture(idx, idx - 1, e)}
-                    disabled={idx === 0}
-                    className="departure-reorder-btn"
-                    title="Move earlier in departure order"
-                  >
-                    <ChevronUp size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => handleMoveDeparture(idx, idx + 1, e)}
-                    disabled={idx === departureList.length - 1}
-                    className="departure-reorder-btn"
-                    title="Move later in departure order"
-                  >
-                    <ChevronDown size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => handleInitiateRemoveDeparture(doc, e)}
-                    style={{ color: 'var(--text-muted)', padding: '2px 4px', borderRadius: 3 }}
-                    title="Remove from departure list"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={(e) => handleInitiateRemoveDeparture(doc, e)}
+                  style={{ color: 'var(--text-muted)', padding: '2px 4px', borderRadius: 3 }}
+                  title="Remove from departure list"
+                >
+                  <Trash2 size={13} />
+                </button>
               )}
             </div>
           ))}
@@ -481,28 +460,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           </div>
         </div>
 
-        {/* Departure Dry-Erase Scratchpad Notes */}
-        <div className="scratchpad-notes">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span className="scratchpad-title">Runner Scratchpad</span>
-            {isEditor && (
-              <button
-                onClick={() => onOpenVoiceNotes('departure', departureNotes)}
-                style={{ color: 'var(--marker-red)', padding: 2 }}
-                title="Speak notes with Voice AI"
-              >
-                <Mic size={14} />
-              </button>
-            )}
-          </div>
-          <textarea
-            className="scratchpad-textarea"
-            value={departureNotes}
-            onChange={e => onUpdateDepartureNotes(e.target.value)}
-            disabled={!isEditor}
-            placeholder="Tap to write or speak runner scratchpad notes..."
-          />
-        </div>
+        {/* End of Departure Column */}
       </div>
 
       {/* ---------------- 2. LATES COLUMN ---------------- */}
@@ -512,6 +470,52 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <span>LATES</span>
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>(&gt; 3 PM)</span>
           </div>
+
+          {/* Notes icon on far right with badge if note exists */}
+          <button
+            type="button"
+            onClick={() => setShowLatesNotesModal(true)}
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 24,
+              height: 24,
+              borderRadius: 4,
+              background: latesNotes.trim() ? 'rgba(9, 105, 218, 0.12)' : 'var(--surface-card)',
+              border: latesNotes.trim() ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-light)',
+              color: latesNotes.trim() ? 'var(--accent-primary)' : 'var(--text-muted)',
+              cursor: 'pointer',
+              padding: 0
+            }}
+            title={latesNotes.trim() ? `Late Shift Notes: "${latesNotes.slice(0, 30)}..."` : 'Add/View Late Shift Notes'}
+          >
+            <StickyNote size={14} />
+            {latesNotes.trim().length > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: -5,
+                  right: -5,
+                  background: 'var(--accent-primary)',
+                  color: '#ffffff',
+                  fontSize: 9,
+                  fontWeight: 900,
+                  width: 14,
+                  height: 14,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+                  lineHeight: 1
+                }}
+              >
+                1
+              </span>
+            )}
+          </button>
         </div>
 
         {/* Categorized Late Shifts Area */}
@@ -656,28 +660,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           })}
         </div>
 
-        {/* Lates Scratchpad Notes */}
-        <div className="scratchpad-notes">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span className="scratchpad-title">Late Shift Notes</span>
-            {isEditor && (
-              <button
-                onClick={() => onOpenVoiceNotes('lates', latesNotes)}
-                style={{ color: 'var(--marker-red)', padding: 2 }}
-                title="Speak notes with Voice AI"
-              >
-                <Mic size={14} />
-              </button>
-            )}
-          </div>
-          <textarea
-            className="scratchpad-textarea"
-            value={latesNotes}
-            onChange={e => onUpdateLatesNotes(e.target.value)}
-            disabled={!isEditor}
-            placeholder="Coverage notes after 3pm..."
-          />
-        </div>
+        {/* End of Lates Column */}
       </div>
 
       {/* App-Themed Staff Deletion Confirmation Modal */}
@@ -697,6 +680,121 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
         onConfirm={handleConfirmDelete}
         onClose={() => setDeleteTarget(null)}
       />
+
+      {/* Late Shift Notes Modal (Opened via Notes icon on Lates header) */}
+      {showLatesNotesModal && (
+        <div className="modal-backdrop" onClick={() => setShowLatesNotesModal(false)} role="dialog" aria-modal="true">
+          <div
+            className="pin-pad-card"
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: 480,
+              maxWidth: '92vw',
+              padding: '22px',
+              textAlign: 'left',
+              alignItems: 'stretch'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 6,
+                  background: 'rgba(9, 105, 218, 0.12)',
+                  color: 'var(--accent-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <StickyNote size={20} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 16, fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>
+                    Late Shift Notes (&gt; 3 PM)
+                  </h3>
+                  <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: 0 }}>
+                    Saved automatically in background for all coordinators
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLatesNotesModal(false)}
+                style={{ color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <textarea
+              value={latesNotes}
+              onChange={e => onUpdateLatesNotes(e.target.value)}
+              disabled={!isEditor}
+              placeholder="Type late shift coverage, room turnover, or handoff notes here..."
+              style={{
+                width: '100%',
+                minHeight: 180,
+                padding: '12px',
+                borderRadius: 8,
+                border: '1.5px solid var(--border-light)',
+                background: 'var(--surface-hover)',
+                color: 'var(--text-primary)',
+                fontFamily: 'var(--font-main)',
+                fontSize: 14,
+                lineHeight: 1.5,
+                resize: 'vertical',
+                marginBottom: 16
+              }}
+            />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {isEditor ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowLatesNotesModal(false);
+                    onOpenVoiceNotes('lates', latesNotes);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 14px',
+                    borderRadius: 6,
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--surface-hover)',
+                    color: 'var(--marker-red)',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Mic size={15} />
+                  <span>Dictate with Voice AI</span>
+                </button>
+              ) : <div />}
+
+              <button
+                type="button"
+                onClick={() => setShowLatesNotesModal(false)}
+                style={{
+                  padding: '8px 22px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: 'var(--accent-primary)',
+                  color: '#ffffff',
+                  fontSize: 13,
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

@@ -14,6 +14,27 @@ interface BullpenProps {
   onDropToBullpen: (data: { staffId: string; type: string; id?: string }) => void;
 }
 
+const CREDENTIAL_ORDER: Record<string, number> = {
+  MD: 1,
+  Fellow: 2,
+  CRNA: 3,
+  Resident: 4,
+  SRNA: 5,
+  PA: 6,
+  RN: 7
+};
+
+const sortStaffByCredThenName = (a: Staff, b: Staff) => {
+  const rankA = CREDENTIAL_ORDER[a.credentials] ?? 99;
+  const rankB = CREDENTIAL_ORDER[b.credentials] ?? 99;
+  if (rankA !== rankB) {
+    return rankA - rankB;
+  }
+  const lastComp = a.lastName.localeCompare(b.lastName, undefined, { sensitivity: 'base' });
+  if (lastComp !== 0) return lastComp;
+  return a.firstName.localeCompare(b.firstName, undefined, { sensitivity: 'base' });
+};
+
 export const Bullpen: React.FC<BullpenProps> = ({
   staff,
   departments,
@@ -60,10 +81,10 @@ export const Bullpen: React.FC<BullpenProps> = ({
 
   // Group into Alphabetical Bins
   const bins = useMemo(() => {
-    const aToF = filteredStaff.filter(s => /^[a-f]/i.test(s.lastName));
-    const gToL = filteredStaff.filter(s => /^[g-l]/i.test(s.lastName));
-    const mToR = filteredStaff.filter(s => /^[m-r]/i.test(s.lastName));
-    const sToZ = filteredStaff.filter(s => /^[s-z]/i.test(s.lastName));
+    const aToF = filteredStaff.filter(s => /^[a-f]/i.test(s.lastName)).sort(sortStaffByCredThenName);
+    const gToL = filteredStaff.filter(s => /^[g-l]/i.test(s.lastName)).sort(sortStaffByCredThenName);
+    const mToR = filteredStaff.filter(s => /^[m-r]/i.test(s.lastName)).sort(sortStaffByCredThenName);
+    const sToZ = filteredStaff.filter(s => /^[s-z]/i.test(s.lastName)).sort(sortStaffByCredThenName);
     return [
       { key: 'A-F', label: 'A - F', items: aToF },
       { key: 'G-L', label: 'G - L', items: gToL },

@@ -5,7 +5,7 @@ import { UserRole } from '@/types/whiteboard';
 import { 
   Sun, Moon, Shield, Lock, LogIn, LogOut, 
   RotateCw, FileSpreadsheet, Settings, 
-  Keyboard, Clock, User as UserIcon, CheckCircle2 
+  Keyboard, Clock, CheckCircle2, Mic 
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -19,6 +19,7 @@ interface HeaderNavProps {
   onToggleKeyboard: () => void;
   isKeyboardOpen: boolean;
   onTriggerSync: () => void;
+  onOpenVoiceAi?: () => void;
   isSyncing: boolean;
   lastSyncTime?: string | null;
 }
@@ -34,6 +35,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onToggleKeyboard,
   isKeyboardOpen,
   onTriggerSync,
+  onOpenVoiceAi,
   isSyncing,
   lastSyncTime
 }) => {
@@ -184,6 +186,27 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           <RotateCw size={14} className={isSyncing ? 'spin-animation' : ''} />
           <span>{isSyncing ? 'Syncing...' : 'Sync Portal'}</span>
         </button>
+
+        {/* Voice AI Transcription Button */}
+        {onOpenVoiceAi && (
+          <button
+            onClick={onOpenVoiceAi}
+            title="Open Voice AI Clinical Notes & Dictation"
+            style={{
+              padding: '6px 10px',
+              borderRadius: 6,
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--marker-red)',
+              cursor: 'pointer'
+            }}
+          >
+            <Mic size={15} />
+          </button>
+        )}
 
         {/* Audit Log / Historical Ledger Button */}
         <button

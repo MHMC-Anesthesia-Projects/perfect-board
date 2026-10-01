@@ -1,5 +1,37 @@
 [
   {
+    "id": "audit_1790870004053_qdr6t",
+    "timestamp": "2026-10-01T15:53:24.053Z",
+    "actionType": "DEPARTURE_REORDERED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
+  },
+  {
+    "id": "audit_1790870002828_n3bxk",
+    "timestamp": "2026-10-01T15:53:22.828Z",
+    "actionType": "DEPARTURE_REORDERED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
+  },
+  {
+    "id": "audit_1790869995485_pxejl",
+    "timestamp": "2026-10-01T15:53:15.485Z",
+    "actionType": "DEPARTURE_REORDERED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
+  },
+  {
+    "id": "audit_1790869993780_zos98",
+    "timestamp": "2026-10-01T15:53:13.780Z",
+    "actionType": "DEPARTURE_REORDERED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering"
+  },
+  {
     "id": "audit_1790869268777_bx7jt",
     "timestamp": "2026-10-01T15:41:08.777Z",
     "actionType": "RUNNER_SLOT_REMOVED",

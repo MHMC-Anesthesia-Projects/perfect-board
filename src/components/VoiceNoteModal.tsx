@@ -6,12 +6,12 @@ import { Mic, MicOff, Sparkles, Check, X, Keyboard } from 'lucide-react';
 interface VoiceNoteModalProps {
   isOpen: boolean;
   target: {
-    type: 'room' | 'departure' | 'lates';
+    type: 'room' | 'departure' | 'lates' | 'general';
     id?: string;
     currentNotes: string;
   } | null;
   onClose: () => void;
-  onSaveNotes: (type: 'room' | 'departure' | 'lates', id: string | undefined, notes: string) => void;
+  onSaveNotes: (type: 'room' | 'departure' | 'lates' | 'general', id: string | undefined, notes: string) => void;
   onOpenVirtualKeyboard?: () => void;
 }
 

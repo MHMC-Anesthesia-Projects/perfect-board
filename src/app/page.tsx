@@ -37,7 +37,7 @@ export default function WhiteboardPage() {
     label: string;
   } | null>(null);
   const [voiceNoteTarget, setVoiceNoteTarget] = useState<{
-    type: 'room' | 'departure' | 'lates';
+    type: 'room' | 'departure' | 'lates' | 'general';
     id?: string;
     currentNotes: string;
   } | null>(null);
@@ -366,7 +366,7 @@ export default function WhiteboardPage() {
   };
 
   // 5. Update Notes
-  const handleSaveNotes = async (type: 'room' | 'departure' | 'lates', id: string | undefined, notes: string) => {
+  const handleSaveNotes = async (type: 'room' | 'departure' | 'lates' | 'general', id: string | undefined, notes: string) => {
     if (currentUserRole === 'basic_user') {
       setIsLoginModalOpen(true);
       return;
@@ -378,7 +378,7 @@ export default function WhiteboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'UPDATE_NOTES',
-          payload: { targetType: type, targetId: id, notes },
+          payload: { targetType: type === 'general' ? 'lates' : type, targetId: id, notes },
           user: currentUser
         })
       });
@@ -578,6 +578,7 @@ export default function WhiteboardPage() {
         onToggleKeyboard={() => setIsVirtualKeyboardOpen(prev => !prev)}
         isKeyboardOpen={isVirtualKeyboardOpen}
         onTriggerSync={handleTriggerSync}
+        onOpenVoiceAi={() => setVoiceNoteTarget({ type: 'general', currentNotes: '' })}
         isSyncing={isSyncing}
         lastSyncTime={boardState.scraperConfig.lastSyncTime}
       />
