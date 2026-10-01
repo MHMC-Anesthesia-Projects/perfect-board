@@ -27,6 +27,7 @@ export interface Staff {
   assignedRoom?: string;
   assignedRooms?: string[];
   qgendaAbbr?: string;
+  orderNumber?: number;
 }
 
 export interface RoomSlot {

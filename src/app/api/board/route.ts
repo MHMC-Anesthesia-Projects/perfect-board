@@ -514,6 +514,86 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Departure item not found' }, { status: 404 });
       }
 
+      // 6b. Update staff scheduled shift / late departure time
+      case 'UPDATE_STAFF_SHIFT': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const { staffId, shift, lastName, credentials } = payload;
+        let s = state.staff.find(st => st.id === staffId);
+        if (!s && lastName) {
+          s = state.staff.find(st => st.lastName.toUpperCase() === lastName.toUpperCase());
+        }
+
+        const oldShift = s?.shift || '';
+        const targetLastName = s ? s.lastName : (lastName || 'Staff');
+        const targetCreds = s ? s.credentials : (credentials || 'MD');
+
+        if (s) {
+          s.shift = shift;
+        } else {
+          s = {
+            id: staffId || `staff_${Date.now()}`,
+            firstName: '',
+            lastName: targetLastName.toUpperCase(),
+            credentials: targetCreds,
+            phone: '(555) 000-0000',
+            shift,
+            facility: 'MHMC',
+            active: true
+          };
+          state.staff.push(s);
+        }
+
+        // Synchronize Departure List
+        const depItem = state.departureList.find(d =>
+          d.id === staffId ||
+          d.name.toUpperCase() === targetLastName.toUpperCase() ||
+          (s?.qgendaAbbr && d.qgendaAbbr?.toUpperCase() === s.qgendaAbbr.toUpperCase())
+        );
+        if (depItem) {
+          depItem.timeEstimate = shift;
+        }
+
+        // Synchronize Late List
+        const upperShift = (shift || '').toUpperCase().trim();
+        const isLateShift = /^[0-9]+[PA]?$|^(?:3P|4P|5P|7P|8P|7P-7A|11A-11P)/i.test(upperShift) ||
+          upperShift.includes('7P') || upperShift.includes('4P') || upperShift.includes('5P') || upperShift.includes('3P') || upperShift.includes('8P');
+
+        const lateIdx = state.latesList.findIndex(l =>
+          l.id === staffId ||
+          l.name.toUpperCase() === targetLastName.toUpperCase()
+        );
+
+        if (lateIdx !== -1) {
+          if (isLateShift) {
+            state.latesList[lateIdx].timeCategory = shift.toLowerCase();
+          } else {
+            // Shift changed to regular daytime (e.g. 'Day')
+            state.latesList.splice(lateIdx, 1);
+          }
+        } else if (isLateShift) {
+          state.latesList.push({
+            id: `late_${s.id}_${Date.now()}`,
+            name: targetLastName.toUpperCase(),
+            timeCategory: shift.toLowerCase(),
+            role: targetCreds === 'MD' ? 'MD' : 'CRNA',
+            orderIndex: state.latesList.length
+          });
+        }
+
+        saveBoardState(state);
+        recordAuditLog({
+          actionType: 'STAFF_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          targetName: `${s.firstName} ${s.lastName}`.trim(),
+          details: `Updated scheduled shift from "${oldShift}" to "${shift}"`
+        });
+
+        return NextResponse.json({ success: true, state });
+      }
+
       // 7. Add runner slot to department dynamically
       case 'ADD_RUNNER_SLOT': {
         if (currentUserRole === 'basic_user') {

@@ -494,6 +494,22 @@ export function parseOneUsapHtml(
       upperShift.includes('POST1') ||
       upperShift.includes('POSTNICU');
 
+    const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
+    const isC1OB = upperShift.includes('C1,OB') || (shiftParts.includes('C1') && shiftParts.includes('OB'));
+    const isActiveCall = isC1OB || shiftParts.some(p => 
+      (p === 'CV' || p.startsWith('CV-') || p.startsWith('CV ') ||
+       p === 'C1' || p === '1ST' || p === 'CALL 1' || p === 'CALL1' ||
+       p === 'C2' || p === '2ND' || p === 'CALL 2' || p === 'CALL2' ||
+       p === 'C3' || p === '3RD' || p === 'CALL 3' || p === 'CALL3' ||
+       p === 'OB' || p === 'OBCALL') && 
+      !p.startsWith('POST') && !p.startsWith('PRE')
+    );
+
+    // If doctor is on active call (e.g. Dr. Lu with "C1,OB"), do not include them in the non-call departure list
+    if (!isPostCall && isActiveCall) {
+      return;
+    }
+
     const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
 
     rawDepartureCandidates.push({

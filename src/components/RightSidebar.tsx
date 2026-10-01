@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { DepartureItem, LateShiftItem, CallTeamItem, UserRole } from '@/types/whiteboard';
-import { Plus, Trash2, Mic, GripVertical, StickyNote, X, ChevronRight } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { DepartureItem, LateShiftItem, CallTeamItem, UserRole, Staff } from '@/types/whiteboard';
+import { Plus, Trash2, Mic, StickyNote, X, ChevronRight, Check } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface RightSidebarProps {
@@ -12,6 +12,8 @@ interface RightSidebarProps {
   latesList: LateShiftItem[];
   latesNotes: string;
   currentUserRole: UserRole;
+  staff?: Staff[];
+  onSelectStaff?: (staff: Staff) => void;
   onUpdateDepartureNotes?: (notes: string) => void;
   onUpdateLatesNotes: (notes: string) => void;
   onUpdateLists: (departureList: DepartureItem[], latesList: LateShiftItem[], isReorder?: boolean) => void;
@@ -27,6 +29,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   latesList,
   latesNotes,
   currentUserRole,
+  staff = [],
+  onSelectStaff,
   onUpdateLatesNotes,
   onUpdateLists,
   onUpdateCallTeam,
@@ -35,6 +39,119 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   onToggleCollapse
 }) => {
   const isEditor = currentUserRole !== 'basic_user';
+
+  // Resizable column state (persisted to localStorage)
+  const [sidebarWidth, setSidebarWidth] = useState<number>(380);
+  const [isResizing, setIsResizing] = useState(false);
+
+  useEffect(() => {
+    try {
+      const savedWidth = localStorage.getItem('whiteboard_right_sidebar_width');
+      if (savedWidth) {
+        const parsed = parseInt(savedWidth, 10);
+        if (!isNaN(parsed) && parsed >= 260 && parsed <= 800) {
+          setSidebarWidth(parsed);
+        }
+      }
+    } catch {}
+  }, []);
+
+  const handleMouseDownResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    const startX = e.clientX;
+    const startW = sidebarWidth;
+
+    const handleMouseMove = (moveEvt: MouseEvent) => {
+      const deltaX = startX - moveEvt.clientX;
+      const nextW = Math.min(800, Math.max(260, startW + deltaX));
+      setSidebarWidth(nextW);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      setSidebarWidth(currentW => {
+        try {
+          localStorage.setItem('whiteboard_right_sidebar_width', String(currentW));
+        } catch {}
+        return currentW;
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleTouchStartResize = (e: React.TouchEvent) => {
+    if (e.touches.length === 0) return;
+    setIsResizing(true);
+    const startX = e.touches[0].clientX;
+    const startW = sidebarWidth;
+
+    const handleTouchMove = (moveEvt: TouchEvent) => {
+      if (moveEvt.touches.length === 0) return;
+      moveEvt.preventDefault();
+      const deltaX = startX - moveEvt.touches[0].clientX;
+      const nextW = Math.min(800, Math.max(260, startW + deltaX));
+      setSidebarWidth(nextW);
+    };
+
+    const handleTouchEnd = () => {
+      setIsResizing(false);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      setSidebarWidth(currentW => {
+        try {
+          localStorage.setItem('whiteboard_right_sidebar_width', String(currentW));
+        } catch {}
+        return currentW;
+      });
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+  };
+
+  const handleStaffClick = (
+    lastName: string,
+    id?: string,
+    qgendaAbbr?: string,
+    orderNumber?: number,
+    shift?: string,
+    fallbackCreds: Staff['credentials'] = 'MD'
+  ) => {
+    if (!onSelectStaff) return;
+
+    const matched = staff.find(s =>
+      s.lastName.toUpperCase() === lastName.toUpperCase() ||
+      (qgendaAbbr && s.qgendaAbbr?.toUpperCase() === qgendaAbbr.toUpperCase()) ||
+      (id && s.id === id)
+    );
+
+    if (matched) {
+      onSelectStaff({
+        ...matched,
+        orderNumber: orderNumber ?? matched.orderNumber,
+        shift: matched.shift || shift
+      });
+    } else {
+      const fallbackStaff: Staff = {
+        id: id || `staff_roster_${lastName.toLowerCase()}`,
+        firstName: '',
+        lastName: lastName.toUpperCase(),
+        credentials: fallbackCreds,
+        phone: '(555) 000-0000',
+        shift: shift || 'Day',
+        facility: 'MHMC',
+        active: true,
+        orderNumber,
+        qgendaAbbr
+      };
+      onSelectStaff(fallbackStaff);
+    }
+  };
 
   // State for adding departure
   const [newDepartureName, setNewDepartureName] = useState('');
@@ -218,7 +335,15 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   };
 
   return (
-    <aside className="right-sidebar-columns">
+    <aside className="right-sidebar-columns" style={{ width: `${sidebarWidth}px` }}>
+      {/* Resizable drag handle (Mouse and Touch) */}
+      <div
+        className={`sidebar-resize-handle ${isResizing ? 'resizing' : ''}`}
+        onMouseDown={handleMouseDownResize}
+        onTouchStart={handleTouchStartResize}
+        title="Drag with mouse or finger to expand or narrow Departure & Lates"
+      />
+
       {/* ---------------- 1. DEPARTURE COLUMN ---------------- */}
       <div className="sidebar-col">
         <div className="sidebar-col-header">
@@ -394,7 +519,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 <div
                   key={doc.id}
                   className={`departure-item ${doc.departed ? 'struck' : ''} ${dragOverDepartureId === doc.id ? 'drag-over' : ''} ${draggedDepartureId === doc.id ? 'dragging' : ''}`}
-                  onClick={() => onToggleDepartureStruck(doc.id)}
+                  onClick={() => handleStaffClick(doc.name, doc.id, doc.qgendaAbbr, doc.orderNumber, doc.timeEstimate, 'MD')}
                   draggable={isEditor}
                   onDragStart={(e) => {
                     e.dataTransfer.setData('text/departure-id', doc.id);
@@ -421,31 +546,10 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     setDraggedDepartureId(null);
                     setDragOverDepartureId(null);
                   }}
-                  title={doc.departed ? 'Marked departed (Tap to unmark)' : 'Tap to mark departed (Strikethrough)'}
+                  title={doc.departed ? 'Marked departed (Click name to view/edit details)' : 'Click to view/edit details (or use circle to mark departed)'}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
-                    {isEditor && (
-                      <GripVertical size={11} style={{ color: 'var(--text-muted)', cursor: 'grab', flexShrink: 0 }} />
-                    )}
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)', width: 14 }}>{idx + 1}.</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
                     <span className="departure-name">{doc.name}</span>
-                    {doc.orderNumber && (
-                      <span
-                        title={`OneUSAP Departure Order #${doc.orderNumber}`}
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 800,
-                          padding: '1px 4px',
-                          borderRadius: 3,
-                          background: 'rgba(9, 105, 218, 0.1)',
-                          color: 'var(--accent-primary)',
-                          border: '1px solid rgba(9, 105, 218, 0.25)',
-                          flexShrink: 0
-                        }}
-                      >
-                        #{doc.orderNumber}
-                      </span>
-                    )}
                     {doc.timeEstimate && (
                       <span
                         style={{
@@ -462,16 +566,32 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       </span>
                     )}
                   </div>
-                  {isEditor && (
-                    <button
-                      type="button"
-                      onClick={(e) => handleInitiateRemoveDeparture(doc, e)}
-                      style={{ color: 'var(--text-muted)', padding: '2px 4px', borderRadius: 3 }}
-                      title="Remove from departure list"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  )}
+
+                  {/* Mark Departed Toggle Circle */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleDepartureStruck(doc.id);
+                    }}
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: '50%',
+                      border: doc.departed ? '1.5px solid var(--marker-green)' : '1.5px solid var(--border-light)',
+                      background: doc.departed ? 'var(--marker-green)' : 'transparent',
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      padding: 0,
+                      flexShrink: 0
+                    }}
+                    title={doc.departed ? 'Marked departed (Click to unmark)' : 'Mark as departed (Strike through)'}
+                  >
+                    {doc.departed && <Check size={10} strokeWidth={3} />}
+                  </button>
                 </div>
               ))}
 
@@ -536,7 +656,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 <div
                   key={doc.id}
                   className={`departure-item ${doc.departed ? 'struck' : ''} ${dragOverDepartureId === doc.id ? 'drag-over' : ''} ${draggedDepartureId === doc.id ? 'dragging' : ''}`}
-                  onClick={() => onToggleDepartureStruck(doc.id)}
+                  onClick={() => handleStaffClick(doc.name, doc.id, doc.qgendaAbbr, doc.orderNumber, doc.timeEstimate, 'MD')}
                   draggable={isEditor}
                   onDragStart={(e) => {
                     e.dataTransfer.setData('text/departure-id', doc.id);
@@ -563,31 +683,10 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     setDraggedDepartureId(null);
                     setDragOverDepartureId(null);
                   }}
-                  title={doc.departed ? 'Marked departed (Tap to unmark)' : 'Tap to mark departed (Strikethrough)'}
+                  title={doc.departed ? 'Marked departed (Click name to view/edit details)' : 'Click to view/edit details (or use circle to mark departed)'}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
-                    {isEditor && (
-                      <GripVertical size={11} style={{ color: 'var(--text-muted)', cursor: 'grab', flexShrink: 0 }} />
-                    )}
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)', width: 14 }}>{idx + 1}.</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
                     <span className="departure-name">{doc.name}</span>
-                    {doc.orderNumber && (
-                      <span
-                        title={`OneUSAP Departure Order #${doc.orderNumber}`}
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 800,
-                          padding: '1px 4px',
-                          borderRadius: 3,
-                          background: 'rgba(9, 105, 218, 0.1)',
-                          color: 'var(--accent-primary)',
-                          border: '1px solid rgba(9, 105, 218, 0.25)',
-                          flexShrink: 0
-                        }}
-                      >
-                        #{doc.orderNumber}
-                      </span>
-                    )}
                     {doc.timeEstimate && (
                       <span
                         style={{
@@ -604,16 +703,32 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       </span>
                     )}
                   </div>
-                  {isEditor && (
-                    <button
-                      type="button"
-                      onClick={(e) => handleInitiateRemoveDeparture(doc, e)}
-                      style={{ color: 'var(--text-muted)', padding: '2px 4px', borderRadius: 3 }}
-                      title="Remove from departure list"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  )}
+
+                  {/* Mark Departed Toggle Circle */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleDepartureStruck(doc.id);
+                    }}
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: '50%',
+                      border: doc.departed ? '1.5px solid var(--marker-green)' : '1.5px solid var(--border-light)',
+                      background: doc.departed ? 'var(--marker-green)' : 'transparent',
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      padding: 0,
+                      flexShrink: 0
+                    }}
+                    title={doc.departed ? 'Marked departed (Click to unmark)' : 'Mark as departed (Strike through)'}
+                  >
+                    {doc.departed && <Check size={10} strokeWidth={3} />}
+                  </button>
                 </div>
               ))}
 
@@ -938,25 +1053,27 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       </button>
                     </div>
                   </form>
-                )}
-
-                {/* Staff names under this time slot */}
+                )}                  {/* Staff names under this time slot */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {items.map(item => (
                     <div
                       key={item.id}
+                      onClick={() => handleStaffClick(item.name, item.id, undefined, item.orderNumber, item.timeCategory, (item.role as any) || 'CRNA')}
+                      className="late-staff-row"
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: '2px 5px',
+                        padding: '3px 6px',
                         fontSize: 12,
                         fontWeight: 700,
                         textTransform: 'uppercase',
                         fontFamily: 'var(--font-main)',
                         borderRadius: 3,
-                        background: 'rgba(0, 0, 0, 0.02)'
+                        background: 'rgba(0, 0, 0, 0.02)',
+                        cursor: 'pointer'
                       }}
+                      title={`Click to view/edit details for ${item.name}`}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                         <span>{item.name}</span>
@@ -975,32 +1092,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                             {item.role}
                           </span>
                         )}
-                        {item.orderNumber && (
-                          <span
-                            title={`OneUSAP Order #${item.orderNumber}`}
-                            style={{
-                              fontSize: 9,
-                              fontWeight: 800,
-                              padding: '1px 4px',
-                              borderRadius: 3,
-                              background: 'rgba(100, 116, 139, 0.12)',
-                              color: 'var(--text-secondary)',
-                              border: '1px solid var(--border-light)'
-                            }}
-                          >
-                            #{item.orderNumber}
-                          </span>
-                        )}
                       </div>
-                      {isEditor && (
-                        <button
-                          onClick={(e) => handleInitiateRemoveLate(item, category, e)}
-                          style={{ color: 'var(--text-muted)', padding: 2, borderRadius: 3 }}
-                          title={`Remove ${item.name} from ${category}`}
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      )}
                     </div>
                   ))}
                   {items.length === 0 && (

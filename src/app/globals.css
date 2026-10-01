@@ -762,9 +762,50 @@ button {
 
 /* Right Side: DEPARTURE & LATES Columns - ZERO SCROLLBARS */
 .right-sidebar-columns {
-  width: 380px;
+  position: relative;
+  flex-shrink: 0;
   display: flex;
   background: var(--bg-board);
+  transition: width 0.05s ease-out;
+}
+
+.sidebar-resize-handle {
+  position: absolute;
+  left: -5px;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  cursor: col-resize;
+  z-index: 40;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justifyContent: center;
+}
+
+.sidebar-resize-handle::before {
+  content: '';
+  width: 2px;
+  height: 48px;
+  border-radius: 2px;
+  background: var(--border-light);
+  transition: all var(--transition-fast);
+}
+
+.sidebar-resize-handle:hover::before,
+.sidebar-resize-handle.resizing::before {
+  background: var(--accent-primary);
+  width: 3px;
+  height: 100%;
+}
+
+.late-staff-row {
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.late-staff-row:hover {
+  background: var(--surface-hover) !important;
+  color: var(--accent-primary) !important;
 }
 
 .right-sidebar-columns,

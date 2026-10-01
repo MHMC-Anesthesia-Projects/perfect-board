@@ -15,6 +15,7 @@ interface StaffModalProps {
   onUnassign: (staffId: string) => void;
   onMoveToBullpen?: (staffId: string) => void;
   onToggleBreak: (targetType: 'room_slot' | 'runner_slot' | 'bullpen', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
+  onUpdateShift?: (staffId: string, newShift: string, lastName?: string, credentials?: Staff['credentials']) => void;
 }
 
 export const StaffModal: React.FC<StaffModalProps> = ({
@@ -27,9 +28,19 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   onAssignToSlot,
   onUnassign,
   onMoveToBullpen,
-  onToggleBreak
+  onToggleBreak,
+  onUpdateShift
 }) => {
   const [selectedDestination, setSelectedDestination] = useState<string>('');
+  const [isEditingShift, setIsEditingShift] = useState(false);
+  const [customShift, setCustomShift] = useState(staff?.shift || 'Day');
+
+  React.useEffect(() => {
+    if (staff) {
+      setCustomShift(staff.shift || 'Day');
+      setIsEditingShift(false);
+    }
+  }, [staff?.id, staff?.shift]);
 
   if (!staff) return null;
 
@@ -141,8 +152,24 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                 {staff.credentials}
               </span>
             </div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
-              ID: {staff.id.split('_').slice(-1)[0]} • Anesthesia Care Team
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span>ID: {staff.id.split('_').slice(-1)[0]} • Anesthesia Care Team</span>
+              {staff.orderNumber && (
+                <span
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 10,
+                    padding: '1px 6px',
+                    borderRadius: 3,
+                    background: 'rgba(9, 105, 218, 0.1)',
+                    color: 'var(--accent-primary)',
+                    border: '1px solid rgba(9, 105, 218, 0.25)'
+                  }}
+                  title={`OneUSAP Departure Order #${staff.orderNumber}`}
+                >
+                  OneUSAP Order #{staff.orderNumber}
+                </span>
+              )}
             </div>
           </div>
           <button onClick={onClose} style={{ color: 'var(--text-muted)' }}>
@@ -175,12 +202,117 @@ export const StaffModal: React.FC<StaffModalProps> = ({
             </div>
           </div>
 
-          {/* Shift */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
-            <Clock size={15} style={{ color: 'var(--marker-red)' }} />
-            <span style={{ fontWeight: 600 }}>Scheduled Shift:</span>
-            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{staff.shift || '07:00 - 15:30'}</span>
-          </div>
+          {/* Shift (View and Edit) */}
+          {!isEditingShift ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
+                <Clock size={15} style={{ color: 'var(--marker-red)' }} />
+                <span style={{ fontWeight: 600 }}>Scheduled Shift:</span>
+                <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{staff.shift || '07:00 - 15:30'}</span>
+              </div>
+              {isEditor && onUpdateShift && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomShift(staff.shift || 'Day');
+                    setIsEditingShift(true);
+                  }}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    background: 'var(--surface-card)',
+                    border: '1px solid var(--border-light)',
+                    color: 'var(--accent-primary)',
+                    cursor: 'pointer'
+                  }}
+                  title="Change scheduled shift or late time (e.g. 4p instead of 3p)"
+                >
+                  Edit Shift
+                </button>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px', background: 'var(--surface-card)', borderRadius: 6, border: '1px solid var(--border-light)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>Change Shift / Departure Time:</span>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Quick select or type below</span>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {['Day', '3p', '4p', '5p', '7p', '8p', '7p-7a', 'Post-Call'].map(preset => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setCustomShift(preset)}
+                    style={{
+                      padding: '2px 7px',
+                      borderRadius: 4,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      border: customShift.toLowerCase() === preset.toLowerCase() ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                      background: customShift.toLowerCase() === preset.toLowerCase() ? 'var(--accent-surface)' : 'var(--surface-hover)',
+                      color: customShift.toLowerCase() === preset.toLowerCase() ? 'var(--accent-primary)' : 'var(--text-primary)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                <input
+                  type="text"
+                  value={customShift}
+                  onChange={e => setCustomShift(e.target.value)}
+                  placeholder="e.g. 4p or 07:00 - 16:00"
+                  style={{
+                    flex: 1,
+                    padding: '4px 8px',
+                    fontSize: 12,
+                    borderRadius: 4,
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--bg-board)',
+                    color: 'var(--text-primary)'
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onUpdateShift && customShift.trim()) {
+                      onUpdateShift(staff.id, customShift.trim(), staff.lastName, staff.credentials);
+                      setIsEditingShift(false);
+                    }
+                  }}
+                  style={{
+                    padding: '4px 10px',
+                    background: 'var(--accent-primary)',
+                    color: '#fff',
+                    borderRadius: 4,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingShift(false)}
+                  style={{
+                    padding: '4px 8px',
+                    background: 'var(--surface-hover)',
+                    border: '1px solid var(--border-light)',
+                    borderRadius: 4,
+                    fontSize: 11,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Current Assignment */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>

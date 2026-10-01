@@ -1,5 +1,30 @@
 [
   {
+    "id": "audit_1790894479887_wgnnp",
+    "timestamp": "2026-10-01T22:41:19.887Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Runner",
+    "userRole": "board_runner",
+    "targetName": "Joseph Chuan",
+    "details": "Updated scheduled shift from \"3p\" to \"4p\""
+  },
+  {
+    "id": "audit_1790894474995_fozi5",
+    "timestamp": "2026-10-01T22:41:14.995Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Test Runner",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1790893748608_rg72w",
+    "timestamp": "2026-10-01T22:29:08.608Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Altered department and room layout structure"
+  },
+  {
     "id": "audit_1790893092692_dspg2",
     "timestamp": "2026-10-01T22:18:12.692Z",
     "actionType": "STAFF_ASSIGNED",

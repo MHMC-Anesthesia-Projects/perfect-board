@@ -211,6 +211,7 @@ export async function POST(req: NextRequest) {
             existing.assignedRoom = ws.roomAssignment || existing.assignedRoom;
             existing.assignedRooms = ws.assignedRooms || (ws.roomAssignment ? ws.roomAssignment.split(',').map(s => s.trim()) : existing.assignedRooms);
             existing.qgendaAbbr = ws.qgendaAbbr || existing.qgendaAbbr;
+            existing.orderNumber = ws.orderNumber || existing.orderNumber;
             existing.active = true;
             updatedStaffList.push(existing);
             existingStaffMap.delete(qKey);
@@ -227,6 +228,7 @@ export async function POST(req: NextRequest) {
               assignedRoom: ws.roomAssignment,
               assignedRooms: ws.assignedRooms || (ws.roomAssignment ? ws.roomAssignment.split(',').map(s => s.trim()) : undefined),
               qgendaAbbr: ws.qgendaAbbr,
+              orderNumber: ws.orderNumber,
               active: true
             });
           }

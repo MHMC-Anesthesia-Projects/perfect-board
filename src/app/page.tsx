@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { BoardState, Staff, Department, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem } from '@/types/whiteboard';
+import { BoardState, Staff, Department, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential } from '@/types/whiteboard';
 import { HeaderNav } from '@/components/HeaderNav';
 import { DepartmentGrid } from '@/components/DepartmentGrid';
 import { RightSidebar } from '@/components/RightSidebar';
@@ -396,6 +396,46 @@ export default function WhiteboardPage() {
     } catch (err) {
       console.error('Error toggling departure status:', err);
       fetchBoardState(false);
+    }
+  };
+
+  // Update staff scheduled shift / late departure time
+  const handleUpdateStaffShift = async (
+    staffId: string,
+    newShift: string,
+    lastName?: string,
+    credentials?: StaffCredential
+  ) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_STAFF_SHIFT',
+          payload: { staffId, shift: newShift, lastName, credentials },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+        setSelectedStaff(prev => {
+          if (!prev) return null;
+          if (prev.id === staffId || (lastName && prev.lastName.toUpperCase() === lastName.toUpperCase())) {
+            return { ...prev, shift: newShift };
+          }
+          return prev;
+        });
+        setToastMessage(`✓ Updated shift for ${lastName || 'Staff'} to ${newShift}`);
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error('Error updating staff shift:', err);
     }
   };
 
@@ -874,6 +914,8 @@ export default function WhiteboardPage() {
             latesList={boardState.latesList}
             latesNotes={boardState.latesNotes}
             currentUserRole={currentUserRole}
+            staff={boardState.staff}
+            onSelectStaff={staff => setSelectedStaff(staff)}
             onUpdateDepartureNotes={notes => handleSaveNotes('departure', undefined, notes)}
             onUpdateLatesNotes={notes => handleSaveNotes('lates', undefined, notes)}
             onUpdateLists={handleUpdateLists}
@@ -929,6 +971,7 @@ export default function WhiteboardPage() {
         onMoveToBullpen={staffId => handleDropToBullpen({ staffId, type: 'room_slot' })}
         onUnassign={staffId => handleMoveStaffToUnassigned(staffId)}
         onToggleBreak={handleToggleBreak}
+        onUpdateShift={handleUpdateStaffShift}
       />
 
       <SlotAssignModal
