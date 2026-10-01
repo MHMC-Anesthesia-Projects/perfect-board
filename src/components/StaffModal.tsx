@@ -240,32 +240,36 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                 <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Quick select or type below</span>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                {['Day', '3p', '4p', '5p', '7p', '8p', '7p-7a', 'Post-Call'].map(preset => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => setCustomShift(preset)}
-                    style={{
-                      padding: '2px 7px',
-                      borderRadius: 4,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      border: customShift.toLowerCase() === preset.toLowerCase() ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-light)',
-                      background: customShift.toLowerCase() === preset.toLowerCase() ? 'var(--accent-surface)' : 'var(--surface-hover)',
-                      color: customShift.toLowerCase() === preset.toLowerCase() ? 'var(--accent-primary)' : 'var(--text-primary)',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {preset}
-                  </button>
-                ))}
+                {['Day', '2p (Special)', '3p', '4p', '5p', '7p', '8p', '7p-7a', 'Post-Call'].map(preset => {
+                  const presetValue = preset === '2p (Special)' ? '2p' : preset;
+                  const isSelected = customShift.toLowerCase() === presetValue.toLowerCase();
+                  return (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setCustomShift(presetValue)}
+                      style={{
+                        padding: '2px 7px',
+                        borderRadius: 4,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        border: isSelected ? '1.5px solid #2563eb' : '1px solid var(--border-light)',
+                        background: isSelected ? 'rgba(37, 99, 235, 0.15)' : 'var(--surface-hover)',
+                        color: isSelected ? '#2563eb' : 'var(--text-primary)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {preset}
+                    </button>
+                  );
+                })}
               </div>
               <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
                 <input
                   type="text"
                   value={customShift}
                   onChange={e => setCustomShift(e.target.value)}
-                  placeholder="e.g. 4p or 07:00 - 16:00"
+                  placeholder="e.g. 2p, 4p, or 13:30"
                   style={{
                     flex: 1,
                     padding: '4px 8px',

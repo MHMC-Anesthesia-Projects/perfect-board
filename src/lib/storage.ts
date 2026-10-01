@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { BoardState, User, AuditLogEntry, Staff, Department } from '@/types/whiteboard';
+import { BoardState, User, AuditLogEntry, Staff, Department, UniqueScheduleRule } from '@/types/whiteboard';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const STATE_FILE = path.join(DATA_DIR, 'whiteboard_state.json');
@@ -289,8 +289,74 @@ export function getInitialBoardState(staff: Staff[] = []): BoardState {
       lastSyncStatus: 'success',
       mockMode: false,
       selectedFacilities: ['MHMC', 'MHVIL-SC', 'HIVF-SC']
-    }
+    },
+    uniqueSchedules: getDefaultUniqueSchedules()
   };
+}
+
+export function getDefaultUniqueSchedules(): UniqueScheduleRule[] {
+  return [
+    {
+      id: 'rule_hirsch',
+      providerName: 'Hirsch',
+      qgendaAbbr: 'HirschDou',
+      fixedShift: '5p',
+      role: 'MD',
+      facilityCondition: 'ALL',
+      active: true,
+      notes: 'Works until 5p daily when working at MHMC / Village'
+    },
+    {
+      id: 'rule_baerenstecher',
+      providerName: 'Baerenstecher',
+      qgendaAbbr: 'BaerenstecheJoh',
+      fixedShift: '5p',
+      role: 'MD',
+      facilityCondition: 'ALL',
+      active: true,
+      notes: 'Works until 5p daily when working at MHMC'
+    },
+    {
+      id: 'rule_chuan',
+      providerName: 'Chuan',
+      qgendaAbbr: 'ChuanJos',
+      fixedShift: '4p',
+      role: 'MD',
+      facilityCondition: 'ALL',
+      active: true,
+      notes: 'Works until 4p everyday'
+    },
+    {
+      id: 'rule_gunn',
+      providerName: 'Gunn',
+      qgendaAbbr: 'GunnKat',
+      fixedShift: '3p',
+      role: 'MD',
+      facilityCondition: 'ALL',
+      active: true,
+      notes: 'Day rotation 3p departure (night doc rotation)'
+    },
+    {
+      id: 'rule_martinez',
+      providerName: 'Martinez R',
+      qgendaAbbr: 'MartinezRob',
+      fixedShift: '3p',
+      role: 'MD',
+      facilityCondition: 'ALL',
+      active: true,
+      notes: 'Day rotation 3p departure (night doc rotation)'
+    },
+    {
+      id: 'rule_hiller',
+      providerName: 'Hiller',
+      qgendaAbbr: 'HillerKen',
+      fixedShift: '3p',
+      role: 'MD',
+      facilityCondition: 'ALL',
+      active: true,
+      notes: 'Day doctor 3p fixed departure'
+    }
+  ];
 }
 
 export function getInitialUsers(): User[] {
@@ -337,6 +403,9 @@ export function loadBoardState(): BoardState {
   }
   if (!loaded.bullpenBreaks || typeof loaded.bullpenBreaks !== 'object') {
     loaded.bullpenBreaks = {};
+  }
+  if (!loaded.uniqueSchedules || !Array.isArray(loaded.uniqueSchedules) || loaded.uniqueSchedules.length === 0) {
+    loaded.uniqueSchedules = getDefaultUniqueSchedules();
   }
   return loaded;
 }

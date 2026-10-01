@@ -1054,6 +1054,7 @@ export default function WhiteboardPage() {
         departments={boardState.departments}
         staff={boardState.staff}
         scraperConfig={boardState.scraperConfig}
+        uniqueSchedules={boardState.uniqueSchedules || []}
         onSaveDepartments={handleSaveDepartments}
         onResetToPhotoDefault={handleResetToPhotoDefault}
         onRefreshData={() => fetchBoardState(false)}

@@ -158,7 +158,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
   // State for adding departure
   const [newDepartureName, setNewDepartureName] = useState('');
-  const [newDepartureCategory, setNewDepartureCategory] = useState<'post_call' | 'non_call'>('non_call');
+  const [newDepartureCategory, setNewDepartureCategory] = useState<'post_call' | 'special' | 'non_call'>('non_call');
+  const [newDepartureTime, setNewDepartureTime] = useState('2p');
   const [showAddDep, setShowAddDep] = useState(false);
 
   // State for Call Team
@@ -170,26 +171,51 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   const [draggedDepartureId, setDraggedDepartureId] = useState<string | null>(null);
   const [dragOverDepartureId, setDragOverDepartureId] = useState<string | null>(null);
 
-  // Separate Departure List into Post-Call and Non-Call sections
+  // Helper to check standard late shift (3p, 4p, 5p, 7p, 8p, night, 7p-7a)
+  const isStandardLateTime = (t: string) => /^(?:3p|4p|5p|7p|8p|night|7p-7a|11a-11p)/i.test(t) ||
+    t.includes('3p') || t.includes('4p') || t.includes('5p') || t.includes('7p') || t.includes('8p');
+
+  // Helper to check atypical departure time (e.g. 2p, 1p, 1:30p)
+  const isAtypicalDepartureTime = (t: string) => /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:a|p|am|pm)$/i.test(t) && !isStandardLateTime(t);
+
+  // 1. Post-Call list
   const postCallList = useMemo(() => {
     return departureList
       .filter(d => d.category === 'post_call')
       .sort((a, b) => a.orderIndex - b.orderIndex);
   }, [departureList]);
 
-  const nonCallList = useMemo(() => {
+  // 2. Special list (MDs with atypical departure times e.g. 2p)
+  const specialDepartureList = useMemo(() => {
     return departureList
       .filter(d => {
         if (d.category === 'post_call') return false;
-        // If doctor has a late shift (e.g. 4p, 5p, 7p, 8p, night, 7p-7a), they belong in the Late list, not non-call
+        if (d.category === 'special') return true;
         const timeEst = (d.timeEstimate || '').toLowerCase().trim();
         const matchedStaff = staff.find(s =>
           s.lastName.toUpperCase() === d.name.toUpperCase() ||
           (d.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === d.qgendaAbbr.toUpperCase())
         );
         const staffShift = (matchedStaff?.shift || '').toLowerCase().trim();
-        const isLate = /4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(timeEst) || /4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(staffShift);
-        if (isLate) return false;
+        return isAtypicalDepartureTime(timeEst) || isAtypicalDepartureTime(staffShift);
+      })
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+  }, [departureList, staff]);
+
+  // 3. Non-Call list (regular non-call MDs without fixed late/atypical times)
+  const nonCallList = useMemo(() => {
+    return departureList
+      .filter(d => {
+        if (d.category === 'post_call' || d.category === 'special') return false;
+        const timeEst = (d.timeEstimate || '').toLowerCase().trim();
+        const matchedStaff = staff.find(s =>
+          s.lastName.toUpperCase() === d.name.toUpperCase() ||
+          (d.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === d.qgendaAbbr.toUpperCase())
+        );
+        const staffShift = (matchedStaff?.shift || '').toLowerCase().trim();
+        const isLate = isStandardLateTime(timeEst) || isStandardLateTime(staffShift);
+        const isAtypical = isAtypicalDepartureTime(timeEst) || isAtypicalDepartureTime(staffShift);
+        if (isLate || isAtypical) return false;
         return true;
       })
       .sort((a, b) => a.orderIndex - b.orderIndex);
@@ -208,30 +234,33 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     categoryLabel: string;
   } | null>(null);
 
-  // Group lates by time category (4p, 5p, 7p, 8p, 7p-7a)
-  const timeCategories = ['4p', '5p', '7p', '8p', '7p-7a'];
+  // Group lates by time category (3p, special, 4p, 5p, 7p, 8p, 7p-7a)
+  // 'special' is ordered right above '4p'
+  const timeCategories = ['3p', 'special', '4p', '5p', '7p', '8p', '7p-7a'];
   const latesGrouped: Record<string, LateShiftItem[]> = {};
   timeCategories.forEach(cat => {
     latesGrouped[cat] = [];
   });
   // Also collect any custom categories
   latesList.forEach(item => {
-    if (!latesGrouped[item.timeCategory]) {
-      latesGrouped[item.timeCategory] = [];
+    const cat = item.timeCategory || '';
+    if (!latesGrouped[cat]) {
+      latesGrouped[cat] = [];
     }
-    latesGrouped[item.timeCategory].push(item);
+    latesGrouped[cat].push(item);
   });
 
   const handleAddDeparture = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDepartureName.trim()) return;
     const targetCat = newDepartureCategory;
-    const targetSubList = targetCat === 'post_call' ? postCallList : nonCallList;
+    const targetSubList = targetCat === 'post_call' ? postCallList : targetCat === 'special' ? specialDepartureList : nonCallList;
 
     const newItem: DepartureItem = {
       id: `dep_${Date.now()}`,
       name: newDepartureName.trim().toUpperCase(),
       category: targetCat,
+      timeEstimate: targetCat === 'special' ? (newDepartureTime.trim() || '2p') : undefined,
       orderIndex: targetSubList.length,
       departed: false
     };
@@ -242,11 +271,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     setShowAddDep(false);
   };
 
-  const handleMoveDeparture = (draggedId: string, targetCategory: 'post_call' | 'non_call', targetIndex: number) => {
+  const handleMoveDeparture = (draggedId: string, targetCategory: 'post_call' | 'special' | 'non_call', targetIndex: number) => {
     const itemToMove = departureList.find(d => d.id === draggedId);
     if (!itemToMove) return;
 
     let postList = postCallList.filter(d => d.id !== draggedId);
+    let specList = specialDepartureList.filter(d => d.id !== draggedId);
     let nonList = nonCallList.filter(d => d.id !== draggedId);
 
     const updatedItem: DepartureItem = {
@@ -257,15 +287,19 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     if (targetCategory === 'post_call') {
       const insertAt = Math.max(0, Math.min(targetIndex, postList.length));
       postList.splice(insertAt, 0, updatedItem);
+    } else if (targetCategory === 'special') {
+      const insertAt = Math.max(0, Math.min(targetIndex, specList.length));
+      specList.splice(insertAt, 0, updatedItem);
     } else {
       const insertAt = Math.max(0, Math.min(targetIndex, nonList.length));
       nonList.splice(insertAt, 0, updatedItem);
     }
 
-    postList = postList.map((d, idx) => ({ ...d, orderIndex: idx, category: 'post_call' }));
-    nonList = nonList.map((d, idx) => ({ ...d, orderIndex: idx, category: 'non_call' }));
+    postList = postList.map((d, idx) => ({ ...d, orderIndex: idx, category: 'post_call' as const }));
+    specList = specList.map((d, idx) => ({ ...d, orderIndex: postList.length + idx, category: 'special' as const }));
+    nonList = nonList.map((d, idx) => ({ ...d, orderIndex: postList.length + specList.length + idx, category: 'non_call' as const }));
 
-    onUpdateLists([...postList, ...nonList], latesList, true);
+    onUpdateLists([...postList, ...specList, ...nonList], latesList, true);
   };
 
   const handleInitiateRemoveDeparture = (doc: DepartureItem, e: React.MouseEvent) => {
@@ -414,6 +448,23 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               </button>
               <button
                 type="button"
+                onClick={() => setNewDepartureCategory('special')}
+                style={{
+                  flex: 1,
+                  padding: '4px',
+                  borderRadius: 4,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  border: newDepartureCategory === 'special' ? '1.5px solid #2563eb' : '1px solid var(--border-light)',
+                  background: newDepartureCategory === 'special' ? 'rgba(37, 99, 235, 0.15)' : 'var(--surface-card)',
+                  color: newDepartureCategory === 'special' ? '#2563eb' : 'var(--text-secondary)',
+                  cursor: 'pointer'
+                }}
+              >
+                Special
+              </button>
+              <button
+                type="button"
                 onClick={() => setNewDepartureCategory('non_call')}
                 style={{
                   flex: 1,
@@ -430,6 +481,26 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 Non-Call
               </button>
             </div>
+            {newDepartureCategory === 'special' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#2563eb' }}>Fixed Time:</span>
+                <input
+                  type="text"
+                  placeholder="e.g. 2p, 1:30p"
+                  value={newDepartureTime}
+                  onChange={e => setNewDepartureTime(e.target.value)}
+                  style={{
+                    width: 110,
+                    padding: '3px 6px',
+                    fontSize: 11,
+                    borderRadius: 4,
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--surface-card)',
+                    color: 'var(--text-primary)'
+                  }}
+                />
+              </div>
+            )}
             <input
               type="text"
               placeholder="Doctor Last Name (e.g. SMITH)"
@@ -617,6 +688,128 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               )}
             </div>
           </div>
+
+          {/* 1.1b SPECIAL SECTION (Atypical departure times like 2p) - Hidden if empty */}
+          {specialDepartureList.length > 0 && (
+            <div className="departure-sub-section">
+              <div className="departure-sub-header special-header" style={{ borderLeft: '3px solid #2563eb' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontWeight: 800, color: '#2563eb', fontSize: 11 }}>SPECIAL</span>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>({specialDepartureList.length})</span>
+                </div>
+                {isEditor && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewDepartureCategory('special');
+                      setShowAddDep(true);
+                    }}
+                    style={{
+                      width: 18,
+                      height: 18,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 3,
+                      background: 'var(--surface-card)',
+                      border: '1px solid var(--border-light)',
+                      color: '#2563eb',
+                      cursor: 'pointer'
+                    }}
+                    title="Add Doctor to Special Departure"
+                  >
+                    <Plus size={11} />
+                  </button>
+                )}
+              </div>
+
+              <div
+                className="departure-sub-list"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const draggedId = e.dataTransfer.getData('text/departure-id');
+                  if (draggedId) {
+                    handleMoveDeparture(draggedId, 'special', specialDepartureList.length);
+                  }
+                  setDraggedDepartureId(null);
+                  setDragOverDepartureId(null);
+                }}
+              >
+                {specialDepartureList.map((doc, idx) => (
+                  <div
+                    key={doc.id}
+                    className={`departure-item ${doc.departed ? 'struck' : ''} ${dragOverDepartureId === doc.id ? 'drag-over' : ''} ${draggedDepartureId === doc.id ? 'dragging' : ''}`}
+                    onClick={() => handleStaffClick(doc.name, doc.id, doc.qgendaAbbr, doc.orderNumber, doc.timeEstimate, 'MD')}
+                    draggable={isEditor}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/departure-id', doc.id);
+                      setDraggedDepartureId(doc.id);
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOverDepartureId(doc.id);
+                    }}
+                    onDragLeave={() => {
+                      setDragOverDepartureId(null);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const draggedId = e.dataTransfer.getData('text/departure-id');
+                      if (draggedId && draggedId !== doc.id) {
+                        handleMoveDeparture(draggedId, 'special', idx);
+                      }
+                      setDraggedDepartureId(null);
+                      setDragOverDepartureId(null);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedDepartureId(null);
+                      setDragOverDepartureId(null);
+                    }}
+                    title={doc.departed ? 'Marked departed (Click name to view/edit details)' : 'Click to view/edit details'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                      {/* Blue box with white text time before user name */}
+                      <span className="atypical-time-badge">
+                        {doc.timeEstimate || '2p'}
+                      </span>
+                      <span className="departure-name">{doc.name}</span>
+                    </div>
+
+                    {/* Mark Departed Toggle Circle */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleDepartureStruck(doc.id);
+                      }}
+                      style={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: '50%',
+                        border: doc.departed ? '1.5px solid var(--marker-green)' : '1.5px solid var(--border-light)',
+                        background: doc.departed ? 'var(--marker-green)' : 'transparent',
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        padding: 0,
+                        flexShrink: 0
+                      }}
+                      title={doc.departed ? 'Marked departed (Click to unmark)' : 'Mark as departed (Strike through)'}
+                    >
+                      {doc.departed && <Check size={10} strokeWidth={3} />}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 1.2 NON-CALL SECTION */}
           <div className="departure-sub-section">
@@ -968,16 +1161,19 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
         {/* Categorized Late Shifts Area */}
         <div className="lates-list-area">
           {Object.entries(latesGrouped).map(([category, items]) => {
-            if (items.length === 0 && !['4p', '5p', '7p', '8p', '7p-7a'].includes(category)) return null;
+            const isSpecial = category.toLowerCase() === 'special';
+            // Hide special if empty; keep standard late categories visible
+            if (isSpecial && items.length === 0) return null;
+            if (items.length === 0 && !['3p', '4p', '5p', '7p', '8p', '7p-7a'].includes(category.toLowerCase())) return null;
 
             return (
               <div key={category} style={{ marginBottom: 4 }}>
-                {/* Category Header (4p, 5p, 7p, 8p, 7p-7a) with + Plus Button */}
+                {/* Category Header with + Plus Button */}
                 <div style={{
                   fontSize: 13,
                   fontWeight: 900,
-                  color: 'var(--marker-black)',
-                  borderBottom: '1.5px solid var(--board-grid-line)',
+                  color: isSpecial ? '#2563eb' : 'var(--marker-black)',
+                  borderBottom: isSpecial ? '1.5px solid #2563eb' : '1.5px solid var(--board-grid-line)',
                   paddingBottom: 2,
                   marginBottom: 4,
                   display: 'flex',
@@ -985,7 +1181,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   justifyContent: 'space-between'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                    <span style={{ textDecoration: 'underline' }}>{category}</span>
+                    <span style={{ textDecoration: 'underline' }}>{isSpecial ? 'Special' : category}</span>
                     <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>({items.length})</span>
                   </div>
 
@@ -1087,6 +1283,11 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       title={`Click to view/edit details for ${item.name}`}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        {isSpecial && (
+                          <span className="atypical-time-badge">
+                            {item.timeEstimate || '2p'}
+                          </span>
+                        )}
                         <span>{item.name}</span>
                         {item.role && (
                           <span

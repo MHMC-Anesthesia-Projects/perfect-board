@@ -1,5 +1,73 @@
 [
   {
+    "id": "audit_1790898770292_5xxp0",
+    "timestamp": "2026-10-01T23:52:50.292Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Abigail Hughes",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790898764864_lw64c",
+    "timestamp": "2026-10-01T23:52:44.864Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Kev Chen",
+    "locationName": "MAIN OR Room 6",
+    "details": "Moved from Bullpen -> MAIN OR Room 6"
+  },
+  {
+    "id": "audit_1790898758576_7p3h8",
+    "timestamp": "2026-10-01T23:52:38.576Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Eny Ndujiuba",
+    "locationName": "MAIN OR Room 8",
+    "details": "Moved from Bullpen -> MAIN OR Room 8"
+  },
+  {
+    "id": "audit_1790898755002_zcgdn",
+    "timestamp": "2026-10-01T23:52:35.002Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Eny Ndujiuba",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790898739045_8snxf",
+    "timestamp": "2026-10-01T23:52:19.045Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Megan McGuire",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Room 6 -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790898697580_j8gkl",
+    "timestamp": "2026-10-01T23:51:37.580Z",
+    "actionType": "RUNNER_SLOT_REMOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "9th Floor",
+    "details": "Removed runner slot \"RUNNER 1\" from 9th Floor"
+  },
+  {
+    "id": "audit_1790898695778_gwb64",
+    "timestamp": "2026-10-01T23:51:35.778Z",
+    "actionType": "RUNNER_SLOT_ADDED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "9th Floor",
+    "details": "Added new runner slot \"RUNNER 1\" to 9th Floor"
+  },
+  {
     "id": "audit_1790897294532_1un00",
     "timestamp": "2026-10-01T23:28:14.532Z",
     "actionType": "SCRAPER_SYNCED",

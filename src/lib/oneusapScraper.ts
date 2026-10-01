@@ -1,4 +1,4 @@
-import { ScraperPreviewResult, ScrapedWorkingStaffItem, StaffCredential } from '@/types/whiteboard';
+import { ScraperPreviewResult, ScrapedWorkingStaffItem, StaffCredential, UniqueScheduleRule } from '@/types/whiteboard';
 
 // Verified hospital names dictionary for USAP Houston network
 export const KNOWN_FACILITIES: Record<string, { code: string; fullCode: string; name: string }> = {
@@ -156,7 +156,7 @@ export interface ParseOneUsapResult {
   workingStaff: ScrapedWorkingStaffItem[];
   departureCandidates: Array<{
     name: string;
-    category: 'post_call' | 'non_call';
+    category: 'post_call' | 'special' | 'non_call';
     shift?: string;
     facility: string;
     qgendaAbbr: string;
@@ -203,21 +203,40 @@ export interface ParseOneUsapResult {
  * Handles cases where e.g. HirschDou or ChuanJos or BaerenstecheJoh have a late shift (5p, 4p, 3p)
  * indicated in either the departure table or embedded in room link tags [5p], [4p], [3p].
  */
-function resolveEffectiveShift(departureShift?: string, roomTag?: string, qgendaAbbr?: string): string {
+function resolveEffectiveShift(
+  departureShift?: string,
+  roomTag?: string,
+  qgendaAbbr?: string,
+  providerLastName?: string,
+  uniqueSchedules?: UniqueScheduleRule[]
+): string {
   const dShift = (departureShift || '').trim();
   const rTag = (roomTag || '').trim();
   const cleanAbbr = (qgendaAbbr || '').replace(/\[.*?\]/g, '').toLowerCase().trim();
+  const cleanLast = (providerLastName || '').toLowerCase().trim();
 
   // If known scheduled late providers are working (not PTO / RDO / Off / Vacation):
   if (!isOffShift(dShift) && !isOffShift(rTag)) {
-    // Dr. Hirsch and Dr. Baerenstecher work until 5p everyday when working
-    if (cleanAbbr.includes('hirsch') || cleanAbbr.includes('baerensteche')) {
-      return '5p';
+    // 1. Check against configurable Unique Schedule rules first
+    if (uniqueSchedules && uniqueSchedules.length > 0) {
+      const matchedRule = uniqueSchedules.find(rule => {
+        if (!rule.active) return false;
+        const rName = rule.providerName.toLowerCase().trim();
+        const rAbbr = (rule.qgendaAbbr || '').replace(/\[.*?\]/g, '').toLowerCase().trim();
+        return (
+          (rAbbr && cleanAbbr.includes(rAbbr)) ||
+          (rName && (cleanLast === rName || cleanAbbr.includes(rName)))
+        );
+      });
+      if (matchedRule) {
+        return matchedRule.fixedShift;
+      }
     }
-    // Dr. Chuan works until 4p everyday when working
-    if (cleanAbbr.includes('chuan')) {
-      return '4p';
-    }
+
+    // 2. Default group rules if uniqueSchedules was not passed
+    if (cleanAbbr.includes('hirsch') || cleanAbbr.includes('baerensteche')) return '5p';
+    if (cleanAbbr.includes('chuan')) return '4p';
+    if (cleanAbbr.includes('gunn') || cleanAbbr.includes('martinez') || cleanAbbr.includes('hiller')) return '3p';
   }
 
   if (!dShift && !rTag) return '';
@@ -242,7 +261,8 @@ function resolveEffectiveShift(departureShift?: string, roomTag?: string, qgenda
 
 export function parseOneUsapHtml(
   htmlContent: string,
-  selectedFacilities: string[] = DEFAULT_FACILITIES
+  selectedFacilities: string[] = DEFAULT_FACILITIES,
+  uniqueSchedules?: UniqueScheduleRule[]
 ): ParseOneUsapResult {
   // Normalize selected facilities list
   const activeFacilities = selectedFacilities && selectedFacilities.length > 0
@@ -411,7 +431,7 @@ export function parseOneUsapHtml(
     const phone = phoneBook.get(qgendaAbbr) || '(555) 000-0000';
     const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr);
+    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
 
     workingStaffMap.set(cleanId, {
       id: `staff_oneusap_doc_${cleanId}`,
@@ -460,7 +480,7 @@ export function parseOneUsapHtml(
 
     const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr);
+    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
 
     workingStaffMap.set(cleanId, {
       id: `staff_oneusap_anes_${cleanId}`,
@@ -491,7 +511,7 @@ export function parseOneUsapHtml(
     const formatted = formatProviderName(rawName);
     const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr);
+    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
     const upperShift = effectiveShift.toUpperCase();
 
     let facilityLabel = 'MHMC';
@@ -518,23 +538,27 @@ export function parseOneUsapHtml(
       !p.startsWith('POST') && !p.startsWith('PRE')
     );
 
-    // If doctor is on active call (e.g. Dr. Lu with "C1,OB"), do not include them in the non-call departure list
+    // If doctor is on active call (e.g. Dr. Lu with "C1,OB"), do not include them in the departure list
     if (!isPostCall && isActiveCall) {
       return;
     }
 
-    // If doctor is scheduled for a late shift (e.g. 4p, 5p, 7p, 8p, Night, etc.), do not include in non-call departure list
-    const isLateDoc = /4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(upperShift) ||
-      upperShift === '4P' || upperShift === '5P' || upperShift === '7P' || upperShift === '8P';
+    // Fixed departure time rule:
+    // If doctor is scheduled for a late shift (3p, 4p, 5p, 7p, 8p, Night, etc.), do not include in departure list
+    const isLateDoc = /3p|4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(upperShift) ||
+      upperShift === '3P' || upperShift === '4P' || upperShift === '5P' || upperShift === '7P' || upperShift === '8P';
     if (!isPostCall && isLateDoc) {
       return;
     }
+
+    // Check for atypical departure time (e.g. 2p, 1p, 1:30p)
+    const isAtypicalTime = /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(upperShift) && !isLateDoc;
 
     const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
 
     rawDepartureCandidates.push({
       name: formatted.lastName.toUpperCase(),
-      category: isPostCall ? 'post_call' : 'non_call',
+      category: isPostCall ? 'post_call' : isAtypicalTime ? 'special' : 'non_call',
       shift: effectiveShift || undefined,
       facility: facilityLabel,
       qgendaAbbr,
@@ -605,17 +629,20 @@ export function parseOneUsapHtml(
     }
   });
 
-  // Sort Departure Candidates by orderNumber ascending:
-  // Post-Call doctors in ascending orderNumber, followed by Non-Call doctors in ascending orderNumber
+  // Sort Departure Candidates: Post-Call -> Special (atypical times) -> Non-Call
   const sortedPostCall = rawDepartureCandidates
     .filter(d => d.category === 'post_call')
+    .sort((a, b) => (a.orderNumber ?? 999) - (b.orderNumber ?? 999));
+
+  const sortedSpecial = rawDepartureCandidates
+    .filter(d => d.category === 'special')
     .sort((a, b) => (a.orderNumber ?? 999) - (b.orderNumber ?? 999));
 
   const sortedNonCall = rawDepartureCandidates
     .filter(d => d.category === 'non_call')
     .sort((a, b) => (a.orderNumber ?? 999) - (b.orderNumber ?? 999));
 
-  const departureCandidates = [...sortedPostCall, ...sortedNonCall];
+  const departureCandidates = [...sortedPostCall, ...sortedSpecial, ...sortedNonCall];
 
   // 9. Build Late List Candidates (CRNAs and Docs with 3p, 4p, 5p, 7p, 8p, Night)
   const lateCandidates: ParseOneUsapResult['lateCandidates'] = [];
@@ -631,7 +658,7 @@ export function parseOneUsapHtml(
     const formatted = formatProviderName(rawName);
     const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr);
+    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
     const upperShift = effectiveShift.toUpperCase();
 
     let facilityLabel = 'MHMC';
@@ -647,6 +674,10 @@ export function parseOneUsapHtml(
     else if (upperShift.includes('7P-7A') || upperShift.includes('NIGHT')) timeCat = '7p-7a';
     else if (upperShift.includes('7P')) timeCat = '7p';
     else if (upperShift.includes('8P')) timeCat = '8p';
+    else if (role === 'CRNA' && /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(upperShift)) {
+      // If a CRNA has an atypical departure time (e.g. 2p), show in 'Special' section above 4p in Late list
+      timeCat = 'special';
+    }
 
     if (timeCat) {
       const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
@@ -665,8 +696,16 @@ export function parseOneUsapHtml(
   targetDocs.forEach(d => checkLate(d.rawName, d.facility, d.shift, 'MD', d.orderNumber));
   targetAnes.forEach(a => checkLate(a.rawName, a.facility, a.shift, 'CRNA', a.orderNumber));
 
-  // Sort late list candidates: 3p -> 4p -> 5p -> 7p -> 8p -> 7p-7a, and within each category by orderNumber
-  const TIME_ORDER: Record<string, number> = { '3p': 1, '4p': 2, '5p': 3, '7p': 4, '8p': 5, '7p-7a': 6 };
+  // Sort late list candidates: 3p -> special -> 4p -> 5p -> 7p -> 8p -> 7p-7a, and within each category by orderNumber
+  const TIME_ORDER: Record<string, number> = {
+    '3p': 1,
+    'special': 2,
+    '4p': 3,
+    '5p': 4,
+    '7p': 5,
+    '8p': 6,
+    '7p-7a': 7
+  };
   lateCandidates.sort((a, b) => {
     const timeDiff = (TIME_ORDER[a.timeCategory] || 99) - (TIME_ORDER[b.timeCategory] || 99);
     if (timeDiff !== 0) return timeDiff;
@@ -709,6 +748,7 @@ export async function fetchAndScrapeOneUsap(options: {
   password?: string;
   date?: string;
   facilities?: string[];
+  uniqueSchedules?: UniqueScheduleRule[];
 }): Promise<ScraperPreviewResult> {
   const targetDate = options.date || new Date().toISOString().split('T')[0];
   let targetUrl = options.portalUrl || 'https://www.oneusap.com/assignments';
@@ -788,7 +828,7 @@ export async function fetchAndScrapeOneUsap(options: {
       };
     }
 
-    const parsed = parseOneUsapHtml(html, selectedFacilities);
+    const parsed = parseOneUsapHtml(html, selectedFacilities, options.uniqueSchedules);
 
     return {
       success: true,

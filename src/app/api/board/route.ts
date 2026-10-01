@@ -493,6 +493,23 @@ export async function POST(req: NextRequest) {
         });
       }
 
+      // 5d. Save Unique Schedules (Configurable Departure & Late Rules)
+      case 'SAVE_UNIQUE_SCHEDULES': {
+        if (currentUserRole !== 'superuser' && currentUserRole !== 'board_runner') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const rules = payload.uniqueSchedules || [];
+        state.uniqueSchedules = rules;
+        saveBoardState(state);
+        recordAuditLog({
+          actionType: 'UNIQUE_SCHEDULE_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          details: `Updated unique schedule rules (${rules.length} configured rules)`
+        });
+        return NextResponse.json({ success: true, state });
+      }
+
       // 6. Toggle Departure Strikethrough (Mark doc as departed/left)
       case 'TOGGLE_DEPARTURE_STRUCK': {
         const { id } = payload;
@@ -545,47 +562,96 @@ export async function POST(req: NextRequest) {
           state.staff.push(s);
         }
 
-        // Synchronize Late List
+        // Classify shift: standard late (>= 3p) vs atypical (e.g. 2p, 1p)
         const upperShift = (shift || '').toUpperCase().trim();
-        const isLateShift = /^[0-9]+[PA]?$|^(?:3P|4P|5P|7P|8P|7P-7A|11A-11P)/i.test(upperShift) ||
+        const isStandardLate = /^[0-9]+[PA]?$|^(?:3P|4P|5P|7P|8P|7P-7A|11A-11P)/i.test(upperShift) ||
           upperShift.includes('7P') || upperShift.includes('4P') || upperShift.includes('5P') || upperShift.includes('3P') || upperShift.includes('8P');
+        const isAtypicalTime = /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(upperShift) && !isStandardLate;
 
         // Synchronize Departure List
-        const depItem = state.departureList.find(d =>
+        let depItem = state.departureList.find(d =>
           d.id === staffId ||
           d.name.toUpperCase() === targetLastName.toUpperCase() ||
           (s?.qgendaAbbr && d.qgendaAbbr?.toUpperCase() === s.qgendaAbbr.toUpperCase())
         );
-        if (depItem) {
-          if (isLateShift && depItem.category === 'non_call') {
-            // Late doctors (e.g. 4p, 5p) must not exist in the non-call area of departure list
-            state.departureList = state.departureList.filter(d => d.id !== depItem.id);
-            const postList = state.departureList.filter(d => d.category === 'post_call');
-            const nonList = state.departureList.filter(d => d.category === 'non_call').map((d, i) => ({ ...d, orderIndex: postList.length + i }));
-            state.departureList = [...postList, ...nonList];
+
+        if (targetCreds === 'MD') {
+          if (isStandardLate) {
+            // Standard late doctors (3p, 4p, 5p, etc.) must not exist in departure list
+            if (depItem) {
+              state.departureList = state.departureList.filter(d => d.id !== depItem!.id);
+            }
+          } else if (isAtypicalTime) {
+            // MD with atypical departure time (e.g. 2p) goes to "Special" section between post-call and non-call
+            if (depItem) {
+              depItem.category = 'special';
+              depItem.timeEstimate = shift;
+            } else {
+              state.departureList.push({
+                id: `dep_${Date.now()}`,
+                name: targetLastName.toUpperCase(),
+                orderIndex: state.departureList.length,
+                category: 'special',
+                timeEstimate: shift,
+                qgendaAbbr: s?.qgendaAbbr
+              });
+            }
           } else {
-            depItem.timeEstimate = shift;
+            // Regular non-call or post-call doctor
+            if (depItem) {
+              if (depItem.category === 'special') depItem.category = 'non_call';
+              depItem.timeEstimate = shift;
+            } else {
+              state.departureList.push({
+                id: `dep_${Date.now()}`,
+                name: targetLastName.toUpperCase(),
+                orderIndex: state.departureList.length,
+                category: 'non_call',
+                timeEstimate: shift,
+                qgendaAbbr: s?.qgendaAbbr
+              });
+            }
+          }
+        } else {
+          // CRNAs belong in Late list, not in Departure list
+          if (depItem) {
+            state.departureList = state.departureList.filter(d => d.id !== depItem!.id);
           }
         }
 
+        // Re-index departure list: Post-Call -> Special -> Non-Call
+        const postList = state.departureList.filter(d => d.category === 'post_call');
+        const specList = state.departureList.filter(d => d.category === 'special');
+        const nonList = state.departureList.filter(d => d.category === 'non_call');
+        state.departureList = [
+          ...postList.map((d, i) => ({ ...d, orderIndex: i })),
+          ...specList.map((d, i) => ({ ...d, orderIndex: postList.length + i })),
+          ...nonList.map((d, i) => ({ ...d, orderIndex: postList.length + specList.length + i }))
+        ];
+
+        // Synchronize Late List
         const lateIdx = state.latesList.findIndex(l =>
           l.id === staffId ||
           l.name.toUpperCase() === targetLastName.toUpperCase()
         );
 
+        const shouldBeInLates = isStandardLate || (targetCreds === 'CRNA' && isAtypicalTime);
+        const lateCategory = isStandardLate ? shift.toLowerCase() : (isAtypicalTime ? 'special' : '');
+
         if (lateIdx !== -1) {
-          if (isLateShift) {
-            state.latesList[lateIdx].timeCategory = shift.toLowerCase();
+          if (shouldBeInLates) {
+            state.latesList[lateIdx].timeCategory = lateCategory;
+            state.latesList[lateIdx].timeEstimate = isAtypicalTime ? shift : undefined;
           } else {
-            // Shift changed to regular daytime (e.g. 'Day')
             state.latesList.splice(lateIdx, 1);
           }
-        } else if (isLateShift) {
+        } else if (shouldBeInLates) {
           state.latesList.push({
             id: `late_${s.id}_${Date.now()}`,
             name: targetLastName.toUpperCase(),
-            timeCategory: shift.toLowerCase(),
+            timeCategory: lateCategory,
             role: targetCreds === 'MD' ? 'MD' : 'CRNA',
+            timeEstimate: isAtypicalTime ? shift : undefined,
             orderIndex: state.latesList.length
           });
         }

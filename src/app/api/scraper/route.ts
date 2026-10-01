@@ -42,7 +42,8 @@ export async function POST(req: NextRequest) {
           portalUrl: activeUrl,
           password: activePass,
           date: targetDate,
-          facilities: activeFacilities
+          facilities: activeFacilities,
+          uniqueSchedules: state.uniqueSchedules
         });
 
         return NextResponse.json({
@@ -124,7 +125,8 @@ export async function POST(req: NextRequest) {
           portalUrl: state.scraperConfig.portalUrl,
           password: state.scraperConfig.password || '321usap',
           date: targetDate,
-          facilities: activeFacilities
+          facilities: activeFacilities,
+          uniqueSchedules: state.uniqueSchedules
         });
 
         if (!scraped.success) {
@@ -136,7 +138,7 @@ export async function POST(req: NextRequest) {
           }, { status: 502 });
         }
 
-        // Apply Departure List
+        // Apply Departure List: Post-Call -> Special (atypical times e.g. 2p) -> Non-Call
         const postCallDeps: DepartureItem[] = scraped.departureCandidates
           .filter(c => c.category === 'post_call')
           .map((c, i) => ({
@@ -150,12 +152,25 @@ export async function POST(req: NextRequest) {
             assignedRoom: c.roomAssignment
           }));
 
+        const specialDeps: DepartureItem[] = scraped.departureCandidates
+          .filter(c => c.category === 'special')
+          .map((c, i) => ({
+            id: `dep_spec_${i}_${Date.now()}`,
+            name: c.name,
+            orderIndex: postCallDeps.length + i,
+            category: 'special' as const,
+            timeEstimate: c.shift,
+            orderNumber: c.orderNumber,
+            qgendaAbbr: c.qgendaAbbr,
+            assignedRoom: c.roomAssignment
+          }));
+
         const nonCallDeps: DepartureItem[] = scraped.departureCandidates
           .filter(c => c.category === 'non_call')
           .map((c, i) => ({
             id: `dep_non_${i}_${Date.now()}`,
             name: c.name,
-            orderIndex: postCallDeps.length + i,
+            orderIndex: postCallDeps.length + specialDeps.length + i,
             category: 'non_call' as const,
             timeEstimate: c.shift,
             orderNumber: c.orderNumber,
@@ -163,7 +178,7 @@ export async function POST(req: NextRequest) {
             assignedRoom: c.roomAssignment
           }));
 
-        state.departureList = [...postCallDeps, ...nonCallDeps];
+        state.departureList = [...postCallDeps, ...specialDeps, ...nonCallDeps];
 
         // Apply Call Team List
         if (scraped.callTeamCandidates.length > 0) {
@@ -186,7 +201,8 @@ export async function POST(req: NextRequest) {
           orderNumber: l.orderNumber,
           role: l.role,
           qgendaAbbr: l.qgendaAbbr,
-          assignedRoom: l.roomAssignment
+          assignedRoom: l.roomAssignment,
+          timeEstimate: (l as any).shift || (l.timeCategory === 'special' ? (l as any).shift : undefined)
         }));
 
         // Apply Working Staff Roster for Available Unassigned Staff

@@ -182,6 +182,14 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
     return boardState.departments.find(d => d.id === deptId) || boardState.departments[0];
   }, [boardState.departments, selectedView]);
 
+  // Helper for atypical departure time
+  const isAtypicalDepartureTime = (t?: string) => {
+    if (!t) return false;
+    const clean = t.toLowerCase().trim();
+    if (/3p|4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(clean)) return false;
+    return /^\s*([1-9]|1[0-2])(?::[0-5][0-9])?\s*(?:a|p|am|pm)?\s*$/i.test(clean);
+  };
+
   // Departure list partitioned
   const postCallDepartures = useMemo(() => {
     return (boardState.departureList || [])
@@ -189,25 +197,40 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
       .sort((a, b) => a.orderIndex - b.orderIndex);
   }, [boardState.departureList]);
 
+  const specialDepartures = useMemo(() => {
+    return (boardState.departureList || [])
+      .filter(d => {
+        if (d.category === 'special') return true;
+        if (d.category === 'post_call') return false;
+        const matchedStaff = (boardState.staff || []).find(s =>
+          s.lastName.toUpperCase() === d.name.toUpperCase() ||
+          (d.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === d.qgendaAbbr.toUpperCase())
+        );
+        return isAtypicalDepartureTime(d.timeEstimate) || isAtypicalDepartureTime(matchedStaff?.shift);
+      })
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+  }, [boardState.departureList, boardState.staff]);
+
   const nonCallDepartures = useMemo(() => {
     return (boardState.departureList || [])
       .filter(d => {
-        if (d.category === 'post_call') return false;
+        if (d.category === 'post_call' || d.category === 'special') return false;
         const timeEst = (d.timeEstimate || '').toLowerCase().trim();
         const matchedStaff = (boardState.staff || []).find(s =>
           s.lastName.toUpperCase() === d.name.toUpperCase() ||
           (d.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === d.qgendaAbbr.toUpperCase())
         );
         const staffShift = (matchedStaff?.shift || '').toLowerCase().trim();
-        const isLate = /4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(timeEst) || /4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(staffShift);
+        if (isAtypicalDepartureTime(timeEst) || isAtypicalDepartureTime(staffShift)) return false;
+        const isLate = /3p|4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(timeEst) || /3p|4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(staffShift);
         if (isLate) return false;
         return true;
       })
       .sort((a, b) => a.orderIndex - b.orderIndex);
   }, [boardState.departureList, boardState.staff]);
 
-  // Lates grouped by shift category
-  const timeCategories = ['3p', '4p', '5p', '7p', '8p', '7p-7a'];
+  // Lates grouped by shift category (Special placed above 4p)
+  const timeCategories = ['3p', 'special', '4p', '5p', '7p', '8p', '7p-7a'];
   const latesGrouped = useMemo(() => {
     const grouped: Record<string, LateShiftItem[]> = {};
     timeCategories.forEach(cat => {
@@ -547,6 +570,42 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
               )}
             </div>
 
+            {/* Special Atypical Departures (e.g. 2p) */}
+            {specialDepartures.length > 0 && (
+              <>
+                <div className="mobile-section-label" style={{ marginTop: 16 }}>
+                  Special Departures ({specialDepartures.length})
+                </div>
+                <div className="mobile-card mobile-list-card">
+                  {specialDepartures.map((item, idx) => {
+                    return (
+                      <div
+                        key={item.id}
+                        className={`mobile-departure-row ${item.departed ? 'departed-struck' : ''}`}
+                        onClick={() => onToggleDepartureStruck(item.id)}
+                      >
+                        <div className="mobile-order-badge">#{idx + 1}</div>
+                        <div className="mobile-departure-info">
+                          <span className="atypical-time-badge" style={{ marginRight: 6 }}>
+                            {item.timeEstimate || '2p'}
+                          </span>
+                          <span className="mobile-departure-name">{item.name}</span>
+                          {item.role && <span className="mobile-departure-role">{item.role}</span>}
+                        </div>
+                        <button
+                          type="button"
+                          className={`mobile-strike-toggle-btn ${item.departed ? 'checked' : ''}`}
+                          title={item.departed ? 'Mark Not Departed' : 'Mark Departed'}
+                        >
+                          {item.departed ? <Check size={14} /> : <Strikethrough size={14} />}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
             {/* Non-Call Departures */}
             <div className="mobile-section-label" style={{ marginTop: 16 }}>
               Non-Call Departures ({nonCallDepartures.length})
@@ -683,10 +742,14 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
             <div className="mobile-lates-container">
               {timeCategories.map(cat => {
                 const items = latesGrouped[cat] || [];
+                if (cat === 'special' && items.length === 0) return null;
+                const isSpecial = cat === 'special';
                 return (
                   <div key={cat} className="mobile-card mobile-lates-group-card">
                     <div className="mobile-lates-header">
-                      <span className="mobile-lates-time-pill">{cat.toUpperCase()} SHIFT</span>
+                      <span className="mobile-lates-time-pill" style={isSpecial ? { background: '#2563eb', color: '#fff' } : undefined}>
+                        {isSpecial ? 'SPECIAL SHIFT' : `${cat.toUpperCase()} SHIFT`}
+                      </span>
                       <span className="mobile-lates-count">{items.length} Staff</span>
                     </div>
 
@@ -696,6 +759,11 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                       ) : (
                         items.map(item => (
                           <div key={item.id} className="mobile-late-staff-chip">
+                            {isSpecial && (
+                              <span className="atypical-time-badge" style={{ marginRight: 4 }}>
+                                {item.timeEstimate || '2p'}
+                              </span>
+                            )}
                             <span className="mobile-late-chip-name">{item.name}</span>
                             {item.role && <span className="mobile-late-chip-role">{item.role}</span>}
                           </div>

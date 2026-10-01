@@ -74,9 +74,9 @@ export interface DepartureItem {
   name: string;
   orderIndex: number;
   departed?: boolean; // When true, struck through on the board
-  category?: 'post_call' | 'non_call'; // 'post_call' or 'non_call' (defaults to 'non_call')
+  category?: 'post_call' | 'special' | 'non_call'; // 'post_call', 'special' (atypical times), or 'non_call'
   role?: string;
-  timeEstimate?: string;
+  timeEstimate?: string; // e.g. "2p", "1:30p"
   notes?: string;
   orderNumber?: number;
   qgendaAbbr?: string;
@@ -86,13 +86,25 @@ export interface DepartureItem {
 export interface LateShiftItem {
   id: string;
   name: string;
-  timeCategory: string; // e.g. "4p", "5p", "7p", "8p", "7p-7a"
+  timeCategory: string; // e.g. "special", "3p", "4p", "5p", "7p", "8p", "7p-7a"
   orderIndex: number;
   notes?: string;
   orderNumber?: number;
   qgendaAbbr?: string;
   assignedRoom?: string;
   role?: string;
+  timeEstimate?: string; // Atypical time e.g. "2p"
+}
+
+export interface UniqueScheduleRule {
+  id: string;
+  providerName: string;
+  qgendaAbbr?: string;
+  fixedShift: string; // e.g. "5p", "4p", "3p", "2p", "7p-7a"
+  role: 'MD' | 'CRNA' | 'ANY';
+  facilityCondition?: string;
+  active: boolean;
+  notes?: string;
 }
 
 export interface AuditLogEntry {
@@ -120,7 +132,8 @@ export interface AuditLogEntry {
     | 'LATES_UPDATED'
     | 'CALL_TEAM_UPDATED'
     | 'BULLPEN_UPDATED'
-    | 'AUTO_ASSIGNED_ROOMS';
+    | 'AUTO_ASSIGNED_ROOMS'
+    | 'UNIQUE_SCHEDULE_UPDATED';
   performedBy: string;
   userRole: UserRole;
   targetName?: string;
@@ -177,7 +190,7 @@ export interface ScraperPreviewResult {
   workingStaff: ScrapedWorkingStaffItem[];
   departureCandidates: Array<{
     name: string;
-    category: 'post_call' | 'non_call';
+    category: 'post_call' | 'special' | 'non_call';
     shift?: string;
     facility: string;
     qgendaAbbr?: string;
@@ -187,6 +200,7 @@ export interface ScraperPreviewResult {
   lateCandidates: Array<{
     name: string;
     timeCategory: string;
+    timeEstimate?: string;
     facility: string;
     role: string;
     qgendaAbbr?: string;
@@ -231,4 +245,5 @@ export interface BoardState {
   latesList: LateShiftItem[];
   latesNotes: string;
   scraperConfig: ScraperConfig;
+  uniqueSchedules?: UniqueScheduleRule[];
 }

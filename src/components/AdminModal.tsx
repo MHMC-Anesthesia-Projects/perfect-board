@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential, RunnerSlot, ScraperPreviewResult } from '@/types/whiteboard';
+import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential, RunnerSlot, ScraperPreviewResult, UniqueScheduleRule } from '@/types/whiteboard';
 import { 
   Users, UserCheck, ShieldCheck, Layout, Globe, 
   Plus, Trash2, Edit2, Key, RefreshCw, X, Check, RotateCcw, AlertTriangle,
-  Eye, Search, Phone, Building2, CheckCircle2, ChevronRight, Sparkles
+  Eye, Search, Phone, Building2, CheckCircle2, ChevronRight, Sparkles, Clock
 } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
@@ -16,6 +16,7 @@ interface AdminModalProps {
   departments: Department[];
   staff: Staff[];
   scraperConfig: ScraperConfig;
+  uniqueSchedules?: UniqueScheduleRule[];
   onSaveDepartments: (departments: Department[]) => void;
   onResetToPhotoDefault: () => void;
   onRefreshData: () => void;
@@ -44,6 +45,79 @@ const NETWORK_FACILITIES = [
   { code: 'TCPFW', name: 'TCH Pavilion for Women' }
 ];
 
+const DEFAULT_UNIQUE_SCHEDULES: UniqueScheduleRule[] = [
+  {
+    id: 'usr_hirsch',
+    providerName: 'HIRSCH',
+    qgendaAbbr: 'HIRSCH',
+    fixedShift: '5p',
+    role: 'MD',
+    facilityCondition: 'MHMC',
+    active: true,
+    notes: 'Fixed 5p late doctor; excluded from departure list, routed to 5p late list'
+  },
+  {
+    id: 'usr_baerenstecher',
+    providerName: 'BAERENSTECHER',
+    qgendaAbbr: 'BAEREN',
+    fixedShift: '5p',
+    role: 'MD',
+    facilityCondition: 'MHMC',
+    active: true,
+    notes: 'Fixed 5p late doctor; excluded from departure list, routed to 5p late list'
+  },
+  {
+    id: 'usr_chuan',
+    providerName: 'CHUAN',
+    qgendaAbbr: 'CHUA',
+    fixedShift: '4p',
+    role: 'MD',
+    facilityCondition: 'MHMC',
+    active: true,
+    notes: 'Fixed 4p late doctor; excluded from departure list, routed to 4p late list'
+  },
+  {
+    id: 'usr_gunn',
+    providerName: 'GUNN',
+    qgendaAbbr: 'GUNN',
+    fixedShift: '3p',
+    role: 'MD',
+    facilityCondition: 'MHMC',
+    active: true,
+    notes: 'Day doctor works 3p; excluded from departure list, routed to 3p late list'
+  },
+  {
+    id: 'usr_martinez',
+    providerName: 'MARTINEZ R',
+    qgendaAbbr: 'MARTR',
+    fixedShift: '3p',
+    role: 'MD',
+    facilityCondition: 'MHMC',
+    active: true,
+    notes: 'Day doctor works 3p; excluded from departure list, routed to 3p late list'
+  },
+  {
+    id: 'usr_hiller',
+    providerName: 'HILLER',
+    qgendaAbbr: 'HILLER',
+    fixedShift: '3p',
+    role: 'MD',
+    facilityCondition: 'MHMC',
+    active: true,
+    notes: 'Day doctor works 3p; excluded from departure list, routed to 3p late list'
+  },
+  {
+    id: 'usr_shirak',
+    providerName: 'SHIRAK',
+    qgendaAbbr: 'SHIRAK',
+    fixedShift: '2p',
+    role: 'MD',
+    facilityCondition: 'MHMC',
+    active: true,
+    notes: 'Atypical 2pm departure; displays blue [2p] badge in Special departure section'
+  }
+];
+
 export const AdminModal: React.FC<AdminModalProps> = ({
   isOpen,
   onClose,
@@ -51,11 +125,66 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   departments,
   staff,
   scraperConfig,
+  uniqueSchedules,
   onSaveDepartments,
   onResetToPhotoDefault,
   onRefreshData
 }) => {
-  const [activeTab, setActiveTab] = useState<'users' | 'staff' | 'layout' | 'scraper'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'staff' | 'layout' | 'scraper' | 'unique_schedules'>('users');
+
+  // --- Unique Schedules State ---
+  const [uniqueRules, setUniqueRules] = useState<UniqueScheduleRule[]>([]);
+  const [rulesSearch, setRulesSearch] = useState('');
+  const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
+  const [isAddingRule, setIsAddingRule] = useState(false);
+  const [ruleForm, setRuleForm] = useState<Partial<UniqueScheduleRule>>({
+    providerName: '',
+    qgendaAbbr: '',
+    role: 'MD',
+    fixedShift: '3p',
+    facilityCondition: 'MHMC',
+    active: true,
+    notes: ''
+  });
+  const [isSavingRules, setIsSavingRules] = useState(false);
+  const [rulesStatusMsg, setRulesStatusMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    if (uniqueSchedules && uniqueSchedules.length > 0) {
+      setUniqueRules(uniqueSchedules);
+    } else if (isOpen && uniqueRules.length === 0) {
+      setUniqueRules(DEFAULT_UNIQUE_SCHEDULES);
+    }
+  }, [uniqueSchedules, isOpen]);
+
+  const handleSaveUniqueRules = async (rulesToSave: UniqueScheduleRule[]) => {
+    setIsSavingRules(true);
+    setRulesStatusMsg(null);
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SAVE_UNIQUE_SCHEDULES',
+          userId: currentUser.id,
+          rules: rulesToSave
+        })
+      });
+      if (res.ok) {
+        setUniqueRules(rulesToSave);
+        setRulesStatusMsg({ text: 'Unique schedules successfully saved!', type: 'success' });
+        onRefreshData();
+        setTimeout(() => setRulesStatusMsg(null), 3500);
+      } else {
+        const err = await res.json();
+        setRulesStatusMsg({ text: `Failed to save: ${err.error || 'Server error'}`, type: 'error' });
+      }
+    } catch (err: any) {
+      setRulesStatusMsg({ text: `Network error: ${err.message}`, type: 'error' });
+    } finally {
+      setIsSavingRules(false);
+    }
+  };
 
   const handleAddRunnerToDept = (deptId: string) => {
     const updated = departments.map(d => {
@@ -655,6 +784,24 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           >
             <Globe size={15} />
             <span>Portal Sync (QGenda/Amion)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('unique_schedules')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 14px',
+              borderRadius: 6,
+              background: activeTab === 'unique_schedules' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+              color: activeTab === 'unique_schedules' ? '#fff' : 'var(--text-primary)',
+              fontWeight: 700,
+              fontSize: 13
+            }}
+          >
+            <Clock size={15} />
+            <span>Unique Schedules ({uniqueRules.filter(r => r.active).length} Active)</span>
           </button>
         </div>
 
@@ -2325,6 +2472,637 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     Close Preview
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* ===================== TAB 5: UNIQUE SCHEDULES ===================== */}
+          {activeTab === 'unique_schedules' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Header Card */}
+              <div style={{
+                background: 'var(--surface-color)',
+                border: '1px solid var(--border-light)',
+                borderRadius: 8,
+                padding: '16px 20px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 12
+              }}>
+                <div style={{ maxWidth: 620 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <Clock size={18} color="var(--accent-primary)" />
+                    <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>Unique Schedule Rules</h3>
+                    <span style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: 12,
+                      background: 'rgba(37, 99, 235, 0.1)',
+                      color: 'var(--accent-primary)'
+                    }}>
+                      {uniqueRules.filter(r => r.active).length} Active Rules
+                    </span>
+                  </div>
+                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                    Define fixed shift overrides checked automatically during portal sync and daily auto-assign.
+                    Staff with fixed late shifts (<strong>3p, 4p, 5p, 7p</strong>) are kept off the non-call departure list and routed into late shifts.
+                    Providers with atypical departure times (e.g. <strong>2p</strong>) show a blue badge and are grouped under <strong>Special</strong>.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeleteModalState({
+                        isOpen: true,
+                        title: 'Restore Default Unique Rules',
+                        itemName: 'Default Hospital Shift Rules',
+                        itemCategory: 'Unique Schedules',
+                        message: 'This will reset your rules to the hospital standards (Hirsch 5p, Baerenstecher 5p, Chuan 4p, Gunn 3p, Martinez R 3p, Hiller 3p, Shirak 2p).',
+                        confirmButtonText: 'Reset to Defaults',
+                        onConfirm: () => {
+                          handleSaveUniqueRules(DEFAULT_UNIQUE_SCHEDULES);
+                          setDeleteModalState(null);
+                        }
+                      });
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '8px 12px',
+                      borderRadius: 6,
+                      background: 'var(--surface-hover)',
+                      border: '1px solid var(--border-light)',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: 'var(--text-secondary)',
+                      cursor: 'pointer'
+                    }}
+                    title="Reset to default hospital rules"
+                  >
+                    <RotateCcw size={13} />
+                    <span>Reset Defaults</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddingRule(true);
+                      setEditingRuleId(null);
+                      setRuleForm({
+                        providerName: '',
+                        qgendaAbbr: '',
+                        role: 'MD',
+                        fixedShift: '3p',
+                        facilityCondition: 'MHMC',
+                        active: true,
+                        notes: ''
+                      });
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '8px 16px',
+                      borderRadius: 6,
+                      background: 'var(--accent-primary)',
+                      color: '#fff',
+                      fontSize: 12,
+                      fontWeight: 800,
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Plus size={14} />
+                    <span>Add Unique Rule</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Status Message */}
+              {rulesStatusMsg && (
+                <div style={{
+                  padding: '10px 14px',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: rulesStatusMsg.type === 'success' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                  color: rulesStatusMsg.type === 'success' ? '#059669' : '#dc2626',
+                  border: `1px solid ${rulesStatusMsg.type === 'success' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
+                }}>
+                  {rulesStatusMsg.type === 'success' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+                  <span>{rulesStatusMsg.text}</span>
+                </div>
+              )}
+
+              {/* Rule Editor (Add or Edit) */}
+              {(isAddingRule || editingRuleId) && (
+                <div style={{
+                  background: 'var(--surface-color)',
+                  border: '2px solid var(--accent-primary)',
+                  borderRadius: 8,
+                  padding: 16,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 14
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 14 }}>
+                      <Sparkles size={16} color="var(--accent-primary)" />
+                      <span>{editingRuleId ? 'Edit Unique Schedule Rule' : 'Create Unique Schedule Rule'}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAddingRule(false);
+                        setEditingRuleId(null);
+                      }}
+                      style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 4, color: 'var(--text-secondary)' }}>
+                        Provider Last Name *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. HIRSCH, GUNN, MARTINEZ R"
+                        value={ruleForm.providerName || ''}
+                        onChange={(e) => setRuleForm(prev => ({ ...prev, providerName: e.target.value.toUpperCase() }))}
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: 6,
+                          border: '1px solid var(--border-light)',
+                          background: 'var(--surface-hover)',
+                          color: 'var(--text-primary)',
+                          fontWeight: 700,
+                          fontSize: 12
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 4, color: 'var(--text-secondary)' }}>
+                        QGenda / Schedule Abbr (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. HIRSCH, GUNN, MARTR"
+                        value={ruleForm.qgendaAbbr || ''}
+                        onChange={(e) => setRuleForm(prev => ({ ...prev, qgendaAbbr: e.target.value.toUpperCase() }))}
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: 6,
+                          border: '1px solid var(--border-light)',
+                          background: 'var(--surface-hover)',
+                          color: 'var(--text-primary)',
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: 12
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 4, color: 'var(--text-secondary)' }}>
+                        Provider Role
+                      </label>
+                      <select
+                        value={ruleForm.role || 'MD'}
+                        onChange={(e) => setRuleForm(prev => ({ ...prev, role: e.target.value as any }))}
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: 6,
+                          border: '1px solid var(--border-light)',
+                          background: 'var(--surface-hover)',
+                          color: 'var(--text-primary)',
+                          fontWeight: 700,
+                          fontSize: 12
+                        }}
+                      >
+                        <option value="MD">MD (Doctor)</option>
+                        <option value="CRNA">CRNA (Nurse Anesthetist)</option>
+                        <option value="ANY">ANY (Matches either)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 4, color: 'var(--text-secondary)' }}>
+                        Facility Condition
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="MHMC or leave blank for all"
+                        value={ruleForm.facilityCondition || ''}
+                        onChange={(e) => setRuleForm(prev => ({ ...prev, facilityCondition: e.target.value.toUpperCase() }))}
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: 6,
+                          border: '1px solid var(--border-light)',
+                          background: 'var(--surface-hover)',
+                          color: 'var(--text-primary)',
+                          fontSize: 12
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 6, color: 'var(--text-secondary)' }}>
+                      Fixed Shift / Departure Time *
+                    </label>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                      {['2p', '3p', '4p', '5p', '7p', '8p', '7p-7a'].map(shiftPreset => {
+                        const isSelected = ruleForm.fixedShift === shiftPreset;
+                        const is2p = shiftPreset === '2p';
+                        return (
+                          <button
+                            key={shiftPreset}
+                            type="button"
+                            onClick={() => setRuleForm(prev => ({ ...prev, fixedShift: shiftPreset }))}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: 6,
+                              fontSize: 12,
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                              border: isSelected ? '1px solid #2563eb' : '1px solid var(--border-light)',
+                              background: isSelected ? '#2563eb' : is2p ? 'rgba(37, 99, 235, 0.08)' : 'var(--surface-hover)',
+                              color: isSelected ? '#fff' : is2p ? '#2563eb' : 'var(--text-primary)'
+                            }}
+                          >
+                            {is2p ? '2p (Special)' : shiftPreset}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Or enter custom time (e.g. 1p, 1:30p, 2:30p)"
+                      value={ruleForm.fixedShift || ''}
+                      onChange={(e) => setRuleForm(prev => ({ ...prev, fixedShift: e.target.value.toLowerCase() }))}
+                      style={{
+                        width: '100%',
+                        padding: '8px 10px',
+                        borderRadius: 6,
+                        border: '1px solid var(--border-light)',
+                        background: 'var(--surface-hover)',
+                        color: 'var(--text-primary)',
+                        fontSize: 12
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 4, color: 'var(--text-secondary)' }}>
+                      Internal Notes
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Day doc works until 3p; keep out of departure list"
+                      value={ruleForm.notes || ''}
+                      onChange={(e) => setRuleForm(prev => ({ ...prev, notes: e.target.value }))}
+                      style={{
+                        width: '100%',
+                        padding: '8px 10px',
+                        borderRadius: 6,
+                        border: '1px solid var(--border-light)',
+                        background: 'var(--surface-hover)',
+                        color: 'var(--text-primary)',
+                        fontSize: 12
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                      <input
+                        type="checkbox"
+                        checked={ruleForm.active !== false}
+                        onChange={(e) => setRuleForm(prev => ({ ...prev, active: e.target.checked }))}
+                        style={{ accentColor: 'var(--accent-primary)' }}
+                      />
+                      <span>Active Rule (Checked on sync & whiteboard assignment)</span>
+                    </label>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 6, borderTop: '1px solid var(--border-light)' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAddingRule(false);
+                        setEditingRuleId(null);
+                      }}
+                      style={{
+                        padding: '7px 14px',
+                        borderRadius: 6,
+                        background: 'var(--surface-hover)',
+                        border: '1px solid var(--border-light)',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isSavingRules || !ruleForm.providerName?.trim() || !ruleForm.fixedShift?.trim()}
+                      onClick={() => {
+                        if (!ruleForm.providerName?.trim() || !ruleForm.fixedShift?.trim()) return;
+                        let updated: UniqueScheduleRule[];
+                        if (editingRuleId) {
+                          updated = uniqueRules.map(r => r.id === editingRuleId ? {
+                            ...r,
+                            providerName: ruleForm.providerName!.trim().toUpperCase(),
+                            qgendaAbbr: ruleForm.qgendaAbbr?.trim().toUpperCase(),
+                            role: ruleForm.role || 'MD',
+                            fixedShift: ruleForm.fixedShift!.trim().toLowerCase(),
+                            facilityCondition: ruleForm.facilityCondition?.trim().toUpperCase() || undefined,
+                            active: ruleForm.active !== false,
+                            notes: ruleForm.notes?.trim()
+                          } : r);
+                        } else {
+                          const newRule: UniqueScheduleRule = {
+                            id: `usr_${Date.now()}`,
+                            providerName: ruleForm.providerName!.trim().toUpperCase(),
+                            qgendaAbbr: ruleForm.qgendaAbbr?.trim().toUpperCase(),
+                            role: ruleForm.role || 'MD',
+                            fixedShift: ruleForm.fixedShift!.trim().toLowerCase(),
+                            facilityCondition: ruleForm.facilityCondition?.trim().toUpperCase() || undefined,
+                            active: ruleForm.active !== false,
+                            notes: ruleForm.notes?.trim()
+                          };
+                          updated = [...uniqueRules, newRule];
+                        }
+                        handleSaveUniqueRules(updated);
+                        setIsAddingRule(false);
+                        setEditingRuleId(null);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '7px 16px',
+                        borderRadius: 6,
+                        background: 'var(--accent-primary)',
+                        color: '#fff',
+                        fontSize: 12,
+                        fontWeight: 800,
+                        border: 'none',
+                        cursor: 'pointer',
+                        opacity: (!ruleForm.providerName?.trim() || !ruleForm.fixedShift?.trim()) ? 0.5 : 1
+                      }}
+                    >
+                      <Check size={14} />
+                      <span>{isSavingRules ? 'Saving...' : 'Save Rule'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Search Bar */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'var(--surface-color)',
+                border: '1px solid var(--border-light)',
+                borderRadius: 6,
+                padding: '6px 12px'
+              }}>
+                <Search size={15} color="var(--text-muted)" />
+                <input
+                  type="text"
+                  placeholder="Filter rules by provider name, abbreviation, or shift..."
+                  value={rulesSearch}
+                  onChange={(e) => setRulesSearch(e.target.value)}
+                  style={{
+                    flex: 1,
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: 12,
+                    color: 'var(--text-primary)'
+                  }}
+                />
+                {rulesSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setRulesSearch('')}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* Rules List Table */}
+              <div style={{
+                background: 'var(--surface-color)',
+                border: '1px solid var(--border-light)',
+                borderRadius: 8,
+                overflow: 'hidden'
+              }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 12 }}>
+                  <thead>
+                    <tr style={{ background: 'var(--surface-hover)', borderBottom: '1px solid var(--border-light)' }}>
+                      <th style={{ padding: '10px 14px', fontWeight: 800, color: 'var(--text-secondary)', width: 60 }}>Status</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 800, color: 'var(--text-secondary)' }}>Provider Name</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 800, color: 'var(--text-secondary)' }}>Abbr</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 800, color: 'var(--text-secondary)' }}>Role</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 800, color: 'var(--text-secondary)' }}>Fixed Shift</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 800, color: 'var(--text-secondary)' }}>Facility</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 800, color: 'var(--text-secondary)' }}>Notes</th>
+                      <th style={{ padding: '10px 14px', fontWeight: 800, color: 'var(--text-secondary)', textAlign: 'right', width: 90 }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {uniqueRules
+                      .filter(r => {
+                        if (!rulesSearch.trim()) return true;
+                        const q = rulesSearch.toLowerCase();
+                        return (
+                          r.providerName.toLowerCase().includes(q) ||
+                          (r.qgendaAbbr && r.qgendaAbbr.toLowerCase().includes(q)) ||
+                          r.fixedShift.toLowerCase().includes(q) ||
+                          (r.notes && r.notes.toLowerCase().includes(q))
+                        );
+                      })
+                      .map((rule) => {
+                        const isAtypical = /^\s*([1-9]|1[0-2])(?::[0-5][0-9])?\s*(?:a|p|am|pm)?\s*$/i.test(rule.fixedShift) && !/3p|4p|5p|7p|8p|night|7p-7a/i.test(rule.fixedShift);
+                        return (
+                          <tr
+                            key={rule.id}
+                            style={{
+                              borderBottom: '1px solid var(--border-light)',
+                              opacity: rule.active ? 1 : 0.55,
+                              transition: 'background 0.15s ease'
+                            }}
+                          >
+                            {/* Active Toggle */}
+                            <td style={{ padding: '10px 14px' }}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = uniqueRules.map(r => r.id === rule.id ? { ...r, active: !r.active } : r);
+                                  handleSaveUniqueRules(updated);
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  padding: '2px 8px',
+                                  borderRadius: 12,
+                                  fontSize: 10,
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                  border: 'none',
+                                  background: rule.active ? 'rgba(16, 185, 129, 0.15)' : 'rgba(100, 116, 139, 0.15)',
+                                  color: rule.active ? '#059669' : '#64748b'
+                                }}
+                                title="Click to toggle active state"
+                              >
+                                {rule.active ? <Check size={10} /> : <X size={10} />}
+                                <span>{rule.active ? 'Active' : 'Off'}</span>
+                              </button>
+                            </td>
+
+                            {/* Provider Name */}
+                            <td style={{ padding: '10px 14px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                              {rule.providerName}
+                            </td>
+
+                            {/* Abbreviation */}
+                            <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-secondary)' }}>
+                              {rule.qgendaAbbr || '—'}
+                            </td>
+
+                            {/* Role */}
+                            <td style={{ padding: '10px 14px' }}>
+                              <span style={{
+                                fontSize: 10,
+                                fontWeight: 800,
+                                padding: '2px 6px',
+                                borderRadius: 4,
+                                background: rule.role === 'MD' ? 'rgba(37, 99, 235, 0.1)' : rule.role === 'CRNA' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(124, 58, 237, 0.1)',
+                                color: rule.role === 'MD' ? '#2563eb' : rule.role === 'CRNA' ? '#059669' : '#7c3aed'
+                              }}>
+                                {rule.role}
+                              </span>
+                            </td>
+
+                            {/* Fixed Shift */}
+                            <td style={{ padding: '10px 14px' }}>
+                              {isAtypical ? (
+                                <span className="atypical-time-badge">
+                                  {rule.fixedShift}
+                                </span>
+                              ) : (
+                                <span style={{
+                                  fontSize: 11,
+                                  fontWeight: 800,
+                                  fontFamily: 'var(--font-mono)',
+                                  padding: '2px 6px',
+                                  borderRadius: 4,
+                                  background: 'var(--surface-hover)',
+                                  color: 'var(--text-primary)',
+                                  border: '1px solid var(--border-light)'
+                                }}>
+                                  {rule.fixedShift.toUpperCase()}
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Facility Condition */}
+                            <td style={{ padding: '10px 14px', fontSize: 11, color: 'var(--text-secondary)' }}>
+                              {rule.facilityCondition || 'All'}
+                            </td>
+
+                            {/* Notes */}
+                            <td style={{ padding: '10px 14px', fontSize: 11, color: 'var(--text-muted)', maxWidth: 260 }}>
+                              {rule.notes || '—'}
+                            </td>
+
+                            {/* Actions */}
+                            <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                              <div style={{ display: 'inline-flex', gap: 6 }}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingRuleId(rule.id);
+                                    setIsAddingRule(false);
+                                    setRuleForm({ ...rule });
+                                  }}
+                                  style={{
+                                    padding: '5px 8px',
+                                    borderRadius: 4,
+                                    background: 'var(--surface-hover)',
+                                    border: '1px solid var(--border-light)',
+                                    color: 'var(--text-primary)',
+                                    cursor: 'pointer'
+                                  }}
+                                  title="Edit Rule"
+                                >
+                                  <Edit2 size={12} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setDeleteModalState({
+                                      isOpen: true,
+                                      title: 'Delete Unique Rule',
+                                      itemName: `${rule.providerName} (${rule.fixedShift})`,
+                                      itemCategory: 'Unique Schedule',
+                                      message: `Are you sure you want to delete this rule for ${rule.providerName}? When syncing, default scraper behavior will apply.`,
+                                      confirmButtonText: 'Delete Rule',
+                                      onConfirm: () => {
+                                        const updated = uniqueRules.filter(r => r.id !== rule.id);
+                                        handleSaveUniqueRules(updated);
+                                        setDeleteModalState(null);
+                                      }
+                                    });
+                                  }}
+                                  style={{
+                                    padding: '5px 8px',
+                                    borderRadius: 4,
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                                    color: '#dc2626',
+                                    cursor: 'pointer'
+                                  }}
+                                  title="Delete Rule"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+
+                {uniqueRules.length === 0 && (
+                  <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)' }}>
+                    No unique schedule rules defined. Click "Add Unique Rule" or "Reset Defaults" above.
+                  </div>
+                )}
               </div>
             </div>
           )}

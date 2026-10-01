@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-01T23:28:14.532Z",
+  "lastUpdated": "2026-10-01T23:52:50.288Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -112,10 +112,12 @@
             {
               "id": "dept_main_or_room_6_slot_0",
               "roleType": "primary",
-              "staffId": "staff_oneusap_anes_mcguiremeg",
+              "staffId": "staff_oneusap_doc_chenkev",
               "breakfastDone": false,
               "lunchDone": false,
-              "notes": ""
+              "notes": "",
+              "breakfastTime": null,
+              "lunchTime": null
             }
           ]
         },
@@ -144,10 +146,12 @@
             {
               "id": "dept_main_or_room_8_slot_0",
               "roleType": "primary",
-              "staffId": null,
+              "staffId": "staff_oneusap_anes_ndujiubaeny",
               "breakfastDone": false,
               "lunchDone": false,
-              "notes": ""
+              "notes": "",
+              "breakfastTime": null,
+              "lunchTime": null
             }
           ]
         },
@@ -160,7 +164,7 @@
             {
               "id": "dept_main_or_room_9_slot_0",
               "roleType": "primary",
-              "staffId": "staff_oneusap_anes_ndujiubaeny",
+              "staffId": null,
               "breakfastDone": false,
               "lunchDone": false,
               "notes": "",
@@ -178,7 +182,7 @@
             {
               "id": "dept_main_or_room_10_slot_0",
               "roleType": "primary",
-              "staffId": "staff_oneusap_anes_hughesabi",
+              "staffId": null,
               "breakfastDone": false,
               "lunchDone": false,
               "notes": ""
@@ -2467,7 +2471,8 @@
   "bullpenStaffIds": [
     "staff_kovac_14",
     "staff_oneusap_doc_shirakmic",
-    "staff_oneusap_doc_chenkev"
+    "staff_oneusap_anes_mcguiremeg",
+    "staff_oneusap_anes_hughesabi"
   ],
   "scraperConfig": {
     "portalType": "oneusap",
@@ -2519,6 +2524,82 @@
       "lunchDone": false,
       "breakfastTime": null,
       "lunchTime": null
+    },
+    "staff_oneusap_anes_mcguiremeg": {
+      "breakfastDone": false,
+      "lunchDone": false
     }
-  }
+  },
+  "uniqueSchedules": [
+    {
+      "id": "rule_hirsch",
+      "providerName": "Hirsch",
+      "qgendaAbbr": "HirschDou",
+      "fixedShift": "5p",
+      "role": "MD",
+      "facilityCondition": "ALL",
+      "active": true,
+      "notes": "Works until 5p daily when working at MHMC / Village"
+    },
+    {
+      "id": "rule_baerenstecher",
+      "providerName": "Baerenstecher",
+      "qgendaAbbr": "BaerenstecheJoh",
+      "fixedShift": "5p",
+      "role": "MD",
+      "facilityCondition": "ALL",
+      "active": true,
+      "notes": "Works until 5p daily when working at MHMC"
+    },
+    {
+      "id": "rule_chuan",
+      "providerName": "Chuan",
+      "qgendaAbbr": "ChuanJos",
+      "fixedShift": "4p",
+      "role": "MD",
+      "facilityCondition": "ALL",
+      "active": true,
+      "notes": "Works until 4p everyday"
+    },
+    {
+      "id": "rule_gunn",
+      "providerName": "Gunn",
+      "qgendaAbbr": "GunnKat",
+      "fixedShift": "3p",
+      "role": "MD",
+      "facilityCondition": "ALL",
+      "active": true,
+      "notes": "Day rotation 3p departure (night doc rotation)"
+    },
+    {
+      "id": "rule_martinez",
+      "providerName": "Martinez R",
+      "qgendaAbbr": "MartinezRob",
+      "fixedShift": "3p",
+      "role": "MD",
+      "facilityCondition": "ALL",
+      "active": true,
+      "notes": "Day rotation 3p departure (night doc rotation)"
+    },
+    {
+      "id": "rule_hiller",
+      "providerName": "Hiller",
+      "qgendaAbbr": "HillerKen",
+      "fixedShift": "3p",
+      "role": "MD",
+      "facilityCondition": "ALL",
+      "active": true,
+      "notes": "Day doctor 3p fixed departure"
+    },
+    {
+      "id": "rule_shirak",
+      "providerName": "Shirak",
+      "qgendaAbbr": "Shirak",
+      "fixedShift": "2p",
+      "role": "MD",
+      "facilityCondition": "ALL",
+      "active": true,
+      "notes": "Atypical 2pm departure - shows blue badge in Special departure section"
+    }
+  ]
 }
