@@ -21,6 +21,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 export default function WhiteboardPage() {
   const [boardState, setBoardState] = useState<BoardState | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [theme, setTheme] = useState<'whiteboard' | 'dark'>('whiteboard');
 
   // Active User session (Defaults to basic_user for zero-login friction!)
@@ -108,12 +109,24 @@ export default function WhiteboardPage() {
     if (showLoading) setLoading(true);
     try {
       const res = await fetch('/api/board');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data && data.departments) {
         setBoardState(data);
+        setLoadError(null);
+      } else {
+        throw new Error('Incomplete data received');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load board state:', err);
+      setLoadError(err.message || 'Connection failed');
+      // If we don't have board state yet, retry in 2.5 seconds
+      setTimeout(() => {
+        setBoardState(prev => {
+          if (!prev) fetchBoardState(false);
+          return prev;
+        });
+      }, 2500);
     } finally {
       if (showLoading) setLoading(false);
     }
@@ -736,24 +749,48 @@ export default function WhiteboardPage() {
         justifyContent: 'center',
         gap: 16,
         background: 'var(--bg-app)',
-        color: 'var(--text-primary)'
+        color: 'var(--text-primary)',
+        padding: 24,
+        textAlign: 'center'
       }}>
         <div style={{
-          width: 48,
-          height: 48,
-          borderRadius: 12,
+          width: 52,
+          height: 52,
+          borderRadius: 14,
           background: 'var(--accent-primary)',
           color: '#fff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontWeight: 900,
-          fontSize: 22
+          fontSize: 24,
+          boxShadow: '0 4px 14px rgba(9, 105, 218, 0.35)'
         }}>
           OR
         </div>
         <div style={{ fontSize: 18, fontWeight: 800 }}>Loading Surgical Suite Whiteboard...</div>
-        <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Syncing rooms, runners, and staff roster</div>
+        <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+          {loadError ? `Connection notice: ${loadError}. Reconnecting...` : 'Syncing rooms, runners, and staff roster...'}
+        </div>
+        {loadError && (
+          <button
+            type="button"
+            onClick={() => fetchBoardState(true)}
+            style={{
+              padding: '8px 18px',
+              borderRadius: 6,
+              background: 'var(--accent-primary)',
+              color: '#fff',
+              border: 'none',
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: 'pointer',
+              marginTop: 6
+            }}
+          >
+            Retry Connection
+          </button>
+        )}
       </div>
     );
   }
