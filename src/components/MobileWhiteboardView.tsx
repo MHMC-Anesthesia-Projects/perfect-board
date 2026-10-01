@@ -28,8 +28,10 @@ import {
   CheckCircle2,
   UserCheck,
   Strikethrough,
-  AlertCircle
+  AlertCircle,
+  X
 } from 'lucide-react';
+import { MagnetTile } from './MagnetTile';
 
 interface MobileWhiteboardViewProps {
   boardState: BoardState;
@@ -345,210 +347,141 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
         </button>
       </div>
 
-      {/* Quick Horizontal Pill Tabs for Fast Thumb Switching */}
-      <div className="mobile-pills-scroll-container">
-        {navViews.map((item) => {
-          const isActive = item.key === selectedView;
-          return (
-            <button
-              key={item.key}
-              type="button"
-              className={`mobile-pill-btn ${isActive ? 'active' : ''}`}
-              onClick={() => setSelectedView(item.key)}
-            >
-              {item.shortLabel}
-            </button>
-          );
-        })}
-      </div>
-
       {/* 3. Dynamic Screen Content based on Selected View */}
       <main className="mobile-main-content">
         {/* ======================= VIEW A: DEPARTMENT SCREEN ======================= */}
         {activeDepartment && (
           <div className="mobile-screen-container">
-            {/* Department Summary Header Card */}
-            <div className="mobile-card mobile-dept-header-card">
-              <div className="mobile-dept-title-row">
-                <div>
-                  <h1 className="mobile-dept-heading">{activeDepartment.name}</h1>
-                  <span className="mobile-dept-subtext">
-                    {activeDepartment.rooms.filter(r => r.slots.some(s => !!s.staffId)).length} of {activeDepartment.rooms.length} Rooms Assigned
-                  </span>
+            <div className="dept-column mobile-dept-column">
+              {/* Department Header with Runner Magnet Slots */}
+              <div className="dept-header">
+                <div className="dept-title">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span className="dept-name-text" style={{ fontSize: 13, fontWeight: 800 }}>
+                      {activeDepartment.name}
+                    </span>
+                    <span className="dept-occupancy-pill" title={`${activeDepartment.rooms.filter(r => r.slots.some(s => !!s.staffId)).length} of ${activeDepartment.rooms.length} rooms assigned`}>
+                      {activeDepartment.rooms.filter(r => r.slots.some(s => !!s.staffId)).length}/{activeDepartment.rooms.length}
+                    </span>
+                  </div>
+                  {isEditor && onAddRunnerSlot && (
+                    <button
+                      type="button"
+                      onClick={() => onAddRunnerSlot(activeDepartment.id)}
+                      className="dept-add-runner-btn"
+                      title={`Add extra runner slot to ${activeDepartment.name}`}
+                    >
+                      <Plus size={10} />
+                      <span>Runner</span>
+                    </button>
+                  )}
                 </div>
-                {isEditor && onAddRunnerSlot && (
-                  <button
-                    type="button"
-                    className="mobile-action-sm-btn"
-                    onClick={() => onAddRunnerSlot(activeDepartment.id)}
-                    title="Add extra runner slot to this department"
-                  >
-                    <Plus size={14} />
-                    <span>Runner</span>
-                  </button>
-                )}
-              </div>
 
-              {/* Runners Section */}
-              <div className="mobile-runners-section">
-                <div className="mobile-section-label">Department Runners</div>
-                <div className="mobile-runners-list">
+                {/* Runner Slots Group */}
+                <div className="runner-slots-group">
                   {activeDepartment.runnerSlots.map(runner => {
                     const assignedStaff = getStaffById(runner.staffId);
                     return (
-                      <div key={runner.id} className="mobile-runner-item">
-                        <div className="mobile-runner-title-row">
-                          <span className="mobile-runner-title">{runner.title}</span>
-                          {isEditor && onRemoveRunnerSlot && (!runner.staffId || activeDepartment.runnerSlots.length > 1) && (
-                            <button
-                              type="button"
-                              onClick={() => onRemoveRunnerSlot(activeDepartment.id, runner.id)}
-                              className="mobile-icon-btn text-muted"
-                              title="Remove extra runner slot"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          )}
-                        </div>
-
+                      <div
+                        key={runner.id}
+                        className="runner-slot"
+                        onClick={() => {
+                          if (!assignedStaff) {
+                            onSelectEmptySlot('runner_slot', runner.id, `${activeDepartment.name} Runner (${runner.title})`);
+                          }
+                        }}
+                        style={{ position: 'relative' }}
+                      >
                         {assignedStaff ? (
-                          <div className="mobile-staff-assigned-box">
-                            <div 
-                              className="mobile-staff-info-row"
-                              onClick={() => onSelectStaff(assignedStaff)}
-                            >
-                              <span className="mobile-staff-name">
-                                {assignedStaff.lastName.toUpperCase()}, {assignedStaff.firstName}
-                              </span>
-                              <span className={`mobile-cred-badge ${getCredBadgeClass(assignedStaff.credentials)}`}>
-                                {assignedStaff.credentials}
-                              </span>
-                            </div>
-
-                            {/* Touch-Friendly Break Buttons */}
-                            <div className="mobile-breaks-row">
-                              <button
-                                type="button"
-                                className={`mobile-break-touch-btn ${runner.breakfastDone ? 'done' : ''}`}
-                                onClick={() => onToggleBreak('runner_slot', runner.id, 'breakfast', !runner.breakfastDone)}
-                              >
-                                <span className="mobile-break-status-icon">{runner.breakfastDone ? '✓' : '○'}</span>
-                                <span>Breakfast</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                className={`mobile-break-touch-btn ${runner.lunchDone ? 'done' : ''}`}
-                                onClick={() => onToggleBreak('runner_slot', runner.id, 'lunch', !runner.lunchDone)}
-                              >
-                                <span className="mobile-break-status-icon">{runner.lunchDone ? '✓' : '○'}</span>
-                                <span>Lunch</span>
-                              </button>
-                            </div>
-                          </div>
+                          <MagnetTile
+                            staff={assignedStaff}
+                            slotId={runner.id}
+                            slotType="runner_slot"
+                            breakfastDone={runner.breakfastDone}
+                            lunchDone={runner.lunchDone}
+                            currentUserRole={currentUserRole}
+                            onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
+                            onSelectStaff={onSelectStaff}
+                            isCompact={true}
+                          />
                         ) : (
-                          <button
-                            type="button"
-                            className="mobile-empty-slot-btn"
-                            onClick={() => onSelectEmptySlot('runner_slot', runner.id, `${activeDepartment.name} Runner (${runner.title})`)}
-                          >
-                            <Plus size={14} />
-                            <span>Assign {runner.title}</span>
-                          </button>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '2px 4px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <Plus size={12} />
+                              <span>{runner.title}</span>
+                            </div>
+                            {isEditor && onRemoveRunnerSlot && (!runner.staffId || activeDepartment.runnerSlots.length > 1) && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onRemoveRunnerSlot(activeDepartment.id, runner.id);
+                                }}
+                                style={{ color: 'var(--text-muted)', padding: 1, background: 'none', border: 'none', cursor: 'pointer' }}
+                                title="Remove extra empty runner slot"
+                              >
+                                <X size={11} />
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     );
                   })}
                 </div>
               </div>
-            </div>
 
-            {/* Rooms Vertical Roster */}
-            <div className="mobile-rooms-container">
-              <div className="mobile-section-label">Operating Rooms ({activeDepartment.rooms.length})</div>
-              {activeDepartment.rooms.map(room => {
-                return (
-                  <div key={room.id} className="mobile-card mobile-room-card">
-                    {/* Room Title Header */}
-                    <div className="mobile-room-header">
-                      <div className="mobile-room-badge">
-                        ROOM {room.name}
+              {/* Rooms List */}
+              <div className="dept-rooms-list" style={{ overflowY: 'visible', height: 'auto' }}>
+                {activeDepartment.rooms.map(room => {
+                  return (
+                    <div key={room.id} className="room-row mobile-room-row">
+                      {/* Room Number / Identifier */}
+                      <div className="room-label" title={`Room ${room.name}`}>
+                        {room.name}
                       </div>
-                      {room.notes && (
-                        <span className="mobile-room-note-indicator" title={room.notes}>
-                          📝 {room.notes}
-                        </span>
-                      )}
-                    </div>
 
-                    {/* Room Slots */}
-                    <div className="mobile-room-slots">
-                      {room.slots.map(slot => {
-                        const assignedStaff = getStaffById(slot.staffId);
-                        return (
-                          <div key={slot.id} className="mobile-slot-item">
-                            {assignedStaff ? (
-                              <div className="mobile-slot-assigned">
-                                <div 
-                                  className="mobile-staff-info-row"
-                                  onClick={() => onSelectStaff(assignedStaff)}
-                                >
-                                  <div>
-                                    <span className="mobile-staff-name">
-                                      {assignedStaff.lastName.toUpperCase()}, {assignedStaff.firstName}
-                                    </span>
-                                    {assignedStaff.phone && (
-                                      <div className="mobile-staff-phone">
-                                        <Phone size={11} />
-                                        <span>{assignedStaff.phone}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                  <span className={`mobile-cred-badge ${getCredBadgeClass(assignedStaff.credentials)}`}>
-                                    {assignedStaff.credentials}
-                                  </span>
-                                </div>
-
-                                {/* Touch-Friendly Break Buttons */}
-                                <div className="mobile-breaks-row">
-                                  <button
-                                    type="button"
-                                    className={`mobile-break-touch-btn ${slot.breakfastDone ? 'done' : ''}`}
-                                    onClick={() => onToggleBreak('room_slot', slot.id, 'breakfast', !slot.breakfastDone)}
-                                    title={`Breakfast: ${slot.breakfastDone ? 'Completed' : 'Pending'}`}
-                                  >
-                                    <span className="mobile-break-status-icon">{slot.breakfastDone ? '✓' : '○'}</span>
-                                    <span>Breakfast</span>
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    className={`mobile-break-touch-btn ${slot.lunchDone ? 'done' : ''}`}
-                                    onClick={() => onToggleBreak('room_slot', slot.id, 'lunch', !slot.lunchDone)}
-                                    title={`Lunch: ${slot.lunchDone ? 'Completed' : 'Pending'}`}
-                                  >
-                                    <span className="mobile-break-status-icon">{slot.lunchDone ? '✓' : '○'}</span>
-                                    <span>Lunch</span>
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                className="mobile-empty-slot-btn"
-                                onClick={() => onSelectEmptySlot('room_slot', slot.id, `${activeDepartment.name} Room ${room.name}`)}
+                      {/* Slots inside Room */}
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 3, alignItems: 'center', height: '100%', minWidth: 0 }}>
+                        {room.slots
+                          .filter((slot, idx) => idx === 0 || !!slot.staffId)
+                          .map(slot => {
+                            const assignedStaff = getStaffById(slot.staffId);
+                            return (
+                              <div
+                                key={slot.id}
+                                className={`room-slot-target ${!assignedStaff ? 'empty' : ''}`}
+                                onClick={() => {
+                                  if (!assignedStaff) {
+                                    onSelectEmptySlot('room_slot', slot.id, `${activeDepartment.name} Room ${room.name}`);
+                                  }
+                                }}
                               >
-                                <Plus size={14} />
-                                <span>Assign Staff to Room {room.name}</span>
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
+                                {assignedStaff ? (
+                                  <MagnetTile
+                                    staff={assignedStaff}
+                                    slotId={slot.id}
+                                    slotType="room_slot"
+                                    breakfastDone={slot.breakfastDone}
+                                    lunchDone={slot.lunchDone}
+                                    currentUserRole={currentUserRole}
+                                    onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
+                                    onSelectStaff={onSelectStaff}
+                                  />
+                                ) : (
+                                  <div className="room-empty-dock">
+                                    <Plus size={11} />
+                                    <span>Assign</span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
@@ -770,56 +703,28 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                   </div>
                 </div>
               ) : (
-                (boardState.bullpenStaffIds || []).map(staffId => {
-                  const staffMember = getStaffById(staffId);
-                  if (!staffMember) return null;
-                  const breakStatus = boardState.bullpenBreaks?.[staffId] || { breakfastDone: false, lunchDone: false };
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {(boardState.bullpenStaffIds || []).map(staffId => {
+                    const staffMember = getStaffById(staffId);
+                    if (!staffMember) return null;
+                    const breakStatus = boardState.bullpenBreaks?.[staffId] || { breakfastDone: false, lunchDone: false };
 
-                  return (
-                    <div key={staffId} className="mobile-card mobile-bullpen-staff-card">
-                      <div 
-                        className="mobile-staff-info-row"
-                        onClick={() => onSelectStaff(staffMember)}
-                      >
-                        <div>
-                          <span className="mobile-staff-name">
-                            {staffMember.lastName.toUpperCase()}, {staffMember.firstName}
-                          </span>
-                          {staffMember.phone && (
-                            <div className="mobile-staff-phone">
-                              <Phone size={11} />
-                              <span>{staffMember.phone}</span>
-                            </div>
-                          )}
-                        </div>
-                        <span className={`mobile-cred-badge ${getCredBadgeClass(staffMember.credentials)}`}>
-                          {staffMember.credentials}
-                        </span>
+                    return (
+                      <div key={staffId} style={{ height: 26, minHeight: 26 }}>
+                        <MagnetTile
+                          staff={staffMember}
+                          slotId={staffId}
+                          slotType="bullpen"
+                          breakfastDone={breakStatus.breakfastDone}
+                          lunchDone={breakStatus.lunchDone}
+                          currentUserRole={currentUserRole}
+                          onToggleBreak={(type, val) => onToggleBreak('bullpen', staffId, type, val)}
+                          onSelectStaff={onSelectStaff}
+                        />
                       </div>
-
-                      {/* Touch-Friendly Break Buttons */}
-                      <div className="mobile-breaks-row">
-                        <button
-                          type="button"
-                          className={`mobile-break-touch-btn ${breakStatus.breakfastDone ? 'done' : ''}`}
-                          onClick={() => onToggleBreak('bullpen', staffId, 'breakfast', !breakStatus.breakfastDone)}
-                        >
-                          <span className="mobile-break-status-icon">{breakStatus.breakfastDone ? '✓' : '○'}</span>
-                          <span>Breakfast</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          className={`mobile-break-touch-btn ${breakStatus.lunchDone ? 'done' : ''}`}
-                          onClick={() => onToggleBreak('bullpen', staffId, 'lunch', !breakStatus.lunchDone)}
-                        >
-                          <span className="mobile-break-status-icon">{breakStatus.lunchDone ? '✓' : '○'}</span>
-                          <span>Lunch</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
+                    );
+                  })}
+                </div>
               )}
             </div>
           </div>

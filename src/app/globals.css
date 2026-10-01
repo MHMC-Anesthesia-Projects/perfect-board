@@ -2428,3 +2428,148 @@ button {
   color: var(--text-muted);
 }
 
+/* Mobile Department View (Desktop Magnet Style Twin) */
+.mobile-dept-column {
+  background: var(--bg-board);
+  border: 1.5px solid var(--board-grid-line);
+  border-radius: 8px;
+  overflow: visible !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: auto !important;
+  min-height: auto !important;
+}
+
+.mobile-dept-column .dept-header {
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--board-grid-line);
+  background: var(--surface-hover);
+  flex-shrink: 0;
+}
+
+.mobile-dept-column .runner-slots-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.mobile-dept-column .runner-slot {
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  width: 100%;
+  flex: none !important;
+}
+
+.mobile-dept-column .dept-rooms-list {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: none !important;
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  gap: 3px;
+  padding: 6px 8px;
+}
+
+.mobile-dept-column .room-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  flex: none !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  border-bottom: 1px solid var(--board-inner-line);
+  padding: 2px 0;
+}
+
+.mobile-dept-column .room-label {
+  height: 26px !important;
+  min-width: 36px !important;
+  max-width: 44px !important;
+  font-size: 12px !important;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-hover);
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.mobile-dept-column .room-slot-target {
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.mobile-dept-column .magnet-tile {
+  height: 26px !important;
+  min-height: 26px !important;
+  max-height: 26px !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+}
+
+.mobile-dept-column .magnet-identity {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.mobile-dept-column .magnet-name {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.3px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.mobile-dept-column .magnet-cred {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  padding: 2px 5px !important;
+  border-radius: 3px !important;
+}
+
+.mobile-dept-column .break-controls {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  flex-shrink: 0 !important;
+}
+
+.mobile-dept-column .break-toggle-btn {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 3px !important;
+}
+
+
+
