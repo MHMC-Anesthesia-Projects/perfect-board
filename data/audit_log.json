@@ -1,5 +1,13 @@
 [
   {
+    "id": "audit_1790893092692_dspg2",
+    "timestamp": "2026-10-01T22:18:12.692Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Auto-assigned 47 staff magnets to department rooms and runner slots based on portal schedule"
+  },
+  {
     "id": "audit_1790893035739_vs6bl",
     "timestamp": "2026-10-01T22:17:15.740Z",
     "actionType": "LAYOUT_CHANGED",

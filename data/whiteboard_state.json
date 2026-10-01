@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-01T22:17:15.738Z",
+  "lastUpdated": "2026-10-01T22:18:12.689Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -99,19 +99,7 @@
               "staffId": "staff_oneusap_anes_mateocar",
               "breakfastDone": false,
               "lunchDone": false,
-              "notes": "",
-              "breakfastTime": null,
-              "lunchTime": null
-            },
-            {
-              "id": "dept_main_or_room_5_slot_1_1790892357041",
-              "roleType": "secondary",
-              "staffId": null,
-              "breakfastDone": false,
-              "lunchDone": false,
-              "notes": "",
-              "breakfastTime": null,
-              "lunchTime": null
+              "notes": ""
             }
           ]
         },
@@ -157,14 +145,6 @@
               "id": "dept_main_or_room_8_slot_0",
               "roleType": "primary",
               "staffId": "staff_oneusap_doc_chenkev",
-              "breakfastDone": false,
-              "lunchDone": false,
-              "notes": ""
-            },
-            {
-              "id": "dept_main_or_room_8_slot_1_1790892357041",
-              "roleType": "secondary",
-              "staffId": null,
               "breakfastDone": false,
               "lunchDone": false,
               "notes": ""
@@ -441,7 +421,7 @@
           "notes": "",
           "slots": [
             {
-              "id": "dept_west_pav_room_12_slot_0",
+              "id": "dept_west_pav_room_14_slot_0",
               "roleType": "primary",
               "staffId": "staff_oneusap_anes_tekwechr",
               "breakfastDone": false,
@@ -817,7 +797,7 @@
           "notes": "",
           "slots": [
             {
-              "id": "dept_9th_floor_room_CCL_slot_0",
+              "id": "dept_9th_floor_room_CCL1_slot_0",
               "roleType": "primary",
               "staffId": "staff_oneusap_doc_shirakmic",
               "breakfastDone": false,
@@ -886,9 +866,7 @@
               "staffId": null,
               "breakfastDone": false,
               "lunchDone": false,
-              "notes": "",
-              "breakfastTime": null,
-              "lunchTime": null
+              "notes": ""
             }
           ]
         },
@@ -904,9 +882,7 @@
               "staffId": "staff_oneusap_doc_ruizjua",
               "breakfastDone": false,
               "lunchDone": false,
-              "notes": "",
-              "breakfastTime": null,
-              "lunchTime": null
+              "notes": ""
             }
           ]
         }
