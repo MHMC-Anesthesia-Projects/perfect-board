@@ -1,5 +1,179 @@
 [
   {
+    "id": "audit_1790948397253_joqm4",
+    "timestamp": "2026-10-02T13:39:57.253Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Auto-assigned 36 staff magnets to department rooms and runner slots based on portal schedule"
+  },
+  {
+    "id": "audit_1790948392982_j15jh",
+    "timestamp": "2026-10-02T13:39:52.982Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1790948364558_ndahd",
+    "timestamp": "2026-10-02T13:39:24.558Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Cleaned Whiteboard for new operating day (Cleared all room magnets, runner slots, and bullpen)"
+  },
+  {
+    "id": "audit_1790948268436_sawic",
+    "timestamp": "2026-10-02T13:37:48.436Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "LU",
+    "details": "Marked doctor LU as DEPARTED [Strikethrough]"
+  },
+  {
+    "id": "audit_1790948141232_ce9o8",
+    "timestamp": "2026-10-02T13:35:41.232Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Auto-assigned 36 staff magnets to department rooms and runner slots based on portal schedule"
+  },
+  {
+    "id": "audit_1790948135991_ek3zn",
+    "timestamp": "2026-10-02T13:35:35.991Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1790948090752_orw34",
+    "timestamp": "2026-10-02T13:34:50.752Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Cleaned Whiteboard for new operating day (Cleared all room magnets, runner slots, and bullpen)"
+  },
+  {
+    "id": "audit_1790947059101_dvk1w",
+    "timestamp": "2026-10-02T13:17:39.101Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Auto-assigned 36 staff magnets to department rooms and runner slots based on portal schedule"
+  },
+  {
+    "id": "audit_1790947053608_yjprx",
+    "timestamp": "2026-10-02T13:17:33.608Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1790947048956_x2lr0",
+    "timestamp": "2026-10-02T13:17:28.956Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Alex Chang",
+    "locationName": "OB Runner (Runner 1)",
+    "details": "Moved from OB Room 1 -> OB Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1790946319525_t64uu",
+    "timestamp": "2026-10-02T13:05:19.525Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Auto-assigned 36 staff magnets to department rooms and runner slots based on portal schedule"
+  },
+  {
+    "id": "audit_1790946319092_9h7kl",
+    "timestamp": "2026-10-02T13:05:19.092Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1790946291677_p3jdj",
+    "timestamp": "2026-10-02T13:04:51.677Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Matthew Taylor",
+    "details": "Updated scheduled shift from \"Day\" to \"2p\""
+  },
+  {
+    "id": "audit_1790946234987_ri68u",
+    "timestamp": "2026-10-02T13:03:54.987Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Auto-assigned 36 staff magnets to department rooms and runner slots based on portal schedule"
+  },
+  {
+    "id": "audit_1790946228413_g3ayu",
+    "timestamp": "2026-10-02T13:03:48.413Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1790946218067_xhhef",
+    "timestamp": "2026-10-02T13:03:38.067Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Cleaned Whiteboard for new operating day (Cleared all room magnets, runner slots, and bullpen)"
+  },
+  {
+    "id": "audit_1790946169165_uimab",
+    "timestamp": "2026-10-02T13:02:49.165Z",
+    "actionType": "RUNNER_SLOT_REMOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "WEST PAV",
+    "details": "Removed runner slot \"Runner 2\" from WEST PAV"
+  },
+  {
+    "id": "audit_1790946167650_iqr0a",
+    "timestamp": "2026-10-02T13:02:47.650Z",
+    "actionType": "RUNNER_SLOT_REMOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR",
+    "details": "Removed runner slot \"Runner 2\" from MAIN OR"
+  },
+  {
+    "id": "audit_1790946149345_fqs1g",
+    "timestamp": "2026-10-02T13:02:29.345Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Auto-assigned 36 staff magnets to department rooms and runner slots based on portal schedule"
+  },
+  {
+    "id": "audit_1790946134789_4dw8d",
+    "timestamp": "2026-10-02T13:02:14.789Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1790946129342_l6xat",
+    "timestamp": "2026-10-02T13:02:09.342Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Cleaned Whiteboard for new operating day (Cleared all room magnets, runner slots, and bullpen)"
+  },
+  {
     "id": "audit_1790945028017_du0jz",
     "timestamp": "2026-10-02T12:43:48.017Z",
     "actionType": "STAFF_ASSIGNED",
