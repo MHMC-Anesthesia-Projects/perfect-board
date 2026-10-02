@@ -16,6 +16,7 @@ interface MagnetTileProps {
   onDragStart?: (e: React.DragEvent, staff: Staff, source: { type: string; id?: string }) => void;
   onUnassign?: () => void;
   isCompact?: boolean;
+  isDraggable?: boolean;
 }
 
 export const MagnetTile: React.FC<MagnetTileProps> = ({
@@ -29,9 +30,12 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   onSelectStaff,
   onDragStart,
   onUnassign,
-  isCompact = false
+  isCompact = false,
+  isDraggable: propIsDraggable
 }) => {
-  const isDraggable = currentUserRole !== 'basic_user';
+  const isDraggable = propIsDraggable !== undefined 
+    ? propIsDraggable 
+    : (currentUserRole !== 'basic_user');
 
   const handleTileClick = (e: React.MouseEvent) => {
     e.stopPropagation();

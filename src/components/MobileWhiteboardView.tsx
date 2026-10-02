@@ -554,6 +554,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                             onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
                             onSelectStaff={onSelectStaff}
                             isCompact={true}
+                            isDraggable={false}
                           />
                         ) : (
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '2px 4px' }}>
@@ -618,6 +619,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                     currentUserRole={currentUserRole}
                                     onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
                                     onSelectStaff={onSelectStaff}
+                                    isDraggable={false}
                                   />
                                 ) : (
                                   <div className="room-empty-dock">
@@ -943,6 +945,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                           currentUserRole={currentUserRole}
                           onToggleBreak={(type, val) => onToggleBreak('bullpen', staffId, type, val)}
                           onSelectStaff={onSelectStaff}
+                          isDraggable={false}
                         />
                       </div>
                     );
@@ -999,6 +1002,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                             currentUserRole={currentUserRole}
                             onToggleBreak={(type, val) => onToggleBreak('bullpen', s.id, type, val)}
                             onSelectStaff={onSelectStaff}
+                            isDraggable={false}
                           />
                         </div>
                       );
