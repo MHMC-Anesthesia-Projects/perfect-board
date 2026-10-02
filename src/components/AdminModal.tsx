@@ -1,5 +1,6 @@
 'use client';
 
+import { apiUrl } from '@/lib/api';
 import React, { useState, useEffect } from 'react';
 import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential, RunnerSlot, ScraperPreviewResult, UniqueScheduleRule } from '@/types/whiteboard';
 import { 
@@ -151,7 +152,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setIsSavingRules(true);
     setRulesStatusMsg(null);
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -295,7 +296,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/users');
+      const res = await fetch(apiUrl('/api/users'));
       const data = await res.json();
       if (Array.isArray(data)) {
         setUserList(data);
@@ -313,7 +314,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setUserActionError('');
     setUserActionSuccess('');
     try {
-      const res = await fetch('/api/users', {
+      const res = await fetch(apiUrl('/api/users'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -344,7 +345,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   const executeDeleteUser = async (id: string) => {
     try {
-      const res = await fetch(`/api/users?id=${id}`, {
+      const res = await fetch(apiUrl(`/api/users?id=${id}`), {
         method: 'DELETE',
         headers: {
           'x-user-role': currentUser.role,
@@ -374,7 +375,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const handleCreateStaff = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/staff', {
+      const res = await fetch(apiUrl('/api/staff'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -400,7 +401,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   const executeDeleteStaff = async (id: string) => {
     try {
-      const res = await fetch(`/api/staff?id=${id}`, {
+      const res = await fetch(apiUrl(`/api/staff?id=${id}`), {
         method: 'DELETE',
         headers: {
           'x-user-role': currentUser.role,
@@ -452,7 +453,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setScraperSaving(true);
     setScraperMsg('');
     try {
-      const res = await fetch('/api/scraper', {
+      const res = await fetch(apiUrl('/api/scraper'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -488,7 +489,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setTestSyncError('');
     setTestSyncResult(null);
     try {
-      const res = await fetch('/api/scraper', {
+      const res = await fetch(apiUrl('/api/scraper'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

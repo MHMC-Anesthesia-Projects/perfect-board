@@ -1,5 +1,6 @@
 'use client';
 
+import { apiUrl } from '@/lib/api';
 import React, { useState } from 'react';
 import { UserRole } from '@/types/whiteboard';
 import { Lock, Delete, KeyRound, UserCheck, ShieldAlert, X } from 'lucide-react';
@@ -46,7 +47,7 @@ export const PinPadModal: React.FC<PinPadModalProps> = ({ isOpen, onClose, onLog
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/auth', {
+      const res = await fetch(apiUrl('/api/auth'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: 'pin', pin: inputPin })
@@ -71,7 +72,7 @@ export const PinPadModal: React.FC<PinPadModalProps> = ({ isOpen, onClose, onLog
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/auth', {
+      const res = await fetch(apiUrl('/api/auth'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: 'password', username, password })

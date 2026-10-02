@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-02T13:39:57.250Z",
+  "lastUpdated": "2026-10-02T14:38:07.442Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -73,7 +73,7 @@
             {
               "id": "dept_main_or_room_4_slot_0",
               "roleType": "primary",
-              "staffId": "staff_oneusap_anes_atagasas",
+              "staffId": null,
               "breakfastDone": false,
               "lunchDone": false,
               "notes": ""
@@ -744,7 +744,7 @@
       "orderIndex": 4,
       "runnerSlots": [
         {
-          "id": "runner_dept_9th_floor_1790948397250_1",
+          "id": "runner_dept_9th_floor_1790951841769_1",
           "title": "Runner 1",
           "staffId": "staff_oneusap_doc_shenoyvik",
           "breakfastDone": false,
@@ -2058,7 +2058,8 @@
       "category": "post_call",
       "timeEstimate": "postC1,postOB",
       "orderNumber": 43,
-      "qgendaAbbr": "LuKey"
+      "qgendaAbbr": "LuKey",
+      "departed": false
     },
     {
       "id": "dep_post_1_1790948392981",
@@ -2068,7 +2069,8 @@
       "timeEstimate": "postC1",
       "orderNumber": 87,
       "qgendaAbbr": "ShettySha",
-      "assignedRoom": "MHMC DS 01"
+      "assignedRoom": "MHMC DS 01",
+      "departed": false
     },
     {
       "id": "dep_post_2_1790948392981",
@@ -2078,7 +2080,8 @@
       "timeEstimate": "postC2",
       "orderNumber": 88,
       "qgendaAbbr": "TallacksonDon",
-      "assignedRoom": "Houston IVF"
+      "assignedRoom": "Houston IVF",
+      "departed": false
     },
     {
       "id": "dep_post_3_1790948392981",
@@ -2088,7 +2091,8 @@
       "timeEstimate": "postC3",
       "orderNumber": 91,
       "qgendaAbbr": "ShenoyVik",
-      "assignedRoom": "MHMC OR11, MHMC IR, MHMC TEE"
+      "assignedRoom": "MHMC OR11, MHMC IR, MHMC TEE",
+      "departed": false
     },
     {
       "id": "dep_post_4_1790948392981",
@@ -2098,7 +2102,8 @@
       "timeEstimate": "postCV",
       "orderNumber": 94,
       "qgendaAbbr": "DwarakanathKis",
-      "assignedRoom": "MHMC EP2"
+      "assignedRoom": "MHMC EP2",
+      "departed": false
     },
     {
       "id": "dep_non_0_1790948392981",
@@ -2108,7 +2113,8 @@
       "timeEstimate": "preOB,preC1",
       "orderNumber": 97,
       "qgendaAbbr": "PatelPur",
-      "assignedRoom": "MHMC IR, MHMC DS 10, MHMC Endo1, MHMC Endo3, MHMC Endo4"
+      "assignedRoom": "MHMC IR, MHMC DS 10, MHMC Endo1, MHMC Endo3, MHMC Endo4",
+      "departed": false
     },
     {
       "id": "dep_non_1_1790948392981",
@@ -2117,7 +2123,8 @@
       "category": "non_call",
       "orderNumber": 171,
       "qgendaAbbr": "DaumerieGer",
-      "assignedRoom": "MHMC OR3"
+      "assignedRoom": "MHMC OR3",
+      "departed": false
     },
     {
       "id": "dep_non_2_1790948392981",
@@ -2126,7 +2133,8 @@
       "category": "non_call",
       "orderNumber": 177,
       "qgendaAbbr": "TaylorMat",
-      "assignedRoom": "Village OR6"
+      "assignedRoom": "Village OR6",
+      "departed": false
     },
     {
       "id": "dep_non_3_1790948392981",
@@ -2135,7 +2143,8 @@
       "category": "non_call",
       "orderNumber": 183,
       "qgendaAbbr": "BernellMic",
-      "assignedRoom": "MHMC DS 05, MHMC DS 07, MHMC DS 09"
+      "assignedRoom": "MHMC DS 05, MHMC DS 07, MHMC DS 09",
+      "departed": false
     },
     {
       "id": "dep_non_4_1790948392981",
@@ -2144,7 +2153,8 @@
       "category": "non_call",
       "orderNumber": 194,
       "qgendaAbbr": "ChoiSeu",
-      "assignedRoom": "MHMC OR2"
+      "assignedRoom": "MHMC OR2",
+      "departed": false
     }
   ],
   "callTeamList": [
@@ -2412,7 +2422,9 @@
     }
   ],
   "latesNotes": "",
-  "bullpenStaffIds": [],
+  "bullpenStaffIds": [
+    "staff_oneusap_anes_atagasas"
+  ],
   "scraperConfig": {
     "portalType": "oneusap",
     "portalUrl": "https://www.oneusap.com/assignments",
@@ -2428,7 +2440,14 @@
       "HIVF-SC"
     ]
   },
-  "bullpenBreaks": {},
+  "bullpenBreaks": {
+    "staff_oneusap_anes_atagasas": {
+      "breakfastDone": false,
+      "lunchDone": false,
+      "breakfastTime": null,
+      "lunchTime": null
+    }
+  },
   "uniqueSchedules": [
     {
       "id": "rule_hirsch",

@@ -1,5 +1,6 @@
 'use client';
 
+import { apiUrl } from '@/lib/api';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { BoardState, Staff, Department, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential } from '@/types/whiteboard';
 import { HeaderNav } from '@/components/HeaderNav';
@@ -121,7 +122,7 @@ export default function WhiteboardPage() {
   useEffect(() => {
     let eventSource: EventSource | null = null;
     try {
-      eventSource = new EventSource('/api/realtime');
+      eventSource = new EventSource(apiUrl('/api/realtime'));
       eventSource.onmessage = (event) => {
         try {
           const parsed = JSON.parse(event.data);
@@ -144,7 +145,7 @@ export default function WhiteboardPage() {
   const fetchBoardState = async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
-      const res = await fetch('/api/board');
+      const res = await fetch(apiUrl('/api/board'));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data && data.departments) {
@@ -274,7 +275,7 @@ export default function WhiteboardPage() {
     });
 
     try {
-      await fetch('/api/board', {
+      await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -301,7 +302,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -331,7 +332,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -362,7 +363,7 @@ export default function WhiteboardPage() {
       return;
     }
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -386,7 +387,7 @@ export default function WhiteboardPage() {
       return;
     }
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -416,7 +417,7 @@ export default function WhiteboardPage() {
     });
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -448,7 +449,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -483,7 +484,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -517,7 +518,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -549,7 +550,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -651,7 +652,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -677,7 +678,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -703,7 +704,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -725,7 +726,7 @@ export default function WhiteboardPage() {
   const executeTriggerSync = async () => {
     setIsSyncing(true);
     try {
-      const res = await fetch('/api/scraper', {
+      const res = await fetch(apiUrl('/api/scraper'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -784,7 +785,7 @@ export default function WhiteboardPage() {
 
     setIsAutoAssigning(true);
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -818,7 +819,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -847,7 +848,7 @@ export default function WhiteboardPage() {
   // 8. Superuser Layout actions
   const handleSaveDepartments = async (departments: Department[]) => {
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -867,7 +868,7 @@ export default function WhiteboardPage() {
 
   const handleResetToPhotoDefault = async () => {
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

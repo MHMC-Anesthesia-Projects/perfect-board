@@ -1,5 +1,89 @@
 [
   {
+    "id": "audit_1790951887443_4d88r",
+    "timestamp": "2026-10-02T14:38:07.443Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Sasa Ataga",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Marked breakfast break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790951886700_u6au5",
+    "timestamp": "2026-10-02T14:38:06.700Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Sasa Ataga",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Marked lunch break as NOT DONE [ ]"
+  },
+  {
+    "id": "audit_1790951885437_fnfb9",
+    "timestamp": "2026-10-02T14:38:05.437Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Sasa Ataga",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Marked lunch break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790951884287_vr2wo",
+    "timestamp": "2026-10-02T14:38:04.287Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Sasa Ataga",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Marked breakfast break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790951871308_wlvyf",
+    "timestamp": "2026-10-02T14:37:51.308Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Sasa Ataga",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Room 4 -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790951848538_1yhrm",
+    "timestamp": "2026-10-02T14:37:28.538Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "SHETTY",
+    "details": "Unmarked doctor SHETTY departure status"
+  },
+  {
+    "id": "audit_1790951847772_gx9sa",
+    "timestamp": "2026-10-02T14:37:27.772Z",
+    "actionType": "DEPARTURE_STRUCK_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "SHETTY",
+    "details": "Marked doctor SHETTY as DEPARTED [Strikethrough]"
+  },
+  {
+    "id": "audit_1790951841780_lh0nn",
+    "timestamp": "2026-10-02T14:37:21.780Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Auto-assigned 36 staff magnets to department rooms and runner slots based on portal schedule"
+  },
+  {
+    "id": "audit_1790951744723_l3hqa",
+    "timestamp": "2026-10-02T14:35:44.723Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Cleaned Whiteboard for new operating day (Cleared all room magnets, runner slots, and bullpen)"
+  },
+  {
     "id": "audit_1790948397253_joqm4",
     "timestamp": "2026-10-02T13:39:57.253Z",
     "actionType": "STAFF_ASSIGNED",

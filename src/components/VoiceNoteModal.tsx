@@ -1,5 +1,6 @@
 'use client';
 
+import { apiUrl } from '@/lib/api';
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Sparkles, Check, X, Keyboard } from 'lucide-react';
 
@@ -112,7 +113,7 @@ export const VoiceNoteModal: React.FC<VoiceNoteModalProps> = ({
     if (!text.trim()) return;
     setIsPolishing(true);
     try {
-      const res = await fetch('/api/voice-ai', {
+      const res = await fetch(apiUrl('/api/voice-ai'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transcript: text })

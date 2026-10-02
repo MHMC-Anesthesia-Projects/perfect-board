@@ -1,5 +1,6 @@
 'use client';
 
+import { apiUrl } from '@/lib/api';
 import React, { useState, useEffect, useCallback } from 'react';
 import { AuditLogEntry } from '@/types/whiteboard';
 import { FileSpreadsheet, Download, Search, Calendar, X, RefreshCw } from 'lucide-react';
@@ -22,7 +23,7 @@ export const AuditDrawer: React.FC<AuditDrawerProps> = ({ isOpen, onClose }) => 
       if (search) params.append('q', search);
       if (dateFilter) params.append('date', dateFilter);
 
-      const res = await fetch(`/api/audit?${params.toString()}`);
+      const res = await fetch(apiUrl(`/api/audit?${params.toString()}`));
       const data = await res.json();
       if (Array.isArray(data)) {
         setLogs(data);
@@ -45,7 +46,7 @@ export const AuditDrawer: React.FC<AuditDrawerProps> = ({ isOpen, onClose }) => 
     params.append('format', 'csv');
     if (search) params.append('q', search);
     if (dateFilter) params.append('date', dateFilter);
-    window.open(`/api/audit?${params.toString()}`, '_blank');
+    window.open(apiUrl(`/api/audit?${params.toString()}`), '_blank');
   };
 
   if (!isOpen) return null;
