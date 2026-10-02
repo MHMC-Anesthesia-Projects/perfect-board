@@ -868,6 +868,32 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, state });
       }
 
+      // 6c-2. Set staff display name (custom magnet name on whiteboard)
+      case 'SET_STAFF_DISPLAY_NAME': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const { staffId, displayName } = payload;
+        const s = state.staff.find(st => st.id === staffId);
+        if (!s) {
+          return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
+        }
+
+        const oldName = s.displayName || `${s.lastName.toUpperCase()} ${s.firstName ? s.firstName[0] + '.' : ''}`.trim();
+        s.displayName = displayName?.trim() || undefined;
+
+        await saveBoardState(state);
+        await recordAuditLog({
+          actionType: 'STAFF_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          targetName: `${s.firstName} ${s.lastName}`.trim(),
+          details: `Updated magnet display name from "${oldName}" to "${s.displayName || 'Default'}"`
+        });
+
+        return NextResponse.json({ success: true, state });
+      }
+
       // 6d. Manual or testing trigger for 1:00 AM break reset
       case 'RESET_DAILY_BREAKS': {
         const wasModified = resetDailyBreaks(state);

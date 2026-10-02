@@ -493,6 +493,7 @@ function sanitizeBoardState(loaded: BoardState): BoardState {
   const infrequentKeySet = new Set((loaded.infrequentStaffKeys || []).map(k => k.toLowerCase()));
 
   for (const s of loaded.staff || []) {
+    s.active = true;
     const qKey = (s.qgendaAbbr || '').toLowerCase();
     const lastKey = (s.lastName || '').toLowerCase();
 

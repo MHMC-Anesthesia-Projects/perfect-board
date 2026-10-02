@@ -507,6 +507,46 @@ export default function WhiteboardPage() {
     }
   };
 
+  // Update staff custom magnet display name
+  const handleUpdateStaffDisplayName = async (
+    staffId: string,
+    displayName: string
+  ) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      const res = await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SET_STAFF_DISPLAY_NAME',
+          payload: { staffId, displayName },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+        setSelectedStaff(prev => {
+          if (!prev) return null;
+          if (prev.id === staffId) {
+            return { ...prev, displayName: displayName || undefined };
+          }
+          return prev;
+        });
+        setToastMessage(`✓ Updated magnet name to "${displayName || 'Default'}"`);
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error('Error updating staff display name:', err);
+      setToastMessage('Error updating magnet name.');
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
+
   // 4a. Move staff directly to Bullpen (available for breaks & cases)
   const handleDropToBullpen = async (fromData: { staffId: string; type: string; id?: string }) => {
     if (currentUserRole === 'basic_user') {
@@ -1139,6 +1179,7 @@ export default function WhiteboardPage() {
         onUnassign={staffId => handleMoveStaffToUnassigned(staffId)}
         onToggleBreak={handleToggleBreak}
         onUpdateShift={handleUpdateStaffShift}
+        onUpdateDisplayName={handleUpdateStaffDisplayName}
         onSetStaffInfrequent={handleSetStaffInfrequent}
         onOpenLogin={() => setIsLoginModalOpen(true)}
       />

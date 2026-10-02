@@ -21,10 +21,12 @@ export async function POST(req: NextRequest) {
     }
 
     const state = await loadBoardState();
+    const formattedDisplayName = body.displayName?.trim() || `${lastName.trim().toUpperCase()} ${firstName?.trim() ? firstName.trim()[0] + '.' : ''}`.trim();
     const newStaff: Staff = {
       id: `staff_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       firstName: firstName?.trim() || '',
       lastName: lastName.trim(),
+      displayName: formattedDisplayName,
       initials: (firstName?.trim() ? firstName.trim()[0] : '') + lastName.trim()[0],
       credentials: credentials,
       phone: phone.trim(),
@@ -37,8 +39,13 @@ export async function POST(req: NextRequest) {
     state.staff.push(newStaff);
     if (newStaff.isInfrequent) {
       state.infrequentStaffIds = state.infrequentStaffIds || [];
+      state.infrequentStaffKeys = state.infrequentStaffKeys || [];
       if (!state.infrequentStaffIds.includes(newStaff.id)) {
         state.infrequentStaffIds.push(newStaff.id);
+      }
+      const lastKey = newStaff.lastName.toLowerCase();
+      if (lastKey && !state.infrequentStaffKeys.includes(lastKey)) {
+        state.infrequentStaffKeys.push(lastKey);
       }
     }
     await saveBoardState(state);
@@ -48,7 +55,7 @@ export async function POST(req: NextRequest) {
       performedBy: currentUser?.displayName || 'User',
       userRole: currentUser?.role || 'board_runner',
       targetName: `${newStaff.firstName} ${newStaff.lastName}`.trim(),
-      details: `Added new staff: ${newStaff.credentials} | Phone: ${newStaff.phone}`
+      details: `Added new staff: ${newStaff.displayName} (${newStaff.credentials}) | Phone: ${newStaff.phone}`
     });
 
     return NextResponse.json({ success: true, staff: newStaff });
@@ -60,7 +67,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, firstName, lastName, credentials, phone, shift, active, isInfrequent, currentUser } = body;
+    const { id, firstName, lastName, displayName, credentials, phone, shift, active, isInfrequent, currentUser } = body;
 
     if (currentUser?.role === 'basic_user') {
       return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
@@ -74,6 +81,7 @@ export async function PUT(req: NextRequest) {
 
     if (firstName !== undefined) staffMember.firstName = firstName.trim();
     if (lastName !== undefined) staffMember.lastName = lastName.trim();
+    if (displayName !== undefined) staffMember.displayName = displayName.trim() || undefined;
     staffMember.initials = (staffMember.firstName ? staffMember.firstName[0] : '') + (staffMember.lastName ? staffMember.lastName[0] : '');
     if (credentials !== undefined) staffMember.credentials = credentials;
     if (phone !== undefined) staffMember.phone = phone.trim();
@@ -82,12 +90,28 @@ export async function PUT(req: NextRequest) {
     if (isInfrequent !== undefined) {
       staffMember.isInfrequent = Boolean(isInfrequent);
       state.infrequentStaffIds = state.infrequentStaffIds || [];
+      state.infrequentStaffKeys = state.infrequentStaffKeys || [];
+      const qKey = (staffMember.qgendaAbbr || '').toLowerCase();
+      const lastKey = (staffMember.lastName || '').toLowerCase();
+
       if (staffMember.isInfrequent) {
         if (!state.infrequentStaffIds.includes(staffMember.id)) {
           state.infrequentStaffIds.push(staffMember.id);
         }
+        if (qKey && !state.infrequentStaffKeys.includes(qKey)) {
+          state.infrequentStaffKeys.push(qKey);
+        }
+        if (lastKey && !state.infrequentStaffKeys.includes(lastKey)) {
+          state.infrequentStaffKeys.push(lastKey);
+        }
       } else {
         state.infrequentStaffIds = state.infrequentStaffIds.filter(sid => sid !== staffMember.id);
+        if (qKey) {
+          state.infrequentStaffKeys = state.infrequentStaffKeys.filter(k => k !== qKey);
+        }
+        if (lastKey) {
+          state.infrequentStaffKeys = state.infrequentStaffKeys.filter(k => k !== lastKey);
+        }
       }
     }
 

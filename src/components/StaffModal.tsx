@@ -16,6 +16,7 @@ interface StaffModalProps {
   onMoveToBullpen?: (staffId: string) => void;
   onToggleBreak: (targetType: 'room_slot' | 'runner_slot' | 'bullpen', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
   onUpdateShift?: (staffId: string, newShift: string, lastName?: string, credentials?: Staff['credentials']) => void;
+  onUpdateDisplayName?: (staffId: string, displayName: string) => void;
   onSetStaffInfrequent?: (staffId: string, isInfrequent: boolean) => void;
   onOpenLogin?: () => void;
 }
@@ -32,19 +33,24 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   onMoveToBullpen,
   onToggleBreak,
   onUpdateShift,
+  onUpdateDisplayName,
   onSetStaffInfrequent,
   onOpenLogin
 }) => {
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [isEditingShift, setIsEditingShift] = useState(false);
   const [customShift, setCustomShift] = useState(staff?.shift || 'Day');
+  const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
+  const [displayNameInput, setDisplayNameInput] = useState(staff?.displayName || '');
 
   React.useEffect(() => {
     if (staff) {
       setCustomShift(staff.shift || 'Day');
       setIsEditingShift(false);
+      setDisplayNameInput(staff.displayName || '');
+      setIsEditingDisplayName(false);
     }
-  }, [staff?.id, staff?.shift]);
+  }, [staff?.id, staff?.shift, staff?.displayName]);
 
   if (!staff) return null;
 
@@ -192,6 +198,106 @@ export const StaffModal: React.FC<StaffModalProps> = ({
           border: '1px solid var(--border-light)',
           marginBottom: 16
         }}>
+          {/* Magnet Display Name (View and Edit) */}
+          {!isEditingDisplayName ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
+                <Sparkles size={15} style={{ color: 'var(--accent-primary)' }} />
+                <span style={{ fontWeight: 600 }}>Magnet Name:</span>
+                <span style={{
+                  fontWeight: 800,
+                  color: 'var(--text-primary)',
+                  background: 'var(--surface-card)',
+                  padding: '2px 8px',
+                  borderRadius: 4,
+                  border: '1px solid var(--border-light)'
+                }}>
+                  {staff.displayName || `${staff.lastName.toUpperCase()}${staff.firstName ? ` ${staff.firstName[0]}.` : ''}`}
+                </span>
+                {staff.displayName && (
+                  <span style={{ fontSize: 9, color: 'var(--accent-primary)', fontWeight: 800 }}>[CUSTOM]</span>
+                )}
+              </div>
+              {isEditor && onUpdateDisplayName && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditingDisplayName(true)}
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--accent-primary)',
+                    background: 'transparent',
+                    border: 'none',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Edit Name
+                </button>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Sparkles size={14} style={{ color: 'var(--accent-primary)' }} />
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>
+                  Custom Magnet Display Name:
+                </label>
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input
+                  type="text"
+                  placeholder="e.g. Dr. Dave, Johnny, or blank for default"
+                  value={displayNameInput}
+                  onChange={e => setDisplayNameInput(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '6px 8px',
+                    borderRadius: 4,
+                    border: '1px solid var(--border-light)',
+                    fontSize: 12,
+                    fontWeight: 700
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onUpdateDisplayName) {
+                      onUpdateDisplayName(staff.id, displayNameInput.trim());
+                    }
+                    setIsEditingDisplayName(false);
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    background: 'var(--accent-primary)',
+                    color: '#fff',
+                    borderRadius: 4,
+                    fontWeight: 700,
+                    fontSize: 12,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDisplayNameInput(staff.displayName || '');
+                    setIsEditingDisplayName(false);
+                  }}
+                  style={{
+                    padding: '6px 10px',
+                    background: 'transparent',
+                    border: '1px solid var(--border-light)',
+                    borderRadius: 4,
+                    fontSize: 12,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
           {/* Phone */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>

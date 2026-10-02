@@ -321,8 +321,10 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   };
 
   const sortAlphabetical = (a: Staff, b: Staff) => {
-    const lastComp = a.lastName.localeCompare(b.lastName, undefined, { sensitivity: 'base' });
-    if (lastComp !== 0) return lastComp;
+    const nameA = a.displayName || a.lastName;
+    const nameB = b.displayName || b.lastName;
+    const comp = nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
+    if (comp !== 0) return comp;
     return a.firstName.localeCompare(b.firstName, undefined, { sensitivity: 'base' });
   };
 
@@ -347,7 +349,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
 
   // Available unassigned staff partitioned into MD, CRNA, and Infrequent (alphabetical)
   const mobileAvailableStaffGroups = useMemo(() => {
-    const unassigned = (boardState.staff || []).filter(s => s.active && !assignedStaffIds.has(s.id));
+    const unassigned = (boardState.staff || []).filter(s => s.active !== false && !assignedStaffIds.has(s.id));
     const mdList: Staff[] = [];
     const crnaList: Staff[] = [];
     const infrequentList: Staff[] = [];

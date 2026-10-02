@@ -17,6 +17,7 @@ export interface Staff {
   id: string;
   firstName: string;
   lastName: string;
+  displayName?: string; // Custom magnet name (e.g. Dr. Dave, Johnny, Smith, J.)
   initials?: string;
   credentials: StaffCredential;
   phone: string;
