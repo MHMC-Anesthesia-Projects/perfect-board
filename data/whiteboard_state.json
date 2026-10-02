@@ -1002,7 +1002,7 @@
         {
           "id": "runner_ob_1",
           "title": "Runner 1",
-          "staffId": null,
+          "staffId": "staff_oneusap_doc_changale",
           "breakfastDone": false,
           "lunchDone": false,
           "breakfastTime": null,
@@ -1020,14 +1020,6 @@
               "id": "dept_ob_room_1_slot_0",
               "roleType": "primary",
               "staffId": "staff_oneusap_anes_hartsgrovemar",
-              "breakfastDone": false,
-              "lunchDone": false,
-              "notes": ""
-            },
-            {
-              "id": "dept_ob_room_1_slot_1_1790947059100",
-              "roleType": "secondary",
-              "staffId": "staff_oneusap_doc_changale",
               "breakfastDone": false,
               "lunchDone": false,
               "notes": ""

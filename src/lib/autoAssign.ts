@@ -222,7 +222,50 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
   const mdStaff = activeStaff.filter(s => s.credentials === 'MD' || s.credentials === 'Fellow');
   const runnerMdIds = new Set<string>();
 
+  // Helper to assign an MD as a department runner
+  const assignAsRunner = (dept: Department, mdId: string) => {
+    runnerMdIds.add(mdId);
+    let emptyRunner = dept.runnerSlots.find(rs => !rs.staffId);
+    if (!emptyRunner) {
+      const newIndex = dept.runnerSlots.length + 1;
+      const newSlot = {
+        id: `runner_${dept.id}_${Date.now()}_${newIndex}`,
+        title: `Runner ${newIndex}`,
+        staffId: null,
+        breakfastDone: false,
+        lunchDone: false
+      };
+      dept.runnerSlots.push(newSlot);
+      emptyRunner = newSlot;
+    }
+    emptyRunner.staffId = mdId;
+    assignedStaffIds.add(mdId);
+  };
+
+  // 2a. Rule: If a Doc is assigned to OB, assign them as a runner in OB
+  const obDept = findDepartment(departments, 'dept_ob');
+  if (obDept) {
+    mdStaff.forEach(md => {
+      if (assignedStaffIds.has(md.id)) return;
+      const rawRooms = getStaffRooms(md);
+      const hasObRoom = rawRooms.some(r => {
+        const mapped = mapScrapedRoomToDeptAndRoom(r);
+        return mapped?.deptKey === 'dept_ob' || r.toUpperCase().includes('OB');
+      });
+      const upperShift = (md.shift || '').toUpperCase();
+      const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
+      const isActiveObShift = (upperShift.includes('C1,OB') && !upperShift.includes('POST') && !upperShift.includes('PRE')) ||
+        shiftParts.some(p => (p === 'OB' || p === 'OBCALL') && !p.startsWith('POST') && !p.startsWith('PRE'));
+
+      if (hasObRoom || isActiveObShift) {
+        assignAsRunner(obDept, md.id);
+      }
+    });
+  }
+
+  // 2b. Identify and place Department Runners (MDs supervising multiple rooms in the same department)
   mdStaff.forEach(md => {
+    if (assignedStaffIds.has(md.id)) return;
     const rawRooms = getStaffRooms(md);
     if (rawRooms.length < 2) return;
 
@@ -240,26 +283,7 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
       if (count >= 2) {
         const dept = findDepartment(departments, deptKey);
         if (dept) {
-          runnerMdIds.add(md.id);
-
-          // Find first available runner slot
-          let emptyRunner = dept.runnerSlots.find(rs => !rs.staffId);
-          if (!emptyRunner) {
-            // Dynamically add another runner slot if needed
-            const newIndex = dept.runnerSlots.length + 1;
-            const newSlot = {
-              id: `runner_${dept.id}_${Date.now()}_${newIndex}`,
-              title: `Runner ${newIndex}`,
-              staffId: null,
-              breakfastDone: false,
-              lunchDone: false
-            };
-            dept.runnerSlots.push(newSlot);
-            emptyRunner = newSlot;
-          }
-
-          emptyRunner.staffId = md.id;
-          assignedStaffIds.add(md.id);
+          assignAsRunner(dept, md.id);
           break; // Assigned as runner for this department
         }
       }
@@ -310,6 +334,15 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
     for (const rawRoom of rawRooms) {
       const mapped = mapScrapedRoomToDeptAndRoom(rawRoom);
       if (!mapped) continue;
+
+      // If a Doc is assigned to OB, assign them as an OB runner rather than in a room
+      if (mapped.deptKey === 'dept_ob') {
+        const obDept = findDepartment(departments, 'dept_ob');
+        if (obDept) {
+          assignAsRunner(obDept, md.id);
+          break;
+        }
+      }
 
       const dept = findDepartment(departments, mapped.deptKey);
       if (!dept) continue;

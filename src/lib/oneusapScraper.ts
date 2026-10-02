@@ -412,8 +412,8 @@ export function parseOneUsapHtml(
       const docClean = r.doc.replace(/\[.*?\]/g, '').trim().toLowerCase();
       const anesClean = r.anes.replace(/\[.*?\]/g, '').trim().toLowerCase();
       return (
-        (docClean && (docClean === cleanId || docClean.includes(cleanLast) || cleanId.includes(docClean))) ||
-        (anesClean && (anesClean === cleanId || anesClean.includes(cleanLast) || cleanId.includes(anesClean)))
+        (docClean && (docClean === cleanId || (cleanLast.length >= 3 && docClean.startsWith(cleanLast)))) ||
+        (anesClean && (anesClean === cleanId || (cleanLast.length >= 3 && anesClean.startsWith(cleanLast))))
       );
     });
 
