@@ -945,7 +945,7 @@ export default function WhiteboardPage() {
         }}>
           OR
         </div>
-        <div style={{ fontSize: 18, fontWeight: 800 }}>Loading Surgical Suite Whiteboard...</div>
+        <div style={{ fontSize: 18, fontWeight: 800 }}>Loading Perfect Board...</div>
         <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
           {loadError ? `Connection notice: ${loadError}. Reconnecting...` : 'Syncing rooms, runners, and staff roster...'}
         </div>

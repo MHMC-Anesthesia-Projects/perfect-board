@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OR Digital Whiteboard | Hospital Operating Room Suite",
+  title: "Perfect Board | Surgical Suite Whiteboard",
   description: "Touchscreen Digital Whiteboard for Hospital OR Staffing, Runner Allocation, and Break Management",
 };
 
