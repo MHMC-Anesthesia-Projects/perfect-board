@@ -1,5 +1,29 @@
 [
   {
+    "id": "audit_1790945028017_du0jz",
+    "timestamp": "2026-10-02T12:43:48.017Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Auto-assigned 40 staff magnets to department rooms and runner slots based on portal schedule"
+  },
+  {
+    "id": "audit_1790945021351_wwso0",
+    "timestamp": "2026-10-02T12:43:41.351Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1790945014802_mr1r7",
+    "timestamp": "2026-10-02T12:43:34.802Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Cleaned Whiteboard for new operating day (Cleared all room magnets, runner slots, and bullpen)"
+  },
+  {
     "id": "audit_1790944863505_k9zn9",
     "timestamp": "2026-10-02T12:41:03.505Z",
     "actionType": "STAFF_ASSIGNED",

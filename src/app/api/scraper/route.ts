@@ -230,8 +230,8 @@ export async function POST(req: NextRequest) {
             existing.phone = ws.phone || existing.phone;
             existing.shift = ws.shift || existing.shift;
             existing.facility = ws.facility || existing.facility;
-            existing.assignedRoom = ws.roomAssignment || existing.assignedRoom;
-            existing.assignedRooms = ws.assignedRooms || (ws.roomAssignment ? ws.roomAssignment.split(',').map(s => s.trim()) : existing.assignedRooms);
+            existing.assignedRoom = ws.roomAssignment || undefined;
+            existing.assignedRooms = ws.assignedRooms || (ws.roomAssignment ? ws.roomAssignment.split(',').map(s => s.trim()) : undefined);
             existing.qgendaAbbr = ws.qgendaAbbr || existing.qgendaAbbr;
             existing.orderNumber = ws.orderNumber || existing.orderNumber;
             existing.isInfrequent = isInfrequent;
@@ -248,7 +248,7 @@ export async function POST(req: NextRequest) {
               phone: ws.phone,
               shift: ws.shift,
               facility: ws.facility,
-              assignedRoom: ws.roomAssignment,
+              assignedRoom: ws.roomAssignment || undefined,
               assignedRooms: ws.assignedRooms || (ws.roomAssignment ? ws.roomAssignment.split(',').map(s => s.trim()) : undefined),
               qgendaAbbr: ws.qgendaAbbr,
               orderNumber: ws.orderNumber,
@@ -261,6 +261,8 @@ export async function POST(req: NextRequest) {
         // Set non-working staff to inactive so they don't clutter today's roster
         existingStaffMap.forEach(inactiveStaff => {
           inactiveStaff.active = false;
+          inactiveStaff.assignedRoom = undefined;
+          inactiveStaff.assignedRooms = undefined;
           updatedStaffList.push(inactiveStaff);
         });
 

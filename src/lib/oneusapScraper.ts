@@ -124,10 +124,18 @@ export function formatPhoneNumber(rawPhone: string): string {
   return rawPhone;
 }
 
-// Facility filter check matching any selected facility code
+// Helper to extract the active working facility from a potentially compound facility string (e.g. "W: MHMC,W: MHKTY" -> "W: MHKTY")
+export function getActiveFacilityCode(facilityStr: string): string {
+  if (!facilityStr) return '';
+  const segments = facilityStr.split(',').map(s => s.trim()).filter(Boolean);
+  return segments.length > 0 ? segments[segments.length - 1] : facilityStr;
+}
+
+// Facility filter check matching any selected facility code against the active working facility
 export function isTargetFacility(facilityStr: string, allowedFacilities: string[] = DEFAULT_FACILITIES): boolean {
   if (!facilityStr || allowedFacilities.length === 0) return false;
-  const upper = facilityStr.toUpperCase();
+  const activeWorkingFacility = getActiveFacilityCode(facilityStr);
+  const upper = activeWorkingFacility.toUpperCase();
   return allowedFacilities.some(fac => upper.includes(fac.toUpperCase()));
 }
 
@@ -138,18 +146,20 @@ export function isOffShift(shiftStr: string): boolean {
 }
 
 export function getFriendlyFacilityName(facilityStr: string): string {
-  const upper = facilityStr.toUpperCase();
+  const activeSegment = getActiveFacilityCode(facilityStr);
+  const upper = activeSegment.toUpperCase();
   if (upper.includes('MHMC')) return 'MH Memorial City';
   if (upper.includes('MHVIL')) return 'MH Village SC';
   if (upper.includes('HIVF')) return 'Houston IVF';
   if (upper.includes('HMWST')) return 'Methodist West';
   if (upper.includes('MHTW')) return 'MH Woodlands';
   if (upper.includes('HMH')) return 'Methodist Main';
+  if (upper.includes('MHKTY')) return 'MH Katy';
 
   for (const [code, info] of Object.entries(KNOWN_FACILITIES)) {
     if (upper.includes(code)) return info.name;
   }
-  return facilityStr.replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/, '').trim();
+  return activeSegment.replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/, '').trim() || facilityStr;
 }
 
 export interface ParseOneUsapResult {
@@ -349,8 +359,9 @@ export function parseOneUsapHtml(
     }
   }
 
-  // 5. Extract active room assignments from HTML rows
+  // 5. Extract active room assignments and track provider sites from HTML rows
   const roomAssignments: Array<{ facility: string; room: string; time: string; doc: string; anes: string }> = [];
+  const providerSiteMap = new Map<string, Set<string>>();
   const rows = htmlContent.split(/<tr\b[^>]*>/i);
   let currentSite = '';
 
@@ -361,19 +372,35 @@ export function parseOneUsapHtml(
       continue;
     }
 
-    if (currentSite && isTargetFacility(currentSite, activeFacilities) && row.includes('zz_ROOM_zz')) {
+    if (row.includes('zz_ROOM_zz')) {
       const docMatch = row.match(/data-doc=["\x27]([^"\x27]*)["\x27]/i);
       const anesMatch = row.match(/data-anes=["\x27]([^"\x27]*)["\x27]/i);
-      const roomMatch = row.match(/<div>\s*([A-Za-z0-9\s_-]+?)(?:\s*\.\s*\.|\s*<i>)/i);
-      const timeMatch = row.match(/Start\s+at:\s*<\/i>\s*(?:<[^>]+>)*\s*([0-9]{1,2}:[0-9]{2})/i);
+      const docClean = (docMatch ? docMatch[1] : '').replace(/\[.*?\]/g, '').toLowerCase().trim();
+      const anesClean = (anesMatch ? anesMatch[1] : '').replace(/\[.*?\]/g, '').toLowerCase().trim();
 
-      roomAssignments.push({
-        facility: currentSite,
-        room: roomMatch ? roomMatch[1].trim() : '',
-        time: timeMatch ? timeMatch[1].trim() : '',
-        doc: docMatch ? docMatch[1].trim() : '',
-        anes: anesMatch ? anesMatch[1].trim() : ''
-      });
+      if (currentSite) {
+        if (docClean) {
+          if (!providerSiteMap.has(docClean)) providerSiteMap.set(docClean, new Set());
+          providerSiteMap.get(docClean)!.add(currentSite);
+        }
+        if (anesClean) {
+          if (!providerSiteMap.has(anesClean)) providerSiteMap.set(anesClean, new Set());
+          providerSiteMap.get(anesClean)!.add(currentSite);
+        }
+      }
+
+      if (currentSite && isTargetFacility(currentSite, activeFacilities)) {
+        const roomMatch = row.match(/<div>\s*([A-Za-z0-9\s_-]+?)(?:\s*\.\s*\.|\s*<i>)/i);
+        const timeMatch = row.match(/Start\s+at:\s*<\/i>\s*(?:<[^>]+>)*\s*([0-9]{1,2}:[0-9]{2})/i);
+
+        roomAssignments.push({
+          facility: currentSite,
+          room: roomMatch ? roomMatch[1].trim() : '',
+          time: timeMatch ? timeMatch[1].trim() : '',
+          doc: docMatch ? docMatch[1].trim() : '',
+          anes: anesMatch ? anesMatch[1].trim() : ''
+        });
+      }
     }
   }
 
@@ -399,9 +426,24 @@ export function parseOneUsapHtml(
     };
   };
 
+  // Helper to determine if a provider belongs to the target hospital roster
+  const shouldIncludeProvider = (rawName: string, facilityStr: string): boolean => {
+    const cleanId = rawName.replace(/\[.*?\]/g, '').toLowerCase().trim();
+    const assignedSites = providerSiteMap.get(cleanId);
+    // If provider has room assignments in the HTML:
+    if (assignedSites && assignedSites.size > 0) {
+      // If ALL their rooms are at outside facilities (e.g. MHKTY, SE: MHSE), exclude them!
+      const hasTargetRoom = Array.from(assignedSites).some(s => isTargetFacility(s, activeFacilities));
+      if (!hasTargetRoom) return false;
+      return true;
+    }
+    // If no room assignments in HTML, fallback to active working facility
+    return isTargetFacility(facilityStr, activeFacilities);
+  };
+
   // 6. Filter for selected target facilities
-  const targetDocs = docEntries.filter(d => isTargetFacility(d.facility, activeFacilities));
-  const targetAnes = anesEntries.filter(d => isTargetFacility(d.facility, activeFacilities));
+  const targetDocs = docEntries.filter(d => shouldIncludeProvider(d.rawName, d.facility));
+  const targetAnes = anesEntries.filter(a => shouldIncludeProvider(a.rawName, a.facility));
 
   // 7. Build Working Staff list (excluding PTO / RDO / Off)
   const workingStaffMap = new Map<string, ScrapedWorkingStaffItem>();
@@ -420,7 +462,7 @@ export function parseOneUsapHtml(
     const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
 
     // Tally facility counts
-    const upperFac = facility.toUpperCase();
+    const upperFac = getActiveFacilityCode(facility).toUpperCase();
     for (const facCode of activeFacilities) {
       if (upperFac.includes(facCode.toUpperCase())) {
         facilityStaffCounts[facCode] = (facilityStaffCounts[facCode] || 0) + 1;
@@ -463,7 +505,7 @@ export function parseOneUsapHtml(
     const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
 
     // Tally facility counts
-    const upperFac = facility.toUpperCase();
+    const upperFac = getActiveFacilityCode(facility).toUpperCase();
     for (const facCode of activeFacilities) {
       if (upperFac.includes(facCode.toUpperCase())) {
         facilityStaffCounts[facCode] = (facilityStaffCounts[facCode] || 0) + 1;
@@ -515,11 +557,12 @@ export function parseOneUsapHtml(
     const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
     const upperShift = effectiveShift.toUpperCase();
 
+    const activeFac = getActiveFacilityCode(facility);
     let facilityLabel = 'MHMC';
-    if (facility.includes('HIVF')) facilityLabel = 'HIVF';
-    else if (facility.includes('MHVIL')) facilityLabel = 'Village';
-    else if (facility.includes('MHMC')) facilityLabel = 'MHMC';
-    else facilityLabel = facility.replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/, '').replace(/W:\s*/g, '').trim();
+    if (activeFac.includes('HIVF')) facilityLabel = 'HIVF';
+    else if (activeFac.includes('MHVIL')) facilityLabel = 'Village';
+    else if (activeFac.includes('MHMC')) facilityLabel = 'MHMC';
+    else facilityLabel = activeFac.replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/, '').replace(/W:\s*/g, '').trim();
 
     const isPostCall = 
       upperShift.includes('POSTC') || 
@@ -662,11 +705,12 @@ export function parseOneUsapHtml(
     const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
     const upperShift = effectiveShift.toUpperCase();
 
+    const activeFac = getActiveFacilityCode(facility);
     let facilityLabel = 'MHMC';
-    if (facility.includes('HIVF')) facilityLabel = 'HIVF';
-    else if (facility.includes('MHVIL')) facilityLabel = 'Village';
-    else if (facility.includes('MHMC')) facilityLabel = 'MHMC';
-    else facilityLabel = facility.replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/, '').replace(/W:\s*/g, '').trim();
+    if (activeFac.includes('HIVF')) facilityLabel = 'HIVF';
+    else if (activeFac.includes('MHVIL')) facilityLabel = 'Village';
+    else if (activeFac.includes('MHMC')) facilityLabel = 'MHMC';
+    else facilityLabel = activeFac.replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/, '').replace(/W:\s*/g, '').trim();
 
     let timeCat = '';
     if (upperShift.includes('3P')) timeCat = '3p';
