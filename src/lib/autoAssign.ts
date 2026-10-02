@@ -91,7 +91,7 @@ export function mapScrapedRoomToDeptAndRoom(rawRoom: string): { deptKey: string;
 
   // 7. IVF: "Houston IVF", "HIVF", "IVF"
   if (upper.includes('IVF')) {
-    return { deptKey: 'dept_ivf', roomName: 'LU' };
+    return { deptKey: 'dept_ivf', roomName: '1' };
   }
 
   // 8. MAIN OR: "MHMC OR1" to "MHMC OR12"
@@ -124,11 +124,29 @@ export function findRoom(dept: Department, targetRoomName: string): Room | undef
   let r = dept.rooms.find(rm => rm.name.toUpperCase() === targetRoomName.toUpperCase());
   if (r) return r;
 
+  // Exact ID match or suffix match (e.g. id "dept_ivf_room_LU" matches "LU")
+  r = dept.rooms.find(rm => 
+    rm.id.toUpperCase() === targetRoomName.toUpperCase() ||
+    rm.id.toUpperCase().endsWith(`_${targetRoomName.toUpperCase()}`)
+  );
+  if (r) return r;
+
   // Numeric comparison (e.g. "01" vs "1")
   const num = parseInt(targetRoomName, 10);
   if (!isNaN(num)) {
     r = dept.rooms.find(rm => parseInt(rm.name, 10) === num);
     if (r) return r;
+  }
+
+  // IVF department special handling: "LU", "1", "IVF", or single room in dept
+  if (dept.id === 'dept_ivf' || dept.name.toUpperCase().includes('IVF')) {
+    if (targetRoomName.toUpperCase() === 'LU' || targetRoomName.toUpperCase() === '1' || targetRoomName.toUpperCase() === 'IVF') {
+      const ivfRoom = dept.rooms.find(rm => rm.name.toUpperCase() === 'LU' || rm.name === '1' || rm.id.includes('LU')) || dept.rooms[0];
+      if (ivfRoom) return ivfRoom;
+    }
+    if (dept.rooms.length === 1) {
+      return dept.rooms[0];
+    }
   }
 
   // CCL vs CCL1 alias
