@@ -1,5 +1,21 @@
 [
   {
+    "id": "audit_1790902917946_oj5gw",
+    "timestamp": "2026-10-02T01:01:57.946Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1790902902251_uo477",
+    "timestamp": "2026-10-02T01:01:42.251Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Cleaned Whiteboard for new operating day (Cleared all room magnets, runner slots, and bullpen)"
+  },
+  {
     "id": "audit_1790899291658_l6dy1",
     "timestamp": "2026-10-02T00:01:31.658Z",
     "actionType": "STAFF_UPDATED",

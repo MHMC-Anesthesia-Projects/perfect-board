@@ -105,16 +105,6 @@ const DEFAULT_UNIQUE_SCHEDULES: UniqueScheduleRule[] = [
     facilityCondition: 'MHMC',
     active: true,
     notes: 'Day doctor works 3p; excluded from departure list, routed to 3p late list'
-  },
-  {
-    id: 'usr_shirak',
-    providerName: 'SHIRAK',
-    qgendaAbbr: 'SHIRAK',
-    fixedShift: '2p',
-    role: 'MD',
-    facilityCondition: 'MHMC',
-    active: true,
-    notes: 'Atypical 2pm departure; displays blue [2p] badge in Special departure section'
   }
 ];
 
@@ -2522,7 +2512,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         title: 'Restore Default Unique Rules',
                         itemName: 'Default Hospital Shift Rules',
                         itemCategory: 'Unique Schedules',
-                        message: 'This will reset your rules to the hospital standards (Hirsch 5p, Baerenstecher 5p, Chuan 4p, Gunn 3p, Martinez R 3p, Hiller 3p, Shirak 2p).',
+                        message: 'This will reset your rules to the hospital standards (Hirsch 5p, Baerenstecher 5p, Chuan 4p, Gunn 3p, Martinez R 3p, Hiller 3p).',
                         confirmButtonText: 'Reset to Defaults',
                         onConfirm: () => {
                           handleSaveUniqueRules(DEFAULT_UNIQUE_SCHEDULES);
