@@ -1327,7 +1327,9 @@ button {
    ========================================================================== */
 
 .bullpen-drawer {
+  position: relative;
   height: 190px;
+  min-height: 110px;
   background: var(--surface-card);
   border-top: 3px solid var(--board-grid-line);
   display: flex;
@@ -1337,11 +1339,48 @@ button {
   transition: height 0.2s ease;
 }
 
+.bullpen-drawer.resizing {
+  transition: none !important;
+  user-select: none !important;
+}
+
 .bullpen-drawer.collapsed {
   height: 38px !important;
   min-height: 38px !important;
   overflow: hidden;
   box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04);
+}
+
+/* Resizable drag handle across the top edge of Unassigned Staff drawer */
+.bullpen-resize-handle {
+  position: absolute;
+  top: -6px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  cursor: row-resize;
+  z-index: 50;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bullpen-resize-handle::before {
+  content: '';
+  width: 80px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-light);
+  transition: all var(--transition-fast);
+}
+
+.bullpen-resize-handle:hover::before,
+.bullpen-resize-handle.resizing::before {
+  background: var(--accent-primary);
+  height: 5px;
+  width: 160px;
+  box-shadow: 0 0 8px rgba(9, 105, 218, 0.5);
 }
 
 .bullpen-header {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Staff, Department, UserRole } from '@/types/whiteboard';
 import { MagnetTile } from './MagnetTile';
 import { Search, UserPlus, Users, X, ChevronDown, ChevronUp } from 'lucide-react';
@@ -47,6 +47,83 @@ export const Bullpen: React.FC<BullpenProps> = ({
 }) => {
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const isCollapsed = propIsCollapsed !== undefined ? propIsCollapsed : internalCollapsed;
+
+  // Resizable drawer height (saved in localStorage)
+  const [drawerHeight, setDrawerHeight] = useState(190);
+  const [isResizing, setIsResizing] = useState(false);
+
+  useEffect(() => {
+    try {
+      const savedHeight = localStorage.getItem('whiteboard_unassigned_drawer_height');
+      if (savedHeight) {
+        const parsed = parseInt(savedHeight, 10);
+        if (!isNaN(parsed) && parsed >= 110 && parsed <= 700) {
+          setDrawerHeight(parsed);
+        }
+      }
+    } catch {}
+  }, []);
+
+  const handleMouseDownResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    const startY = e.clientY;
+    const startH = drawerHeight;
+
+    const handleMouseMove = (moveEvt: MouseEvent) => {
+      // Dragging UP increases height (drawer sits at bottom of screen)
+      const deltaY = startY - moveEvt.clientY;
+      const maxH = Math.min(window.innerHeight * 0.75, 700);
+      const nextH = Math.min(maxH, Math.max(110, startH + deltaY));
+      setDrawerHeight(nextH);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      setDrawerHeight(currentH => {
+        try {
+          localStorage.setItem('whiteboard_unassigned_drawer_height', String(currentH));
+        } catch {}
+        return currentH;
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleTouchStartResize = (e: React.TouchEvent) => {
+    if (e.touches.length === 0) return;
+    setIsResizing(true);
+    const startY = e.touches[0].clientY;
+    const startH = drawerHeight;
+
+    const handleTouchMove = (moveEvt: TouchEvent) => {
+      if (moveEvt.touches.length === 0) return;
+      moveEvt.preventDefault();
+      const deltaY = startY - moveEvt.touches[0].clientY;
+      const maxH = Math.min(window.innerHeight * 0.75, 700);
+      const nextH = Math.min(maxH, Math.max(110, startH + deltaY));
+      setDrawerHeight(nextH);
+    };
+
+    const handleTouchEnd = () => {
+      setIsResizing(false);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      setDrawerHeight(currentH => {
+        try {
+          localStorage.setItem('whiteboard_unassigned_drawer_height', String(currentH));
+        } catch {}
+        return currentH;
+      });
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+  };
 
   const handleToggle = () => {
     if (onToggleCollapse) onToggleCollapse();
@@ -222,15 +299,26 @@ export const Bullpen: React.FC<BullpenProps> = ({
 
   return (
     <footer
-      className={`bullpen-drawer ${isCollapsed ? 'collapsed' : ''} ${isDragOver ? 'drag-over' : ''}`}
+      className={`bullpen-drawer ${isCollapsed ? 'collapsed' : ''} ${isDragOver ? 'drag-over' : ''} ${isResizing ? 'resizing' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       style={{
+        height: isCollapsed ? undefined : `${drawerHeight}px`,
         borderTopColor: isDragOver ? 'var(--accent-primary)' : 'var(--board-grid-line)',
         backgroundColor: isDragOver ? 'var(--accent-surface)' : 'var(--surface-card)'
       }}
     >
+      {/* Resizable drag handle (Mouse and Touch) across the top edge */}
+      {!isCollapsed && (
+        <div
+          className={`bullpen-resize-handle ${isResizing ? 'resizing' : ''}`}
+          onMouseDown={handleMouseDownResize}
+          onTouchStart={handleTouchStartResize}
+          title="Drag up or down with mouse or finger to expand or shrink Unassigned Staff area"
+        />
+      )}
+
       {/* Bullpen Header */}
       <div
         className="bullpen-header"

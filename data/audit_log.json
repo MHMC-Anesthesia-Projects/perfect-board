@@ -1,5 +1,14 @@
 [
   {
+    "id": "audit_1790903769580_6kvn4",
+    "timestamp": "2026-10-02T01:16:09.580Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mic Shirak",
+    "details": "Updated scheduled shift from \"CV\" to \"CV\""
+  },
+  {
     "id": "audit_1790902917946_oj5gw",
     "timestamp": "2026-10-02T01:01:57.946Z",
     "actionType": "SCRAPER_SYNCED",

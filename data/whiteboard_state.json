@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-02T01:01:57.946Z",
+  "lastUpdated": "2026-10-02T01:16:09.575Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -2215,11 +2215,10 @@
       "qgendaAbbr": "BernellMic",
       "assignedRoom": "MHMC DS 05, MHMC DS 07, MHMC DS 09"
     },
-
     {
       "id": "dep_non_0_1790902917945",
       "name": "PATEL",
-      "orderIndex": 7,
+      "orderIndex": 6,
       "category": "non_call",
       "timeEstimate": "preOB,preC1",
       "orderNumber": 30,
@@ -2229,7 +2228,7 @@
     {
       "id": "dep_non_1_1790902917945",
       "name": "JAMES",
-      "orderIndex": 8,
+      "orderIndex": 7,
       "category": "non_call",
       "orderNumber": 166,
       "qgendaAbbr": "JamesIka"
@@ -2237,7 +2236,7 @@
     {
       "id": "dep_non_2_1790902917945",
       "name": "DAUMERIE",
-      "orderIndex": 9,
+      "orderIndex": 8,
       "category": "non_call",
       "orderNumber": 167,
       "qgendaAbbr": "DaumerieGer",
@@ -2246,7 +2245,7 @@
     {
       "id": "dep_non_3_1790902917945",
       "name": "TAYLOR",
-      "orderIndex": 10,
+      "orderIndex": 9,
       "category": "non_call",
       "orderNumber": 173,
       "qgendaAbbr": "TaylorMat",
@@ -2255,7 +2254,7 @@
     {
       "id": "dep_non_4_1790902917945",
       "name": "CHOI",
-      "orderIndex": 11,
+      "orderIndex": 10,
       "category": "non_call",
       "orderNumber": 193,
       "qgendaAbbr": "ChoiSeu",
