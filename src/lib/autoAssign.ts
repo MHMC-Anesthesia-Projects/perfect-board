@@ -67,8 +67,8 @@ export function mapScrapedRoomToDeptAndRoom(rawRoom: string): { deptKey: string;
   if (upper.includes('EP1')) return { deptKey: 'dept_9th_floor', roomName: 'EP1' };
   if (upper.includes('EP2')) return { deptKey: 'dept_9th_floor', roomName: 'EP2' };
   if (upper.includes('TEE')) return { deptKey: 'dept_9th_floor', roomName: 'TEE' };
-  if (upper.includes('NIR')) return { deptKey: 'dept_9th_floor', roomName: 'NIR' };
-  if (upper.includes('IR')) return { deptKey: 'dept_9th_floor', roomName: 'IR' };
+  if (upper.includes('NEURO') || upper.includes('NIR')) return { deptKey: 'dept_9th_floor', roomName: 'NIR' };
+  if (upper.match(/\bIR\b/) || (upper.includes('IR') && !upper.includes('NEURO'))) return { deptKey: 'dept_9th_floor', roomName: 'IR' };
 
   // 5. ENDO: "MHMC Endo1" .. "Endo4", "MRI"
   if (upper.includes('ENDO') || upper.includes('MRI')) {
