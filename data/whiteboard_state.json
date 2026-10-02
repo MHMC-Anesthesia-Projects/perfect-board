@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-01T23:52:50.288Z",
+  "lastUpdated": "2026-10-02T00:01:31.651Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -1211,7 +1211,7 @@
       "lastName": "Shirak",
       "credentials": "MD",
       "phone": "(845) 706-0180",
-      "shift": "preCV",
+      "shift": "2p",
       "facility": "MH Memorial City",
       "assignedRoom": "MHMC Cath1",
       "qgendaAbbr": "ShirakMic",
@@ -1333,7 +1333,7 @@
       "lastName": "Gunn",
       "credentials": "MD",
       "phone": "(832) 217-4295",
-      "shift": "Day",
+      "shift": "3p",
       "facility": "MH Memorial City",
       "assignedRoom": "MHMC Ortho1, MHMC Ortho2, MHMC Ortho5, MHMC Ortho7",
       "qgendaAbbr": "GunnCli",
@@ -1368,7 +1368,7 @@
       "lastName": "Martinez",
       "credentials": "MD",
       "phone": "(646) 924-5521",
-      "shift": "Day",
+      "shift": "3p",
       "facility": "MH Memorial City",
       "assignedRoom": "MHMC Endo1, MHMC Endo3, MHMC Endo4",
       "qgendaAbbr": "MartinezRog",
@@ -2026,19 +2026,9 @@
       "assignedRoom": "MHMC OR9, MHMC OR10"
     },
     {
-      "id": "dep_non_2_1790897294530",
-      "name": "SHIRAK",
-      "orderIndex": 8,
-      "category": "non_call",
-      "timeEstimate": "preCV",
-      "orderNumber": 105,
-      "qgendaAbbr": "ShirakMic",
-      "assignedRoom": "MHMC Cath1"
-    },
-    {
       "id": "dep_non_3_1790897294530",
       "name": "HILLER",
-      "orderIndex": 9,
+      "orderIndex": 8,
       "category": "non_call",
       "timeEstimate": "3p",
       "orderNumber": 132,
@@ -2048,7 +2038,7 @@
     {
       "id": "dep_non_4_1790897294530",
       "name": "JEFFCOAT",
-      "orderIndex": 10,
+      "orderIndex": 9,
       "category": "non_call",
       "timeEstimate": "3p",
       "orderNumber": 134,
@@ -2058,7 +2048,7 @@
     {
       "id": "dep_non_5_1790897294530",
       "name": "SHEVCHENKO",
-      "orderIndex": 11,
+      "orderIndex": 10,
       "category": "non_call",
       "timeEstimate": "3p",
       "orderNumber": 144,
@@ -2068,43 +2058,25 @@
     {
       "id": "dep_non_6_1790897294530",
       "name": "PATEL",
-      "orderIndex": 12,
+      "orderIndex": 11,
       "category": "non_call",
       "orderNumber": 177,
       "qgendaAbbr": "PatelPur",
       "assignedRoom": "MHMC DS 05, MHMC DS 07, MHMC DS 09, MHMC DS 14"
     },
     {
-      "id": "dep_non_7_1790897294531",
-      "name": "GUNN",
-      "orderIndex": 13,
-      "category": "non_call",
-      "orderNumber": 183,
-      "qgendaAbbr": "GunnCli",
-      "assignedRoom": "MHMC Ortho1, MHMC Ortho2, MHMC Ortho5, MHMC Ortho7"
-    },
-    {
       "id": "dep_non_8_1790897294531",
       "name": "GASHLER",
-      "orderIndex": 14,
+      "orderIndex": 12,
       "category": "non_call",
       "orderNumber": 195,
       "qgendaAbbr": "GashlerKyl",
       "assignedRoom": "MHMC OR3"
     },
     {
-      "id": "dep_non_9_1790897294531",
-      "name": "MARTINEZ",
-      "orderIndex": 15,
-      "category": "non_call",
-      "orderNumber": 196,
-      "qgendaAbbr": "MartinezRog",
-      "assignedRoom": "MHMC Endo1, MHMC Endo3, MHMC Endo4"
-    },
-    {
       "id": "dep_non_10_1790897294531",
       "name": "CHEN",
-      "orderIndex": 16,
+      "orderIndex": 13,
       "category": "non_call",
       "orderNumber": 198,
       "qgendaAbbr": "ChenKev",
@@ -2113,7 +2085,7 @@
     {
       "id": "dep_non_11_1790897294531",
       "name": "CHOI",
-      "orderIndex": 17,
+      "orderIndex": 14,
       "category": "non_call",
       "orderNumber": 200,
       "qgendaAbbr": "ChoiSeu",
@@ -2467,6 +2439,27 @@
       "orderNumber": 427,
       "role": "CRNA",
       "qgendaAbbr": "RojasArt"
+    },
+    {
+      "id": "late_staff_oneusap_doc_gunncli_1790899266664",
+      "name": "GUNN",
+      "timeCategory": "3p",
+      "role": "MD",
+      "orderIndex": 31
+    },
+    {
+      "id": "late_staff_oneusap_doc_martinezrog_1790899277445",
+      "name": "MARTINEZ",
+      "timeCategory": "3p",
+      "role": "MD",
+      "orderIndex": 32
+    },
+    {
+      "id": "late_staff_oneusap_doc_shirakmic_1790899291651",
+      "name": "SHIRAK",
+      "timeCategory": "2p",
+      "role": "MD",
+      "orderIndex": 33
     }
   ],
   "latesNotes": "",

@@ -52,12 +52,12 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
   const isEditor = currentUserRole !== 'basic_user';
   const [isDragOver, setIsDragOver] = useState(false);
 
-  // Active staff currently in the Bullpen
+  // Active staff currently in the Bullpen ordered strictly by queue (first in = top is up next for work)
   const bullpenStaff = useMemo(() => {
-    const idSet = new Set(bullpenStaffIds);
-    return staff
-      .filter(s => s.active && idSet.has(s.id))
-      .sort(sortStaffByCredThenName);
+    const staffMap = new Map(staff.map(s => [s.id, s]));
+    return bullpenStaffIds
+      .map(id => staffMap.get(id))
+      .filter((s): s is Staff => Boolean(s && s.active));
   }, [staff, bullpenStaffIds]);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -123,7 +123,7 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
               </span>
             </div>
             <div className="bullpen-header-sub">
-              Available for breaks &amp; cases
+              Top is up next for work
             </div>
           </div>
         </div>
@@ -161,26 +161,45 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
           </div>
         ) : (
           <div className="bullpen-tiles-container">
-            {bullpenStaff.map(s => {
+            {bullpenStaff.map((s, idx) => {
               const b = bullpenBreaks?.[s.id];
               return (
-                <div key={s.id} className="bullpen-magnet-row">
-                  <MagnetTile
-                    staff={s}
-                    slotId={s.id}
-                    slotType="bullpen"
-                    breakfastDone={b?.breakfastDone ?? false}
-                    lunchDone={b?.lunchDone ?? false}
-                    currentUserRole={currentUserRole}
-                    onToggleBreak={(breakType, currentValue) => {
-                      if (onToggleBreak) {
-                        onToggleBreak(breakType, s.id, currentValue);
-                      }
+                <div key={s.id} className="bullpen-magnet-row" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 800,
+                      fontFamily: 'var(--font-mono)',
+                      padding: '2px 4px',
+                      borderRadius: 3,
+                      background: idx === 0 ? 'rgba(37, 99, 235, 0.15)' : 'var(--surface-hover)',
+                      color: idx === 0 ? '#2563eb' : 'var(--text-muted)',
+                      border: idx === 0 ? '1px solid rgba(37, 99, 235, 0.3)' : '1px solid var(--border-light)',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
                     }}
-                    onSelectStaff={onSelectStaff}
-                    onDragStart={(e, staffMember) => handleDragStart(e, staffMember)}
-                    onUnassign={() => onMoveStaffToUnassigned(s.id)}
-                  />
+                    title={idx === 0 ? 'Up next for work (longest in bullpen)' : `Queue position #${idx + 1}`}
+                  >
+                    {idx === 0 ? '#1' : `#${idx + 1}`}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <MagnetTile
+                      staff={s}
+                      slotId={s.id}
+                      slotType="bullpen"
+                      breakfastDone={b?.breakfastDone ?? false}
+                      lunchDone={b?.lunchDone ?? false}
+                      currentUserRole={currentUserRole}
+                      onToggleBreak={(breakType, currentValue) => {
+                        if (onToggleBreak) {
+                          onToggleBreak(breakType, s.id, currentValue);
+                        }
+                      }}
+                      onSelectStaff={onSelectStaff}
+                      onDragStart={(e, staffMember) => handleDragStart(e, staffMember)}
+                      onUnassign={() => onMoveStaffToUnassigned(s.id)}
+                    />
+                  </div>
                 </div>
               );
             })}

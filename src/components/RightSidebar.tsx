@@ -234,20 +234,57 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     categoryLabel: string;
   } | null>(null);
 
-  // Group lates by time category (3p, special, 4p, 5p, 7p, 8p, 7p-7a)
-  // 'special' is ordered right above '4p'
-  const timeCategories = ['3p', 'special', '4p', '5p', '7p', '8p', '7p-7a'];
+  // Helper to parse late category or time into sortable minutes from midnight
+  const parseLateCategoryMinutes = (category: string, items?: LateShiftItem[]): number => {
+    const cat = (category || '').toLowerCase().trim();
+    if (cat === 'special') {
+      const itemTime = items?.find(i => Boolean(i.timeEstimate))?.timeEstimate || items?.[0]?.timeEstimate;
+      if (itemTime) {
+        return parseLateCategoryMinutes(itemTime);
+      }
+      return 14 * 60; // 2:00 PM (before 3pm)
+    }
+    if (cat === '7p-7a' || cat.includes('night')) {
+      return 19 * 60 + 1; // 7:01 PM night shift
+    }
+    const match = cat.match(/(\d{1,2})(?::(\d{2}))?\s*(a|p|am|pm)?/i);
+    if (match) {
+      let hours = parseInt(match[1], 10);
+      const mins = match[2] ? parseInt(match[2], 10) : 0;
+      const meridian = match[3] ? match[3].toLowerCase() : '';
+      if (meridian.startsWith('p') && hours < 12) {
+        hours += 12;
+      } else if (meridian.startsWith('a') && hours === 12) {
+        hours = 0;
+      } else if (!meridian) {
+        if (hours >= 1 && hours <= 6) hours += 12;
+        else if (hours >= 7 && hours <= 11) hours += 12;
+      }
+      return hours * 60 + mins;
+    }
+    return 9999;
+  };
+
+  // Group lates by time category
+  const baseLateCategories = ['special', '3p', '4p', '5p', '7p', '8p', '7p-7a'];
   const latesGrouped: Record<string, LateShiftItem[]> = {};
-  timeCategories.forEach(cat => {
+  baseLateCategories.forEach(cat => {
     latesGrouped[cat] = [];
   });
-  // Also collect any custom categories
+  // Also collect any custom categories (e.g. '2p')
   latesList.forEach(item => {
     const cat = item.timeCategory || '';
     if (!latesGrouped[cat]) {
       latesGrouped[cat] = [];
     }
     latesGrouped[cat].push(item);
+  });
+
+  // Sort late categories chronologically by time: times before 3pm (like 2p or special) appear at the TOP!
+  const sortedLateCategories = Object.keys(latesGrouped).sort((a, b) => {
+    const aMins = parseLateCategoryMinutes(a, latesGrouped[a]);
+    const bMins = parseLateCategoryMinutes(b, latesGrouped[b]);
+    return aMins - bMins;
   });
 
   const handleAddDeparture = (e: React.FormEvent) => {
@@ -1160,11 +1197,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
         {/* Categorized Late Shifts Area */}
         <div className="lates-list-area">
-          {Object.entries(latesGrouped).map(([category, items]) => {
+          {sortedLateCategories.map(category => {
+            const items = latesGrouped[category] || [];
             const isSpecial = category.toLowerCase() === 'special';
-            // Hide special if empty; keep standard late categories visible
-            if (isSpecial && items.length === 0) return null;
-            if (items.length === 0 && !['3p', '4p', '5p', '7p', '8p', '7p-7a'].includes(category.toLowerCase())) return null;
+            const isAtypicalTime = !['3p', '4p', '5p', '7p', '8p', '7p-7a'].includes(category.toLowerCase());
+            // Hide special and custom atypical times if empty; keep standard late categories visible
+            if ((isSpecial || isAtypicalTime) && items.length === 0) return null;
 
             return (
               <div key={category} style={{ marginBottom: 4 }}>
@@ -1283,9 +1321,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       title={`Click to view/edit details for ${item.name}`}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                        {isSpecial && (
+                        {(isSpecial || isAtypicalTime) && (
                           <span className="atypical-time-badge">
-                            {item.timeEstimate || '2p'}
+                            {item.timeEstimate || category}
                           </span>
                         )}
                         <span>{item.name}</span>

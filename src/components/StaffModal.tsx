@@ -210,29 +210,59 @@ export const StaffModal: React.FC<StaffModalProps> = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
                 <Clock size={15} style={{ color: 'var(--marker-red)' }} />
                 <span style={{ fontWeight: 600 }}>Scheduled Shift:</span>
-                <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{staff.shift || '07:00 - 15:30'}</span>
+                <span style={{
+                  fontWeight: 800,
+                  color: /call|cv|ob/i.test(staff.shift || '') ? 'var(--marker-red)' : 'var(--text-primary)',
+                  background: /call|cv|ob/i.test(staff.shift || '') ? 'rgba(211, 47, 47, 0.08)' : 'transparent',
+                  padding: /call|cv|ob/i.test(staff.shift || '') ? '1px 6px' : '0',
+                  borderRadius: 4
+                }}>
+                  {staff.shift || '07:00 - 15:30'}
+                </span>
               </div>
               {isEditor && onUpdateShift && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCustomShift(staff.shift || 'Day');
-                    setIsEditingShift(true);
-                  }}
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: 4,
-                    background: 'var(--surface-card)',
-                    border: '1px solid var(--border-light)',
-                    color: 'var(--accent-primary)',
-                    cursor: 'pointer'
-                  }}
-                  title="Change scheduled shift or late time (e.g. 4p instead of 3p)"
-                >
-                  Edit Shift
-                </button>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomShift(staff.shift || 'Day');
+                      setIsEditingShift(true);
+                    }}
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: 4,
+                      background: 'var(--surface-card)',
+                      border: '1px solid var(--border-light)',
+                      color: 'var(--accent-primary)',
+                      cursor: 'pointer'
+                    }}
+                    title="Change scheduled shift or late time (e.g. 4p instead of 3p)"
+                  >
+                    Edit Shift
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomShift('Call 1');
+                      setIsEditingShift(true);
+                    }}
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: 4,
+                      background: 'rgba(211, 47, 47, 0.1)',
+                      border: '1px solid var(--marker-red)',
+                      color: 'var(--marker-red)',
+                      cursor: 'pointer'
+                    }}
+                    title="Change doctor to a Call shift (Call 1, Call 2, Call 3, CV, OB)"
+                  >
+                    Change to Call
+                  </button>
+                </div>
               )}
             </div>
           ) : (
@@ -265,6 +295,43 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                     </button>
                   );
                 })}
+              </div>
+
+              {/* Call Shift Presets */}
+              <div style={{ marginTop: 4, paddingTop: 4, borderTop: '1px dashed var(--border-light)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--marker-red)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <ShieldCheck size={12} />
+                    <span>On-Call Shifts (Assigns to Tonight&apos;s Call Team):</span>
+                  </span>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Kept off departure list</span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {['Call 1', 'Call 2', 'Call 3', 'CV', 'OB', 'C1,OB', 'Call'].map(callPreset => {
+                    const isSelected = customShift.toLowerCase() === callPreset.toLowerCase();
+                    const isOB = callPreset.includes('OB');
+                    const isCV = callPreset === 'CV';
+                    return (
+                      <button
+                        key={callPreset}
+                        type="button"
+                        onClick={() => setCustomShift(callPreset)}
+                        style={{
+                          padding: '3px 8px',
+                          borderRadius: 4,
+                          fontSize: 11,
+                          fontWeight: 800,
+                          border: isSelected ? '1.5px solid var(--marker-red)' : '1px solid var(--border-light)',
+                          background: isSelected ? 'rgba(211, 47, 47, 0.18)' : isOB ? 'rgba(236, 72, 153, 0.08)' : isCV ? 'rgba(234, 88, 12, 0.08)' : 'rgba(211, 47, 47, 0.06)',
+                          color: isSelected ? 'var(--marker-red)' : isOB ? '#db2777' : isCV ? '#ea580c' : 'var(--marker-red)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {callPreset}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
                 <input

@@ -166,6 +166,7 @@ export interface ParseOneUsapResult {
   lateCandidates: Array<{
     name: string;
     timeCategory: string;
+    timeEstimate?: string;
     facility: string;
     role: string;
     qgendaAbbr: string;
@@ -684,6 +685,7 @@ export function parseOneUsapHtml(
       lateCandidates.push({
         name: formatted.lastName.toUpperCase(),
         timeCategory: timeCat,
+        timeEstimate: timeCat === 'special' ? (upperShift || '2p') : undefined,
         facility: facilityLabel,
         role,
         qgendaAbbr,
@@ -696,18 +698,35 @@ export function parseOneUsapHtml(
   targetDocs.forEach(d => checkLate(d.rawName, d.facility, d.shift, 'MD', d.orderNumber));
   targetAnes.forEach(a => checkLate(a.rawName, a.facility, a.shift, 'CRNA', a.orderNumber));
 
-  // Sort late list candidates: 3p -> special -> 4p -> 5p -> 7p -> 8p -> 7p-7a, and within each category by orderNumber
-  const TIME_ORDER: Record<string, number> = {
-    '3p': 1,
-    'special': 2,
-    '4p': 3,
-    '5p': 4,
-    '7p': 5,
-    '8p': 6,
-    '7p-7a': 7
-  };
+  // Helper to parse late category or time into sortable minutes
+  function getLateCategorySortMinutes(category: string, timeEstimate?: string): number {
+    const cat = (category || '').toLowerCase().trim();
+    if (cat === 'special') {
+      if (timeEstimate) {
+        return getLateCategorySortMinutes(timeEstimate);
+      }
+      return 14 * 60; // 2:00 PM (before 3pm)
+    }
+    if (cat === '7p-7a' || cat.includes('night')) return 19 * 60 + 1;
+    const match = cat.match(/(\d{1,2})(?::(\d{2}))?\s*(a|p|am|pm)?/i);
+    if (match) {
+      let hours = parseInt(match[1], 10);
+      const mins = match[2] ? parseInt(match[2], 10) : 0;
+      const meridian = match[3] ? match[3].toLowerCase() : '';
+      if (meridian.startsWith('p') && hours < 12) hours += 12;
+      else if (meridian.startsWith('a') && hours === 12) hours = 0;
+      else if (!meridian) {
+        if (hours >= 1 && hours <= 6) hours += 12;
+        else if (hours >= 7 && hours <= 11) hours += 12;
+      }
+      return hours * 60 + mins;
+    }
+    return 9999;
+  }
+
+  // Sort late list candidates chronologically: times before 3pm (e.g. 2p/special) at top, then 3p, 4p, 5p, 7p, 8p, 7p-7a
   lateCandidates.sort((a, b) => {
-    const timeDiff = (TIME_ORDER[a.timeCategory] || 99) - (TIME_ORDER[b.timeCategory] || 99);
+    const timeDiff = getLateCategorySortMinutes(a.timeCategory, a.timeEstimate) - getLateCategorySortMinutes(b.timeCategory, b.timeEstimate);
     if (timeDiff !== 0) return timeDiff;
     return (a.orderNumber ?? 999) - (b.orderNumber ?? 999);
   });

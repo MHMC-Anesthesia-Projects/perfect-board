@@ -236,21 +236,55 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
       .sort((a, b) => a.orderIndex - b.orderIndex);
   }, [boardState.departureList, boardState.staff]);
 
-  // Lates grouped by shift category (Special placed above 4p)
-  const timeCategories = ['3p', 'special', '4p', '5p', '7p', '8p', '7p-7a'];
+  // Helper to parse late category or time into sortable minutes
+  const parseLateCategoryMinutes = (category: string, items?: LateShiftItem[]): number => {
+    const cat = (category || '').toLowerCase().trim();
+    if (cat === 'special') {
+      const itemTime = items?.find(i => Boolean(i.timeEstimate))?.timeEstimate || items?.[0]?.timeEstimate;
+      if (itemTime) {
+        return parseLateCategoryMinutes(itemTime);
+      }
+      return 14 * 60; // 2:00 PM (before 3pm)
+    }
+    if (cat === '7p-7a' || cat.includes('night')) return 19 * 60 + 1;
+    const match = cat.match(/(\d{1,2})(?::(\d{2}))?\s*(a|p|am|pm)?/i);
+    if (match) {
+      let hours = parseInt(match[1], 10);
+      const mins = match[2] ? parseInt(match[2], 10) : 0;
+      const meridian = match[3] ? match[3].toLowerCase() : '';
+      if (meridian.startsWith('p') && hours < 12) hours += 12;
+      else if (meridian.startsWith('a') && hours === 12) hours = 0;
+      else if (!meridian) {
+        if (hours >= 1 && hours <= 6) hours += 12;
+        else if (hours >= 7 && hours <= 11) hours += 12;
+      }
+      return hours * 60 + mins;
+    }
+    return 9999;
+  };
+
+  // Lates grouped by shift category - chronologically sorted (times before 3pm appear at top)
   const latesGrouped = useMemo(() => {
     const grouped: Record<string, LateShiftItem[]> = {};
-    timeCategories.forEach(cat => {
+    const baseCats = ['special', '3p', '4p', '5p', '7p', '8p', '7p-7a'];
+    baseCats.forEach(cat => {
       grouped[cat] = [];
     });
     (boardState.latesList || []).forEach(item => {
-      if (!grouped[item.timeCategory]) {
-        grouped[item.timeCategory] = [];
+      const cat = item.timeCategory || '';
+      if (!grouped[cat]) {
+        grouped[cat] = [];
       }
-      grouped[item.timeCategory].push(item);
+      grouped[cat].push(item);
     });
     return grouped;
   }, [boardState.latesList]);
+
+  const sortedTimeCategories = useMemo(() => {
+    return Object.keys(latesGrouped).sort((a, b) => {
+      return parseLateCategoryMinutes(a, latesGrouped[a]) - parseLateCategoryMinutes(b, latesGrouped[b]);
+    });
+  }, [latesGrouped]);
 
   // Credential color helper
   const getCredBadgeClass = (cred: string) => {
@@ -805,14 +839,15 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
             </div>
 
             <div className="mobile-lates-container">
-              {timeCategories.map(cat => {
+              {sortedTimeCategories.map(cat => {
                 const items = latesGrouped[cat] || [];
-                if (cat === 'special' && items.length === 0) return null;
                 const isSpecial = cat === 'special';
+                const isAtypical = !['3p', '4p', '5p', '7p', '8p', '7p-7a'].includes(cat.toLowerCase());
+                if ((isSpecial || isAtypical) && items.length === 0) return null;
                 return (
                   <div key={cat} className="mobile-card mobile-lates-group-card">
                     <div className="mobile-lates-header">
-                      <span className="mobile-lates-time-pill" style={isSpecial ? { background: '#2563eb', color: '#fff' } : undefined}>
+                      <span className="mobile-lates-time-pill" style={(isSpecial || isAtypical) ? { background: '#2563eb', color: '#fff' } : undefined}>
                         {isSpecial ? 'SPECIAL SHIFT' : `${cat.toUpperCase()} SHIFT`}
                       </span>
                       <span className="mobile-lates-count">{items.length} Staff</span>

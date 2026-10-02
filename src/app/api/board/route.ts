@@ -282,7 +282,8 @@ export async function POST(req: NextRequest) {
 
         // Handle destinations
         if (toTargetType === 'bullpen') {
-          if (staffId && !state.bullpenStaffIds.includes(staffId)) {
+          if (staffId) {
+            state.bullpenStaffIds = (state.bullpenStaffIds || []).filter(id => id !== staffId);
             state.bullpenStaffIds.push(staffId);
           }
           // Ensure cleared from any room or runner
@@ -594,54 +595,104 @@ export async function POST(req: NextRequest) {
           state.staff.push(s);
         }
 
-        // Classify shift: standard late (>= 3p) vs atypical (e.g. 2p, 1p)
+        // Classify shift: standard late (>= 3p) vs atypical (e.g. 2p, 1p) vs call shift
         const upperShift = (shift || '').toUpperCase().trim();
-        const isStandardLate = /^[0-9]+[PA]?$|^(?:3P|4P|5P|7P|8P|7P-7A|11A-11P)/i.test(upperShift) ||
-          upperShift.includes('7P') || upperShift.includes('4P') || upperShift.includes('5P') || upperShift.includes('3P') || upperShift.includes('8P');
-        const isAtypicalTime = /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(upperShift) && !isStandardLate;
+        const isCallShift = /CALL|C1|C2|C3|CV|OB/i.test(upperShift);
+        const isStandardLate = !isCallShift && (/^[0-9]+[PA]?$|^(?:3P|4P|5P|7P|8P|7P-7A|11A-11P)/i.test(upperShift) ||
+          upperShift.includes('7P') || upperShift.includes('4P') || upperShift.includes('5P') || upperShift.includes('3P') || upperShift.includes('8P'));
+        const isAtypicalTime = !isCallShift && /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(upperShift) && !isStandardLate;
 
-        // Synchronize Departure List
+        // Synchronize Departure List & Call Team
         let depItem = state.departureList.find(d =>
           d.id === staffId ||
           d.name.toUpperCase() === targetLastName.toUpperCase() ||
           (s?.qgendaAbbr && d.qgendaAbbr?.toUpperCase() === s.qgendaAbbr.toUpperCase())
         );
 
+        state.callTeamList = state.callTeamList || [];
+
         if (targetCreds === 'MD') {
-          if (isStandardLate) {
-            // Standard late doctors (3p, 4p, 5p, etc.) must not exist in departure list
+          if (isCallShift) {
+            // Assign doctor to Call Team matching role
+            const isCV = upperShift.includes('CV');
+            const isOB = upperShift.includes('OB');
+            const isCall1 = upperShift.includes('CALL 1') || upperShift.includes('C1') || (!isCV && !isOB && !upperShift.includes('2') && !upperShift.includes('3'));
+            const isCall2 = upperShift.includes('CALL 2') || upperShift.includes('C2');
+            const isCall3 = upperShift.includes('CALL 3') || upperShift.includes('C3');
+
+            const assignCallRole = (roleName: string) => {
+              let existing = state.callTeamList.find(c => c.role.toUpperCase() === roleName.toUpperCase());
+              if (existing) {
+                existing.doctorName = targetLastName.toUpperCase();
+                existing.qgendaAbbr = s?.qgendaAbbr;
+              } else {
+                state.callTeamList.push({
+                  id: `call_${roleName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`,
+                  role: roleName,
+                  doctorName: targetLastName.toUpperCase(),
+                  orderIndex: state.callTeamList.length,
+                  qgendaAbbr: s?.qgendaAbbr
+                });
+              }
+            };
+
+            if (isCV) assignCallRole('CV');
+            if (isOB) assignCallRole('OB');
+            if (isCall1) assignCallRole('Call 1');
+            if (isCall2) assignCallRole('Call 2');
+            if (isCall3) assignCallRole('Call 3');
+
+            // Maintain exact Call Team Order: CV, Call 3, Call 2, Call 1, OB
+            const CALL_ORDER: Record<string, number> = { 'CV': 1, 'CALL 3': 2, 'CALL 2': 3, 'CALL 1': 4, 'OB': 5 };
+            state.callTeamList.sort((a, b) => (CALL_ORDER[a.role.toUpperCase()] || 99) - (CALL_ORDER[b.role.toUpperCase()] || 99));
+
+            // Call doctors must NOT exist in departure list
             if (depItem) {
               state.departureList = state.departureList.filter(d => d.id !== depItem!.id);
             }
-          } else if (isAtypicalTime) {
-            // MD with atypical departure time (e.g. 2p) goes to "Special" section between post-call and non-call
-            if (depItem) {
-              depItem.category = 'special';
-              depItem.timeEstimate = shift;
-            } else {
-              state.departureList.push({
-                id: `dep_${Date.now()}`,
-                name: targetLastName.toUpperCase(),
-                orderIndex: state.departureList.length,
-                category: 'special',
-                timeEstimate: shift,
-                qgendaAbbr: s?.qgendaAbbr
-              });
-            }
           } else {
-            // Regular non-call or post-call doctor
-            if (depItem) {
-              if (depItem.category === 'special') depItem.category = 'non_call';
-              depItem.timeEstimate = shift;
+            // If moved away from Call shift to regular Day or Late, clear their name from callTeamList
+            state.callTeamList.forEach(c => {
+              if (c.doctorName?.toUpperCase() === targetLastName.toUpperCase()) {
+                c.doctorName = '';
+              }
+            });
+
+            if (isStandardLate) {
+              // Standard late doctors (3p, 4p, 5p, etc.) must not exist in departure list
+              if (depItem) {
+                state.departureList = state.departureList.filter(d => d.id !== depItem!.id);
+              }
+            } else if (isAtypicalTime) {
+              // MD with atypical departure time (e.g. 2p) goes to "Special" section between post-call and non-call
+              if (depItem) {
+                depItem.category = 'special';
+                depItem.timeEstimate = shift;
+              } else {
+                state.departureList.push({
+                  id: `dep_${Date.now()}`,
+                  name: targetLastName.toUpperCase(),
+                  orderIndex: state.departureList.length,
+                  category: 'special',
+                  timeEstimate: shift,
+                  qgendaAbbr: s?.qgendaAbbr
+                });
+              }
             } else {
-              state.departureList.push({
-                id: `dep_${Date.now()}`,
-                name: targetLastName.toUpperCase(),
-                orderIndex: state.departureList.length,
-                category: 'non_call',
-                timeEstimate: shift,
-                qgendaAbbr: s?.qgendaAbbr
-              });
+              // Regular non-call or post-call doctor
+              if (depItem) {
+                if (depItem.category === 'special') depItem.category = 'non_call';
+                depItem.timeEstimate = shift;
+              } else {
+                state.departureList.push({
+                  id: `dep_${Date.now()}`,
+                  name: targetLastName.toUpperCase(),
+                  orderIndex: state.departureList.length,
+                  category: 'non_call',
+                  timeEstimate: shift,
+                  qgendaAbbr: s?.qgendaAbbr
+                });
+              }
             }
           }
         } else {
@@ -667,7 +718,7 @@ export async function POST(req: NextRequest) {
           l.name.toUpperCase() === targetLastName.toUpperCase()
         );
 
-        const shouldBeInLates = isStandardLate || (targetCreds === 'CRNA' && isAtypicalTime);
+        const shouldBeInLates = !isCallShift && (isStandardLate || (targetCreds === 'CRNA' && isAtypicalTime));
         const lateCategory = isStandardLate ? shift.toLowerCase() : (isAtypicalTime ? 'special' : '');
 
         if (lateIdx !== -1) {
