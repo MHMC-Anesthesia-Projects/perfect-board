@@ -3,7 +3,7 @@ import { loadBoardState, saveBoardState, recordAuditLog } from '@/lib/storage';
 import { Staff } from '@/types/whiteboard';
 
 export async function GET() {
-  const state = loadBoardState();
+  const state = await loadBoardState();
   return NextResponse.json(state.staff);
 }
 
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
     }
 
-    const state = loadBoardState();
+    const state = await loadBoardState();
     const newStaff: Staff = {
       id: `staff_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       firstName: firstName?.trim() || '',
@@ -41,9 +41,9 @@ export async function POST(req: NextRequest) {
         state.infrequentStaffIds.push(newStaff.id);
       }
     }
-    saveBoardState(state);
+    await saveBoardState(state);
 
-    recordAuditLog({
+    await recordAuditLog({
       actionType: 'STAFF_CREATED',
       performedBy: currentUser?.displayName || 'User',
       userRole: currentUser?.role || 'board_runner',
@@ -66,7 +66,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
     }
 
-    const state = loadBoardState();
+    const state = await loadBoardState();
     const staffMember = state.staff.find(s => s.id === id);
     if (!staffMember) {
       return NextResponse.json({ error: 'Staff member not found.' }, { status: 404 });
@@ -91,9 +91,9 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    saveBoardState(state);
+    await saveBoardState(state);
 
-    recordAuditLog({
+    await recordAuditLog({
       actionType: 'STAFF_UPDATED',
       performedBy: currentUser?.displayName || 'User',
       userRole: currentUser?.role || 'board_runner',
@@ -118,7 +118,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
     }
 
-    const state = loadBoardState();
+    const state = await loadBoardState();
     const staffIndex = state.staff.findIndex(s => s.id === id);
     if (staffIndex === -1) {
       return NextResponse.json({ error: 'Staff not found.' }, { status: 404 });
@@ -139,9 +139,9 @@ export async function DELETE(req: NextRequest) {
       }
     }
 
-    saveBoardState(state);
+    await saveBoardState(state);
 
-    recordAuditLog({
+    await recordAuditLog({
       actionType: 'STAFF_UPDATED',
       performedBy: name,
       userRole: (role as any) || 'board_runner',

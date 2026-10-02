@@ -1,6 +1,7 @@
 'use client';
 
 import { apiUrl } from '@/lib/api';
+import { getBrowserSupabase } from '@/lib/supabase';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { BoardState, Staff, Department, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential } from '@/types/whiteboard';
 import { HeaderNav } from '@/components/HeaderNav';
@@ -118,8 +119,38 @@ export default function WhiteboardPage() {
     }
   }, []);
 
-  // Set up real-time SSE listener
+  // Set up real-time board updates via Supabase Realtime (with SSE fallback)
   useEffect(() => {
+    const supabase = getBrowserSupabase();
+
+    // 1. If Supabase is configured in the environment, use Realtime WebSockets (<50ms sync)
+    if (supabase) {
+      const channel = supabase
+        .channel('whiteboard-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'whiteboard',
+            table: 'board_state',
+          },
+          (payload) => {
+            if (payload.new && (payload.new as any).state && (payload.new as any).state.departments) {
+              setBoardState((payload.new as any).state);
+              setLoadError(null);
+            } else {
+              fetchBoardState(false);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+
+    // 2. Fallback to SSE listener when running locally without Supabase keys
     let eventSource: EventSource | null = null;
     try {
       eventSource = new EventSource(apiUrl('/api/realtime'));

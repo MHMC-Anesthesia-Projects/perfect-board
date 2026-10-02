@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { action, config, currentUser, date } = body;
 
-    const state = loadBoardState();
+    const state = await loadBoardState();
 
     // 1. UPDATE SCRAPER CONFIGURATION
     if (action === 'UPDATE_CONFIG') {
@@ -19,8 +19,8 @@ export async function POST(req: NextRequest) {
         ...state.scraperConfig,
         ...config
       };
-      saveBoardState(state);
-      recordAuditLog({
+      await saveBoardState(state);
+      await recordAuditLog({
         actionType: 'SCRAPER_SYNCED',
         performedBy: currentUser?.displayName || 'Superuser',
         userRole: 'superuser',
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
 
         if (!scraped.success) {
           state.scraperConfig.lastSyncStatus = 'failed';
-          saveBoardState(state);
+          await saveBoardState(state);
           return NextResponse.json({
             success: false,
             error: scraped.error || 'Failed to scrape OneUSAP schedule.'
@@ -272,14 +272,14 @@ export async function POST(req: NextRequest) {
       state.scraperConfig.lastSyncTime = new Date().toISOString();
       state.scraperConfig.lastSyncStatus = 'success';
 
-      recordAuditLog({
+      await recordAuditLog({
         actionType: 'SCRAPER_SYNCED',
         performedBy: currentUser?.displayName || 'User',
         userRole: currentUser?.role || 'board_runner',
         details: `Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ${state.scraperConfig.portalType.toUpperCase()}`
       });
 
-      saveBoardState(state);
+      await saveBoardState(state);
       return NextResponse.json({
         success: true,
         message: `Synced with ${state.scraperConfig.portalType.toUpperCase()} at ${new Date().toLocaleTimeString()}`,
