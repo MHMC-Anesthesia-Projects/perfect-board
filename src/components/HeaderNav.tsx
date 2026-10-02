@@ -6,7 +6,7 @@ import {
   Sun, Moon, Shield, Lock, LogIn, LogOut, 
   RotateCw, FileSpreadsheet, Settings, 
   Keyboard, Clock, CheckCircle2, Mic, Sparkles,
-  Smartphone 
+  Smartphone, Eraser 
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -23,6 +23,7 @@ interface HeaderNavProps {
   onOpenVoiceAi?: () => void;
   onAutoAssign?: () => void;
   isAutoAssigning?: boolean;
+  onCleanWhiteboard?: () => void;
   isSyncing: boolean;
   lastSyncTime?: string | null;
   isRightSidebarOpen?: boolean;
@@ -47,6 +48,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onOpenVoiceAi,
   onAutoAssign,
   isAutoAssigning = false,
+  onCleanWhiteboard,
   isSyncing,
   lastSyncTime,
   isRightSidebarOpen = true,
@@ -226,6 +228,30 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           >
             <Sparkles size={14} className={isAutoAssigning ? 'spin-animation' : ''} />
             <span>{isAutoAssigning ? 'Assigning...' : 'Auto-Assign'}</span>
+          </button>
+        )}
+
+        {/* Clean Whiteboard / Reset for Today Button (Board Runner & Superuser) */}
+        {onCleanWhiteboard && currentUser?.role !== 'basic_user' && (
+          <button
+            onClick={onCleanWhiteboard}
+            title="Clean Whiteboard: Clear all room and runner magnets to start a fresh day"
+            style={{
+              padding: '6px 12px',
+              borderRadius: 6,
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 700,
+              color: 'var(--text-secondary)',
+              cursor: 'pointer'
+            }}
+          >
+            <Eraser size={14} />
+            <span>Clean Board</span>
           </button>
         )}
 

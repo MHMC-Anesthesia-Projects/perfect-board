@@ -270,13 +270,31 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
     baseCats.forEach(cat => {
       grouped[cat] = [];
     });
+    const standardCats = ['3p', '4p', '5p', '7p', '8p', '7p-7a'];
     (boardState.latesList || []).forEach(item => {
-      const cat = item.timeCategory || '';
-      if (!grouped[cat]) {
-        grouped[cat] = [];
+      const rawCat = (item.timeCategory || '').trim();
+      const lowerCat = rawCat.toLowerCase();
+      const isStandard = standardCats.includes(lowerCat);
+      const groupKey = isStandard ? lowerCat : 'special';
+      const effectiveTime = item.timeEstimate || (!isStandard && rawCat !== 'special' && rawCat ? rawCat : '2p');
+
+      if (!grouped[groupKey]) {
+        grouped[groupKey] = [];
       }
-      grouped[cat].push(item);
+      grouped[groupKey].push({
+        ...item,
+        timeEstimate: effectiveTime
+      });
     });
+
+    if (grouped['special']) {
+      grouped['special'].sort((a, b) => {
+        const aMins = parseLateCategoryMinutes(a.timeEstimate || '2p');
+        const bMins = parseLateCategoryMinutes(b.timeEstimate || '2p');
+        return aMins - bMins;
+      });
+    }
+
     return grouped;
   }, [boardState.latesList]);
 

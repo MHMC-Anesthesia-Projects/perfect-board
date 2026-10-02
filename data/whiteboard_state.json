@@ -2457,7 +2457,8 @@
     {
       "id": "late_staff_oneusap_doc_shirakmic_1790899291651",
       "name": "SHIRAK",
-      "timeCategory": "2p",
+      "timeCategory": "special",
+      "timeEstimate": "2p",
       "role": "MD",
       "orderIndex": 33
     }

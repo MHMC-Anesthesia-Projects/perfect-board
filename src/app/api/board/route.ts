@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadBoardState, saveBoardState, recordAuditLog, getInitialBoardState, resetDailyBreaks } from '@/lib/storage';
+import { loadBoardState, saveBoardState, recordAuditLog, getInitialBoardState, resetDailyBreaks, broadcastStateChange } from '@/lib/storage';
 import { UserRole, RunnerSlot } from '@/types/whiteboard';
 import { autoAssignBoardState } from '@/lib/autoAssign';
 
@@ -526,6 +526,65 @@ export async function POST(req: NextRequest) {
         });
       }
 
+      // 5c2. Clean Whiteboard (Reset all room magnets and runner slots for the new day)
+      case 'CLEAR_WHITEBOARD': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+
+        // Reset all runner slots and room slots cleanly
+        state.departments.forEach(dept => {
+          const defaultRunnerSlots = (dept.id.includes('main_or') || dept.id.includes('west_pav'))
+            ? 2
+            : (dept.id.includes('9th') || dept.id.includes('ivf'))
+              ? 0
+              : 1;
+          dept.runnerSlots = dept.runnerSlots.slice(0, defaultRunnerSlots);
+          dept.runnerSlots.forEach(slot => {
+            slot.staffId = null;
+            slot.breakfastDone = false;
+            slot.lunchDone = false;
+          });
+
+          dept.rooms.forEach(room => {
+            room.slots = [{
+              id: `${dept.id}_room_${room.name}_slot_0`,
+              roleType: 'primary',
+              staffId: null,
+              breakfastDone: false,
+              lunchDone: false,
+              notes: ''
+            }];
+          });
+        });
+
+        // Clear bullpen and break records
+        state.bullpenStaffIds = [];
+        state.bullpenBreaks = {};
+
+        // Reset departure struck flags for fresh day
+        if (state.departureList) {
+          state.departureList.forEach(d => {
+            d.departed = false;
+          });
+        }
+
+        saveBoardState(state);
+        recordAuditLog({
+          actionType: 'STAFF_UNASSIGNED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          details: 'Cleaned Whiteboard for new operating day (Cleared all room magnets, runner slots, and bullpen)'
+        });
+
+        broadcastStateChange();
+        return NextResponse.json({
+          success: true,
+          state,
+          message: 'Whiteboard cleared successfully for the new day'
+        });
+      }
+
       // 5d. Save Unique Schedules (Configurable Departure & Late Rules)
       case 'SAVE_UNIQUE_SCHEDULES': {
         if (currentUserRole !== 'superuser' && currentUserRole !== 'board_runner') {
@@ -595,12 +654,16 @@ export async function POST(req: NextRequest) {
           state.staff.push(s);
         }
 
-        // Classify shift: standard late (>= 3p) vs atypical (e.g. 2p, 1p) vs call shift
+        // Classify shift: standard late (>= 3p) vs atypical/special (e.g. 2p, 1p, Special) vs call shift
         const upperShift = (shift || '').toUpperCase().trim();
         const isCallShift = /CALL|C1|C2|C3|CV|OB/i.test(upperShift);
-        const isStandardLate = !isCallShift && (/^[0-9]+[PA]?$|^(?:3P|4P|5P|7P|8P|7P-7A|11A-11P)/i.test(upperShift) ||
-          upperShift.includes('7P') || upperShift.includes('4P') || upperShift.includes('5P') || upperShift.includes('3P') || upperShift.includes('8P'));
-        const isAtypicalTime = !isCallShift && /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(upperShift) && !isStandardLate;
+        const standardLateKeys = ['3P', '4P', '5P', '7P', '8P', '7P-7A', '11A-11P'];
+        const isStandardLate = !isCallShift && standardLateKeys.some(k => upperShift === k || upperShift.startsWith(k));
+        const isAtypicalTime = !isCallShift && (
+          upperShift === 'SPECIAL' ||
+          /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)?$/i.test(upperShift)
+        ) && !isStandardLate;
+        const effectiveTimeEstimate = isAtypicalTime ? (upperShift === 'SPECIAL' ? '2p' : shift) : undefined;
 
         // Synchronize Departure List & Call Team
         let depItem = state.departureList.find(d =>
@@ -667,14 +730,14 @@ export async function POST(req: NextRequest) {
               // MD with atypical departure time (e.g. 2p) goes to "Special" section between post-call and non-call
               if (depItem) {
                 depItem.category = 'special';
-                depItem.timeEstimate = shift;
+                depItem.timeEstimate = effectiveTimeEstimate;
               } else {
                 state.departureList.push({
                   id: `dep_${Date.now()}`,
                   name: targetLastName.toUpperCase(),
                   orderIndex: state.departureList.length,
                   category: 'special',
-                  timeEstimate: shift,
+                  timeEstimate: effectiveTimeEstimate,
                   qgendaAbbr: s?.qgendaAbbr
                 });
               }
@@ -718,13 +781,13 @@ export async function POST(req: NextRequest) {
           l.name.toUpperCase() === targetLastName.toUpperCase()
         );
 
-        const shouldBeInLates = !isCallShift && (isStandardLate || (targetCreds === 'CRNA' && isAtypicalTime));
+        const shouldBeInLates = !isCallShift && (isStandardLate || isAtypicalTime);
         const lateCategory = isStandardLate ? shift.toLowerCase() : (isAtypicalTime ? 'special' : '');
 
         if (lateIdx !== -1) {
           if (shouldBeInLates) {
             state.latesList[lateIdx].timeCategory = lateCategory;
-            state.latesList[lateIdx].timeEstimate = isAtypicalTime ? shift : undefined;
+            state.latesList[lateIdx].timeEstimate = effectiveTimeEstimate;
           } else {
             state.latesList.splice(lateIdx, 1);
           }
@@ -734,7 +797,7 @@ export async function POST(req: NextRequest) {
             name: targetLastName.toUpperCase(),
             timeCategory: lateCategory,
             role: targetCreds === 'MD' ? 'MD' : 'CRNA',
-            timeEstimate: isAtypicalTime ? shift : undefined,
+            timeEstimate: effectiveTimeEstimate,
             orderIndex: state.latesList.length
           });
         }

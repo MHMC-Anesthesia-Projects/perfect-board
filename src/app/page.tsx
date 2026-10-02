@@ -68,6 +68,7 @@ export default function WhiteboardPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSyncWarningOpen, setIsSyncWarningOpen] = useState(false);
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);
+  const [isCleanBoardModalOpen, setIsCleanBoardModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Initialize theme and load board
@@ -789,6 +790,40 @@ export default function WhiteboardPage() {
     }
   };
 
+  // 7b. Clean Whiteboard for the new operating day
+  const handleCleanWhiteboard = async () => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'CLEAR_WHITEBOARD',
+          payload: {},
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+        setIsCleanBoardModalOpen(false);
+        setToastMessage('✓ Whiteboard cleaned for new operating day');
+        setTimeout(() => setToastMessage(null), 3500);
+      } else {
+        setToastMessage(`Clear error: ${data.error || 'Failed'}`);
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error('Error cleaning whiteboard:', err);
+      setToastMessage('Error cleaning whiteboard.');
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
+
   // 8. Superuser Layout actions
   const handleSaveDepartments = async (departments: Department[]) => {
     try {
@@ -927,6 +962,7 @@ export default function WhiteboardPage() {
             onOpenVoiceAi={() => setVoiceNoteTarget({ type: 'general', currentNotes: '' })}
             onAutoAssign={handleAutoAssign}
             isAutoAssigning={isAutoAssigning}
+            onCleanWhiteboard={() => setIsCleanBoardModalOpen(true)}
             isSyncing={isSyncing}
             lastSyncTime={boardState.scraperConfig.lastSyncTime}
             isRightSidebarOpen={isRightSidebarOpen}
@@ -1116,6 +1152,19 @@ export default function WhiteboardPage() {
           await executeTriggerSync();
         }}
         onClose={() => setIsSyncWarningOpen(false)}
+      />
+
+      {/* Clean Whiteboard Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={isCleanBoardModalOpen}
+        title="Clean Whiteboard for New Day"
+        itemName="All Room & Runner Magnets"
+        itemCategory="Whiteboard Reset"
+        message="Are you sure you want to clean the whiteboard? All magnets will be cleared from rooms and runner slots into unassigned status so you can start fresh or run Auto-Assign."
+        confirmButtonText="Clean Whiteboard"
+        cancelButtonText="Cancel"
+        onConfirm={handleCleanWhiteboard}
+        onClose={() => setIsCleanBoardModalOpen(false)}
       />
 
       {/* Staff Unassign / Availability Routing Modal */}

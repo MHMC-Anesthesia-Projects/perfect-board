@@ -265,22 +265,46 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     return 9999;
   };
 
-  // Group lates by time category
+  // Group lates by time category (Special at top, then 3p, 4p, 5p, 7p, 8p, 7p-7a)
   const baseLateCategories = ['special', '3p', '4p', '5p', '7p', '8p', '7p-7a'];
   const latesGrouped: Record<string, LateShiftItem[]> = {};
   baseLateCategories.forEach(cat => {
     latesGrouped[cat] = [];
   });
-  // Also collect any custom categories (e.g. '2p')
+  
+  // Standard late categories (>= 3pm)
+  const standardLateCats = ['3p', '4p', '5p', '7p', '8p', '7p-7a'];
+
+  // Group items: Any atypical time (like 2p, 1p, special) groups into 'special'
   latesList.forEach(item => {
-    const cat = item.timeCategory || '';
-    if (!latesGrouped[cat]) {
-      latesGrouped[cat] = [];
+    const rawCat = (item.timeCategory || '').trim();
+    const lowerCat = rawCat.toLowerCase();
+    const isStandard = standardLateCats.includes(lowerCat);
+    const groupKey = isStandard ? lowerCat : 'special';
+
+    // The blue time badge shows their specific time (e.g. 2p) to guide the board runner
+    const effectiveTime = item.timeEstimate || (!isStandard && rawCat !== 'special' && rawCat ? rawCat : '2p');
+
+    if (!latesGrouped[groupKey]) {
+      latesGrouped[groupKey] = [];
     }
-    latesGrouped[cat].push(item);
+
+    latesGrouped[groupKey].push({
+      ...item,
+      timeEstimate: effectiveTime
+    });
   });
 
-  // Sort late categories chronologically by time: times before 3pm (like 2p or special) appear at the TOP!
+  // Sort items within 'special' chronologically if multiple atypical times exist
+  if (latesGrouped['special']) {
+    latesGrouped['special'].sort((a, b) => {
+      const aMins = parseLateCategoryMinutes(a.timeEstimate || '2p');
+      const bMins = parseLateCategoryMinutes(b.timeEstimate || '2p');
+      return aMins - bMins;
+    });
+  }
+
+  // Sort late categories chronologically by time: Special (with times before 3pm like 2p) appears at the TOP!
   const sortedLateCategories = Object.keys(latesGrouped).sort((a, b) => {
     const aMins = parseLateCategoryMinutes(a, latesGrouped[a]);
     const bMins = parseLateCategoryMinutes(b, latesGrouped[b]);
