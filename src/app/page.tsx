@@ -97,6 +97,26 @@ export default function WhiteboardPage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Initialize Touch Drag-and-Drop Polyfill for touchscreen displays
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      import('@dragdroptouch/drag-drop-touch')
+        .then(({ enableDragDropTouch }) => {
+          try {
+            enableDragDropTouch(document, document, {
+              forceListen: true,
+              dragThresholdPixels: 5
+            });
+          } catch (err) {
+            console.warn('Touch drag-drop polyfill error:', err);
+          }
+        })
+        .catch(err => {
+          console.warn('Could not load DragDropTouch module:', err);
+        });
+    }
+  }, []);
+
   // Set up real-time SSE listener
   useEffect(() => {
     let eventSource: EventSource | null = null;
@@ -1088,6 +1108,7 @@ export default function WhiteboardPage() {
         onToggleBreak={handleToggleBreak}
         onUpdateShift={handleUpdateStaffShift}
         onSetStaffInfrequent={handleSetStaffInfrequent}
+        onOpenLogin={() => setIsLoginModalOpen(true)}
       />
 
       <SlotAssignModal

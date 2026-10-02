@@ -17,6 +17,7 @@ interface StaffModalProps {
   onToggleBreak: (targetType: 'room_slot' | 'runner_slot' | 'bullpen', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
   onUpdateShift?: (staffId: string, newShift: string, lastName?: string, credentials?: Staff['credentials']) => void;
   onSetStaffInfrequent?: (staffId: string, isInfrequent: boolean) => void;
+  onOpenLogin?: () => void;
 }
 
 export const StaffModal: React.FC<StaffModalProps> = ({
@@ -31,7 +32,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   onMoveToBullpen,
   onToggleBreak,
   onUpdateShift,
-  onSetStaffInfrequent
+  onSetStaffInfrequent,
+  onOpenLogin
 }) => {
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [isEditingShift, setIsEditingShift] = useState(false);
@@ -655,19 +657,42 @@ export const StaffModal: React.FC<StaffModalProps> = ({
           </div>
         ) : (
           <div style={{
-            padding: 10,
-            borderRadius: 6,
+            padding: 12,
+            borderRadius: 8,
             background: 'var(--surface-hover)',
-            fontSize: 12,
-            color: 'var(--text-secondary)',
-            textAlign: 'center',
+            border: '1px solid var(--border-light)',
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 6
+            gap: 8,
+            textAlign: 'center'
           }}>
-            <ShieldCheck size={14} style={{ color: 'var(--text-muted)' }} />
-            <span>Login as Board Runner or Superuser to move staff.</span>
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <ShieldCheck size={14} style={{ color: 'var(--accent-primary)' }} />
+              <span>Login as Board Runner or Superuser to move staff.</span>
+            </div>
+            {onOpenLogin && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenLogin();
+                }}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 6,
+                  background: 'var(--accent-primary)',
+                  color: '#fff',
+                  border: 'none',
+                  fontSize: 12,
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                Log In with PIN
+              </button>
+            )}
           </div>
         )}
       </div>

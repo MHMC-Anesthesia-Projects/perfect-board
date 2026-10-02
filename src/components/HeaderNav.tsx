@@ -75,21 +75,27 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   const getRoleBadge = () => {
     if (!currentUser || currentUser.role === 'basic_user') {
       return (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '4px 10px',
-          background: 'var(--surface-hover)',
-          border: '1px solid var(--border-light)',
-          borderRadius: 20,
-          fontSize: 12,
-          fontWeight: 700,
-          color: 'var(--text-secondary)'
-        }}>
+        <button
+          type="button"
+          onClick={onOpenLogin}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '4px 12px',
+            background: 'var(--surface-hover)',
+            border: '1px solid var(--border-light)',
+            borderRadius: 20,
+            fontSize: 12,
+            fontWeight: 700,
+            color: 'var(--text-secondary)',
+            cursor: 'pointer'
+          }}
+          title="Basic User mode allows break toggling. Tap to log in as Board Runner to move magnets."
+        >
           <Lock size={13} style={{ color: 'var(--text-muted)' }} />
-          <span>Basic User (Breaks Only)</span>
-        </div>
+          <span>Basic User (Breaks Only) • Tap to Move Magnets</span>
+        </button>
       );
     }
     if (currentUser.role === 'board_runner') {
