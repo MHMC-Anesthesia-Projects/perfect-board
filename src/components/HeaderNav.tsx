@@ -6,7 +6,7 @@ import {
   Sun, Moon, Shield, Lock, LogIn, LogOut, 
   RotateCw, FileSpreadsheet, Settings, 
   Keyboard, Clock, CheckCircle2, Mic, Sparkles,
-  Smartphone, Eraser 
+  Smartphone, Eraser, MessageSquare, CheckCheck 
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -32,6 +32,10 @@ interface HeaderNavProps {
   onToggleBullpen?: () => void;
   bullpenCount?: number;
   onSwitchToMobile?: () => void;
+  onOpenReliefTextModal?: () => void;
+  onCompleteAllReliefs?: () => void;
+  reliefCount?: number;
+  isCompletingRelief?: boolean;
 }
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({
@@ -56,7 +60,11 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   isBullpenOpen = true,
   onToggleBullpen,
   bullpenCount = 0,
-  onSwitchToMobile
+  onSwitchToMobile,
+  onOpenReliefTextModal,
+  onCompleteAllReliefs,
+  reliefCount = 0,
+  isCompletingRelief = false
 }) => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [currentDate, setCurrentDate] = useState<string>('');
@@ -279,6 +287,57 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             }}
           >
             <Mic size={15} />
+          </button>
+        )}
+
+        {/* Complete All Reliefs Button */}
+        {currentUser && currentUser.role !== 'basic_user' && onCompleteAllReliefs && (
+          <button
+            onClick={onCompleteAllReliefs}
+            disabled={reliefCount === 0 || isCompletingRelief}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 6,
+              background: reliefCount > 0 ? 'var(--marker-red, #dc2626)' : 'var(--surface-hover)',
+              border: reliefCount > 0 ? '1.5px solid #b91c1c' : '1px solid var(--border-light)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 800,
+              color: reliefCount > 0 ? '#ffffff' : 'var(--text-muted)',
+              cursor: reliefCount > 0 && !isCompletingRelief ? 'pointer' : 'not-allowed',
+              boxShadow: reliefCount > 0 ? '0 2px 8px rgba(220, 38, 38, 0.35)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+            title={reliefCount > 0 ? `Complete all ${reliefCount} relief handoffs and move relief staff into their active slots` : 'No active relief assignments scheduled'}
+          >
+            <CheckCheck size={14} className={isCompletingRelief ? 'spin-animation' : ''} />
+            <span>Complete Relief{reliefCount > 0 ? ` (${reliefCount})` : ''}</span>
+          </button>
+        )}
+
+        {/* Relief Assignments Group SMS Button */}
+        {currentUser && currentUser.role !== 'basic_user' && onOpenReliefTextModal && (
+          <button
+            onClick={onOpenReliefTextModal}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 6,
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1.5px solid var(--marker-red, #dc2626)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 800,
+              color: 'var(--marker-red, #dc2626)',
+              cursor: 'pointer'
+            }}
+            title="Build text thread of everyone in a room, relieving, or running"
+          >
+            <MessageSquare size={14} />
+            <span>Relief Assignments</span>
           </button>
         )}
 

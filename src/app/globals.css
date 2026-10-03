@@ -2678,5 +2678,283 @@ button {
   border-radius: 3px !important;
 }
 
+/* ==========================================================================
+   RELIEF ASSIGNMENTS (The Digital Red Box)
+   ========================================================================== */
+
+.relief-container {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.relief-container .magnet-tile {
+  padding: 0 4px;
+  gap: 3px;
+  font-size: 10.5px;
+}
+
+.relief-container .magnet-tile .magnet-name {
+  font-size: 10.5px;
+}
+
+.relief-container .magnet-tile .magnet-cred {
+  font-size: 8px;
+  padding: 0 3px;
+}
+
+.relief-container .magnet-tile .break-controls {
+  display: none;
+}
+
+.relief-arrow {
+  color: var(--marker-red);
+  font-weight: 900;
+  font-size: 9px;
+  line-height: 1;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  opacity: 0.85;
+}
+
+.relief-box {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  min-height: 20px;
+  max-height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 0 5px;
+  border-radius: var(--radius-sm);
+  background: rgba(239, 68, 68, 0.09);
+  border: 1.5px solid var(--marker-red);
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.15);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-sizing: border-box;
+}
+
+[data-theme='dark'] .relief-box {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: #f87171;
+  box-shadow: 0 1px 6px rgba(239, 68, 68, 0.25);
+}
+
+.relief-box:hover {
+  filter: brightness(1.1);
+  transform: translateY(-0.5px);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.relief-time-tag {
+  background: var(--marker-red);
+  color: #ffffff;
+  font-size: 8.5px;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.2px;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.relief-identity {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+  flex: 1;
+}
+
+.relief-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.relief-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.relief-handoff-btn {
+  background: #10b981;
+  color: #ffffff;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 9px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.relief-handoff-btn:hover {
+  filter: brightness(1.15);
+  transform: scale(1.08);
+}
+
+.relief-add-trigger {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  padding: 1px 4px;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--marker-red);
+  border-radius: 3px;
+  border: 1px dashed var(--marker-red);
+  background: rgba(239, 68, 68, 0.05);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.relief-slot-target {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  height: 100%;
+  min-height: 20px;
+  max-height: 24px;
+  min-width: 65px;
+  border-radius: var(--radius-sm);
+  border: 1.5px dashed rgba(239, 68, 68, 0.7);
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--marker-red);
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+[data-theme='dark'] .relief-slot-target {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(248, 113, 113, 0.7);
+  color: #f87171;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .room-slot-row:hover .relief-slot-target,
+  .runner-slot-row:hover .relief-slot-target {
+    display: flex;
+    opacity: 0.82;
+  }
+}
+
+.relief-slot-target:hover {
+  opacity: 1 !important;
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-color: var(--marker-red) !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+body.dragging-staff .relief-slot-target {
+  display: flex !important;
+  opacity: 1 !important;
+  border: 2px dashed var(--marker-red) !important;
+  background: rgba(239, 68, 68, 0.22) !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5) !important;
+  min-width: 68px !important;
+  animation: pulseRelief 1.4s infinite ease-in-out;
+}
+
+@keyframes pulseRelief {
+  0%, 100% {
+    border-color: rgba(239, 68, 68, 0.7);
+    background: rgba(239, 68, 68, 0.18);
+  }
+  50% {
+    border-color: var(--marker-red);
+    background: rgba(239, 68, 68, 0.32);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.7);
+  }
+}
+
+.relief-slot-label {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+.relief-slot-target.drag-over,
+.relief-box.drag-over {
+  opacity: 1 !important;
+  background: var(--marker-red) !important;
+  border: 2px solid #b91c1c !important;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.9) !important;
+  color: #ffffff !important;
+  transform: scale(1.04);
+}
+
+.relief-slot-target.drag-over .relief-slot-label,
+.relief-box.drag-over .relief-name {
+  color: #ffffff !important;
+  font-weight: 900;
+}
+
+.relief-slot-target * {
+  pointer-events: none !important;
+}
+
+.relief-box * {
+  pointer-events: none !important;
+}
+
+.relief-handoff-btn {
+  pointer-events: auto !important;
+}
+
+.primary-slot-zone,
+.primary-runner-zone {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.primary-slot-zone.drag-over,
+.primary-runner-zone.drag-over,
+.runner-slot.drag-over,
+.room-slot-target.empty.drag-over {
+  box-shadow: 0 0 8px var(--accent-primary) !important;
+  outline: 2px dashed var(--accent-primary) !important;
+  background: var(--accent-surface) !important;
+}
+
+.runner-slots-group.drag-over {
+  border: 1.5px dashed var(--accent-primary) !important;
+  background: var(--accent-surface) !important;
+}
+
+
 
 

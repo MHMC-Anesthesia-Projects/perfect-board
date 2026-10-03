@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { BoardState, Staff, Department, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential } from '@/types/whiteboard';
+import { BoardState, Staff, Department, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential, ReliefAssignment } from '@/types/whiteboard';
 import { HeaderNav } from '@/components/HeaderNav';
 import { DepartmentGrid } from '@/components/DepartmentGrid';
 import { RightSidebar } from '@/components/RightSidebar';
@@ -11,6 +11,8 @@ import { StaffUnassignModal } from '@/components/StaffUnassignModal';
 import { PinPadModal } from '@/components/PinPadModal';
 import { StaffModal } from '@/components/StaffModal';
 import { SlotAssignModal } from '@/components/SlotAssignModal';
+import { ReliefModal } from '@/components/ReliefModal';
+import { ReliefTextModal } from '@/components/ReliefTextModal';
 import { VoiceNoteModal } from '@/components/VoiceNoteModal';
 import { VirtualKeyboard } from '@/components/VirtualKeyboard';
 import { AdminModal } from '@/components/AdminModal';
@@ -57,6 +59,17 @@ export default function WhiteboardPage() {
     id: string;
     label: string;
   } | null>(null);
+  const [reliefTarget, setReliefTarget] = useState<{
+    type: 'room_slot' | 'runner_slot';
+    id: string;
+    roomName: string;
+    departmentName: string;
+    currentStaff: Staff | null;
+    currentRelief?: ReliefAssignment | null;
+  } | null>(null);
+  const [isReliefTextModalOpen, setIsReliefTextModalOpen] = useState(false);
+  const [isCompletingAllReliefs, setIsCompletingAllReliefs] = useState(false);
+  const [isCompleteReliefConfirmOpen, setIsCompleteReliefConfirmOpen] = useState(false);
   const [voiceNoteTarget, setVoiceNoteTarget] = useState<{
     type: 'room' | 'departure' | 'lates' | 'general';
     id?: string;
@@ -105,7 +118,8 @@ export default function WhiteboardPage() {
           try {
             enableDragDropTouch(document, document, {
               forceListen: true,
-              dragThresholdPixels: 5
+              dragThresholdPixels: 5,
+              contextMenuDelayMS: 3000
             });
           } catch (err) {
             console.warn('Touch drag-drop polyfill error:', err);
@@ -115,6 +129,29 @@ export default function WhiteboardPage() {
           console.warn('Could not load DragDropTouch module:', err);
         });
     }
+  }, []);
+
+  // Global Drag Cleanup: Ensure body.dragging-staff and .drag-over are cleared if drag ends anywhere
+  useEffect(() => {
+    const handleGlobalDragEnd = () => {
+      if (typeof document !== 'undefined') {
+        document.body.classList.remove('dragging-staff');
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      }
+      if (typeof window !== 'undefined') {
+        (window as any).__activeDraggedStaff = null;
+      }
+    };
+    window.addEventListener('dragend', handleGlobalDragEnd);
+    window.addEventListener('drop', handleGlobalDragEnd);
+    window.addEventListener('mouseup', handleGlobalDragEnd);
+    window.addEventListener('touchend', handleGlobalDragEnd);
+    return () => {
+      window.removeEventListener('dragend', handleGlobalDragEnd);
+      window.removeEventListener('drop', handleGlobalDragEnd);
+      window.removeEventListener('mouseup', handleGlobalDragEnd);
+      window.removeEventListener('touchend', handleGlobalDragEnd);
+    };
   }, []);
 
   // Set up real-time SSE listener
@@ -203,6 +240,23 @@ export default function WhiteboardPage() {
       }
     }
     return set;
+  }, [boardState]);
+
+  // Count total scheduled reliefs across all departments (runner slots + room slots)
+  const totalScheduledReliefsCount = useMemo(() => {
+    if (!boardState) return 0;
+    let count = 0;
+    for (const dept of boardState.departments) {
+      for (const runner of dept.runnerSlots) {
+        if (runner.relief?.staffId) count++;
+      }
+      for (const room of dept.rooms) {
+        for (const slot of room.slots) {
+          if (slot.relief?.staffId) count++;
+        }
+      }
+    }
+    return count;
   }, [boardState]);
 
   // 1. Break toggle (Basic User Allowed!)
@@ -352,6 +406,145 @@ export default function WhiteboardPage() {
       }
     } catch (err) {
       console.error('Error moving staff:', err);
+    }
+  };
+
+  // Relief Actions
+  const handleSetRelief = async (
+    targetType: 'room_slot' | 'runner_slot',
+    targetId: string,
+    reliefStaffId: string,
+    reliefTime?: string,
+    notes?: string
+  ) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SET_RELIEF',
+          payload: { targetType, targetId, reliefStaffId, reliefTime: reliefTime || '', notes },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+        const assignedStaff = data.state.staff?.find((s: Staff) => s.id === reliefStaffId);
+        setToastMessage(assignedStaff ? `Relief assigned: ${assignedStaff.lastName}` : 'Relief assigned');
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error('Error setting relief:', err);
+    }
+  };
+
+  const handleRemoveRelief = async (
+    targetType: 'room_slot' | 'runner_slot',
+    targetId: string
+  ) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'REMOVE_RELIEF',
+          payload: { targetType, targetId },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+        setToastMessage('Relief assignment removed');
+        setTimeout(() => setToastMessage(null), 2500);
+      }
+    } catch (err) {
+      console.error('Error removing relief:', err);
+    }
+  };
+
+  const handleExecuteHandoff = async (
+    targetType: 'room_slot' | 'runner_slot',
+    targetId: string
+  ) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'EXECUTE_RELIEF_HANDOFF',
+          payload: { targetType, targetId },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+        setToastMessage('Handoff completed successfully!');
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error('Error executing handoff:', err);
+    }
+  };
+
+  const handleTriggerCompleteAllReliefs = () => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    if (totalScheduledReliefsCount === 0) {
+      setToastMessage('No active relief assignments scheduled.');
+      setTimeout(() => setToastMessage(null), 3000);
+      return;
+    }
+    setIsCompleteReliefConfirmOpen(true);
+  };
+
+  const handleConfirmCompleteAllReliefs = async () => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    setIsCompleteReliefConfirmOpen(false);
+    setIsCompletingAllReliefs(true);
+    try {
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'COMPLETE_ALL_RELIEFS',
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+        setToastMessage(`✓ Successfully completed ${data.count || 0} relief handoffs! Staff moved into slots.`);
+        setTimeout(() => setToastMessage(null), 4000);
+      } else if (data.error) {
+        setToastMessage(`Relief error: ${data.error}`);
+        setTimeout(() => setToastMessage(null), 3500);
+      }
+    } catch (err) {
+      console.error('Error completing all reliefs:', err);
+      setToastMessage('Failed to complete relief handoffs.');
+      setTimeout(() => setToastMessage(null), 3500);
+    } finally {
+      setIsCompletingAllReliefs(false);
     }
   };
 
@@ -964,6 +1157,13 @@ export default function WhiteboardPage() {
           onAutoAssign={handleAutoAssign}
           isAutoAssigning={isAutoAssigning}
           onSwitchToDesktop={() => setForcedDesktop(true)}
+          onOpenReliefModal={target => setReliefTarget(target)}
+          onExecuteHandoff={handleExecuteHandoff}
+          onRemoveRelief={handleRemoveRelief}
+          onOpenReliefTextModal={() => setIsReliefTextModalOpen(true)}
+          onCompleteAllReliefs={handleTriggerCompleteAllReliefs}
+          reliefCount={totalScheduledReliefsCount}
+          isCompletingRelief={isCompletingAllReliefs}
         />
       ) : (
         <div className="whiteboard-container">
@@ -991,6 +1191,10 @@ export default function WhiteboardPage() {
             onToggleBullpen={() => setIsBullpenOpen(prev => !prev)}
             bullpenCount={boardState.bullpenStaffIds?.length || 0}
             onSwitchToMobile={() => setForcedDesktop(false)}
+            onOpenReliefTextModal={() => setIsReliefTextModalOpen(true)}
+            onCompleteAllReliefs={handleTriggerCompleteAllReliefs}
+            reliefCount={totalScheduledReliefsCount}
+            isCompletingRelief={isCompletingAllReliefs}
           />
 
       {/* Main Whiteboard Display Area */}
@@ -1035,6 +1239,9 @@ export default function WhiteboardPage() {
           onOpenVoiceNotes={(type, id, currentNotes) => setVoiceNoteTarget({ type, id, currentNotes: currentNotes || '' })}
           onAddRunnerSlot={handleAddRunnerSlot}
           onRemoveRunnerSlot={handleRemoveRunnerSlot}
+          onOpenReliefModal={target => setReliefTarget(target)}
+          onExecuteHandoff={handleExecuteHandoff}
+          onSetRelief={handleSetRelief}
         />
 
         {/* Right 2 Columns: DEPARTURE & LATES (Can be hidden to the right) */}
@@ -1098,6 +1305,7 @@ export default function WhiteboardPage() {
       <StaffModal
         staff={selectedStaff}
         departments={boardState.departments}
+        allStaff={boardState.staff}
         bullpenStaffIds={boardState.bullpenStaffIds || []}
         bullpenBreaks={boardState.bullpenBreaks || {}}
         currentUserRole={currentUserRole}
@@ -1109,6 +1317,7 @@ export default function WhiteboardPage() {
         onUpdateShift={handleUpdateStaffShift}
         onSetStaffInfrequent={handleSetStaffInfrequent}
         onOpenLogin={() => setIsLoginModalOpen(true)}
+        onOpenReliefModal={target => setReliefTarget(target)}
       />
 
       <SlotAssignModal
@@ -1120,6 +1329,25 @@ export default function WhiteboardPage() {
         onClose={() => setSlotAssignTarget(null)}
         onAssign={handleAssignStaff}
         onOpenLogin={() => setIsLoginModalOpen(true)}
+      />
+
+      <ReliefModal
+        isOpen={!!reliefTarget}
+        target={reliefTarget}
+        staff={boardState.staff}
+        currentUserRole={currentUserRole}
+        onClose={() => setReliefTarget(null)}
+        onSetRelief={handleSetRelief}
+        onRemoveRelief={handleRemoveRelief}
+        onExecuteHandoff={handleExecuteHandoff}
+      />
+
+      <ReliefTextModal
+        isOpen={isReliefTextModalOpen}
+        onClose={() => setIsReliefTextModalOpen(false)}
+        boardState={boardState}
+        currentUser={currentUser}
+        currentUserRole={currentUserRole}
       />
 
       <VoiceNoteModal
@@ -1186,6 +1414,19 @@ export default function WhiteboardPage() {
         cancelButtonText="Cancel"
         onConfirm={handleCleanWhiteboard}
         onClose={() => setIsCleanBoardModalOpen(false)}
+      />
+
+      {/* Complete All Relief Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={isCompleteReliefConfirmOpen}
+        title="Complete All Relief Assignments"
+        itemName={`${totalScheduledReliefsCount} Relief Assignment${totalScheduledReliefsCount === 1 ? '' : 's'}`}
+        itemCategory="Suite-Wide Relief"
+        message={`Are you sure you want to complete all ${totalScheduledReliefsCount} relief assignments? This will move each relief person directly into their assigned room or runner slot and clear the relief badges.`}
+        confirmButtonText="Complete All Reliefs"
+        cancelButtonText="Cancel"
+        onConfirm={handleConfirmCompleteAllReliefs}
+        onClose={() => setIsCompleteReliefConfirmOpen(false)}
       />
 
       {/* Staff Unassign / Availability Routing Modal */}

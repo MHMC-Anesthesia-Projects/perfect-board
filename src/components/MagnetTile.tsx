@@ -14,6 +14,7 @@ interface MagnetTileProps {
   onToggleBreak?: (breakType: 'breakfast' | 'lunch', currentValue: boolean) => void;
   onSelectStaff?: (staff: Staff) => void;
   onDragStart?: (e: React.DragEvent, staff: Staff, source: { type: string; id?: string }) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
   onUnassign?: () => void;
   isCompact?: boolean;
 }
@@ -28,6 +29,7 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   onToggleBreak,
   onSelectStaff,
   onDragStart,
+  onDragEnd,
   onUnassign,
   isCompact = false
 }) => {
@@ -57,11 +59,18 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
     }
   };
 
+  const handleDragEnd = (e: React.DragEvent) => {
+    if (onDragEnd) {
+      onDragEnd(e);
+    }
+  };
+
   return (
     <div
       className={`magnet-tile ${isCompact ? 'compact' : ''}`}
       draggable={isDraggable}
       onDragStart={handleDrag}
+      onDragEnd={handleDragEnd}
       onClick={handleTileClick}
       title={`${staff.firstName} ${staff.lastName} (${staff.credentials}) • Phone: ${staff.phone}`}
       style={{

@@ -1,5 +1,528 @@
 [
   {
+    "id": "audit_1790997692369_4kxt4",
+    "timestamp": "2026-10-03T03:21:32.369Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "1 Relief Provider(s)",
+    "locationName": "Suite-Wide Relief",
+    "details": "Completed all 1 scheduled relief handoffs: ENDO Rm 3: Li (CRNA) relieved Hughes (CRNA)"
+  },
+  {
+    "id": "audit_1790997684731_pypct",
+    "timestamp": "2026-10-03T03:21:24.731Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Li (CRNA)",
+    "locationName": "ENDO Room 3",
+    "details": "Assigned relief: Li (CRNA) relieving Hughes (CRNA) in ENDO Room 3"
+  },
+  {
+    "id": "audit_1790997673580_joot5",
+    "timestamp": "2026-10-03T03:21:13.581Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "2 Relief Provider(s)",
+    "locationName": "Suite-Wide Relief",
+    "details": "Completed all 2 scheduled relief handoffs: WEST PAV Rm 1: Shetty (MD) relieved Shetty (MD); ENDO Rm 3: Hughes (CRNA) relieved Li (CRNA)"
+  },
+  {
+    "id": "audit_1790997668969_kgtbk",
+    "timestamp": "2026-10-03T03:21:08.969Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Abigail Hughes",
+    "locationName": "CRNA Staff Group",
+    "details": "Moved from Staff Pool -> CRNA Staff Group"
+  },
+  {
+    "id": "audit_1790997665081_7pc0a",
+    "timestamp": "2026-10-03T03:21:05.081Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Abigail Hughes",
+    "details": "Moved Abigail Hughes to regular CRNA staff group"
+  },
+  {
+    "id": "audit_1790997661096_1gu1m",
+    "timestamp": "2026-10-03T03:21:01.096Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Hughes (CRNA)",
+    "locationName": "ENDO Room 3",
+    "details": "Assigned relief: Hughes (CRNA) relieving Li (CRNA) in ENDO Room 3"
+  },
+  {
+    "id": "audit_1790997653693_nru1w",
+    "timestamp": "2026-10-03T03:20:53.693Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Shetty (MD)",
+    "locationName": "WEST PAV Room 1",
+    "details": "Shetty (MD) designated as relieving themselves in WEST PAV Room 1"
+  },
+  {
+    "id": "audit_1790997590762_b8z40",
+    "timestamp": "2026-10-03T03:19:50.762Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "4 Relief Provider(s)",
+    "locationName": "Suite-Wide Relief",
+    "details": "Completed all 4 scheduled relief handoffs: MAIN OR Runner (Runner 1): Staff relieved Cavanaugh (MD); MAIN OR Rm 3: Ataga (CRNA) relieved Daumerie (MD); MAIN OR Rm 8: Lu (MD) relieved Hughes (CRNA); 9th Floor Rm EP2: Dwarakanath (MD) relieved Dwarakanath (MD)"
+  },
+  {
+    "id": "audit_1790997559863_egkqw",
+    "timestamp": "2026-10-03T03:19:19.863Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Ataga (CRNA)",
+    "locationName": "MAIN OR Room 3",
+    "details": "Assigned relief: Ataga (CRNA) relieving Daumerie (MD) in MAIN OR Room 3"
+  },
+  {
+    "id": "audit_1790996984480_ee3bm",
+    "timestamp": "2026-10-03T03:09:44.480Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Lu (MD)",
+    "locationName": "MAIN OR Room 8",
+    "details": "Assigned relief: Lu (MD) relieving Hughes (CRNA) in MAIN OR Room 8"
+  },
+  {
+    "id": "audit_1790996915954_rn3ww",
+    "timestamp": "2026-10-03T03:08:35.954Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "",
+    "locationName": "MAIN OR Runner (Runner 1)",
+    "details": "Assigned relief:  relieving Cavanaugh (MD) in MAIN OR Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1790996667144_8qzrm",
+    "timestamp": "2026-10-03T03:04:27.144Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Dwarakanath (MD)",
+    "locationName": "9th Floor Room EP2",
+    "details": "Dwarakanath (MD) designated as relieving themselves in 9th Floor Room EP2"
+  },
+  {
+    "id": "audit_1790996639134_f25a5",
+    "timestamp": "2026-10-03T03:03:59.134Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mankarious (MD)",
+    "locationName": "WEST PAV Runner (Runner 1)",
+    "details": "Handoff completed in WEST PAV Runner (Runner 1): Mankarious (MD) took over from Bernell (MD)"
+  },
+  {
+    "id": "audit_1790996634373_q6w3w",
+    "timestamp": "2026-10-03T03:03:54.373Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mankarious (MD)",
+    "locationName": "MAIN OR Room 4",
+    "details": "Handoff completed in MAIN OR Room 4: Mankarious (MD) took over from Ataga (CRNA)"
+  },
+  {
+    "id": "audit_1790996631105_ppgie",
+    "timestamp": "2026-10-03T03:03:51.105Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Choi (MD)",
+    "locationName": "MAIN OR Room 2",
+    "details": "Handoff completed in MAIN OR Room 2: Choi (MD) took over from Choi (MD)"
+  },
+  {
+    "id": "audit_1790996624930_8hl9k",
+    "timestamp": "2026-10-03T03:03:44.930Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mankarious (MD)",
+    "locationName": "MAIN OR Room 1",
+    "details": "Handoff completed in MAIN OR Room 1: Mankarious (MD) took over from Lu (MD)"
+  },
+  {
+    "id": "audit_1790996589878_kwh4r",
+    "timestamp": "2026-10-03T03:03:09.878Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mankarious (MD)",
+    "locationName": "MAIN OR Room 1",
+    "details": "Assigned relief: Mankarious (MD) relieving Lu (MD) in MAIN OR Room 1"
+  },
+  {
+    "id": "audit_1790996586674_ux498",
+    "timestamp": "2026-10-03T03:03:06.674Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mankarious (MD)",
+    "locationName": "MAIN OR Room 1",
+    "details": "Assigned relief: Mankarious (MD) relieving Lu (MD) in MAIN OR Room 1"
+  },
+  {
+    "id": "audit_1790996580296_1wiby",
+    "timestamp": "2026-10-03T03:03:00.296Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Ramy Mankarious",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790996144406_4c7hk",
+    "timestamp": "2026-10-03T02:55:44.406Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin",
+    "userRole": "superuser",
+    "targetName": "",
+    "locationName": "MAIN OR Room 1",
+    "details": "Assigned relief:  relieving Lu (MD) in MAIN OR Room 1"
+  },
+  {
+    "id": "audit_1790996131150_1lcq6",
+    "timestamp": "2026-10-03T02:55:31.150Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin",
+    "userRole": "superuser",
+    "targetName": "",
+    "locationName": "",
+    "details": "Assigned relief:  relieving current staff in "
+  },
+  {
+    "id": "audit_1790996123564_8drl6",
+    "timestamp": "2026-10-03T02:55:23.564Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin",
+    "userRole": "superuser",
+    "targetName": "",
+    "locationName": "",
+    "details": "Assigned relief:  relieving current staff in "
+  },
+  {
+    "id": "audit_1790995894047_yoaah",
+    "timestamp": "2026-10-03T02:51:34.047Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Key Lu",
+    "locationName": "MAIN OR Room 1",
+    "details": "Assigned to MAIN OR Room 1"
+  },
+  {
+    "id": "audit_1790995507107_kpuc2",
+    "timestamp": "2026-10-03T02:45:07.107Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mankarious (MD)",
+    "locationName": "WEST PAV Runner (Runner 1)",
+    "details": "Assigned relief: Mankarious (MD) relieving Bernell (MD) in WEST PAV Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1790995442962_hz1wb",
+    "timestamp": "2026-10-03T02:44:02.962Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "",
+    "locationName": "MAIN OR Runner (Runner 1)",
+    "details": "Assigned relief:  relieving Cavanaugh (MD) in MAIN OR Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1790995336783_vdjp2",
+    "timestamp": "2026-10-03T02:42:16.783Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Choi (MD)",
+    "locationName": "MAIN OR Room 2",
+    "details": "Choi (MD) designated as relieving themselves in MAIN OR Room 2"
+  },
+  {
+    "id": "audit_1790995280800_6h050",
+    "timestamp": "2026-10-03T02:41:20.800Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mankarious (MD)",
+    "locationName": "MAIN OR Room 4",
+    "details": "Assigned relief: Mankarious (MD) relieving Ataga (CRNA) in MAIN OR Room 4"
+  },
+  {
+    "id": "audit_1790995224045_0h5r5",
+    "timestamp": "2026-10-03T02:40:24.045Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "",
+    "locationName": "MAIN OR Room 4",
+    "details": "Assigned relief:  relieving Ataga (CRNA) in MAIN OR Room 4"
+  },
+  {
+    "id": "audit_1790994981625_8ujmk",
+    "timestamp": "2026-10-03T02:36:21.625Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Sha Shetty",
+    "locationName": "WEST PAV Room 1",
+    "details": "Marked lunch break as DONE [✓]"
+  },
+  {
+    "id": "audit_1790994822260_f3do1",
+    "timestamp": "2026-10-03T02:33:42.260Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Key Lu",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1790994747456_knplw",
+    "timestamp": "2026-10-03T02:32:27.456Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Yevgeniy Shevchenko",
+    "locationName": "WEST PAV Room 3",
+    "details": "Moved from WEST PAV Room 3 -> WEST PAV Room 3"
+  },
+  {
+    "id": "audit_1790994741199_8yreo",
+    "timestamp": "2026-10-03T02:32:21.199Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Yevgeniy Shevchenko",
+    "locationName": "WEST PAV Room 3",
+    "details": "Moved from WEST PAV Room 3 -> WEST PAV Room 3"
+  },
+  {
+    "id": "audit_1790994736292_cpbdb",
+    "timestamp": "2026-10-03T02:32:16.292Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Auto-assigned 36 staff magnets to department rooms and runner slots based on portal schedule"
+  },
+  {
+    "id": "audit_1790994733844_3v4kq",
+    "timestamp": "2026-10-03T02:32:13.844Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Cleaned Whiteboard for new operating day (Cleared all room magnets, runner slots, and bullpen)"
+  },
+  {
+    "id": "audit_1790994615513_1o09h",
+    "timestamp": "2026-10-03T02:30:15.513Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Dwarakanath (MD)",
+    "locationName": "MAIN OR Room 4",
+    "details": "Dwarakanath (MD) designated as relieving themselves in MAIN OR Room 4"
+  },
+  {
+    "id": "audit_1790994067883_xwbjw",
+    "timestamp": "2026-10-03T02:21:07.883Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "OB Room 1",
+    "details": "Removed relief assignment for OB Room 1"
+  },
+  {
+    "id": "audit_1790994059319_7u5mq",
+    "timestamp": "2026-10-03T02:20:59.319Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Hartsgrove (CRNA)",
+    "locationName": "OB Room 1",
+    "details": "Hartsgrove (CRNA) designated as relieving themselves in OB Room 1"
+  },
+  {
+    "id": "audit_1790994002362_e50dp",
+    "timestamp": "2026-10-03T02:20:02.362Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Sha Shetty",
+    "locationName": "WEST PAV Room 1",
+    "details": "Moved from WEST PAV Room 1 -> WEST PAV Room 1"
+  },
+  {
+    "id": "audit_1790993990406_tzh0v",
+    "timestamp": "2026-10-03T02:19:50.406Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "VuAnD",
+    "locationName": "WEST PAV Room 9",
+    "details": "Moved from WEST PAV Room 9 -> WEST PAV Room 9"
+  },
+  {
+    "id": "audit_1790993988143_tx5sz",
+    "timestamp": "2026-10-03T02:19:48.143Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "VuAnD",
+    "locationName": "WEST PAV Room 9",
+    "details": "Moved from WEST PAV Room 9 -> WEST PAV Room 9"
+  },
+  {
+    "id": "audit_1790993799736_wt24w",
+    "timestamp": "2026-10-03T02:16:39.736Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Douglas Hirsch",
+    "locationName": "WEST PAV Room 3",
+    "details": "Moved from Staff Pool -> WEST PAV Room 3"
+  },
+  {
+    "id": "audit_1790993794996_g6n8o",
+    "timestamp": "2026-10-03T02:16:34.997Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Douglas Hirsch",
+    "locationName": "MD Staff Group",
+    "details": "Moved from VILLAGE Runner (Runner 1) -> MD Staff Group"
+  },
+  {
+    "id": "audit_1790993794871_3ji4w",
+    "timestamp": "2026-10-03T02:16:34.871Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Douglas Hirsch",
+    "details": "Moved Douglas Hirsch to regular MD staff group"
+  },
+  {
+    "id": "audit_1790993534118_elxrb",
+    "timestamp": "2026-10-03T02:12:14.118Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Dwarakanath (MD)",
+    "locationName": "MAIN OR Room 4",
+    "details": "Handoff completed in MAIN OR Room 4: Dwarakanath (MD) took over from Ataga (CRNA)"
+  },
+  {
+    "id": "audit_1790993514421_tzzmd",
+    "timestamp": "2026-10-03T02:11:54.421Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Dwarakanath (MD)",
+    "locationName": "MAIN OR Room 4",
+    "details": "Assigned relief: Dwarakanath (MD) relieving Ataga (CRNA) in MAIN OR Room 4"
+  },
+  {
+    "id": "audit_1790993312793_gppms",
+    "timestamp": "2026-10-03T02:08:32.793Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Daumerie (MD)",
+    "locationName": "MAIN OR Room 3",
+    "details": "Daumerie (MD) designated as relieving themselves in MAIN OR Room 3"
+  },
+  {
+    "id": "audit_1790977696638_8e9kx",
+    "timestamp": "2026-10-02T21:48:16.638Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Key Lu",
+    "locationName": "ENDO Room 3",
+    "details": "Moved from Staff Pool -> ENDO Room 3"
+  },
+  {
+    "id": "audit_1790977690056_22zof",
+    "timestamp": "2026-10-02T21:48:10.056Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Ramy Mankarious",
+    "locationName": "ENDO Room 3",
+    "details": "Moved from Staff Pool -> ENDO Room 3"
+  },
+  {
+    "id": "audit_1790970617160_nms69",
+    "timestamp": "2026-10-02T19:50:17.160Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Charge Nurse (Board Runner)",
+    "userRole": "board_runner",
+    "targetName": "Ataga (CRNA)",
+    "locationName": "MAIN OR Room 2",
+    "details": "Scheduled 3:00 PM relief: Ataga (CRNA) relieving Choi (MD) in MAIN OR Room 2"
+  },
+  {
+    "id": "audit_1790969226058_3dfhe",
+    "timestamp": "2026-10-02T19:27:06.058Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Ramy Mankarious",
+    "locationName": "MD Staff Group",
+    "details": "Moved from 9th Floor Room EP2 -> MD Staff Group"
+  },
+  {
+    "id": "audit_1790969225991_kbf79",
+    "timestamp": "2026-10-02T19:27:05.991Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Ramy Mankarious",
+    "details": "Moved Ramy Mankarious to regular MD staff group"
+  },
+  {
+    "id": "audit_1790969223759_qcojn",
+    "timestamp": "2026-10-02T19:27:03.759Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Ramy Mankarious",
+    "locationName": "9th Floor Room EP2",
+    "details": "Moved from Staff Pool -> 9th Floor Room EP2"
+  },
+  {
+    "id": "audit_1790969194569_g5tpl",
+    "timestamp": "2026-10-02T19:26:34.569Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Ludwig Zemrau",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Room 7 -> Bullpen (Available Staff)"
+  },
+  {
     "id": "audit_1790948397253_joqm4",
     "timestamp": "2026-10-02T13:39:57.253Z",
     "actionType": "STAFF_ASSIGNED",

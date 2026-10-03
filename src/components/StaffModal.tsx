@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Staff, Department, UserRole } from '@/types/whiteboard';
-import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, CheckCircle, ShieldCheck, Sparkles } from 'lucide-react';
+import { Staff, Department, UserRole, ReliefAssignment } from '@/types/whiteboard';
+import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, CheckCircle, ShieldCheck, Sparkles, UserCheck } from 'lucide-react';
 
 interface StaffModalProps {
   staff: Staff | null;
   departments: Department[];
+  allStaff?: Staff[];
   bullpenStaffIds?: string[];
   bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; breakfastTime?: string | null; lunchTime?: string | null }>;
   currentUserRole: UserRole;
@@ -18,11 +19,20 @@ interface StaffModalProps {
   onUpdateShift?: (staffId: string, newShift: string, lastName?: string, credentials?: Staff['credentials']) => void;
   onSetStaffInfrequent?: (staffId: string, isInfrequent: boolean) => void;
   onOpenLogin?: () => void;
+  onOpenReliefModal?: (target: {
+    type: 'room_slot' | 'runner_slot';
+    id: string;
+    roomName: string;
+    departmentName: string;
+    currentStaff: Staff | null;
+    currentRelief?: ReliefAssignment | null;
+  }) => void;
 }
 
 export const StaffModal: React.FC<StaffModalProps> = ({
   staff,
   departments,
+  allStaff = [],
   bullpenStaffIds = [],
   bullpenBreaks = {},
   currentUserRole,
@@ -33,7 +43,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   onToggleBreak,
   onUpdateShift,
   onSetStaffInfrequent,
-  onOpenLogin
+  onOpenLogin,
+  onOpenReliefModal
 }) => {
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [isEditingShift, setIsEditingShift] = useState(false);
@@ -55,8 +66,11 @@ export const StaffModal: React.FC<StaffModalProps> = ({
     type: 'runner_slot' | 'room_slot' | 'bullpen';
     id: string;
     locationName: string;
+    departmentName?: string;
+    roomName?: string;
     breakfastDone: boolean;
     lunchDone: boolean;
+    relief?: ReliefAssignment | null;
   } | null = null;
 
   for (const dept of departments) {
@@ -66,8 +80,11 @@ export const StaffModal: React.FC<StaffModalProps> = ({
           type: 'runner_slot',
           id: r.id,
           locationName: `${dept.name} Runner (${r.title})`,
+          departmentName: dept.name,
+          roomName: r.title,
           breakfastDone: r.breakfastDone,
-          lunchDone: r.lunchDone
+          lunchDone: r.lunchDone,
+          relief: r.relief
         };
         break;
       }
@@ -81,8 +98,11 @@ export const StaffModal: React.FC<StaffModalProps> = ({
             type: 'room_slot',
             id: slot.id,
             locationName: `${dept.name} Room ${room.name}`,
+            departmentName: dept.name,
+            roomName: `Room ${room.name}`,
             breakfastDone: slot.breakfastDone,
-            lunchDone: slot.lunchDone
+            lunchDone: slot.lunchDone,
+            relief: slot.relief
           };
           break;
         }
@@ -519,6 +539,62 @@ export const StaffModal: React.FC<StaffModalProps> = ({
         {/* Board Runner / Superuser Assignment Controls */}
         {isEditor ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {/* Scheduled Relief Section (Red Box) */}
+            {currentPlacement && (currentPlacement.type === 'room_slot' || currentPlacement.type === 'runner_slot') && (
+              <div style={{
+                background: currentPlacement.relief ? 'rgba(239, 68, 68, 0.08)' : 'var(--surface-hover)',
+                border: currentPlacement.relief ? '1.5px solid var(--marker-red)' : '1px solid var(--border-light)',
+                borderRadius: 8,
+                padding: '10px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 8
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: 'var(--marker-red)', textTransform: 'uppercase' }}>
+                    <Clock size={12} />
+                    <span>{currentPlacement.relief ? 'Relief Assigned' : 'Relief Planning'}</span>
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, marginTop: 2 }}>
+                    {currentPlacement.relief
+                      ? `Relief: ${allStaff.find(s => s.id === currentPlacement?.relief?.staffId)?.lastName || 'Assigned'}`
+                      : 'No relief scheduled for this assignment yet.'}
+                  </div>
+                </div>
+
+                {onOpenReliefModal && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenReliefModal({
+                        type: currentPlacement!.type as 'room_slot' | 'runner_slot',
+                        id: currentPlacement!.id,
+                        roomName: currentPlacement!.roomName || '',
+                        departmentName: currentPlacement!.departmentName || '',
+                        currentStaff: staff,
+                        currentRelief: currentPlacement!.relief
+                      });
+                    }}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 6,
+                      background: currentPlacement.relief ? 'var(--marker-red)' : 'var(--accent-primary)',
+                      color: '#fff',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      border: 'none',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {currentPlacement.relief ? 'Manage Relief' : 'Set Relief (3 PM / Lates)'}
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Quick Reassign Dropdown */}
             <div>
               <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>

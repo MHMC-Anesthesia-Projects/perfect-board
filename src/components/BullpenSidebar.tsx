@@ -92,14 +92,28 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
       e.preventDefault();
       return;
     }
-    e.dataTransfer.setData(
-      'application/json',
-      JSON.stringify({
-        staffId: staffMember.id,
-        type: 'bullpen'
-      })
-    );
-    e.dataTransfer.effectAllowed = 'move';
+    const payloadObj = {
+      staffId: staffMember.id,
+      type: 'bullpen',
+      id: staffMember.id
+    };
+    const payload = JSON.stringify(payloadObj);
+    e.dataTransfer.setData('application/json', payload);
+    e.dataTransfer.setData('text/plain', payload);
+    e.dataTransfer.setData('text', payload);
+    e.dataTransfer.effectAllowed = 'all';
+    if (typeof window !== 'undefined') {
+      (window as any).__activeDraggedStaff = payloadObj;
+      document.body.classList.add('dragging-staff');
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (typeof window !== 'undefined') {
+      (window as any).__activeDraggedStaff = null;
+      document.body.classList.remove('dragging-staff');
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    }
   };
 
   return (
@@ -197,6 +211,7 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
                       }}
                       onSelectStaff={onSelectStaff}
                       onDragStart={(e, staffMember) => handleDragStart(e, staffMember)}
+                      onDragEnd={handleDragEnd}
                       onUnassign={() => onMoveStaffToUnassigned(s.id)}
                     />
                   </div>

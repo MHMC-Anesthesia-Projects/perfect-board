@@ -31,6 +31,12 @@ export interface Staff {
   isInfrequent?: boolean;
 }
 
+export interface ReliefAssignment {
+  staffId: string;
+  time?: string; // Optional (e.g. "3:00 PM")
+  notes?: string;
+}
+
 export interface RoomSlot {
   id: string;
   roleType: 'primary' | 'secondary' | 'trainee';
@@ -40,6 +46,7 @@ export interface RoomSlot {
   breakfastTime?: string | null;
   lunchTime?: string | null;
   notes?: string;
+  relief?: ReliefAssignment | null;
 }
 
 export interface Room {
@@ -60,6 +67,7 @@ export interface RunnerSlot {
   breakfastTime?: string | null;
   lunchTime?: string | null;
   notes?: string;
+  relief?: ReliefAssignment | null;
 }
 
 export interface Department {

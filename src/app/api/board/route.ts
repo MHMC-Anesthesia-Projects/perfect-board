@@ -868,7 +868,306 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, state });
       }
 
-      // 6d. Manual or testing trigger for 1:00 AM break reset
+      // 6d. Set Relief Assignment (Red Box)
+      case 'SET_RELIEF': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const { targetType, targetId, reliefStaffId, reliefTime, notes } = payload;
+        let targetLocation = '';
+        let outgoingStaffName = '';
+        let incomingStaffName = '';
+
+        const incomingStaff = state.staff.find(s => s.id === reliefStaffId);
+        if (incomingStaff) incomingStaffName = `${incomingStaff.lastName} (${incomingStaff.credentials})`;
+
+        if (targetType === 'runner_slot') {
+          for (const dept of state.departments) {
+            const runner = dept.runnerSlots.find(r => r.id === targetId);
+            if (runner) {
+              runner.relief = {
+                staffId: reliefStaffId,
+                time: reliefTime || '',
+                notes: notes || ''
+              };
+              const outgoing = state.staff.find(s => s.id === runner.staffId);
+              if (outgoing) outgoingStaffName = `${outgoing.lastName} (${outgoing.credentials})`;
+              targetLocation = `${dept.name} Runner (${runner.title})`;
+              break;
+            }
+          }
+        } else {
+          // room_slot
+          for (const dept of state.departments) {
+            for (const room of dept.rooms) {
+              const slot = room.slots.find(s => s.id === targetId);
+              if (slot) {
+                slot.relief = {
+                  staffId: reliefStaffId,
+                  time: reliefTime || '',
+                  notes: notes || ''
+                };
+                const outgoing = state.staff.find(s => s.id === slot.staffId);
+                if (outgoing) outgoingStaffName = `${outgoing.lastName} (${outgoing.credentials})`;
+                targetLocation = `${dept.name} Room ${room.name}`;
+                break;
+              }
+            }
+          }
+        }
+
+        saveBoardState(state);
+        const isSelfRelief = outgoingStaffName && incomingStaffName && outgoingStaffName === incomingStaffName;
+        recordAuditLog({
+          actionType: 'STAFF_ASSIGNED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          targetName: incomingStaffName,
+          locationName: targetLocation,
+          details: isSelfRelief
+            ? `${incomingStaffName} designated as relieving themselves in ${targetLocation}`
+            : `Assigned relief: ${incomingStaffName} relieving ${outgoingStaffName || 'current staff'} in ${targetLocation}`
+        });
+
+        return NextResponse.json({ success: true, state });
+      }
+
+      // 6e. Remove Relief Assignment
+      case 'REMOVE_RELIEF': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const { targetType, targetId } = payload;
+        let targetLocation = '';
+
+        if (targetType === 'runner_slot') {
+          for (const dept of state.departments) {
+            const runner = dept.runnerSlots.find(r => r.id === targetId);
+            if (runner) {
+              runner.relief = null;
+              targetLocation = `${dept.name} Runner (${runner.title})`;
+              break;
+            }
+          }
+        } else {
+          for (const dept of state.departments) {
+            for (const room of dept.rooms) {
+              const slot = room.slots.find(s => s.id === targetId);
+              if (slot) {
+                slot.relief = null;
+                targetLocation = `${dept.name} Room ${room.name}`;
+                break;
+              }
+            }
+          }
+        }
+
+        saveBoardState(state);
+        recordAuditLog({
+          actionType: 'STAFF_UNASSIGNED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          targetName: 'Relief Assignment',
+          locationName: targetLocation,
+          details: `Removed relief assignment for ${targetLocation}`
+        });
+
+        return NextResponse.json({ success: true, state });
+      }
+
+      // 6f-1. Complete All Relief Assignments (Suite-Wide Handoff)
+      case 'COMPLETE_ALL_RELIEFS': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+
+        const completedHandoffs: Array<{ location: string; outgoing: string; incoming: string }> = [];
+        const incomingStaffIds = new Set<string>();
+
+        // Collect all incoming relief staff IDs
+        for (const dept of state.departments) {
+          for (const runner of dept.runnerSlots) {
+            if (runner.relief?.staffId) {
+              incomingStaffIds.add(runner.relief.staffId);
+            }
+          }
+          for (const room of dept.rooms) {
+            for (const slot of room.slots) {
+              if (slot.relief?.staffId) {
+                incomingStaffIds.add(slot.relief.staffId);
+              }
+            }
+          }
+        }
+
+        if (incomingStaffIds.size === 0) {
+          return NextResponse.json({ success: true, state, count: 0, message: 'No relief assignments to complete' });
+        }
+
+        // Remove incoming providers from bullpen so they aren't duplicated
+        state.bullpenStaffIds = (state.bullpenStaffIds || []).filter(id => !incomingStaffIds.has(id));
+
+        // Execute runner slot handoffs
+        for (const dept of state.departments) {
+          for (const runner of dept.runnerSlots) {
+            if (runner.relief?.staffId) {
+              const outgoingId = runner.staffId;
+              const incomingId = runner.relief.staffId;
+
+              const outgoing = state.staff.find(s => s.id === outgoingId);
+              const incoming = state.staff.find(s => s.id === incomingId);
+              const outName = outgoing ? `${outgoing.lastName} (${outgoing.credentials})` : 'Unassigned';
+              const inName = incoming ? `${incoming.lastName} (${incoming.credentials})` : 'Staff';
+
+              completedHandoffs.push({
+                location: `${dept.name} Runner (${runner.title})`,
+                outgoing: outName,
+                incoming: inName
+              });
+
+              runner.staffId = incomingId;
+              runner.relief = null;
+            }
+          }
+        }
+
+        // Execute room slot handoffs
+        for (const dept of state.departments) {
+          for (const room of dept.rooms) {
+            for (const slot of room.slots) {
+              if (slot.relief?.staffId) {
+                const outgoingId = slot.staffId;
+                const incomingId = slot.relief.staffId;
+
+                const outgoing = state.staff.find(s => s.id === outgoingId);
+                const incoming = state.staff.find(s => s.id === incomingId);
+                const outName = outgoing ? `${outgoing.lastName} (${outgoing.credentials})` : 'Unassigned';
+                const inName = incoming ? `${incoming.lastName} (${incoming.credentials})` : 'Staff';
+
+                completedHandoffs.push({
+                  location: `${dept.name} Rm ${room.name}`,
+                  outgoing: outName,
+                  incoming: inName
+                });
+
+                slot.staffId = incomingId;
+                slot.relief = null;
+              }
+            }
+          }
+        }
+
+        saveBoardState(state);
+        recordAuditLog({
+          actionType: 'STAFF_MOVED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          targetName: `${completedHandoffs.length} Relief Provider(s)`,
+          locationName: 'Suite-Wide Relief',
+          details: `Completed all ${completedHandoffs.length} scheduled relief handoffs: ${completedHandoffs.map(h => `${h.location}: ${h.incoming} relieved ${h.outgoing}`).join('; ')}`
+        });
+
+        return NextResponse.json({
+          success: true,
+          state,
+          count: completedHandoffs.length,
+          completedHandoffs
+        });
+      }
+
+      // 6f. Execute Relief Handoff (Swap relief to active slot, outgoing departs)
+      case 'EXECUTE_RELIEF_HANDOFF': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const { targetType, targetId } = payload;
+        let targetLocation = '';
+        let outgoingStaffName = '';
+        let incomingStaffName = '';
+
+        if (targetType === 'runner_slot') {
+          for (const dept of state.departments) {
+            const runner = dept.runnerSlots.find(r => r.id === targetId);
+            if (runner && runner.relief) {
+              const outgoingId = runner.staffId;
+              const incomingId = runner.relief.staffId;
+
+              const outgoing = state.staff.find(s => s.id === outgoingId);
+              const incoming = state.staff.find(s => s.id === incomingId);
+              if (outgoing) outgoingStaffName = `${outgoing.lastName} (${outgoing.credentials})`;
+              if (incoming) incomingStaffName = `${incoming.lastName} (${incoming.credentials})`;
+
+              // Remove incomingId from any other room/slot/bullpen
+              state.bullpenStaffIds = (state.bullpenStaffIds || []).filter(id => id !== incomingId);
+              for (const d of state.departments) {
+                for (const r of d.runnerSlots) {
+                  if (r.id !== runner.id && r.staffId === incomingId) r.staffId = null;
+                }
+                for (const rm of d.rooms) {
+                  for (const sl of rm.slots) {
+                    if (sl.staffId === incomingId) sl.staffId = null;
+                  }
+                }
+              }
+
+              // Takeover
+              runner.staffId = incomingId;
+              runner.relief = null;
+              targetLocation = `${dept.name} Runner (${runner.title})`;
+              break;
+            }
+          }
+        } else {
+          // room_slot
+          for (const dept of state.departments) {
+            for (const room of dept.rooms) {
+              const slot = room.slots.find(s => s.id === targetId);
+              if (slot && slot.relief) {
+                const outgoingId = slot.staffId;
+                const incomingId = slot.relief.staffId;
+
+                const outgoing = state.staff.find(s => s.id === outgoingId);
+                const incoming = state.staff.find(s => s.id === incomingId);
+                if (outgoing) outgoingStaffName = `${outgoing.lastName} (${outgoing.credentials})`;
+                if (incoming) incomingStaffName = `${incoming.lastName} (${incoming.credentials})`;
+
+                // Remove incomingId from any other room/slot/bullpen
+                state.bullpenStaffIds = (state.bullpenStaffIds || []).filter(id => id !== incomingId);
+                for (const d of state.departments) {
+                  for (const r of d.runnerSlots) {
+                    if (r.staffId === incomingId) r.staffId = null;
+                  }
+                  for (const rm of d.rooms) {
+                    for (const sl of rm.slots) {
+                      if (sl.id !== slot.id && sl.staffId === incomingId) sl.staffId = null;
+                    }
+                  }
+                }
+
+                // Takeover
+                slot.staffId = incomingId;
+                slot.relief = null;
+                targetLocation = `${dept.name} Room ${room.name}`;
+                break;
+              }
+            }
+          }
+        }
+
+        saveBoardState(state);
+        recordAuditLog({
+          actionType: 'STAFF_MOVED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          targetName: incomingStaffName,
+          locationName: targetLocation,
+          details: `Handoff completed in ${targetLocation}: ${incomingStaffName} took over from ${outgoingStaffName}`
+        });
+
+        return NextResponse.json({ success: true, state });
+      }
+
+      // 6g. Manual or testing trigger for 1:00 AM break reset
       case 'RESET_DAILY_BREAKS': {
         const wasModified = resetDailyBreaks(state);
         saveBoardState(state);
