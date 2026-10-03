@@ -619,7 +619,7 @@ export async function saveBoardState(state: BoardState): Promise<void> {
   broadcastStateChange();
 }
 
-export function loadUsers(): User[] {
+export function loadUsersFromFile(): User[] {
   if (!fs.existsSync(USERS_FILE)) {
     const users = getInitialUsers();
     safeWriteJSON(USERS_FILE, users);
@@ -628,8 +628,62 @@ export function loadUsers(): User[] {
   return safeReadJSON<User[]>(USERS_FILE, getInitialUsers());
 }
 
-export function saveUsers(users: User[]): void {
+export async function loadUsers(): Promise<User[]> {
+  const supabase = getSupabaseServerClient();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('board_state')
+        .select('state')
+        .eq('id', 'system_users')
+        .maybeSingle();
+
+      if (error) {
+        console.error('Supabase error loading system_users:', error);
+      } else if (data && data.state) {
+        const users = Array.isArray(data.state)
+          ? data.state
+          : (data.state as any)?.users;
+        if (Array.isArray(users) && users.length > 0) {
+          return users as User[];
+        }
+      } else {
+        // No row in Supabase yet -> seed current users to Supabase
+        console.log('No system_users found in Supabase. Seeding from local baseline to Supabase...');
+        const initial = loadUsersFromFile();
+        await saveUsers(initial);
+        return initial;
+      }
+    } catch (err) {
+      console.error('Failed to load system_users from Supabase, falling back to local file:', err);
+    }
+  }
+
+  return loadUsersFromFile();
+}
+
+export async function saveUsers(users: User[]): Promise<void> {
+  // Save to local file cache as well (if writable)
   safeWriteJSON(USERS_FILE, users);
+
+  const supabase = getSupabaseServerClient();
+  if (supabase) {
+    try {
+      const { error } = await supabase
+        .from('board_state')
+        .upsert({
+          id: 'system_users',
+          state: users,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error saving system_users to Supabase:', error);
+      }
+    } catch (err) {
+      console.error('Failed to save system_users to Supabase:', err);
+    }
+  }
 }
 
 export async function loadAuditLog(): Promise<AuditLogEntry[]> {

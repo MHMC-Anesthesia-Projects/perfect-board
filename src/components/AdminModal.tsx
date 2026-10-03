@@ -21,6 +21,7 @@ interface AdminModalProps {
   onSaveDepartments: (departments: Department[]) => void;
   onResetToPhotoDefault: () => void;
   onRefreshData: () => void;
+  onUpdateCurrentUser?: (user: { id: string; username: string; displayName: string; role: UserRole }) => void;
 }
 
 const CORE_FACILITIES = [
@@ -119,7 +120,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   uniqueSchedules,
   onSaveDepartments,
   onResetToPhotoDefault,
-  onRefreshData
+  onRefreshData,
+  onUpdateCurrentUser
 }) => {
   const [activeTab, setActiveTab] = useState<'users' | 'staff' | 'layout' | 'scraper' | 'unique_schedules'>('users');
 
@@ -319,7 +321,12 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(apiUrl('/api/users'));
+      const res = await fetch(apiUrl(`/api/users?t=${Date.now()}`), {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       const data = await res.json();
       if (Array.isArray(data)) {
         setUserList(data);
@@ -355,12 +362,15 @@ export const AdminModal: React.FC<AdminModalProps> = ({
         return;
       }
       setUserActionSuccess(`User ${data.user.username} created successfully!`);
+      if (data.user) {
+        setUserList(prev => [...prev, data.user]);
+      }
       setIsAddingUser(false);
       setNewUsername('');
       setNewDisplayName('');
       setNewPin('');
       setNewPassword('');
-      fetchUsers();
+      await fetchUsers();
     } catch {
       setUserActionError('Network error creating user');
     }
@@ -406,9 +416,28 @@ export const AdminModal: React.FC<AdminModalProps> = ({
         return;
       }
       setUserActionSuccess(`User ${data.user?.displayName || editUserDisplayName} updated successfully!`);
+      
+      // Optimistically update local user list immediately
+      if (data.user) {
+        setUserList(prev => prev.map(u => u.id === data.user.id ? { ...u, ...data.user } : u));
+      }
+
       setEditingUser(null);
-      fetchUsers();
-      if (editingUser.id === currentUser.id) {
+      await fetchUsers();
+
+      if (editingUser.id === currentUser?.id) {
+        try {
+          const updatedSelf = {
+            ...currentUser,
+            displayName: data.user?.displayName || editUserDisplayName.trim(),
+            username: data.user?.username || editUsername.trim(),
+            role: data.user?.role || editUserRole
+          };
+          localStorage.setItem('whiteboard_current_user', JSON.stringify(updatedSelf));
+        } catch {}
+        if (onUpdateCurrentUser && data.user) {
+          onUpdateCurrentUser(data.user);
+        }
         onRefreshData();
       }
       setTimeout(() => setUserActionSuccess(''), 4000);
@@ -429,7 +458,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
         }
       });
       if (res.ok) {
-        fetchUsers();
+        setUserList(prev => prev.filter(u => u.id !== id));
+        await fetchUsers();
       }
     } catch (err) {
       console.error('Failed to delete user:', err);

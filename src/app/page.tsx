@@ -173,10 +173,13 @@ export default function WhiteboardPage() {
             table: 'board_state',
           },
           (payload) => {
+            if ((payload.new as any)?.id === 'system_users') {
+              return;
+            }
             if (payload.new && (payload.new as any).state && (payload.new as any).state.departments) {
               setBoardState((payload.new as any).state);
               setLoadError(null);
-            } else {
+            } else if ((payload.new as any)?.id === 'current') {
               fetchBoardState(false);
             }
           }
@@ -1467,6 +1470,7 @@ export default function WhiteboardPage() {
         onSaveDepartments={handleSaveDepartments}
         onResetToPhotoDefault={handleResetToPhotoDefault}
         onRefreshData={() => fetchBoardState(false)}
+        onUpdateCurrentUser={(updated) => setCurrentUser(prev => prev ? { ...prev, ...updated } : updated)}
       />
 
       <AuditDrawer

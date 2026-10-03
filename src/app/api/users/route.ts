@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loadUsers, saveUsers, recordAuditLog } from '@/lib/storage';
 import { User, UserRole } from '@/types/whiteboard';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(req: NextRequest) {
-  const users = loadUsers();
+  const users = await loadUsers();
   const safeUsers = users.map(u => ({
     id: u.id,
     username: u.username,
@@ -13,7 +16,11 @@ export async function GET(req: NextRequest) {
     active: u.active,
     createdAt: u.createdAt
   }));
-  return NextResponse.json(safeUsers);
+  return NextResponse.json(safeUsers, {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+    }
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -29,7 +36,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Only Superusers can create new system users.' }, { status: 403 });
     }
 
-    const users = loadUsers();
+    const users = await loadUsers();
     if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
       return NextResponse.json({ error: 'Username already exists.' }, { status: 400 });
     }
@@ -46,7 +53,7 @@ export async function POST(req: NextRequest) {
     };
 
     users.push(newUser);
-    saveUsers(users);
+    await saveUsers(users);
 
     await recordAuditLog({
       actionType: 'USER_CREATED',
@@ -71,7 +78,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Only Superusers can modify users.' }, { status: 403 });
     }
 
-    const users = loadUsers();
+    const users = await loadUsers();
     const userIndex = users.findIndex(u => u.id === id);
     if (userIndex === -1) {
       return NextResponse.json({ error: 'User not found.' }, { status: 404 });
@@ -121,7 +128,7 @@ export async function PUT(req: NextRequest) {
       targetUser.active = active;
     }
 
-    saveUsers(users);
+    await saveUsers(users);
 
     await recordAuditLog({
       actionType: 'USER_UPDATED',
@@ -148,7 +155,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Superuser permission required.' }, { status: 403 });
     }
 
-    const users = loadUsers();
+    const users = await loadUsers();
     const targetUser = users.find(u => u.id === id);
     if (!targetUser) {
       return NextResponse.json({ error: 'User not found.' }, { status: 404 });
@@ -161,7 +168,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     const updatedUsers = users.filter(u => u.id !== id);
-    saveUsers(updatedUsers);
+    await saveUsers(updatedUsers);
 
     await recordAuditLog({
       actionType: 'USER_UPDATED',
