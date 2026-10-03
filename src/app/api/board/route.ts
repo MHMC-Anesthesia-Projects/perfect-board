@@ -127,14 +127,18 @@ export async function POST(req: NextRequest) {
           if (s) staffName = `${s.firstName} ${s.lastName}`.trim();
         }
 
-        // Only clear from rooms if assigning to a room (runners can be duplicated in multiple locations)
-        if (staffId && targetType !== 'runner_slot' && targetType !== 'runner_dept') {
+        // When assigned to a room or runner, they cannot be in the bullpen!
+        if (staffId) {
           state.bullpenStaffIds = (state.bullpenStaffIds || []).filter(id => id !== staffId);
-          for (const dept of state.departments) {
-            for (const room of dept.rooms) {
-              for (const slot of room.slots) {
-                if (slot.staffId === staffId && slot.id !== targetId) {
-                  slot.staffId = null;
+
+          // Only clear from rooms if assigning to a room (runners can be duplicated in multiple locations)
+          if (targetType !== 'runner_slot' && targetType !== 'runner_dept') {
+            for (const dept of state.departments) {
+              for (const room of dept.rooms) {
+                for (const slot of room.slots) {
+                  if (slot.staffId === staffId && slot.id !== targetId) {
+                    slot.staffId = null;
+                  }
                 }
               }
             }
@@ -229,13 +233,11 @@ export async function POST(req: NextRequest) {
         }
 
         // Clear source & preserve source break status if available
-        // Note: runner magnets can be duplicated, so assigning to a runner does NOT clear the source!
+        // Note: runner magnets can be duplicated across departments, but moving to room/bullpen/unassigned clears the source!
         const isTargetRunner = toTargetType === 'runner_dept' || toTargetType === 'runner_slot';
 
         if (fromTargetType === 'bullpen') {
-          if (!isTargetRunner) {
-            state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
-          }
+          state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
           fromLocation = 'Bullpen';
         } else if (fromTargetType === 'runner_slot') {
           for (const dept of state.departments) {
@@ -286,9 +288,18 @@ export async function POST(req: NextRequest) {
           if (staffId) {
             state.bullpenStaffIds = (state.bullpenStaffIds || []).filter(id => id !== staffId);
             state.bullpenStaffIds.push(staffId);
-          }
-          // Only clear room slots if pulled from room; do not wipe runner slots in other departments
-          if (fromTargetType !== 'runner_slot') {
+
+            // Runners cannot be in the bullpen: remove this staff from all runner slots across all departments
+            for (const dept of state.departments) {
+              dept.runnerSlots = (dept.runnerSlots || []).filter(r => r.staffId !== staffId);
+              dept.runnerSlots.forEach((r, idx) => {
+                if (!r.title || r.title.match(/^RUNNER\s*\d*$/i)) {
+                  r.title = `RUNNER ${idx + 1}`;
+                }
+              });
+            }
+
+            // Also clear room slots if moved to bullpen
             for (const dept of state.departments) {
               for (const room of dept.rooms) {
                 for (const slot of room.slots) {
@@ -301,9 +312,18 @@ export async function POST(req: NextRequest) {
         } else if (toTargetType === 'unassigned' || toTargetType === 'infrequent' || toTargetType === 'md' || toTargetType === 'crna') {
           if (staffId) {
             state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
-          }
-          // Only clear room slots if pulled from room; do not wipe runner slots in other departments
-          if (fromTargetType !== 'runner_slot') {
+
+            // Also remove from all runner slots across all departments
+            for (const dept of state.departments) {
+              dept.runnerSlots = (dept.runnerSlots || []).filter(r => r.staffId !== staffId);
+              dept.runnerSlots.forEach((r, idx) => {
+                if (!r.title || r.title.match(/^RUNNER\s*\d*$/i)) {
+                  r.title = `RUNNER ${idx + 1}`;
+                }
+              });
+            }
+
+            // Clear room slots
             for (const dept of state.departments) {
               for (const room of dept.rooms) {
                 for (const slot of room.slots) {
@@ -346,6 +366,10 @@ export async function POST(req: NextRequest) {
             toLocation = 'Available Unassigned Staff';
           }
         } else if (toTargetType === 'runner_slot') {
+          // Runners cannot be in the bullpen!
+          if (staffId) {
+            state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
+          }
           for (const dept of state.departments) {
             const r = dept.runnerSlots.find(slot => slot.id === toId);
             if (r) {
@@ -360,6 +384,10 @@ export async function POST(req: NextRequest) {
             }
           }
         } else if (toTargetType === 'runner_dept') {
+          // Runners cannot be in the bullpen!
+          if (staffId) {
+            state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
+          }
           for (const dept of state.departments) {
             if (dept.id === toId) {
               const alreadyRunnerHere = dept.runnerSlots.some(slot => slot.staffId === staffId);

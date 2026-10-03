@@ -437,10 +437,13 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
     return a.firstName.localeCompare(b.firstName, undefined, { sensitivity: 'base' });
   };
 
-  // Find all assigned staff IDs across rooms and bullpen (runners can be duplicated across multiple locations)
+  // Find all assigned staff IDs across rooms, runners, and bullpen
   const assignedStaffIds = useMemo(() => {
     const ids = new Set<string>();
     for (const dept of boardState.departments) {
+      for (const r of dept.runnerSlots || []) {
+        if (r.staffId) ids.add(r.staffId);
+      }
       for (const room of dept.rooms) {
         for (const slot of room.slots) {
           if (slot.staffId) ids.add(slot.staffId);

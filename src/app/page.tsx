@@ -278,6 +278,32 @@ export default function WhiteboardPage() {
     return set;
   }, [boardState]);
 
+  // Active runners across all departments (runners cannot be in the bullpen)
+  const activeRunnerStaffIds = useMemo(() => {
+    const set = new Set<string>();
+    if (!boardState?.departments) return set;
+    for (const dept of boardState.departments) {
+      for (const r of dept.runnerSlots || []) {
+        if (r.staffId) set.add(r.staffId);
+      }
+    }
+    return set;
+  }, [boardState?.departments]);
+
+  // Bullpen staff strictly excluding any active runners
+  const effectiveBullpenStaffIds = useMemo(() => {
+    return (boardState?.bullpenStaffIds || []).filter(id => !activeRunnerStaffIds.has(id));
+  }, [boardState?.bullpenStaffIds, activeRunnerStaffIds]);
+
+  // Board state with filtered bullpen for child components
+  const effectiveBoardState = useMemo(() => {
+    if (!boardState) return boardState;
+    return {
+      ...boardState,
+      bullpenStaffIds: effectiveBullpenStaffIds
+    };
+  }, [boardState, effectiveBullpenStaffIds]);
+
   // Count total scheduled reliefs across all department room slots
   const totalScheduledReliefsCount = useMemo(() => {
     if (!boardState) return 0;
@@ -1163,7 +1189,7 @@ export default function WhiteboardPage() {
     }
   };
 
-  if (loading || !boardState) {
+  if (loading || !boardState || !effectiveBoardState) {
     return (
       <div style={{
         height: '100vh',
@@ -1223,7 +1249,7 @@ export default function WhiteboardPage() {
     <>
       {isMobileScreen && !forcedDesktop ? (
         <MobileWhiteboardView
-          boardState={boardState}
+          boardState={effectiveBoardState}
           currentUser={currentUser}
           currentUserRole={currentUserRole}
           theme={theme}
@@ -1275,7 +1301,7 @@ export default function WhiteboardPage() {
             onToggleRightSidebar={() => setIsRightSidebarOpen(prev => !prev)}
             isBullpenOpen={isBullpenOpen}
             onToggleBullpen={() => setIsBullpenOpen(prev => !prev)}
-            bullpenCount={boardState.bullpenStaffIds?.length || 0}
+            bullpenCount={effectiveBullpenStaffIds.length}
             onSwitchToMobile={() => setForcedDesktop(false)}
             onOpenReliefTextModal={() => setIsReliefTextModalOpen(true)}
             onCompleteAllReliefs={handleTriggerCompleteAllReliefs}
@@ -1288,7 +1314,7 @@ export default function WhiteboardPage() {
         {/* Left Bullpen (Expandable left-sided vertical menu for available staff) */}
         {isBullpenOpen ? (
           <BullpenSidebar
-            bullpenStaffIds={boardState.bullpenStaffIds || []}
+            bullpenStaffIds={effectiveBullpenStaffIds}
             bullpenBreaks={boardState.bullpenBreaks || {}}
             staff={boardState.staff}
             currentUserRole={currentUserRole}
@@ -1367,7 +1393,7 @@ export default function WhiteboardPage() {
       <Bullpen
         staff={boardState.staff}
         departments={boardState.departments}
-        bullpenStaffIds={boardState.bullpenStaffIds || []}
+        bullpenStaffIds={effectiveBullpenStaffIds}
         bullpenBreaks={boardState.bullpenBreaks || {}}
         currentUserRole={currentUserRole}
         onSelectStaff={staff => setSelectedStaff(staff)}
@@ -1392,12 +1418,12 @@ export default function WhiteboardPage() {
         staff={selectedStaff}
         departments={boardState.departments}
         allStaff={boardState.staff}
-        bullpenStaffIds={boardState.bullpenStaffIds || []}
+        bullpenStaffIds={effectiveBullpenStaffIds}
         bullpenBreaks={boardState.bullpenBreaks || {}}
         currentUserRole={currentUserRole}
         onClose={() => setSelectedStaff(null)}
         onAssignToSlot={handleAssignStaff}
-        onMoveToBullpen={staffId => handleDropToBullpen({ staffId, type: 'room_slot' })}
+        onMoveToBullpen={staffId => handleDropToBullpen({ staffId, type: 'bullpen_transfer' })}
         onUnassign={staffId => handleMoveStaffToUnassigned(staffId)}
         onToggleBreak={handleToggleBreak}
         onUpdateShift={handleUpdateStaffShift}

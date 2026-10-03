@@ -536,9 +536,7 @@ export async function loadBoardState(): Promise<BoardState> {
         console.error('Supabase error loading board_state:', error);
       } else if (data && data.state) {
         const loaded = sanitizeBoardState(data.state as BoardState);
-        if (loaded && loaded.departments) {
-          normalizeDepartmentRunnerSlots(loaded.departments, loaded.staff);
-        }
+        normalizeBoardState(loaded);
 
         // Automatic Daily 1:00 AM Break Reset check
         const threshold1Am = getLatest1AmThreshold();
@@ -562,9 +560,7 @@ export async function loadBoardState(): Promise<BoardState> {
         // No row in Supabase yet -> seed current state to Supabase
         console.log('No board_state found in Supabase. Seeding current state to Supabase...');
         const initial = loadBoardStateFromFile();
-        if (initial && initial.departments) {
-          normalizeDepartmentRunnerSlots(initial.departments, initial.staff);
-        }
+        normalizeBoardState(initial);
         await saveBoardState(initial);
         return initial;
       }
@@ -575,9 +571,7 @@ export async function loadBoardState(): Promise<BoardState> {
 
   // Fallback to local file
   const loaded = loadBoardStateFromFile();
-  if (loaded && loaded.departments) {
-    normalizeDepartmentRunnerSlots(loaded.departments, loaded.staff);
-  }
+  normalizeBoardState(loaded);
 
   // Automatic Daily 1:00 AM Break Reset check
   const threshold1Am = getLatest1AmThreshold();
@@ -632,10 +626,33 @@ export function normalizeDepartmentRunnerSlots(departments?: Department[], staff
   }
 }
 
-export async function saveBoardState(state: BoardState): Promise<void> {
+/**
+ * Normalizes the full board state:
+ * - Normalizes runner slots across departments.
+ * - Enforces that runners CANNOT be in the bullpen.
+ */
+export function normalizeBoardState(state: BoardState): void {
+  if (!state) return;
   if (state.departments) {
     normalizeDepartmentRunnerSlots(state.departments, state.staff);
   }
+
+  // A person who is a runner cannot be in the bullpen
+  if (state.bullpenStaffIds && Array.isArray(state.bullpenStaffIds)) {
+    const runnerStaffIds = new Set<string>();
+    if (state.departments) {
+      for (const dept of state.departments) {
+        for (const r of dept.runnerSlots || []) {
+          if (r.staffId) runnerStaffIds.add(r.staffId);
+        }
+      }
+    }
+    state.bullpenStaffIds = state.bullpenStaffIds.filter(id => !runnerStaffIds.has(id));
+  }
+}
+
+export async function saveBoardState(state: BoardState): Promise<void> {
+  normalizeBoardState(state);
   state.lastUpdated = new Date().toISOString();
 
   // Save to local file cache as well (if writable)
