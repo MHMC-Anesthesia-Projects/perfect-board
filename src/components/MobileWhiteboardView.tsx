@@ -48,7 +48,7 @@ interface MobileWhiteboardViewProps {
   onLogout: () => void;
   onToggleBreak: (targetType: 'room_slot' | 'runner_slot' | 'bullpen', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
   onSelectStaff: (staff: Staff) => void;
-  onSelectEmptySlot: (targetType: 'room_slot' | 'runner_slot', targetId: string, label: string) => void;
+  onSelectEmptySlot: (targetType: 'room_slot' | 'runner_slot', targetId: string, label: string, roomId?: string, currentFutureTime?: string | null) => void;
   onToggleDepartureStruck: (id: string) => void;
   onUpdateLists: (departureList: DepartureItem[], latesList: LateShiftItem[], isReorder?: boolean) => void;
   onUpdateCallTeam: (callTeamList: CallTeamItem[]) => void;
@@ -56,6 +56,7 @@ interface MobileWhiteboardViewProps {
   onOpenVoiceNotes?: (type: 'room' | 'departure' | 'lates' | 'general', id?: string, currentNotes?: string) => void;
   onAddRunnerSlot?: (departmentId: string) => void;
   onRemoveRunnerSlot?: (departmentId: string, runnerSlotId: string) => void;
+  onSetRoomFutureTime?: (roomId: string, futureTime: string | null) => void;
   onAutoAssign?: () => void;
   isAutoAssigning?: boolean;
   onSwitchToDesktop?: () => void;
@@ -93,6 +94,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   onOpenVoiceNotes,
   onAddRunnerSlot,
   onRemoveRunnerSlot,
+  onSetRoomFutureTime,
   onAutoAssign,
   isAutoAssigning = false,
   onSwitchToDesktop,
@@ -740,6 +742,28 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
 
                       {/* Slots inside Room */}
                       <div style={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 3, alignItems: 'center', height: '100%', minWidth: 0 }}>
+                        {room.futureTime && (
+                          <div
+                            className="room-future-time-badge"
+                            title={`Estimated future case time: ${room.futureTime}. Tap × to delete.`}
+                          >
+                            <span className="room-future-time-text">{room.futureTime}</span>
+                            {isEditor && onSetRoomFutureTime && (
+                              <button
+                                type="button"
+                                className="room-future-time-delete-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onSetRoomFutureTime(room.id, null);
+                                }}
+                                title="Delete future case time"
+                              >
+                                <X size={10} />
+                              </button>
+                            )}
+                          </div>
+                        )}
+
                         {room.slots
                           .filter((slot, idx) => idx === 0 || !!slot.staffId)
                           .map(slot => {
@@ -750,7 +774,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                 className={`room-slot-target ${!assignedStaff ? 'empty' : ''}`}
                                 onClick={() => {
                                   if (!assignedStaff) {
-                                    onSelectEmptySlot('room_slot', slot.id, `${activeDepartment.name} Room ${room.name}`);
+                                    onSelectEmptySlot('room_slot', slot.id, `${activeDepartment.name} Room ${room.name}`, room.id, room.futureTime);
                                   }
                                 }}
                               >

@@ -11,11 +11,12 @@ interface DepartmentGridProps {
   currentUserRole: UserRole;
   onToggleBreak: (targetType: 'room_slot' | 'runner_slot', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
   onSelectStaff: (staff: Staff) => void;
-  onSelectEmptySlot: (targetType: 'room_slot' | 'runner_slot', targetId: string, label: string) => void;
+  onSelectEmptySlot: (targetType: 'room_slot' | 'runner_slot', targetId: string, label: string, roomId?: string, currentFutureTime?: string | null) => void;
   onDropStaff: (fromData: { staffId: string; type: string; id?: string }, targetType: 'room_slot' | 'runner_slot' | 'runner_dept', targetId: string) => void;
   onOpenVoiceNotes?: (targetType: 'room', targetId: string, currentNotes?: string) => void;
   onAddRunnerSlot?: (departmentId: string) => void;
   onRemoveRunnerSlot?: (departmentId: string, runnerSlotId: string) => void;
+  onSetRoomFutureTime?: (roomId: string, futureTime: string | null) => void;
   onOpenReliefModal?: (target: {
     type: 'room_slot' | 'runner_slot';
     id: string;
@@ -40,7 +41,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
   onRemoveRunnerSlot,
   onOpenReliefModal,
   onExecuteHandoff,
-  onSetRelief
+  onSetRelief,
+  onSetRoomFutureTime
 }) => {
   const justDroppedRef = React.useRef(false);
   const isEditor = currentUserRole !== 'basic_user';
@@ -317,6 +319,29 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
 
                 {/* Slots inside Room */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 3, alignItems: 'center', height: '100%', minWidth: 0 }}>
+                  {/* Left adjusted future case time in red box (kept until manually deleted) */}
+                  {room.futureTime && (
+                    <div
+                      className="room-future-time-badge"
+                      title={`Estimated future case time: ${room.futureTime}. Click × to delete.`}
+                    >
+                      <span className="room-future-time-text">{room.futureTime}</span>
+                      {isEditor && onSetRoomFutureTime && (
+                        <button
+                          type="button"
+                          className="room-future-time-delete-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSetRoomFutureTime(room.id, null);
+                          }}
+                          title="Delete future case time"
+                        >
+                          <X size={10} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   {room.slots
                     .filter((slot, idx) => idx === 0 || !!slot.staffId)
                     .map(slot => {
@@ -426,7 +451,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                         onDragLeave={handleZoneDragLeave}
                         onDrop={e => handleDrop(e, 'room_slot', slot.id)}
                         onClick={() => {
-                          onSelectEmptySlot('room_slot', slot.id, `${dept.name} Room ${room.name}`);
+                          onSelectEmptySlot('room_slot', slot.id, `${dept.name} Room ${room.name}`, room.id, room.futureTime);
                         }}
                         title={`Click or drop staff to assign to Room ${room.name}`}
                       />

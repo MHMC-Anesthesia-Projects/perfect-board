@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Staff, UserRole } from '@/types/whiteboard';
-import { Search, X, UserCheck, ShieldAlert, LogIn } from 'lucide-react';
+import { Search, X, UserCheck, ShieldAlert, LogIn, Clock, Check } from 'lucide-react';
 
 interface SlotAssignModalProps {
   isOpen: boolean;
@@ -10,6 +10,8 @@ interface SlotAssignModalProps {
     type: 'room_slot' | 'runner_slot';
     id: string;
     label: string;
+    roomId?: string;
+    currentFutureTime?: string | null;
   } | null;
   staff: Staff[];
   assignedStaffIds: Set<string>;
@@ -17,6 +19,7 @@ interface SlotAssignModalProps {
   onClose: () => void;
   onAssign: (targetType: 'room_slot' | 'runner_slot', targetId: string, staffId: string) => void;
   onOpenLogin: () => void;
+  onSetFutureTime?: (roomId: string, time: string | null) => void;
 }
 
 export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
@@ -27,9 +30,21 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
   currentUserRole,
   onClose,
   onAssign,
-  onOpenLogin
+  onOpenLogin,
+  onSetFutureTime
 }) => {
   const [search, setSearch] = useState('');
+  const [futureTimeInput, setFutureTimeInput] = useState('');
+  const [isSavedRecently, setIsSavedRecently] = useState(false);
+
+  useEffect(() => {
+    if (targetSlot?.currentFutureTime) {
+      setFutureTimeInput(targetSlot.currentFutureTime);
+    } else {
+      setFutureTimeInput('');
+    }
+    setIsSavedRecently(false);
+  }, [targetSlot]);
 
   if (!isOpen || !targetSlot) return null;
 
@@ -52,6 +67,23 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
   const handleSelect = (staffId: string) => {
     onAssign(targetSlot.type, targetSlot.id, staffId);
     onClose();
+  };
+
+  const handleSaveFutureTime = (timeToSet?: string) => {
+    if (!targetSlot?.roomId || !onSetFutureTime) return;
+    const finalVal = (timeToSet !== undefined ? timeToSet : futureTimeInput).trim();
+    const cleanTime = finalVal ? finalVal.replace(/[^0-9]/g, '').slice(0, 4) : null;
+    onSetFutureTime(targetSlot.roomId, cleanTime);
+    setFutureTimeInput(cleanTime || '');
+    setIsSavedRecently(true);
+    setTimeout(() => setIsSavedRecently(false), 2000);
+  };
+
+  const handleClearFutureTime = () => {
+    if (!targetSlot?.roomId || !onSetFutureTime) return;
+    onSetFutureTime(targetSlot.roomId, null);
+    setFutureTimeInput('');
+    setIsSavedRecently(false);
   };
 
   return (
@@ -117,6 +149,123 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
           </div>
         ) : (
           <>
+            {/* Future Case Time Section (Option A: Estimated start time in red box) */}
+            {targetSlot.type === 'room_slot' && targetSlot.roomId && onSetFutureTime && (
+              <div
+                style={{
+                  background: 'rgba(239, 68, 68, 0.06)',
+                  border: '1px solid rgba(239, 68, 68, 0.28)',
+                  borderRadius: 8,
+                  padding: '10px 12px',
+                  marginBottom: 14
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: 'var(--marker-red)', textTransform: 'uppercase' }}>
+                    <Clock size={13} />
+                    <span>Future Case Time (Military Format)</span>
+                  </div>
+                  {futureTimeInput && (
+                    <button
+                      type="button"
+                      onClick={handleClearFutureTime}
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: 'var(--marker-red)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0
+                      }}
+                      title="Clear future time"
+                    >
+                      Clear Time
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input
+                      type="text"
+                      placeholder="e.g. 1030"
+                      maxLength={4}
+                      value={futureTimeInput}
+                      onChange={e => {
+                        const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
+                        setFutureTimeInput(val);
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSaveFutureTime();
+                        }
+                      }}
+                      style={{
+                        width: 86,
+                        padding: '6px 8px',
+                        borderRadius: 4,
+                        border: '1.5px solid var(--border-light)',
+                        background: 'var(--surface-card)',
+                        color: 'var(--text-primary)',
+                        fontSize: 13,
+                        fontWeight: 800,
+                        fontFamily: 'var(--font-mono)',
+                        textAlign: 'center',
+                        letterSpacing: 1
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSaveFutureTime()}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        padding: '6px 12px',
+                        fontSize: 11,
+                        fontWeight: 800,
+                        borderRadius: 4,
+                        background: isSavedRecently ? '#16a34a' : 'var(--marker-red)',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s ease'
+                      }}
+                    >
+                      {isSavedRecently ? <Check size={12} /> : null}
+                      <span>{isSavedRecently ? 'Saved' : 'Save Time'}</span>
+                    </button>
+                  </div>
+
+                  {/* Preset military buttons */}
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+                    {['0900', '1000', '1030', '1100', '1200', '1300', '1400'].map(preset => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => handleSaveFutureTime(preset)}
+                        style={{
+                          padding: '3px 6px',
+                          borderRadius: 3,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          fontFamily: 'var(--font-mono)',
+                          background: futureTimeInput === preset ? 'rgba(239, 68, 68, 0.2)' : 'var(--surface-card)',
+                          color: futureTimeInput === preset ? 'var(--marker-red)' : 'var(--text-secondary)',
+                          border: futureTimeInput === preset ? '1px solid var(--marker-red)' : '1px solid var(--border-light)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Search Filter */}
             <div style={{
               display: 'flex',

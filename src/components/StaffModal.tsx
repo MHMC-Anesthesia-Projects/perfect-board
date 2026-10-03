@@ -28,6 +28,7 @@ interface StaffModalProps {
     currentStaff: Staff | null;
     currentRelief?: ReliefAssignment | null;
   }) => void;
+  onSetRoomFutureTime?: (roomId: string, futureTime: string | null) => void;
 }
 
 export const StaffModal: React.FC<StaffModalProps> = ({
@@ -46,7 +47,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   onUpdateDisplayName,
   onSetStaffInfrequent,
   onOpenLogin,
-  onOpenReliefModal
+  onOpenReliefModal,
+  onSetRoomFutureTime
 }) => {
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [isEditingShift, setIsEditingShift] = useState(false);
@@ -71,6 +73,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   let currentPlacement: {
     type: 'runner_slot' | 'room_slot' | 'bullpen';
     id: string;
+    roomId?: string;
+    futureTime?: string | null;
     locationName: string;
     departmentName?: string;
     roomName?: string;
@@ -103,6 +107,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
           currentPlacement = {
             type: 'room_slot',
             id: slot.id,
+            roomId: room.id,
+            futureTime: room.futureTime,
             locationName: `${dept.name} Room ${room.name}`,
             departmentName: dept.name,
             roomName: `Room ${room.name}`,
@@ -698,6 +704,82 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                     {currentPlacement.relief ? 'Manage Relief' : 'Set Relief (3 PM / Lates)'}
                   </button>
                 )}
+              </div>
+            )}
+
+            {/* Future Case Time for this Room */}
+            {currentPlacement && currentPlacement.type === 'room_slot' && (currentPlacement as any).roomId && onSetRoomFutureTime && (
+              <div style={{
+                background: 'rgba(239, 68, 68, 0.06)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                borderRadius: 8,
+                padding: '10px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 8
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: 'var(--marker-red)', textTransform: 'uppercase' }}>
+                    <Clock size={12} />
+                    <span>Future Case Time</span>
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, marginTop: 2, fontFamily: 'var(--font-mono)' }}>
+                    {(currentPlacement as any).futureTime
+                      ? `Scheduled: ${(currentPlacement as any).futureTime} (Military)`
+                      : 'None set for this room'}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {(currentPlacement as any).futureTime ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSetRoomFutureTime((currentPlacement as any).roomId, null);
+                        onClose();
+                      }}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        background: 'none',
+                        border: '1px solid var(--marker-red)',
+                        color: 'var(--marker-red)',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Clear Time
+                    </button>
+                  ) : (
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {['1030', '1100', '1200', '1300'].map(preset => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => {
+                            onSetRoomFutureTime((currentPlacement as any).roomId, preset);
+                            onClose();
+                          }}
+                          style={{
+                            padding: '4px 6px',
+                            borderRadius: 4,
+                            background: 'var(--surface-card)',
+                            border: '1px solid var(--border-light)',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            fontFamily: 'var(--font-mono)',
+                            color: 'var(--text-secondary)',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

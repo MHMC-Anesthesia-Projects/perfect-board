@@ -1,5 +1,110 @@
 [
   {
+    "id": "audit_1791067127134_bw9kx",
+    "timestamp": "2026-10-03T22:38:47.134Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Donald Tallackson",
+    "locationName": "MAIN OR Room 9",
+    "details": "Assigned to MAIN OR Room 9"
+  },
+  {
+    "id": "audit_1791067101576_oj1kr",
+    "timestamp": "2026-10-03T22:38:21.576Z",
+    "actionType": "ROOM_FUTURE_TIME_SET",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 9",
+    "details": "Set estimated future case time to 1200 in MAIN OR Room 9"
+  },
+  {
+    "id": "audit_1791067045325_bswzv",
+    "timestamp": "2026-10-03T22:37:25.325Z",
+    "actionType": "ROOM_FUTURE_TIME_CLEARED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 10",
+    "details": "Cleared estimated future case time in MAIN OR Room 10"
+  },
+  {
+    "id": "audit_1791067037872_0hfk4",
+    "timestamp": "2026-10-03T22:37:17.872Z",
+    "actionType": "ROOM_FUTURE_TIME_SET",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 10",
+    "details": "Set estimated future case time to 1100 in MAIN OR Room 10"
+  },
+  {
+    "id": "audit_1791067027963_jgse2",
+    "timestamp": "2026-10-03T22:37:07.963Z",
+    "actionType": "ROOM_FUTURE_TIME_CLEARED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 10",
+    "details": "Cleared estimated future case time in MAIN OR Room 10"
+  },
+  {
+    "id": "audit_1791067006268_qtjgh",
+    "timestamp": "2026-10-03T22:36:46.268Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Ramy Mankarious",
+    "locationName": "MAIN OR Room 10",
+    "details": "Assigned to MAIN OR Room 10"
+  },
+  {
+    "id": "audit_1791066986584_qbf5s",
+    "timestamp": "2026-10-03T22:36:26.584Z",
+    "actionType": "ROOM_FUTURE_TIME_SET",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 10",
+    "details": "Set estimated future case time to 1000 in MAIN OR Room 10"
+  },
+  {
+    "id": "audit_1791066598355_ltcvt",
+    "timestamp": "2026-10-03T22:29:58.355Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791066590623_im8n9",
+    "timestamp": "2026-10-03T22:29:50.623Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "VILLAGE Runner (Already Assigned)",
+    "details": "Moved from VILLAGE Runner (Runner 2) -> VILLAGE Runner (Already Assigned)"
+  },
+  {
+    "id": "audit_1791066587265_5l1k0",
+    "timestamp": "2026-10-03T22:29:47.265Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "VILLAGE Runner (Already Assigned)",
+    "details": "Moved from VILLAGE Runner (Runner 2) -> VILLAGE Runner (Already Assigned)"
+  },
+  {
+    "id": "audit_1791066580355_3l3ub",
+    "timestamp": "2026-10-03T22:29:40.355Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "VILLAGE Runner (Runner 2)",
+    "details": "Moved from ORTHO Runner (Runner 1) -> VILLAGE Runner (Runner 2)"
+  },
+  {
     "id": "audit_1791048455277_e6wfd",
     "timestamp": "2026-10-03T17:27:35.277Z",
     "actionType": "STAFF_MOVED",

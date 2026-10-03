@@ -1306,6 +1306,44 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Runner slot not found' }, { status: 404 });
       }
 
+      // 8b. Set or clear estimated future case time for a room (e.g. "1030")
+      case 'SET_ROOM_FUTURE_TIME': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const { roomId, futureTime } = payload;
+        let foundRoom: any = null;
+        let foundDeptName = '';
+
+        for (const dept of state.departments) {
+          for (const room of dept.rooms) {
+            if (room.id === roomId) {
+              foundRoom = room;
+              foundDeptName = dept.name;
+              break;
+            }
+          }
+          if (foundRoom) break;
+        }
+
+        if (foundRoom) {
+          const cleanTime = futureTime ? String(futureTime).trim().replace(/[^0-9]/g, '').slice(0, 4) : null;
+          foundRoom.futureTime = cleanTime || null;
+          await saveBoardState(state);
+          await recordAuditLog({
+            actionType: cleanTime ? 'ROOM_FUTURE_TIME_SET' : 'ROOM_FUTURE_TIME_CLEARED',
+            performedBy: currentUserName,
+            userRole: currentUserRole,
+            locationName: `${foundDeptName} Room ${foundRoom.name}`,
+            details: cleanTime
+              ? `Set estimated future case time to ${cleanTime} in ${foundDeptName} Room ${foundRoom.name}`
+              : `Cleared estimated future case time in ${foundDeptName} Room ${foundRoom.name}`
+          });
+          return NextResponse.json({ success: true, state });
+        }
+        return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+      }
+
       // 9. Save full state (Superuser only, e.g. after layout editor)
       case 'SAVE_LAYOUT': {
         if (currentUserRole !== 'superuser') {

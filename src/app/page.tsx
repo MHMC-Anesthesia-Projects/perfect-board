@@ -61,6 +61,8 @@ export default function WhiteboardPage() {
     type: 'room_slot' | 'runner_slot';
     id: string;
     label: string;
+    roomId?: string;
+    currentFutureTime?: string | null;
   } | null>(null);
   const [reliefTarget, setReliefTarget] = useState<{
     type: 'room_slot' | 'runner_slot';
@@ -653,6 +655,43 @@ export default function WhiteboardPage() {
       }
     } catch (err) {
       console.error('Error removing runner slot:', err);
+    }
+  };
+
+  // Set or clear estimated future case time for a room (e.g. "1030")
+  const handleSetRoomFutureTime = async (roomId: string, futureTime: string | null) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    // Optimistic UI update
+    setBoardState(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        departments: prev.departments.map(d => ({
+          ...d,
+          rooms: d.rooms.map(rm => rm.id === roomId ? { ...rm, futureTime: futureTime || null } : rm)
+        }))
+      };
+    });
+
+    try {
+      const res = await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SET_ROOM_FUTURE_TIME',
+          payload: { roomId, futureTime },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error setting room future time:', err);
     }
   };
 
@@ -1258,7 +1297,8 @@ export default function WhiteboardPage() {
           onLogout={handleLogout}
           onToggleBreak={handleToggleBreak}
           onSelectStaff={staff => setSelectedStaff(staff)}
-          onSelectEmptySlot={(type, id, label) => setSlotAssignTarget({ type, id, label })}
+          onSelectEmptySlot={(type, id, label, roomId, currentFutureTime) => setSlotAssignTarget({ type, id, label, roomId, currentFutureTime })}
+          onSetRoomFutureTime={handleSetRoomFutureTime}
           onToggleDepartureStruck={handleToggleDepartureStruck}
           onUpdateLists={handleUpdateLists}
           onUpdateCallTeam={handleUpdateCallTeam}
@@ -1346,7 +1386,8 @@ export default function WhiteboardPage() {
           currentUserRole={currentUserRole}
           onToggleBreak={handleToggleBreak}
           onSelectStaff={staff => setSelectedStaff(staff)}
-          onSelectEmptySlot={(type, id, label) => setSlotAssignTarget({ type, id, label })}
+          onSelectEmptySlot={(type, id, label, roomId, currentFutureTime) => setSlotAssignTarget({ type, id, label, roomId, currentFutureTime })}
+          onSetRoomFutureTime={handleSetRoomFutureTime}
           onDropStaff={handleDropStaff}
           onOpenVoiceNotes={(type, id, currentNotes) => setVoiceNoteTarget({ type, id, currentNotes: currentNotes || '' })}
           onAddRunnerSlot={handleAddRunnerSlot}
@@ -1431,6 +1472,7 @@ export default function WhiteboardPage() {
         onSetStaffInfrequent={handleSetStaffInfrequent}
         onOpenLogin={() => setIsLoginModalOpen(true)}
         onOpenReliefModal={target => setReliefTarget(target)}
+        onSetRoomFutureTime={handleSetRoomFutureTime}
       />
 
       <SlotAssignModal
@@ -1442,6 +1484,7 @@ export default function WhiteboardPage() {
         onClose={() => setSlotAssignTarget(null)}
         onAssign={handleAssignStaff}
         onOpenLogin={() => setIsLoginModalOpen(true)}
+        onSetFutureTime={handleSetRoomFutureTime}
       />
 
       <ReliefModal

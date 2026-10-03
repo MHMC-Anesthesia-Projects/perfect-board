@@ -57,6 +57,7 @@ export interface Room {
   slots: RoomSlot[];
   procedure?: string;
   notes?: string;
+  futureTime?: string | null; // e.g. "1030" (military format)
 }
 
 export interface RunnerSlot {
@@ -143,7 +144,9 @@ export interface AuditLogEntry {
     | 'CALL_TEAM_UPDATED'
     | 'BULLPEN_UPDATED'
     | 'AUTO_ASSIGNED_ROOMS'
-    | 'UNIQUE_SCHEDULE_UPDATED';
+    | 'UNIQUE_SCHEDULE_UPDATED'
+    | 'ROOM_FUTURE_TIME_SET'
+    | 'ROOM_FUTURE_TIME_CLEARED';
   performedBy: string;
   userRole: UserRole;
   targetName?: string;

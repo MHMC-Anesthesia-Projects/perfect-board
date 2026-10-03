@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-03T17:27:35.261Z",
+  "lastUpdated": "2026-10-03T22:38:47.133Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -155,12 +155,13 @@
             {
               "id": "dept_main_or_room_9_slot_0",
               "roleType": "primary",
-              "staffId": null,
+              "staffId": "staff_oneusap_doc_tallacksondon",
               "breakfastDone": false,
               "lunchDone": false,
               "notes": ""
             }
-          ]
+          ],
+          "futureTime": "1200"
         },
         {
           "id": "dept_main_or_room_10",
@@ -171,12 +172,13 @@
             {
               "id": "dept_main_or_room_10_slot_0",
               "roleType": "primary",
-              "staffId": null,
+              "staffId": "staff_oneusap_doc_mankariousram",
               "breakfastDone": false,
               "lunchDone": false,
               "notes": ""
             }
-          ]
+          ],
+          "futureTime": null
         },
         {
           "id": "dept_main_or_room_11",
@@ -574,9 +576,9 @@
       "orderIndex": 3,
       "runnerSlots": [
         {
-          "id": "runner_dept_village_1791045658742_5qpp",
+          "id": "runner_dept_village_1791066580354_k77t",
           "title": "Runner 1",
-          "staffId": "staff_oneusap_doc_cavanaughmar",
+          "staffId": "staff_oneusap_doc_choiseu",
           "breakfastDone": false,
           "lunchDone": false,
           "breakfastTime": null,
@@ -1966,7 +1968,8 @@
   "bullpenStaffIds": [
     "staff_oneusap_doc_bernellmic",
     "staff_oneusap_doc_changale",
-    "staff_oneusap_doc_chenkev"
+    "staff_oneusap_doc_chenkev",
+    "staff_oneusap_doc_cavanaughmar"
   ],
   "scraperConfig": {
     "portalType": "oneusap",
