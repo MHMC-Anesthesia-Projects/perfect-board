@@ -1,5 +1,14 @@
 [
   {
+    "id": "audit_1791071547587_li2hc",
+    "timestamp": "2026-10-03T23:52:27.587Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Farias KovacMar",
+    "details": "Updated magnet display name from \"FARIAS KOVACMAR\" to \"KOVAC M.\""
+  },
+  {
     "id": "audit_1791068919583_5886r",
     "timestamp": "2026-10-03T23:08:39.583Z",
     "actionType": "STAFF_MOVED",

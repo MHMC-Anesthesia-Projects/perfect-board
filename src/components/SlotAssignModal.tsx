@@ -165,22 +165,27 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
                     <Clock size={13} />
                     <span>Future Case Time (Military Format)</span>
                   </div>
-                  {futureTimeInput && (
+                  {(futureTimeInput || targetSlot.currentFutureTime) && (
                     <button
                       type="button"
                       onClick={handleClearFutureTime}
                       style={{
-                        fontSize: 10,
-                        fontWeight: 700,
+                        fontSize: 11,
+                        fontWeight: 800,
                         color: 'var(--marker-red)',
-                        background: 'none',
-                        border: 'none',
+                        background: 'rgba(239, 68, 68, 0.12)',
+                        border: '1px solid rgba(239, 68, 68, 0.28)',
+                        borderRadius: 4,
                         cursor: 'pointer',
-                        padding: 0
+                        padding: '2px 8px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4
                       }}
-                      title="Clear future time"
+                      title="Clear future time from this room"
                     >
-                      Clear Time
+                      <X size={11} />
+                      <span>Clear Time</span>
                     </button>
                   )}
                 </div>

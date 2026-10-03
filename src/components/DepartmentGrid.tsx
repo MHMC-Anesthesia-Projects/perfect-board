@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Department, Staff, UserRole, ReliefAssignment, RunnerSlot } from '@/types/whiteboard';
 import { MagnetTile } from './MagnetTile';
-import { Plus, X, Clock } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface DepartmentGridProps {
   departments: Department[];
@@ -296,7 +296,6 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                           onSelectStaff={onSelectStaff}
                           onDragStart={handleTileDragStart}
                           onDragEnd={handleTileDragEnd}
-                          isCompact={true}
                         />
                       </div>
                     </div>
@@ -319,26 +318,19 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
 
                 {/* Slots inside Room */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 3, alignItems: 'center', height: '100%', minWidth: 0 }}>
-                  {/* Left adjusted future case time in red box (kept until manually deleted) */}
+                  {/* Left adjusted future case time in red box (clickable to open assign staff modal where time can be cleared) */}
                   {room.futureTime && (
                     <div
                       className="room-future-time-badge"
-                      title={`Estimated future case time: ${room.futureTime}. Click × to delete.`}
+                      title={`Estimated future case time: ${room.futureTime}. Click to edit, clear time, or assign staff.`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const firstSlot = room.slots[0];
+                        const targetSlotId = firstSlot?.id || `room_slot_${room.id}`;
+                        onSelectEmptySlot('room_slot', targetSlotId, `${dept.name} Room ${room.name}`, room.id, room.futureTime);
+                      }}
                     >
                       <span className="room-future-time-text">{room.futureTime}</span>
-                      {isEditor && onSetRoomFutureTime && (
-                        <button
-                          type="button"
-                          className="room-future-time-delete-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSetRoomFutureTime(room.id, null);
-                          }}
-                          title="Delete future case time"
-                        >
-                          <X size={10} />
-                        </button>
-                      )}
                     </div>
                   )}
 

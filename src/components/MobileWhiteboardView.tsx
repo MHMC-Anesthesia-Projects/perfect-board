@@ -31,7 +31,6 @@ import {
   UserCheck,
   Strikethrough,
   AlertCircle,
-  X,
   ArrowRight,
   MessageSquare,
   CheckCheck
@@ -717,7 +716,6 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                   currentUserRole={currentUserRole}
                                   onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
                                   onSelectStaff={onSelectStaff}
-                                  isCompact={true}
                                   isDraggable={false}
                                 />
                               </div>
@@ -745,22 +743,15 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                         {room.futureTime && (
                           <div
                             className="room-future-time-badge"
-                            title={`Estimated future case time: ${room.futureTime}. Tap × to delete.`}
+                            title={`Estimated future case time: ${room.futureTime}. Tap to edit, clear time, or assign staff.`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const firstSlot = room.slots[0];
+                              const targetSlotId = firstSlot?.id || `room_slot_${room.id}`;
+                              onSelectEmptySlot('room_slot', targetSlotId, `${activeDepartment.name} Room ${room.name}`, room.id, room.futureTime);
+                            }}
                           >
                             <span className="room-future-time-text">{room.futureTime}</span>
-                            {isEditor && onSetRoomFutureTime && (
-                              <button
-                                type="button"
-                                className="room-future-time-delete-btn"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onSetRoomFutureTime(room.id, null);
-                                }}
-                                title="Delete future case time"
-                              >
-                                <X size={10} />
-                              </button>
-                            )}
                           </div>
                         )}
 

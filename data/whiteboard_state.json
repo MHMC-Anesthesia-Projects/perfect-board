@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-03T23:08:39.582Z",
+  "lastUpdated": "2026-10-03T23:52:27.584Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -1665,7 +1665,8 @@
       "facility": "MH Memorial City",
       "qgendaAbbr": "Farias KovacMar",
       "active": true,
-      "orderNumber": 86
+      "orderNumber": 86,
+      "displayName": "KOVAC M."
     },
     {
       "id": "staff_oneusap_doc_gashlerkyl",
