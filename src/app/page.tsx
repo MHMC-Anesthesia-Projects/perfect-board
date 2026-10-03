@@ -1426,7 +1426,7 @@ export default function WhiteboardPage() {
             isBullpenOpen={isBullpenOpen}
             onToggleBullpen={() => setIsBullpenOpen(prev => !prev)}
             bullpenCount={effectiveBullpenStaffIds.length}
-            onSwitchToMobile={() => setForcedDesktop(false)}
+            onSwitchToMobile={isMobileScreen && forcedDesktop ? () => setForcedDesktop(false) : undefined}
             onOpenReliefTextModal={() => setIsReliefTextModalOpen(true)}
             onCompleteAllReliefs={handleTriggerCompleteAllReliefs}
             reliefCount={totalScheduledReliefsCount}

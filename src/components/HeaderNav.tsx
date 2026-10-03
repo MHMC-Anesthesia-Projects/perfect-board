@@ -269,26 +269,6 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           </button>
         )}
 
-        {/* Voice AI Transcription Button */}
-        {onOpenVoiceAi && (
-          <button
-            onClick={onOpenVoiceAi}
-            title="Open Voice AI Clinical Notes & Dictation"
-            style={{
-              padding: '6px 10px',
-              borderRadius: 6,
-              background: 'var(--surface-hover)',
-              border: '1px solid var(--border-light)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--marker-red)',
-              cursor: 'pointer'
-            }}
-          >
-            <Mic size={15} />
-          </button>
-        )}
 
         {/* Complete All Reliefs Button */}
         {currentUser && currentUser.role !== 'basic_user' && onCompleteAllReliefs && (
@@ -383,6 +363,27 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           </button>
         )}
 
+        {/* Voice AI Transcription Button (to the left of the keyboard icon) */}
+        {onOpenVoiceAi && (
+          <button
+            onClick={onOpenVoiceAi}
+            title="Open Voice AI Clinical Notes & Dictation"
+            style={{
+              padding: '6px 10px',
+              borderRadius: 6,
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--marker-red)',
+              cursor: 'pointer'
+            }}
+          >
+            <Mic size={15} />
+          </button>
+        )}
+
         {/* On-screen Touch Keyboard Toggle */}
         <button
           onClick={onToggleKeyboard}
@@ -394,16 +395,17 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             color: isKeyboardOpen ? 'var(--accent-primary)' : 'var(--text-primary)',
             display: 'flex',
             alignItems: 'center',
-            gap: 4,
+            justifyContent: 'center',
             fontSize: 12,
-            fontWeight: 700
+            fontWeight: 700,
+            cursor: 'pointer'
           }}
           title="Toggle on-screen touch virtual keyboard"
         >
           <Keyboard size={15} />
         </button>
 
-        {/* Theme Switcher Toggle */}
+        {/* Theme Switcher Toggle (Sun / Moon icon only) */}
         <button
           onClick={onToggleTheme}
           style={{
@@ -414,20 +416,21 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             color: 'var(--text-primary)',
             display: 'flex',
             alignItems: 'center',
-            gap: 6,
+            justifyContent: 'center',
             fontSize: 12,
-            fontWeight: 700
+            fontWeight: 700,
+            cursor: 'pointer'
           }}
-          title="Toggle Physical Whiteboard / OR Dark Mode"
+          title={theme === 'whiteboard' ? 'Switch to OR Dark Mode' : 'Switch to Whiteboard Mode'}
         >
           {theme === 'whiteboard' ? <Moon size={15} /> : <Sun size={15} />}
-          <span>{theme === 'whiteboard' ? 'OR Dark' : 'Whiteboard'}</span>
         </button>
 
-        {/* Mobile View Switcher (Desktop Preview / Switch) */}
+        {/* Mobile View Switcher (Hidden on Computer/TV view) */}
         {onSwitchToMobile && (
           <button
             onClick={onSwitchToMobile}
+            className="mobile-only-btn"
             style={{
               padding: '6px 10px',
               borderRadius: 6,
@@ -438,7 +441,8 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
               alignItems: 'center',
               gap: 5,
               fontSize: 12,
-              fontWeight: 700
+              fontWeight: 700,
+              cursor: 'pointer'
             }}
             title="Switch to Mobile / Small Screen View"
           >

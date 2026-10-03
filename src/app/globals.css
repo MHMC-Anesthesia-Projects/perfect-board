@@ -3139,6 +3139,9 @@ body.dragging-staff .relief-slot-target {
   background: var(--accent-surface) !important;
 }
 
-
-
-
+/* Mobile switcher button: strictly hidden on Computer and TV screens */
+@media (min-width: 769px) {
+  .mobile-only-btn {
+    display: none !important;
+  }
+}
