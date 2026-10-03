@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loadUsers, saveUsers, recordAuditLog } from '@/lib/storage';
 import { User, UserRole } from '@/types/whiteboard';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(req: NextRequest) {
-  const users = loadUsers();
+  const users = await loadUsers();
   const safeUsers = users.map(u => ({
     id: u.id,
     username: u.username,
@@ -13,7 +16,11 @@ export async function GET(req: NextRequest) {
     active: u.active,
     createdAt: u.createdAt
   }));
-  return NextResponse.json(safeUsers);
+  return NextResponse.json(safeUsers, {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+    }
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -29,7 +36,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Only Superusers can create new system users.' }, { status: 403 });
     }
 
-    const users = loadUsers();
+    const users = await loadUsers();
     if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
       return NextResponse.json({ error: 'Username already exists.' }, { status: 400 });
     }
@@ -46,7 +53,7 @@ export async function POST(req: NextRequest) {
     };
 
     users.push(newUser);
-    saveUsers(users);
+    await saveUsers(users);
 
     await recordAuditLog({
       actionType: 'USER_CREATED',
@@ -65,33 +72,70 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, displayName, role, pin, password, active, currentUser } = body;
+    const { id, username, displayName, role, pin, password, active, currentUser } = body;
 
     if (currentUser?.role !== 'superuser') {
       return NextResponse.json({ error: 'Only Superusers can modify users.' }, { status: 403 });
     }
 
-    const users = loadUsers();
+    const users = await loadUsers();
     const userIndex = users.findIndex(u => u.id === id);
     if (userIndex === -1) {
       return NextResponse.json({ error: 'User not found.' }, { status: 404 });
     }
 
     const targetUser = users[userIndex];
-    if (displayName !== undefined) targetUser.displayName = displayName;
-    if (role !== undefined) targetUser.role = role;
-    if (pin !== undefined) targetUser.pin = pin;
-    if (password !== undefined && password.trim() !== '') targetUser.password = password;
-    if (active !== undefined) targetUser.active = active;
 
-    saveUsers(users);
+    if (username !== undefined && username.trim() !== '' && username.trim().toLowerCase() !== targetUser.username.toLowerCase()) {
+      const trimmedUsername = username.trim();
+      if (users.some(u => u.id !== id && u.username.toLowerCase() === trimmedUsername.toLowerCase())) {
+        return NextResponse.json({ error: 'Username already taken by another account.' }, { status: 400 });
+      }
+      targetUser.username = trimmedUsername;
+    }
+
+    if (displayName !== undefined && displayName.trim() !== '') {
+      targetUser.displayName = displayName.trim();
+    }
+
+    if (role !== undefined) {
+      // Prevent demoting the only active superuser
+      if (targetUser.role === 'superuser' && role !== 'superuser') {
+        const activeSuperusers = users.filter(u => u.id !== id && u.role === 'superuser' && u.active);
+        if (activeSuperusers.length === 0) {
+          return NextResponse.json({ error: 'Cannot demote the only active superuser account.' }, { status: 400 });
+        }
+      }
+      targetUser.role = role;
+    }
+
+    if (pin !== undefined && pin.trim() !== '') {
+      targetUser.pin = pin.trim();
+    }
+
+    if (password !== undefined && password.trim() !== '') {
+      targetUser.password = password.trim();
+    }
+
+    if (active !== undefined) {
+      // Prevent deactivating the only active superuser
+      if (targetUser.role === 'superuser' && active === false) {
+        const activeSuperusers = users.filter(u => u.id !== id && u.role === 'superuser' && u.active);
+        if (activeSuperusers.length === 0) {
+          return NextResponse.json({ error: 'Cannot deactivate the only active superuser account.' }, { status: 400 });
+        }
+      }
+      targetUser.active = active;
+    }
+
+    await saveUsers(users);
 
     await recordAuditLog({
       actionType: 'USER_UPDATED',
       performedBy: currentUser?.displayName || 'Superuser',
       userRole: 'superuser',
       targetName: targetUser.displayName,
-      details: `Updated user ${targetUser.username}: role=${targetUser.role}, active=${targetUser.active}`
+      details: `Updated user @${targetUser.username} (${targetUser.displayName}): role=${targetUser.role}, PIN=${targetUser.pin}, active=${targetUser.active}`
     });
 
     return NextResponse.json({ success: true, user: targetUser });
@@ -111,7 +155,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Superuser permission required.' }, { status: 403 });
     }
 
-    const users = loadUsers();
+    const users = await loadUsers();
     const targetUser = users.find(u => u.id === id);
     if (!targetUser) {
       return NextResponse.json({ error: 'User not found.' }, { status: 404 });
@@ -124,7 +168,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     const updatedUsers = users.filter(u => u.id !== id);
-    saveUsers(updatedUsers);
+    await saveUsers(updatedUsers);
 
     await recordAuditLog({
       actionType: 'USER_UPDATED',

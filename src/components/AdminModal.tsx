@@ -21,6 +21,7 @@ interface AdminModalProps {
   onSaveDepartments: (departments: Department[]) => void;
   onResetToPhotoDefault: () => void;
   onRefreshData: () => void;
+  onUpdateCurrentUser?: (user: { id: string; username: string; displayName: string; role: UserRole }) => void;
 }
 
 const CORE_FACILITIES = [
@@ -119,7 +120,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   uniqueSchedules,
   onSaveDepartments,
   onResetToPhotoDefault,
-  onRefreshData
+  onRefreshData,
+  onUpdateCurrentUser
 }) => {
   const [activeTab, setActiveTab] = useState<'users' | 'staff' | 'layout' | 'scraper' | 'unique_schedules'>('users');
 
@@ -218,6 +220,16 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [userActionError, setUserActionError] = useState('');
   const [userActionSuccess, setUserActionSuccess] = useState('');
 
+  // Edit User State
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editUsername, setEditUsername] = useState('');
+  const [editUserDisplayName, setEditUserDisplayName] = useState('');
+  const [editUserRole, setEditUserRole] = useState<UserRole>('board_runner');
+  const [editUserPin, setEditUserPin] = useState('');
+  const [editUserPassword, setEditUserPassword] = useState('');
+  const [editUserActive, setEditUserActive] = useState<boolean>(true);
+  const [isSavingUser, setIsSavingUser] = useState(false);
+
   // App-themed modal state for confirming deletions
   const [deleteModalState, setDeleteModalState] = useState<{
     isOpen: boolean;
@@ -309,7 +321,12 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(apiUrl('/api/users'));
+      const res = await fetch(apiUrl(`/api/users?t=${Date.now()}`), {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       const data = await res.json();
       if (Array.isArray(data)) {
         setUserList(data);
@@ -345,14 +362,89 @@ export const AdminModal: React.FC<AdminModalProps> = ({
         return;
       }
       setUserActionSuccess(`User ${data.user.username} created successfully!`);
+      if (data.user) {
+        setUserList(prev => [...prev, data.user]);
+      }
       setIsAddingUser(false);
       setNewUsername('');
       setNewDisplayName('');
       setNewPin('');
       setNewPassword('');
-      fetchUsers();
+      await fetchUsers();
     } catch {
       setUserActionError('Network error creating user');
+    }
+  };
+
+  const startEditUser = (u: User) => {
+    setIsAddingUser(false);
+    setEditingUser(u);
+    setEditUsername(u.username);
+    setEditUserDisplayName(u.displayName);
+    setEditUserRole(u.role);
+    setEditUserPin(u.pin);
+    setEditUserPassword('');
+    setEditUserActive(u.active !== false);
+    setUserActionError('');
+    setUserActionSuccess('');
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setUserActionError('');
+    setUserActionSuccess('');
+    setIsSavingUser(true);
+    try {
+      const res = await fetch(apiUrl('/api/users'), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingUser.id,
+          username: editUsername.trim(),
+          displayName: editUserDisplayName.trim(),
+          role: editUserRole,
+          pin: editUserPin.trim(),
+          password: editUserPassword.trim() || undefined,
+          active: editUserActive,
+          currentUser
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setUserActionError(data.error || 'Failed to update user');
+        return;
+      }
+      setUserActionSuccess(`User ${data.user?.displayName || editUserDisplayName} updated successfully!`);
+      
+      // Optimistically update local user list immediately
+      if (data.user) {
+        setUserList(prev => prev.map(u => u.id === data.user.id ? { ...u, ...data.user } : u));
+      }
+
+      setEditingUser(null);
+      await fetchUsers();
+
+      if (editingUser.id === currentUser?.id) {
+        try {
+          const updatedSelf = {
+            ...currentUser,
+            displayName: data.user?.displayName || editUserDisplayName.trim(),
+            username: data.user?.username || editUsername.trim(),
+            role: data.user?.role || editUserRole
+          };
+          localStorage.setItem('whiteboard_current_user', JSON.stringify(updatedSelf));
+        } catch {}
+        if (onUpdateCurrentUser && data.user) {
+          onUpdateCurrentUser(data.user);
+        }
+        onRefreshData();
+      }
+      setTimeout(() => setUserActionSuccess(''), 4000);
+    } catch {
+      setUserActionError('Network error updating user');
+    } finally {
+      setIsSavingUser(false);
     }
   };
 
@@ -366,7 +458,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
         }
       });
       if (res.ok) {
-        fetchUsers();
+        setUserList(prev => prev.filter(u => u.id !== id));
+        await fetchUsers();
       }
     } catch (err) {
       console.error('Failed to delete user:', err);
@@ -868,7 +961,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   </p>
                 </div>
                 <button
-                  onClick={() => setIsAddingUser(prev => !prev)}
+                  onClick={() => {
+                    if (!isAddingUser && editingUser) setEditingUser(null);
+                    setIsAddingUser(prev => !prev);
+                  }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -957,6 +1053,110 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 </form>
               )}
 
+              {/* Edit User Form */}
+              {editingUser && (
+                <form onSubmit={handleUpdateUser} style={{ background: 'var(--surface-hover)', padding: 14, borderRadius: 8, marginBottom: 16, border: '2px solid var(--accent-primary)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Edit2 size={15} style={{ color: 'var(--accent-primary)' }} />
+                      <strong style={{ fontSize: 13 }}>Edit System User: {editingUser.displayName} (@{editingUser.username})</strong>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingUser(null)}
+                      style={{ fontSize: 12, color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                    >
+                      ✕ Cancel
+                    </button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 10 }}>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Display Name</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Jane Doe, CRNA"
+                        value={editUserDisplayName}
+                        onChange={e => setEditUserDisplayName(e.target.value)}
+                        required
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Username</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. jdoe_crna"
+                        value={editUsername}
+                        onChange={e => setEditUsername(e.target.value)}
+                        required
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Role Permission Level</label>
+                      <select
+                        value={editUserRole}
+                        onChange={e => setEditUserRole(e.target.value as UserRole)}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)', background: 'var(--surface-card)' }}
+                      >
+                        <option value="board_runner">Board Runner (Move magnets & staff)</option>
+                        <option value="superuser">Superuser (Full admin control)</option>
+                        <option value="basic_user">Basic User (View & breaks only)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Touch PIN (4-6 Digits)</label>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        placeholder="e.g. 5678"
+                        value={editUserPin}
+                        onChange={e => setEditUserPin(e.target.value)}
+                        required
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Change Password (Optional)</label>
+                      <input
+                        type="password"
+                        placeholder="Leave blank to keep existing"
+                        value={editUserPassword}
+                        onChange={e => setEditUserPassword(e.target.value)}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Account Status</label>
+                      <select
+                        value={editUserActive ? 'active' : 'disabled'}
+                        onChange={e => setEditUserActive(e.target.value === 'active')}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)', background: 'var(--surface-card)' }}
+                      >
+                        <option value="active">Active (Allowed to log in)</option>
+                        <option value="disabled">Disabled (Cannot log in)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditingUser(null)}
+                      style={{ padding: '6px 12px', background: 'var(--surface-card)', border: '1px solid var(--border-light)', borderRadius: 6, fontSize: 12, fontWeight: 600 }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSavingUser}
+                      style={{ padding: '6px 16px', background: 'var(--accent-primary)', color: '#fff', borderRadius: 6, fontWeight: 700, fontSize: 12 }}
+                    >
+                      {isSavingUser ? 'Saving...' : 'Save User Changes'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
               {/* Users Table */}
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
@@ -995,15 +1195,48 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         </span>
                       </td>
                       <td style={{ padding: '8px 10px', textAlign: 'right' }}>
-                        {u.id !== currentUser.id && (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
                           <button
-                            onClick={() => promptDeleteUser(u)}
-                            style={{ color: 'var(--marker-red)', padding: 4 }}
-                            title="Delete user"
+                            type="button"
+                            onClick={() => startEditUser(u)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              padding: '3px 8px',
+                              borderRadius: 4,
+                              background: editingUser?.id === u.id ? 'var(--accent-primary)' : 'var(--surface-card)',
+                              color: editingUser?.id === u.id ? '#fff' : 'var(--accent-primary)',
+                              border: '1px solid var(--border-light)',
+                              fontSize: 12,
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                            title={`Edit user ${u.displayName}`}
                           >
-                            <Trash2 size={14} />
+                            <Edit2 size={13} />
+                            <span>Edit</span>
                           </button>
-                        )}
+                          {u.id !== currentUser.id && (
+                            <button
+                              type="button"
+                              onClick={() => promptDeleteUser(u)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '3px 6px',
+                                borderRadius: 4,
+                                background: 'transparent',
+                                border: '1px solid transparent',
+                                color: 'var(--marker-red)',
+                                cursor: 'pointer'
+                              }}
+                              title="Delete user"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
