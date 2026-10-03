@@ -596,8 +596,9 @@ export async function loadBoardState(): Promise<BoardState> {
 /**
  * Normalizes runner slots for each department:
  * 1. Strips any relief functionality (runners do not have relief).
- * 2. Keeps all occupied runners with valid staff IDs, numbering them 1..N.
- * 3. Does not show empty placeholder boxes; dragging onto the department header adds a runner.
+ * 2. Preserves all runner slots (both assigned and empty slots).
+ * 3. Enforces Title Case for runner titles ("Runner 1", "Runner 2", etc.) instead of uppercase.
+ * 4. Ensures each department has at least 1 runner slot if empty.
  */
 export function normalizeDepartmentRunnerSlots(departments?: Department[], staff?: Staff[]): void {
   if (!departments || !Array.isArray(departments)) return;
@@ -606,23 +607,34 @@ export function normalizeDepartmentRunnerSlots(departments?: Department[], staff
     : null;
 
   for (const dept of departments) {
-    if (!dept.runnerSlots) {
+    if (!dept.runnerSlots || !Array.isArray(dept.runnerSlots)) {
       dept.runnerSlots = [];
     }
 
-    // Keep all occupied runner slots with valid staff
-    const occupied = dept.runnerSlots.filter(r => {
-      if (!r.staffId) return false;
-      if (validStaffIds && !validStaffIds.has(r.staffId)) return false;
-      return true;
-    });
+    if (dept.runnerSlots.length === 0) {
+      dept.runnerSlots.push({
+        id: `runner_${dept.id}_1`,
+        title: 'Runner 1',
+        staffId: null,
+        breakfastDone: false,
+        lunchDone: false
+      });
+    }
 
-    // Normalize occupied runners: strip any relief, ensure proper title if default runner name
-    dept.runnerSlots = occupied.map((r, idx) => ({
-      ...r,
-      title: r.title && !r.title.match(/^RUNNER\s*\d*$/i) ? r.title : `RUNNER ${idx + 1}`,
-      relief: undefined
-    }));
+    // Normalize all runner slots: validate staffId, ensure Title Case title, strip relief
+    dept.runnerSlots = dept.runnerSlots.map((r, idx) => {
+      const validStaffId = r.staffId && validStaffIds && !validStaffIds.has(r.staffId) ? null : r.staffId;
+      const normalizedTitle = r.title
+        ? r.title.replace(/^RUNNER(\s+\d+)?$/i, (m: string, n?: string) => `Runner${n || ''}`)
+        : `Runner ${idx + 1}`;
+
+      return {
+        ...r,
+        staffId: validStaffId,
+        title: normalizedTitle,
+        relief: undefined
+      };
+    });
   }
 }
 

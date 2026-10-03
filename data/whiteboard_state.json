@@ -6,7 +6,15 @@
       "id": "dept_main_or",
       "name": "MAIN OR",
       "orderIndex": 0,
-      "runnerSlots": [],
+      "runnerSlots": [
+        {
+          "id": "runner_dept_main_or_1",
+          "title": "Runner 1",
+          "staffId": null,
+          "breakfastDone": false,
+          "lunchDone": false
+        }
+      ],
       "rooms": [
         {
           "id": "dept_main_or_room_1",
@@ -209,7 +217,7 @@
       "runnerSlots": [
         {
           "id": "runner_dept_west_pav_1791045642783_tyob",
-          "title": "RUNNER 1",
+          "title": "Runner 1",
           "staffId": "staff_oneusap_doc_farias kovacmar",
           "breakfastDone": false,
           "lunchDone": false,
@@ -419,7 +427,7 @@
       "runnerSlots": [
         {
           "id": "runner_dept_ortho_1791045656515_lmbu",
-          "title": "RUNNER 1",
+          "title": "Runner 1",
           "staffId": "staff_oneusap_doc_cavanaughmar",
           "breakfastDone": false,
           "lunchDone": false,
@@ -565,7 +573,7 @@
       "runnerSlots": [
         {
           "id": "runner_dept_village_1791045658742_5qpp",
-          "title": "RUNNER 1",
+          "title": "Runner 1",
           "staffId": "staff_oneusap_doc_cavanaughmar",
           "breakfastDone": false,
           "lunchDone": false,
@@ -740,7 +748,15 @@
       "id": "dept_9th_floor",
       "name": "9th Floor",
       "orderIndex": 4,
-      "runnerSlots": [],
+      "runnerSlots": [
+        {
+          "id": "runner_dept_9th_floor_1",
+          "title": "Runner 1",
+          "staffId": null,
+          "breakfastDone": false,
+          "lunchDone": false
+        }
+      ],
       "rooms": [
         {
           "id": "dept_9th_floor_room_EP1",
@@ -879,7 +895,7 @@
       "runnerSlots": [
         {
           "id": "runner_dept_endo_1791045639589_xutv",
-          "title": "RUNNER 1",
+          "title": "Runner 1",
           "staffId": "staff_oneusap_doc_farias kovacmar",
           "breakfastDone": false,
           "lunchDone": false,
@@ -974,7 +990,15 @@
       "id": "dept_ob",
       "name": "OB",
       "orderIndex": 6,
-      "runnerSlots": [],
+      "runnerSlots": [
+        {
+          "id": "runner_dept_ob_1",
+          "title": "Runner 1",
+          "staffId": null,
+          "breakfastDone": false,
+          "lunchDone": false
+        }
+      ],
       "rooms": [
         {
           "id": "dept_ob_room_1",
@@ -1046,7 +1070,15 @@
       "id": "dept_ivf",
       "name": "IVF",
       "orderIndex": 7,
-      "runnerSlots": [],
+      "runnerSlots": [
+        {
+          "id": "runner_dept_ivf_1",
+          "title": "Runner 1",
+          "staffId": null,
+          "breakfastDone": false,
+          "lunchDone": false
+        }
+      ],
       "rooms": [
         {
           "id": "dept_ivf_room_LU",

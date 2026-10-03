@@ -215,6 +215,32 @@ button {
   z-index: 9999;
 }
 
+.magnet-tile.compact {
+  padding: 0 3px;
+  gap: 2px;
+  font-size: 10.5px;
+  letter-spacing: 0.2px;
+}
+
+.magnet-tile.compact .magnet-name {
+  font-size: 10px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.magnet-tile.compact .break-controls {
+  gap: 2px;
+}
+
+.magnet-tile.compact .break-toggle-btn {
+  width: 15px;
+  height: 15px;
+  font-size: 8px;
+  padding: 0;
+}
+
 .magnet-identity {
   display: flex;
   align-items: center;
@@ -512,10 +538,12 @@ button {
 
 .runner-slots-group {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row;
+  flex-wrap: nowrap;
   gap: 3px;
   width: 100%;
   align-items: stretch;
+  min-height: 24px;
 }
 
 .runner-slots-group:empty {
@@ -562,15 +590,17 @@ button {
   max-width: 100%;
 }
 
-/* 2 or more runner slots take 50% each (max 2 per row, wrapping onto subsequent rows) */
+/* 2 or more runner slots share row horizontally side-by-side without wrapping */
 .runner-slot.multi,
 .runner-slot-row.multi {
-  width: calc(50% - 1.5px);
-  flex: 0 0 calc(50% - 1.5px);
-  max-width: calc(50% - 1.5px);
+  width: 0;
+  flex: 1 1 0;
+  max-width: 100%;
+  min-width: 0;
 }
 
-.runner-slot.drag-over {
+.runner-slot.drag-over,
+.runner-slot-row.drag-over {
   border-color: var(--accent-primary);
   background: var(--accent-surface);
   box-shadow: 0 0 6px rgba(37, 99, 235, 0.3);
@@ -762,8 +792,7 @@ button {
 /* Rooms Container within Department - ZERO SCROLLBARS */
 .dept-rooms-list {
   flex: 1 1 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden !important; /* CRITICAL: Absolutely no scroll bars in individual departments */
   padding: 1px 3px;
   display: flex;
   flex-direction: column;
