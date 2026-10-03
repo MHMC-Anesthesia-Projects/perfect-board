@@ -9,7 +9,8 @@ import {
   DepartureItem, 
   LateShiftItem, 
   CallTeamItem,
-  ReliefAssignment
+  ReliefAssignment,
+  RunnerSlot
 } from '@/types/whiteboard';
 import { 
   ChevronLeft, 
@@ -436,13 +437,10 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
     return a.firstName.localeCompare(b.firstName, undefined, { sensitivity: 'base' });
   };
 
-  // Find all assigned staff IDs across rooms, runners, and bullpen
+  // Find all assigned staff IDs across rooms and bullpen (runners can be duplicated across multiple locations)
   const assignedStaffIds = useMemo(() => {
     const ids = new Set<string>();
     for (const dept of boardState.departments) {
-      for (const r of dept.runnerSlots) {
-        if (r.staffId) ids.add(r.staffId);
-      }
       for (const room of dept.rooms) {
         for (const slot of room.slots) {
           if (slot.staffId) ids.add(slot.staffId);
@@ -679,142 +677,47 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                       {activeDepartment.rooms.filter(r => r.slots.some(s => !!s.staffId)).length}/{activeDepartment.rooms.length}
                     </span>
                   </div>
-                  {isEditor && onAddRunnerSlot && (
-                    <button
-                      type="button"
-                      onClick={() => onAddRunnerSlot(activeDepartment.id)}
-                      className="dept-add-runner-btn"
-                      title={`Add extra runner slot to ${activeDepartment.name}`}
-                    >
-                      <Plus size={10} />
-                      <span>Runner</span>
-                    </button>
-                  )}
                 </div>
 
-                {/* Runner Slots Group */}
-                <div className="runner-slots-group">
-                  {activeDepartment.runnerSlots.map(runner => {
-                    const assignedStaff = getStaffById(runner.staffId);
-                    return (
-                      <div
-                        key={runner.id}
-                        className="runner-slot"
-                        onClick={() => {
-                          if (!assignedStaff) {
-                            onSelectEmptySlot('runner_slot', runner.id, `${activeDepartment.name} Runner (${runner.title})`);
-                          }
-                        }}
-                        style={{ position: 'relative' }}
-                      >
-                        {assignedStaff ? (
-                          (() => {
-                            const reliefStaff = getStaffById(runner.relief?.staffId || null);
-                            if (runner.relief && reliefStaff) {
-                              return (
-                                <div className="relief-container" style={{ width: '100%' }}>
-                                  <div style={{ flex: 1, minWidth: 0 }}>
-                                    <MagnetTile
-                                      staff={assignedStaff}
-                                      slotId={runner.id}
-                                      slotType="runner_slot"
-                                      breakfastDone={runner.breakfastDone}
-                                      lunchDone={runner.lunchDone}
-                                      currentUserRole={currentUserRole}
-                                      onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
-                                      onSelectStaff={onSelectStaff}
-                                      isCompact={true}
-                                      isDraggable={false}
-                                    />
-                                  </div>
-                                  <span className="relief-arrow" title="Relief assignment">➔</span>
-                                  <div
-                                    className="relief-box"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (onOpenReliefModal) {
-                                        onOpenReliefModal({
-                                          type: 'runner_slot',
-                                          id: runner.id,
-                                          roomName: runner.title,
-                                          departmentName: activeDepartment.name,
-                                          currentStaff: assignedStaff,
-                                          currentRelief: runner.relief
-                                        });
-                                      }
-                                    }}
-                                  >
-                                    <div className="relief-identity">
-                                      <span className="relief-name">{reliefStaff.lastName.toUpperCase()}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            }
-                            return (
-                              <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%' }}>
-                                <div style={{ flex: 1, minWidth: 0, height: '100%' }}>
-                                  <MagnetTile
-                                    staff={assignedStaff}
-                                    slotId={runner.id}
-                                    slotType="runner_slot"
-                                    breakfastDone={runner.breakfastDone}
-                                    lunchDone={runner.lunchDone}
-                                    currentUserRole={currentUserRole}
-                                    onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
-                                    onSelectStaff={onSelectStaff}
-                                    isCompact={true}
-                                    isDraggable={false}
-                                  />
-                                </div>
-                                {isEditor && onOpenReliefModal && (
-                                  <button
-                                    type="button"
-                                    className="relief-add-trigger"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onOpenReliefModal({
-                                        type: 'runner_slot',
-                                        id: runner.id,
-                                        roomName: runner.title,
-                                        departmentName: activeDepartment.name,
-                                        currentStaff: assignedStaff,
-                                        currentRelief: null
-                                      });
-                                    }}
-                                  >
-                                    <Clock size={10} />
-                                    <span>Relief</span>
-                                  </button>
-                                )}
+                {/* Runner Slots Group (Only occupied runners) */}
+                {(() => {
+                  const occupied = (activeDepartment.runnerSlots || []).filter(r => Boolean(r.staffId));
+                  if (occupied.length === 0) return null;
+
+                  return (
+                    <div className="runner-slots-group">
+                      {occupied.map(runner => {
+                        const assignedStaff = getStaffById(runner.staffId);
+                        if (!assignedStaff) return null;
+
+                        return (
+                          <div
+                            key={runner.id}
+                            className="runner-slot"
+                            style={{ position: 'relative' }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%' }}>
+                              <div style={{ flex: 1, minWidth: 0, height: '100%' }}>
+                                <MagnetTile
+                                  staff={assignedStaff}
+                                  slotId={runner.id}
+                                  slotType="runner_slot"
+                                  breakfastDone={runner.breakfastDone}
+                                  lunchDone={runner.lunchDone}
+                                  currentUserRole={currentUserRole}
+                                  onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
+                                  onSelectStaff={onSelectStaff}
+                                  isCompact={true}
+                                  isDraggable={false}
+                                />
                               </div>
-                            );
-                          })()
-                        ) : (
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '2px 4px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <Plus size={12} />
-                              <span>{runner.title}</span>
                             </div>
-                            {isEditor && onRemoveRunnerSlot && (!runner.staffId || activeDepartment.runnerSlots.length > 1) && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onRemoveRunnerSlot(activeDepartment.id, runner.id);
-                                }}
-                                style={{ color: 'var(--text-muted)', padding: 1, background: 'none', border: 'none', cursor: 'pointer' }}
-                                title="Remove extra empty runner slot"
-                              >
-                                <X size={11} />
-                              </button>
-                            )}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Rooms List */}
@@ -924,12 +827,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                       </div>
                                     );
                                   })()
-                                ) : (
-                                  <div className="room-empty-dock">
-                                    <Plus size={11} />
-                                    <span>Assign</span>
-                                  </div>
-                                )}
+                                ) : null}
                               </div>
                             );
                           })}

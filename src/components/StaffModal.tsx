@@ -646,7 +646,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
         {isEditor ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {/* Scheduled Relief Section (Red Box) */}
-            {currentPlacement && (currentPlacement.type === 'room_slot' || currentPlacement.type === 'runner_slot') && (
+            {currentPlacement && currentPlacement.type === 'room_slot' && (
               <div style={{
                 background: currentPlacement.relief ? 'rgba(239, 68, 68, 0.08)' : 'var(--surface-hover)',
                 border: currentPlacement.relief ? '1.5px solid var(--marker-red)' : '1px solid var(--border-light)',

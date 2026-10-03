@@ -275,14 +275,11 @@ export default function WhiteboardPage() {
     return set;
   }, [boardState]);
 
-  // Count total scheduled reliefs across all departments (runner slots + room slots)
+  // Count total scheduled reliefs across all department room slots
   const totalScheduledReliefsCount = useMemo(() => {
     if (!boardState) return 0;
     let count = 0;
     for (const dept of boardState.departments) {
-      for (const runner of dept.runnerSlots) {
-        if (runner.relief?.staffId) count++;
-      }
       for (const room of dept.rooms) {
         for (const slot of room.slots) {
           if (slot.relief?.staffId) count++;

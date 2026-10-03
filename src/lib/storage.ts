@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { BoardState, User, AuditLogEntry, Staff, Department, UniqueScheduleRule } from '@/types/whiteboard';
+import { BoardState, User, AuditLogEntry, Staff, Department, RunnerSlot, UniqueScheduleRule } from '@/types/whiteboard';
 import { getSupabaseServerClient } from '@/lib/supabase';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -536,6 +536,9 @@ export async function loadBoardState(): Promise<BoardState> {
         console.error('Supabase error loading board_state:', error);
       } else if (data && data.state) {
         const loaded = sanitizeBoardState(data.state as BoardState);
+        if (loaded && loaded.departments) {
+          normalizeDepartmentRunnerSlots(loaded.departments, loaded.staff);
+        }
 
         // Automatic Daily 1:00 AM Break Reset check
         const threshold1Am = getLatest1AmThreshold();
@@ -559,6 +562,9 @@ export async function loadBoardState(): Promise<BoardState> {
         // No row in Supabase yet -> seed current state to Supabase
         console.log('No board_state found in Supabase. Seeding current state to Supabase...');
         const initial = loadBoardStateFromFile();
+        if (initial && initial.departments) {
+          normalizeDepartmentRunnerSlots(initial.departments, initial.staff);
+        }
         await saveBoardState(initial);
         return initial;
       }
@@ -569,6 +575,9 @@ export async function loadBoardState(): Promise<BoardState> {
 
   // Fallback to local file
   const loaded = loadBoardStateFromFile();
+  if (loaded && loaded.departments) {
+    normalizeDepartmentRunnerSlots(loaded.departments, loaded.staff);
+  }
 
   // Automatic Daily 1:00 AM Break Reset check
   const threshold1Am = getLatest1AmThreshold();
@@ -590,7 +599,43 @@ export async function loadBoardState(): Promise<BoardState> {
   return loaded;
 }
 
+/**
+ * Normalizes runner slots for each department:
+ * 1. Strips any relief functionality (runners do not have relief).
+ * 2. Keeps all occupied runners with valid staff IDs, numbering them 1..N.
+ * 3. Does not show empty placeholder boxes; dragging onto the department header adds a runner.
+ */
+export function normalizeDepartmentRunnerSlots(departments?: Department[], staff?: Staff[]): void {
+  if (!departments || !Array.isArray(departments)) return;
+  const validStaffIds = staff && Array.isArray(staff) && staff.length > 0
+    ? new Set(staff.map(s => s.id))
+    : null;
+
+  for (const dept of departments) {
+    if (!dept.runnerSlots) {
+      dept.runnerSlots = [];
+    }
+
+    // Keep all occupied runner slots with valid staff
+    const occupied = dept.runnerSlots.filter(r => {
+      if (!r.staffId) return false;
+      if (validStaffIds && !validStaffIds.has(r.staffId)) return false;
+      return true;
+    });
+
+    // Normalize occupied runners: strip any relief, ensure proper title if default runner name
+    dept.runnerSlots = occupied.map((r, idx) => ({
+      ...r,
+      title: r.title && !r.title.match(/^RUNNER\s*\d*$/i) ? r.title : `RUNNER ${idx + 1}`,
+      relief: undefined
+    }));
+  }
+}
+
 export async function saveBoardState(state: BoardState): Promise<void> {
+  if (state.departments) {
+    normalizeDepartmentRunnerSlots(state.departments, state.staff);
+  }
   state.lastUpdated = new Date().toISOString();
 
   // Save to local file cache as well (if writable)

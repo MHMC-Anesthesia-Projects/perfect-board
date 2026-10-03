@@ -456,6 +456,12 @@ button {
   flex-direction: column;
   gap: 3px;
   flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.dept-header.drag-over {
+  background: var(--accent-surface) !important;
+  box-shadow: inset 0 0 0 2px var(--accent-primary) !important;
 }
 
 .dept-title {
@@ -506,29 +512,62 @@ button {
 
 .runner-slots-group {
   display: flex;
-  gap: 3px;
   flex-wrap: wrap;
+  gap: 3px;
+  width: 100%;
+  align-items: stretch;
+}
+
+.runner-slots-group:empty {
+  display: none;
 }
 
 .runner-slot {
-  flex: 1;
-  min-width: 80px;
+  min-width: 0;
   height: 24px;
   min-height: 24px;
-  max-height: 24px;
+  max-height: 26px;
   background: var(--runner-bg);
   border: 1px dashed var(--runner-border);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   font-size: 10.5px;
   color: var(--runner-text);
   font-weight: 700;
   cursor: pointer;
   transition: all var(--transition-fast);
   box-sizing: border-box;
-  padding: 0 2px;
+  padding: 0 4px;
+}
+
+.runner-slot-row {
+  min-width: 0;
+  height: 24px;
+  min-height: 24px;
+  max-height: 26px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* 1 runner slot takes full width */
+.runner-slot.single,
+.runner-slot-row.single {
+  width: 100%;
+  flex: 1 1 100%;
+  max-width: 100%;
+}
+
+/* 2 or more runner slots take 50% each (max 2 per row, wrapping onto subsequent rows) */
+.runner-slot.multi,
+.runner-slot-row.multi {
+  width: calc(50% - 1.5px);
+  flex: 0 0 calc(50% - 1.5px);
+  max-width: calc(50% - 1.5px);
 }
 
 .runner-slot.drag-over {
@@ -723,7 +762,8 @@ button {
 /* Rooms Container within Department - ZERO SCROLLBARS */
 .dept-rooms-list {
   flex: 1 1 0;
-  overflow: hidden !important; /* CRITICAL: Absolutely no scroll bars in individual departments */
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 1px 3px;
   display: flex;
   flex-direction: column;
@@ -743,7 +783,7 @@ button {
   display: flex;
   align-items: center;
   flex: 1 1 0;
-  min-height: 0;
+  min-height: 20px;
   max-height: 28px;
   border-bottom: 1px solid var(--board-inner-line);
   padding: 1px 1px;
@@ -790,6 +830,11 @@ button {
 .room-slot-target.empty {
   border-color: var(--board-inner-line);
   background: rgba(248, 250, 252, 0.6);
+  cursor: pointer;
+}
+
+[data-theme='dark'] .room-slot-target.empty {
+  background: rgba(15, 23, 42, 0.35);
 }
 
 .room-slot-target.empty:hover {
@@ -2901,8 +2946,7 @@ button {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .room-slot-row:hover .relief-slot-target,
-  .runner-slot-row:hover .relief-slot-target {
+  .room-slot-row:hover .relief-slot-target {
     display: flex;
     opacity: 0.82;
   }

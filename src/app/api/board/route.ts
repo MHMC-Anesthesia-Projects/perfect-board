@@ -127,15 +127,10 @@ export async function POST(req: NextRequest) {
           if (s) staffName = `${s.firstName} ${s.lastName}`.trim();
         }
 
-        // First remove this staff member from any other room/runner slot to prevent duplicate placement
-        if (staffId) {
+        // Only clear from rooms if assigning to a room (runners can be duplicated in multiple locations)
+        if (staffId && targetType !== 'runner_slot' && targetType !== 'runner_dept') {
           state.bullpenStaffIds = (state.bullpenStaffIds || []).filter(id => id !== staffId);
           for (const dept of state.departments) {
-            for (const runner of dept.runnerSlots) {
-              if (runner.staffId === staffId && runner.id !== targetId) {
-                runner.staffId = null;
-              }
-            }
             for (const room of dept.rooms) {
               for (const slot of room.slots) {
                 if (slot.staffId === staffId && slot.id !== targetId) {
@@ -164,10 +159,10 @@ export async function POST(req: NextRequest) {
         } else if (targetType === 'runner_dept') {
           for (const dept of state.departments) {
             if (dept.id === targetId) {
-              let emptyRunner = dept.runnerSlots.find(r => !r.staffId);
-              if (!emptyRunner) {
-                emptyRunner = {
-                  id: `runner_${dept.id}_${Date.now()}`,
+              const alreadyRunnerHere = dept.runnerSlots.some(slot => slot.staffId === staffId);
+              if (!alreadyRunnerHere) {
+                const newRunner = {
+                  id: `runner_${dept.id}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
                   title: `RUNNER ${dept.runnerSlots.length + 1}`,
                   staffId: staffId || null,
                   breakfastDone: (staffId && state.bullpenBreaks?.[staffId]?.breakfastDone) || false,
@@ -175,17 +170,11 @@ export async function POST(req: NextRequest) {
                   breakfastTime: (staffId && state.bullpenBreaks?.[staffId]?.breakfastTime) || null,
                   lunchTime: (staffId && state.bullpenBreaks?.[staffId]?.lunchTime) || null
                 };
-                dept.runnerSlots.push(emptyRunner);
+                dept.runnerSlots.push(newRunner);
+                locationName = `${dept.name} Runner (${newRunner.title})`;
               } else {
-                emptyRunner.staffId = staffId || null;
-                if (staffId && state.bullpenBreaks?.[staffId]) {
-                  emptyRunner.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
-                  emptyRunner.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
-                  emptyRunner.breakfastTime = state.bullpenBreaks[staffId].breakfastTime || null;
-                  emptyRunner.lunchTime = state.bullpenBreaks[staffId].lunchTime || null;
-                }
+                locationName = `${dept.name} Runner (Already Assigned)`;
               }
-              locationName = `${dept.name} Runner (${emptyRunner.title})`;
               break;
             }
           }
@@ -240,13 +229,19 @@ export async function POST(req: NextRequest) {
         }
 
         // Clear source & preserve source break status if available
+        // Note: runner magnets can be duplicated, so assigning to a runner does NOT clear the source!
+        const isTargetRunner = toTargetType === 'runner_dept' || toTargetType === 'runner_slot';
+
         if (fromTargetType === 'bullpen') {
-          state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
+          if (!isTargetRunner) {
+            state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
+          }
           fromLocation = 'Bullpen';
         } else if (fromTargetType === 'runner_slot') {
           for (const dept of state.departments) {
-            const r = dept.runnerSlots.find(slot => slot.id === fromId);
-            if (r) {
+            const idx = dept.runnerSlots.findIndex(slot => slot.id === fromId);
+            if (idx !== -1) {
+              const r = dept.runnerSlots[idx];
               if (staffId) {
                 state.bullpenBreaks = state.bullpenBreaks || {};
                 state.bullpenBreaks[staffId] = {
@@ -256,8 +251,11 @@ export async function POST(req: NextRequest) {
                   lunchTime: r.lunchTime
                 };
               }
-              r.staffId = null;
+              if (!isTargetRunner) {
+                dept.runnerSlots.splice(idx, 1);
+              }
               fromLocation = `${dept.name} Runner (${r.title})`;
+              break;
             }
           }
         } else if (fromTargetType === 'room_slot') {
@@ -274,7 +272,9 @@ export async function POST(req: NextRequest) {
                     lunchTime: slot.lunchTime
                   };
                 }
-                slot.staffId = null;
+                if (!isTargetRunner) {
+                  slot.staffId = null;
+                }
                 fromLocation = `${dept.name} Room ${room.name}`;
               }
             }
@@ -287,14 +287,13 @@ export async function POST(req: NextRequest) {
             state.bullpenStaffIds = (state.bullpenStaffIds || []).filter(id => id !== staffId);
             state.bullpenStaffIds.push(staffId);
           }
-          // Ensure cleared from any room or runner
-          for (const dept of state.departments) {
-            for (const runner of dept.runnerSlots) {
-              if (runner.staffId === staffId) runner.staffId = null;
-            }
-            for (const room of dept.rooms) {
-              for (const slot of room.slots) {
-                if (slot.staffId === staffId) slot.staffId = null;
+          // Only clear room slots if pulled from room; do not wipe runner slots in other departments
+          if (fromTargetType !== 'runner_slot') {
+            for (const dept of state.departments) {
+              for (const room of dept.rooms) {
+                for (const slot of room.slots) {
+                  if (slot.staffId === staffId) slot.staffId = null;
+                }
               }
             }
           }
@@ -303,13 +302,13 @@ export async function POST(req: NextRequest) {
           if (staffId) {
             state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
           }
-          for (const dept of state.departments) {
-            for (const runner of dept.runnerSlots) {
-              if (runner.staffId === staffId) runner.staffId = null;
-            }
-            for (const room of dept.rooms) {
-              for (const slot of room.slots) {
-                if (slot.staffId === staffId) slot.staffId = null;
+          // Only clear room slots if pulled from room; do not wipe runner slots in other departments
+          if (fromTargetType !== 'runner_slot') {
+            for (const dept of state.departments) {
+              for (const room of dept.rooms) {
+                for (const slot of room.slots) {
+                  if (slot.staffId === staffId) slot.staffId = null;
+                }
               }
             }
           }
@@ -347,9 +346,6 @@ export async function POST(req: NextRequest) {
             toLocation = 'Available Unassigned Staff';
           }
         } else if (toTargetType === 'runner_slot') {
-          if (staffId) {
-            state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
-          }
           for (const dept of state.departments) {
             const r = dept.runnerSlots.find(slot => slot.id === toId);
             if (r) {
@@ -364,15 +360,12 @@ export async function POST(req: NextRequest) {
             }
           }
         } else if (toTargetType === 'runner_dept') {
-          if (staffId) {
-            state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
-          }
           for (const dept of state.departments) {
             if (dept.id === toId) {
-              let emptyRunner = dept.runnerSlots.find(r => !r.staffId);
-              if (!emptyRunner) {
-                emptyRunner = {
-                  id: `runner_${dept.id}_${Date.now()}`,
+              const alreadyRunnerHere = dept.runnerSlots.some(slot => slot.staffId === staffId);
+              if (!alreadyRunnerHere) {
+                const newRunner = {
+                  id: `runner_${dept.id}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
                   title: `RUNNER ${dept.runnerSlots.length + 1}`,
                   staffId: staffId,
                   breakfastDone: (staffId && state.bullpenBreaks?.[staffId]?.breakfastDone) || false,
@@ -380,17 +373,11 @@ export async function POST(req: NextRequest) {
                   breakfastTime: (staffId && state.bullpenBreaks?.[staffId]?.breakfastTime) || null,
                   lunchTime: (staffId && state.bullpenBreaks?.[staffId]?.lunchTime) || null
                 };
-                dept.runnerSlots.push(emptyRunner);
+                dept.runnerSlots.push(newRunner);
+                toLocation = `${dept.name} Runner (${newRunner.title})`;
               } else {
-                emptyRunner.staffId = staffId;
-                if (staffId && state.bullpenBreaks?.[staffId]) {
-                  emptyRunner.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
-                  emptyRunner.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
-                  emptyRunner.breakfastTime = state.bullpenBreaks[staffId].breakfastTime || null;
-                  emptyRunner.lunchTime = state.bullpenBreaks[staffId].lunchTime || null;
-                }
+                toLocation = `${dept.name} Runner (Already Assigned)`;
               }
-              toLocation = `${dept.name} Runner (${emptyRunner.title})`;
               break;
             }
           }
@@ -910,23 +897,11 @@ export async function POST(req: NextRequest) {
         if (incomingStaff) incomingStaffName = `${incomingStaff.lastName} (${incomingStaff.credentials})`;
 
         if (targetType === 'runner_slot') {
-          for (const dept of state.departments) {
-            const runner = dept.runnerSlots.find(r => r.id === targetId);
-            if (runner) {
-              runner.relief = {
-                staffId: reliefStaffId,
-                time: reliefTime || '',
-                notes: notes || ''
-              };
-              const outgoing = state.staff.find(s => s.id === runner.staffId);
-              if (outgoing) outgoingStaffName = `${outgoing.lastName} (${outgoing.credentials})`;
-              targetLocation = `${dept.name} Runner (${runner.title})`;
-              break;
-            }
-          }
-        } else {
-          // room_slot
-          for (const dept of state.departments) {
+          return NextResponse.json({ error: 'Runners do not support relief assignments.' }, { status: 400 });
+        }
+
+        // room_slot
+        for (const dept of state.departments) {
             for (const room of dept.rooms) {
               const slot = room.slots.find(s => s.id === targetId);
               if (slot) {
@@ -942,7 +917,6 @@ export async function POST(req: NextRequest) {
               }
             }
           }
-        }
 
         await saveBoardState(state);
         const isSelfRelief = outgoingStaffName && incomingStaffName && outgoingStaffName === incomingStaffName;
@@ -1333,42 +1307,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, state });
       }
 
-      // 9. Remove runner slot from department (Board Runner or Superuser)
-      case 'REMOVE_RUNNER_SLOT': {
-        if (currentUserRole === 'basic_user') {
-          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
-        }
-        const { departmentId, runnerSlotId } = payload;
-        const dept = state.departments.find(d => d.id === departmentId);
-        if (!dept) {
-          return NextResponse.json({ error: 'Department not found' }, { status: 404 });
-        }
 
-        const slotIndex = dept.runnerSlots.findIndex(r => r.id === runnerSlotId);
-        if (slotIndex === -1) {
-          return NextResponse.json({ error: 'Runner slot not found' }, { status: 404 });
-        }
-
-        const removedSlot = dept.runnerSlots[slotIndex];
-        let staffName = '';
-        if (removedSlot.staffId) {
-          const s = state.staff.find(st => st.id === removedSlot.staffId);
-          if (s) staffName = `${s.firstName} ${s.lastName}`.trim();
-        }
-
-        dept.runnerSlots.splice(slotIndex, 1);
-
-        await saveBoardState(state);
-        await recordAuditLog({
-          actionType: 'LAYOUT_CHANGED',
-          performedBy: currentUserName,
-          userRole: currentUserRole,
-          locationName: dept.name,
-          details: `Removed runner slot "${removedSlot.title}" from ${dept.name}${staffName ? ` (Returned ${staffName} to bullpen)` : ''}`
-        });
-
-        return NextResponse.json({ success: true, state });
-      }
 
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

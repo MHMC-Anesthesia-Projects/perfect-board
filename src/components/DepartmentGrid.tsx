@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Department, Staff, UserRole, ReliefAssignment } from '@/types/whiteboard';
+import { Department, Staff, UserRole, ReliefAssignment, RunnerSlot } from '@/types/whiteboard';
 import { MagnetTile } from './MagnetTile';
 import { Plus, X, Clock } from 'lucide-react';
 
@@ -159,10 +159,12 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
       }
 
       if (!staffId) return;
+      const validStaff = getStaffById(staffId);
+      if (!validStaff) return;
 
       // SELF-RELIEF: If user drags the provider currently assigned to this slot and drops them back onto the slot,
       // designate them as relieving themselves!
-      if (currentStaffId && staffId === currentStaffId && (targetType === 'room_slot' || targetType === 'runner_slot') && onSetRelief) {
+      if (currentStaffId && staffId === currentStaffId && targetType === 'room_slot' && onSetRelief) {
         onSetRelief(targetType, targetId, staffId);
         return;
       }
@@ -212,8 +214,17 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
 
     return (
       <div key={dept.id} className="dept-column">
-        {/* Department Header */}
-        <div className="dept-header">
+        {/* Department Header - Drag and drop any magnet here to add as a runner */}
+        <div
+          className="dept-header"
+          onDragEnter={handleZoneDragEnter}
+          onDragOver={handleZoneDragOver}
+          onDragLeave={handleZoneDragLeave}
+          onDrop={e => {
+            handleDrop(e, 'runner_dept', dept.id);
+          }}
+          title={`Drag & drop a staff magnet here to add as runner for ${dept.name}`}
+        >
           <div className="dept-title">
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span className="dept-name-text">{dept.name}</span>
@@ -221,174 +232,64 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                 {assignedRoomsCount}/{dept.rooms.length}
               </span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              {/* Dynamic Runner Add Button */}
-              {isEditor && onAddRunnerSlot && (
-                <button
-                  type="button"
-                  onClick={() => onAddRunnerSlot(dept.id)}
-                  className="dept-add-runner-btn"
-                  title={`Add extra runner slot to ${dept.name}`}
-                >
-                  <Plus size={10} />
-                  <span>Runner</span>
-                </button>
-              )}
-            </div>
           </div>
 
-          {/* Runner Slots Group (Also drop zone to dynamically adapt to 2nd or 3rd runner) */}
-          <div
-            className="runner-slots-group"
-            onDragEnter={handleZoneDragEnter}
-            onDragOver={handleZoneDragOver}
-            onDragLeave={handleZoneDragLeave}
-            onDrop={e => {
-              // If dropped directly into group container, dynamically assign to runner slot
-              handleDrop(e, 'runner_dept', dept.id);
-            }}
-            style={{
-              padding: '2px',
-              borderRadius: 4,
-              border: '1px solid transparent',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            {dept.runnerSlots.map(runner => {
-              const assignedStaff = getStaffById(runner.staffId);
+          {/* Runner Slots Group (Only occupied runners with valid staff, no yellow empty placeholder boxes) */}
+          {(() => {
+            const occupied = (dept.runnerSlots || []).filter(r => Boolean(r.staffId) && Boolean(getStaffById(r.staffId)));
+            if (occupied.length === 0) return null;
+            const isMultiRunner = occupied.length > 1;
 
-              if (assignedStaff) {
-                const reliefStaff = getStaffById(runner.relief?.staffId || null);
-                return (
-                  <div
-                    key={runner.id}
-                    className="runner-slot-row"
-                    style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', gap: 3, position: 'relative' }}
-                  >
-                    {/* Primary Runner Zone */}
+            return (
+              <div
+                className="runner-slots-group"
+                onDragEnter={handleZoneDragEnter}
+                onDragOver={handleZoneDragOver}
+                onDragLeave={handleZoneDragLeave}
+                onDrop={e => {
+                  handleDrop(e, 'runner_dept', dept.id);
+                }}
+              >
+                {occupied.map(runner => {
+                  const assignedStaff = getStaffById(runner.staffId);
+                  if (!assignedStaff) return null;
+
+                  return (
                     <div
-                      className="primary-runner-zone"
-                      style={{ flex: 1, minWidth: 0, height: '100%' }}
-                      onDragEnter={handleZoneDragEnter}
-                      onDragOver={handleZoneDragOver}
-                      onDragLeave={handleZoneDragLeave}
-                      onDrop={e => {
-                        handleDrop(e, 'runner_slot', runner.id, assignedStaff.id);
-                      }}
+                      key={runner.id}
+                      className={`runner-slot-row ${isMultiRunner ? 'multi' : 'single'}`}
                     >
-                      <MagnetTile
-                        staff={assignedStaff}
-                        slotId={runner.id}
-                        slotType="runner_slot"
-                        breakfastDone={runner.breakfastDone}
-                        lunchDone={runner.lunchDone}
-                        currentUserRole={currentUserRole}
-                        onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
-                        onSelectStaff={onSelectStaff}
-                        onDragStart={handleTileDragStart}
-                        onDragEnd={handleTileDragEnd}
-                        isCompact={true}
-                      />
-                    </div>
-
-                    {/* Relief Zone */}
-                    {runner.relief && reliefStaff ? (
-                      <>
-                        <span className="relief-arrow" title="Relief assignment">➔</span>
-                        <div
-                          className="relief-box"
-                          onDragEnter={handleZoneDragEnter}
-                          onDragOver={handleZoneDragOver}
-                          onDragLeave={handleZoneDragLeave}
-                          onDrop={(e) => handleReliefDrop(e, 'runner_slot', runner.id)}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (justDroppedRef.current) return;
-                            if (onOpenReliefModal) {
-                              onOpenReliefModal({
-                                type: 'runner_slot',
-                                id: runner.id,
-                                roomName: runner.title,
-                                departmentName: dept.name,
-                                currentStaff: assignedStaff,
-                                currentRelief: runner.relief
-                              });
-                            }
-                          }}
-                          title={`Relief: ${reliefStaff.lastName} (${reliefStaff.credentials}). Tap to edit/handoff or drop staff here to change relief.`}
-                        >
-                          <div className="relief-identity">
-                            <span className="relief-name">{reliefStaff.lastName.toUpperCase()}</span>
-                          </div>
-                        </div>
-                      </>
-                    ) : isEditor ? (
+                      {/* Primary Runner Zone */}
                       <div
-                        className="relief-slot-target"
+                        className="primary-runner-zone"
+                        style={{ flex: 1, minWidth: 0, height: '100%' }}
                         onDragEnter={handleZoneDragEnter}
                         onDragOver={handleZoneDragOver}
                         onDragLeave={handleZoneDragLeave}
-                        onDrop={(e) => handleReliefDrop(e, 'runner_slot', runner.id)}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (justDroppedRef.current) return;
-                          if (onOpenReliefModal) {
-                            onOpenReliefModal({
-                              type: 'runner_slot',
-                              id: runner.id,
-                              roomName: runner.title,
-                              departmentName: dept.name,
-                              currentStaff: assignedStaff,
-                              currentRelief: null
-                            });
-                          }
+                        onDrop={e => {
+                          handleDrop(e, 'runner_dept', dept.id);
                         }}
-                        title="Drop staff here to designate as relief, or click to choose"
                       >
-                        <span className="relief-slot-label">+ Relief</span>
+                        <MagnetTile
+                          staff={assignedStaff}
+                          slotId={runner.id}
+                          slotType="runner_slot"
+                          breakfastDone={runner.breakfastDone}
+                          lunchDone={runner.lunchDone}
+                          currentUserRole={currentUserRole}
+                          onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
+                          onSelectStaff={onSelectStaff}
+                          onDragStart={handleTileDragStart}
+                          onDragEnd={handleTileDragEnd}
+                          isCompact={true}
+                        />
                       </div>
-                    ) : null}
-                  </div>
-                );
-              }
-
-              return (
-                <div
-                  key={runner.id}
-                  className="runner-slot"
-                  onDragEnter={handleZoneDragEnter}
-                  onDragOver={handleZoneDragOver}
-                  onDragLeave={handleZoneDragLeave}
-                  onDrop={e => {
-                    handleDrop(e, 'runner_slot', runner.id);
-                  }}
-                  onClick={() => {
-                    onSelectEmptySlot('runner_slot', runner.id, `${dept.name} Runner (${runner.title})`);
-                  }}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '2px 4px', position: 'relative' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Plus size={12} />
-                    <span>{runner.title}</span>
-                  </div>
-                  {isEditor && onRemoveRunnerSlot && dept.runnerSlots.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemoveRunnerSlot(dept.id, runner.id);
-                      }}
-                      style={{ color: 'var(--text-muted)', padding: 1 }}
-                      title="Remove extra empty runner slot"
-                    >
-                      <X size={11} />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Rooms List */}
@@ -514,12 +415,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                         onClick={() => {
                           onSelectEmptySlot('room_slot', slot.id, `${dept.name} Room ${room.name}`);
                         }}
-                      >
-                        <div className="room-empty-dock">
-                          <Plus size={11} />
-                          <span>Assign</span>
-                        </div>
-                      </div>
+                        title={`Click or drop staff to assign to Room ${room.name}`}
+                      />
                     );
                   })}
                 </div>

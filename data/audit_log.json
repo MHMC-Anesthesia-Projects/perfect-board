@@ -1,5 +1,621 @@
 [
   {
+    "id": "audit_1791046461437_e7zgy",
+    "timestamp": "2026-10-03T16:54:21.437Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from 9th Floor Runner (RUNNER 1) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791046460171_tqvi6",
+    "timestamp": "2026-10-03T16:54:20.171Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Farias KovacMar",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from 9th Floor Runner (RUNNER 1) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791046458782_e7y4a",
+    "timestamp": "2026-10-03T16:54:18.782Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Kev Chen",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from 9th Floor Runner (RUNNER 3) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791046456608_yxpd4",
+    "timestamp": "2026-10-03T16:54:16.608Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Kev Chen",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Room 3 -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791046454221_cblni",
+    "timestamp": "2026-10-03T16:54:14.221Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Kev Chen",
+    "locationName": "9th Floor Runner (RUNNER 3)",
+    "details": "Moved from MAIN OR Room 3 -> 9th Floor Runner (RUNNER 3)"
+  },
+  {
+    "id": "audit_1791046450453_15rdt",
+    "timestamp": "2026-10-03T16:54:10.453Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Alex Chang",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Runner (RUNNER 1) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791046448823_tmr6e",
+    "timestamp": "2026-10-03T16:54:08.823Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Runner (RUNNER 1) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791046447303_08iog",
+    "timestamp": "2026-10-03T16:54:07.303Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Alex Chang",
+    "locationName": "MAIN OR Runner (RUNNER 2)",
+    "details": "Moved from Bullpen -> MAIN OR Runner (RUNNER 2)"
+  },
+  {
+    "id": "audit_1791046244254_q3nf5",
+    "timestamp": "2026-10-03T16:50:44.254Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Altered department and room layout structure"
+  },
+  {
+    "id": "audit_1791045658759_pc7ra",
+    "timestamp": "2026-10-03T16:40:58.759Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "VILLAGE Runner (RUNNER 1)",
+    "details": "Moved from ORTHO Runner (RUNNER 1) -> VILLAGE Runner (RUNNER 1)"
+  },
+  {
+    "id": "audit_1791045656523_yu8m0",
+    "timestamp": "2026-10-03T16:40:56.523Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "ORTHO Runner (RUNNER 1)",
+    "details": "Moved from MAIN OR Runner (RUNNER 2) -> ORTHO Runner (RUNNER 1)"
+  },
+  {
+    "id": "audit_1791045651306_61b6g",
+    "timestamp": "2026-10-03T16:40:51.306Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "MAIN OR Runner (RUNNER 2)",
+    "details": "Moved from Bullpen -> MAIN OR Runner (RUNNER 2)"
+  },
+  {
+    "id": "audit_1791045648359_v8md9",
+    "timestamp": "2026-10-03T16:40:48.359Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Farias KovacMar",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Runner (RUNNER 2) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791045646655_knjs1",
+    "timestamp": "2026-10-03T16:40:46.655Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Michael Bernell",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Runner (RUNNER 2) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791045644842_kwfub",
+    "timestamp": "2026-10-03T16:40:44.842Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Farias KovacMar",
+    "locationName": "MAIN OR Runner (RUNNER 3)",
+    "details": "Moved from WEST PAV Runner (RUNNER 1) -> MAIN OR Runner (RUNNER 3)"
+  },
+  {
+    "id": "audit_1791045642793_0sj0j",
+    "timestamp": "2026-10-03T16:40:42.793Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Farias KovacMar",
+    "locationName": "WEST PAV Runner (RUNNER 1)",
+    "details": "Moved from ENDO Runner (RUNNER 1) -> WEST PAV Runner (RUNNER 1)"
+  },
+  {
+    "id": "audit_1791045639597_kns5c",
+    "timestamp": "2026-10-03T16:40:39.597Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Farias KovacMar",
+    "locationName": "ENDO Runner (RUNNER 1)",
+    "details": "Moved from 9th Floor Runner (RUNNER 1) -> ENDO Runner (RUNNER 1)"
+  },
+  {
+    "id": "audit_1791045632434_rqlrq",
+    "timestamp": "2026-10-03T16:40:32.434Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Runner (RUNNER 3) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791045630548_eg6fs",
+    "timestamp": "2026-10-03T16:40:30.548Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Alex Chang",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Runner (RUNNER 4) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791045625714_m8xw8",
+    "timestamp": "2026-10-03T16:40:25.714Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "9th Floor Runner (RUNNER 2)",
+    "details": "Moved from Staff Pool -> 9th Floor Runner (RUNNER 2)"
+  },
+  {
+    "id": "audit_1791045622350_1drt9",
+    "timestamp": "2026-10-03T16:40:22.350Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Farias KovacMar",
+    "locationName": "9th Floor Runner (RUNNER 1)",
+    "details": "Moved from Staff Pool -> 9th Floor Runner (RUNNER 1)"
+  },
+  {
+    "id": "audit_1791045617819_kescx",
+    "timestamp": "2026-10-03T16:40:17.819Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Alex Chang",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from WEST PAV Runner (RUNNER 1) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791045615340_bk0wy",
+    "timestamp": "2026-10-03T16:40:15.340Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Alex Chang",
+    "locationName": "MAIN OR Runner (RUNNER 4)",
+    "details": "Moved from Staff Pool -> MAIN OR Runner (RUNNER 4)"
+  },
+  {
+    "id": "audit_1791045609338_yqops",
+    "timestamp": "2026-10-03T16:40:09.338Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "MAIN OR Runner (RUNNER 3)",
+    "details": "Moved from Bullpen -> MAIN OR Runner (RUNNER 3)"
+  },
+  {
+    "id": "audit_1791045602704_b3twk",
+    "timestamp": "2026-10-03T16:40:02.704Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Michael Bernell",
+    "locationName": "MAIN OR Runner (Already Assigned)",
+    "details": "Moved from Bullpen -> MAIN OR Runner (Already Assigned)"
+  },
+  {
+    "id": "audit_1791045600002_nb4dn",
+    "timestamp": "2026-10-03T16:40:00.002Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Michael Bernell",
+    "locationName": "MAIN OR Runner (RUNNER 2)",
+    "details": "Moved from Bullpen -> MAIN OR Runner (RUNNER 2)"
+  },
+  {
+    "id": "audit_1791045597514_qj2qp",
+    "timestamp": "2026-10-03T16:39:57.514Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Runner (RUNNER 1) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791045595756_n5ekc",
+    "timestamp": "2026-10-03T16:39:55.756Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Michael Bernell",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Runner (RUNNER 2) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791045508119_dczwl",
+    "timestamp": "2026-10-03T16:38:28.119Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Staff",
+    "locationName": "MAIN OR Runner (RUNNER 3)",
+    "details": "Moved from Staff Pool -> MAIN OR Runner (RUNNER 3)"
+  },
+  {
+    "id": "audit_1791044814652_jqz2x",
+    "timestamp": "2026-10-03T16:26:54.652Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "MAIN OR Runner (RUNNER 1)",
+    "details": "Moved from Staff Pool -> MAIN OR Runner (RUNNER 1)"
+  },
+  {
+    "id": "audit_1791044775862_mz2au",
+    "timestamp": "2026-10-03T16:26:15.862Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Michael Bernell",
+    "locationName": "MAIN OR Runner (RUNNER 2)",
+    "details": "Moved from Bullpen -> MAIN OR Runner (RUNNER 2)"
+  },
+  {
+    "id": "audit_1791044767604_9coga",
+    "timestamp": "2026-10-03T16:26:07.604Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Key Lu",
+    "locationName": "MAIN OR Runner (RUNNER 1)",
+    "details": "Moved from Bullpen -> MAIN OR Runner (RUNNER 1)"
+  },
+  {
+    "id": "audit_1791044764752_mb5b8",
+    "timestamp": "2026-10-03T16:26:04.752Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "MAIN OR Runner (RUNNER 1)",
+    "details": "Moved from Staff Pool -> MAIN OR Runner (RUNNER 1)"
+  },
+  {
+    "id": "audit_1791044758545_e9bny",
+    "timestamp": "2026-10-03T16:25:58.545Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Michael Bernell",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Runner (RUNNER 1) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791044748471_p3krk",
+    "timestamp": "2026-10-03T16:25:48.471Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Michael Bernell",
+    "locationName": "MAIN OR Runner (RUNNER 1)",
+    "details": "Moved from Staff Pool -> MAIN OR Runner (RUNNER 1)"
+  },
+  {
+    "id": "audit_1791044699108_rdlhe",
+    "timestamp": "2026-10-03T16:24:59.108Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Key Lu",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from ORTHO Runner (RUNNER 1) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791044699066_khq0i",
+    "timestamp": "2026-10-03T16:24:59.066Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Key Lu",
+    "locationName": "ORTHO Runner (RUNNER 1)",
+    "details": "Moved from Staff Pool -> ORTHO Runner (RUNNER 1)"
+  },
+  {
+    "id": "audit_1791044629849_r6fss",
+    "timestamp": "2026-10-03T16:23:49.849Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Alex Chang",
+    "locationName": "WEST PAV Runner (RUNNER 1)",
+    "details": "Moved from ENDO Runner (RUNNER 1) -> WEST PAV Runner (RUNNER 1)"
+  },
+  {
+    "id": "audit_1791044621184_oz476",
+    "timestamp": "2026-10-03T16:23:41.184Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Alex Chang",
+    "locationName": "ENDO Runner (RUNNER 1)",
+    "details": "Moved from WEST PAV Runner (RUNNER 1) -> ENDO Runner (RUNNER 1)"
+  },
+  {
+    "id": "audit_1791044615236_vyl3r",
+    "timestamp": "2026-10-03T16:23:35.236Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Alex Chang",
+    "locationName": "WEST PAV Runner (RUNNER 1)",
+    "details": "Moved from MAIN OR Runner (RUNNER 1) -> WEST PAV Runner (RUNNER 1)"
+  },
+  {
+    "id": "audit_1791044611858_lh44v",
+    "timestamp": "2026-10-03T16:23:31.858Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Key Lu",
+    "locationName": "MAIN OR Runner (RUNNER 3)",
+    "details": "Moved from Bullpen -> MAIN OR Runner (RUNNER 3)"
+  },
+  {
+    "id": "audit_1791044609505_um91v",
+    "timestamp": "2026-10-03T16:23:29.505Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "MAIN OR Runner (RUNNER 2)",
+    "details": "Moved from Bullpen -> MAIN OR Runner (RUNNER 2)"
+  },
+  {
+    "id": "audit_1791043751979_9gcnj",
+    "timestamp": "2026-10-03T16:09:11.979Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Runner (RUNNER 2) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791043743296_rh45v",
+    "timestamp": "2026-10-03T16:09:03.296Z",
+    "actionType": "RUNNER_SLOT_REMOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR",
+    "details": "Removed runner slot \"RUNNER 3\" from MAIN OR"
+  },
+  {
+    "id": "audit_1791043741049_r9688",
+    "timestamp": "2026-10-03T16:09:01.049Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Key Lu",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Runner (RUNNER 3) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791043728608_89xyi",
+    "timestamp": "2026-10-03T16:08:48.608Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Key Lu",
+    "locationName": "MAIN OR Runner (RUNNER 3)",
+    "details": "Assigned to MAIN OR Runner (RUNNER 3)"
+  },
+  {
+    "id": "audit_1791043723234_tx56l",
+    "timestamp": "2026-10-03T16:08:43.234Z",
+    "actionType": "RUNNER_SLOT_ADDED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR",
+    "details": "Added new runner slot \"RUNNER 3\" to MAIN OR"
+  },
+  {
+    "id": "audit_1791043719387_wjzsn",
+    "timestamp": "2026-10-03T16:08:39.387Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "MAIN OR Runner (RUNNER 2)",
+    "details": "Removed relief assignment for MAIN OR Runner (RUNNER 2)"
+  },
+  {
+    "id": "audit_1791043690053_n1h8c",
+    "timestamp": "2026-10-03T16:08:10.053Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Beard (CRNA)",
+    "locationName": "MAIN OR Runner (RUNNER 2)",
+    "details": "Assigned relief: Beard (CRNA) relieving Cavanaugh (MD) in MAIN OR Runner (RUNNER 2)"
+  },
+  {
+    "id": "audit_1791043682157_w34zg",
+    "timestamp": "2026-10-03T16:08:02.157Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "MAIN OR Runner (RUNNER 2)",
+    "details": "Moved from Bullpen -> MAIN OR Runner (RUNNER 2)"
+  },
+  {
+    "id": "audit_1791043117271_4uf8y",
+    "timestamp": "2026-10-03T15:58:37.271Z",
+    "actionType": "RUNNER_SLOT_ADDED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "locationName": "MAIN OR",
+    "details": "Added new runner slot \"RUNNER 2\" to MAIN OR"
+  },
+  {
+    "id": "audit_1791042987346_2jzv1",
+    "timestamp": "2026-10-03T15:56:27.346Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Arthur Rojas",
+    "locationName": "CRNA Staff Group",
+    "details": "Moved from Staff Pool -> CRNA Staff Group"
+  },
+  {
+    "id": "audit_1791042987296_r18ee",
+    "timestamp": "2026-10-03T15:56:27.297Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Arthur Rojas",
+    "details": "Moved Arthur Rojas to regular CRNA staff group"
+  },
+  {
+    "id": "audit_1791042291971_1kxde",
+    "timestamp": "2026-10-03T15:44:51.971Z",
+    "actionType": "RUNNER_SLOT_REMOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR",
+    "details": "Removed runner slot \"RUNNER 2\" from MAIN OR"
+  },
+  {
+    "id": "audit_1791042288772_bmaa6",
+    "timestamp": "2026-10-03T15:44:48.772Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Runner (RUNNER 2) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791042286000_novgm",
+    "timestamp": "2026-10-03T15:44:46.000Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Kev Chen",
+    "locationName": "MAIN OR Room 3",
+    "details": "Moved from Staff Pool -> MAIN OR Room 3"
+  },
+  {
+    "id": "audit_1791042228809_7vxyj",
+    "timestamp": "2026-10-03T15:43:48.809Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "MAIN OR Runner (RUNNER 2)",
+    "details": "Moved from Staff Pool -> MAIN OR Runner (RUNNER 2)"
+  },
+  {
+    "id": "audit_1791042224153_c6gkp",
+    "timestamp": "2026-10-03T15:43:44.153Z",
+    "actionType": "RUNNER_SLOT_ADDED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR",
+    "details": "Added new runner slot \"RUNNER 2\" to MAIN OR"
+  },
+  {
+    "id": "audit_1791042212267_x4sc6",
+    "timestamp": "2026-10-03T15:43:32.267Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Alex Chang",
+    "locationName": "MAIN OR Runner (Runner 1)",
+    "details": "Moved from Staff Pool -> MAIN OR Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1791042208099_9ncgp",
+    "timestamp": "2026-10-03T15:43:28.099Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "MAIN OR Runner (Runner 1)",
+    "details": "Moved from Staff Pool -> MAIN OR Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1791042166327_wvarb",
+    "timestamp": "2026-10-03T15:42:46.327Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Cleaned Whiteboard for new operating day (Cleared all room magnets, runner slots, and bullpen)"
+  },
+  {
+    "id": "audit_1791042152971_caken",
+    "timestamp": "2026-10-03T15:42:32.971Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1791042130453_emwe3",
+    "timestamp": "2026-10-03T15:42:10.453Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "details": "Cleaned Whiteboard for new operating day (Cleared all room magnets, runner slots, and bullpen)"
+  },
+  {
     "id": "audit_1791037068599_pkklv",
     "timestamp": "2026-10-03T14:17:48.599Z",
     "actionType": "BREAKFAST_TOGGLED",

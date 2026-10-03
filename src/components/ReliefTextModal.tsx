@@ -48,7 +48,7 @@ export const ReliefTextModal: React.FC<ReliefTextModalProps> = ({
 }) => {
   const [message, setMessage] = useState<string>('Relief assignments ready please review');
   const [includeLink, setIncludeLink] = useState<boolean>(true);
-  const [includeSummary, setIncludeSummary] = useState<boolean>(false);
+  const [includeSummary, setIncludeSummary] = useState<boolean>(true);
   const [selectedStaffIds, setSelectedStaffIds] = useState<Set<string>>(new Set());
   const [filterCategory, setFilterCategory] = useState<'all' | 'in_room' | 'relief' | 'runner'>('all');
   const [copyNumbersSuccess, setCopyNumbersSuccess] = useState<boolean>(false);
@@ -62,9 +62,10 @@ export const ReliefTextModal: React.FC<ReliefTextModalProps> = ({
   }, [boardState.staff]);
 
   // Build the complete list of everyone in a room, relieving them, or working as a runner
-  const { recipients, roomPairings } = useMemo(() => {
+  const { recipients, roomPairings, runnerList } = useMemo(() => {
     const recipientMap = new Map<string, ReliefRecipient>();
     const pairings: Array<{ roomLabel: string; outgoingStaff?: string; reliefStaff?: string }> = [];
+    const runners: Array<{ deptName: string; title: string; staffName: string }> = [];
 
     const addRecipient = (
       staff: Staff, 
@@ -100,23 +101,17 @@ export const ReliefTextModal: React.FC<ReliefTextModalProps> = ({
     };
 
     boardState.departments.forEach((dept: Department) => {
-      // 1. Runners
-      dept.runnerSlots.forEach((r: RunnerSlot) => {
+      // 1. Runners (include all assigned runners in the text thread)
+      (dept.runnerSlots || []).forEach((r: RunnerSlot) => {
         if (r.staffId) {
           const runnerStaff = staffMap.get(r.staffId);
           if (runnerStaff) {
             addRecipient(runnerStaff, 'runner', `${dept.name} Runner (${r.title})`);
-          }
-        }
-        if (r.relief?.staffId) {
-          const reliefStaff = staffMap.get(r.relief.staffId);
-          const currentStaff = r.staffId ? staffMap.get(r.staffId) : null;
-          if (reliefStaff) {
-            addRecipient(
-              reliefStaff, 
-              'relief', 
-              `Relief for ${currentStaff?.lastName || 'Runner'} (${dept.name})`
-            );
+            runners.push({
+              deptName: dept.name,
+              title: r.title,
+              staffName: `${runnerStaff.lastName} (${runnerStaff.credentials})`
+            });
           }
         }
       });
@@ -163,7 +158,7 @@ export const ReliefTextModal: React.FC<ReliefTextModalProps> = ({
       a.lastName.localeCompare(b.lastName, undefined, { sensitivity: 'base' })
     );
 
-    return { recipients: list, roomPairings: pairings };
+    return { recipients: list, roomPairings: pairings, runnerList: runners };
   }, [boardState.departments, staffMap]);
 
   // Pre-select all recipients initially or when modal opens
@@ -213,11 +208,19 @@ export const ReliefTextModal: React.FC<ReliefTextModalProps> = ({
     if (includeLink && baseUrl) {
       text += `\n\nLive Board: ${baseUrl}`;
     }
-    if (includeSummary && roomPairings.length > 0) {
-      text += `\n\nReliefs:`;
-      roomPairings.forEach(p => {
-        text += `\n• ${p.roomLabel}: ${p.outgoingStaff || 'Open'} ➔ ${p.reliefStaff}`;
-      });
+    if (includeSummary) {
+      if (roomPairings.length > 0) {
+        text += `\n\nReliefs:`;
+        roomPairings.forEach(p => {
+          text += `\n• ${p.roomLabel}: ${p.outgoingStaff || 'Open'} ➔ ${p.reliefStaff}`;
+        });
+      }
+      if (runnerList.length > 0) {
+        text += `\n\nRunners:`;
+        runnerList.forEach(r => {
+          text += `\n• ${r.deptName} (${r.title}): ${r.staffName}`;
+        });
+      }
     }
     return text;
   })();
@@ -479,14 +482,16 @@ export const ReliefTextModal: React.FC<ReliefTextModalProps> = ({
                 <span>Include Live Board Link</span>
               </label>
 
-              {roomPairings.length > 0 && (
+              {(roomPairings.length > 0 || runnerList.length > 0) && (
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
                   <input
                     type="checkbox"
                     checked={includeSummary}
                     onChange={(e) => setIncludeSummary(e.target.checked)}
                   />
-                  <span>Include Relief Pairings ({roomPairings.length})</span>
+                  <span>
+                    Include Assignment Summary ({roomPairings.length} reliefs{runnerList.length > 0 ? `, ${runnerList.length} runners` : ''})
+                  </span>
                 </label>
               )}
             </div>

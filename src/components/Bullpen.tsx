@@ -136,13 +136,10 @@ export const Bullpen: React.FC<BullpenProps> = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [hoveredBin, setHoveredBin] = useState<'MD' | 'CRNA' | 'Infrequent' | null>(null);
 
-  // Find all assigned staff IDs across rooms and runners
+  // Find all assigned staff IDs across rooms (runners can be duplicated across multiple locations and departments)
   const assignedStaffIds = useMemo(() => {
     const ids = new Set<string>();
     for (const dept of departments) {
-      for (const r of dept.runnerSlots) {
-        if (r.staffId) ids.add(r.staffId);
-      }
       for (const room of dept.rooms) {
         for (const slot of room.slots) {
           if (slot.staffId) ids.add(slot.staffId);
