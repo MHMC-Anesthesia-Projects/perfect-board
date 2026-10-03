@@ -1351,6 +1351,22 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                           </span>
                         )}
                         <span>{item.name}</span>
+                        {item.notes && (
+                          <span
+                            style={{
+                              fontSize: 9,
+                              fontWeight: 800,
+                              padding: '1px 4px',
+                              borderRadius: 3,
+                              background: 'rgba(234, 88, 12, 0.12)',
+                              color: '#ea580c',
+                              border: '1px solid rgba(234, 88, 12, 0.3)'
+                            }}
+                            title={`Shift detail: ${item.notes}`}
+                          >
+                            {item.notes}
+                          </span>
+                        )}
                         {item.role && (
                           <span
                             style={{

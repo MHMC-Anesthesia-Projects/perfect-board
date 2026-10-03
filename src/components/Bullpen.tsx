@@ -26,8 +26,10 @@ const isPhysician = (s: Staff) => {
 };
 
 const sortAlphabetical = (a: Staff, b: Staff) => {
-  const lastComp = a.lastName.localeCompare(b.lastName, undefined, { sensitivity: 'base' });
-  if (lastComp !== 0) return lastComp;
+  const nameA = a.displayName || a.lastName;
+  const nameB = b.displayName || b.lastName;
+  const comp = nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
+  if (comp !== 0) return comp;
   return a.firstName.localeCompare(b.firstName, undefined, { sensitivity: 'base' });
 };
 
@@ -153,7 +155,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
   // Unassigned staff members in pool (excluding rooms/runners and active bullpen)
   const unassignedStaff = useMemo(() => {
     const bullpenSet = new Set(bullpenStaffIds);
-    return staff.filter(s => s.active && !assignedStaffIds.has(s.id) && !bullpenSet.has(s.id));
+    return staff.filter(s => s.active !== false && !assignedStaffIds.has(s.id) && !bullpenSet.has(s.id));
   }, [staff, assignedStaffIds, bullpenStaffIds]);
 
   // Filtered by search
@@ -161,6 +163,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
     if (!searchQuery.trim()) return unassignedStaff;
     const q = searchQuery.toLowerCase().trim();
     return unassignedStaff.filter(s => 
+      (s.displayName && s.displayName.toLowerCase().includes(q)) ||
       s.lastName.toLowerCase().includes(q) ||
       s.firstName.toLowerCase().includes(q) ||
       s.credentials.toLowerCase().includes(q) ||
@@ -488,15 +491,9 @@ export const Bullpen: React.FC<BullpenProps> = ({
                       key={s.id}
                       staff={s}
                       slotId={s.id}
-                      slotType="bullpen"
-                      breakfastDone={bullpenBreaks[s.id]?.breakfastDone ?? false}
-                      lunchDone={bullpenBreaks[s.id]?.lunchDone ?? false}
+                      slotType="unassigned"
+                      showBreaks={false}
                       currentUserRole={currentUserRole}
-                      onToggleBreak={(breakType, currentValue) => {
-                        if (onToggleBreak) {
-                          onToggleBreak(breakType, s.id, currentValue);
-                        }
-                      }}
                       onSelectStaff={onSelectStaff}
                       onDragStart={(e) => handleTileDragStart(e, s)}
                       onDragEnd={handleTileDragEnd}

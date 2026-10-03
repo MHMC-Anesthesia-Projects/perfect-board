@@ -131,6 +131,37 @@ export function getActiveFacilityCode(facilityStr: string): string {
   return segments.length > 0 ? segments[segments.length - 1] : facilityStr;
 }
 
+/**
+ * Returns the current date in YYYY-MM-DD format based on America/Chicago (Houston Hospital Timezone).
+ * This guarantees that syncing and auto-assigning before midnight in Houston never prematurely rolls over
+ * to tomorrow due to UTC midnight cutoff occurring at 7:00 PM CDT / 6:00 PM CST.
+ */
+export function getHoustonDateString(d: Date = new Date()): string {
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago' }).format(d);
+  } catch {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+}
+
+export function is13hShift(s: string): boolean {
+  if (!s) return false;
+  return /\b13\s*-?\s*h(?:r|our)?\b/i.test(s) || /13h/i.test(s);
+}
+
+export function isLateShift(s: string): boolean {
+  if (!s) return false;
+  return /3p|4p|5p|7p|8p|9p|night|7p-7a|11a-11p/i.test(s) || is13hShift(s);
+}
+
+export function isPreCallShift(s: string): boolean {
+  if (!s) return false;
+  return /\bpre-?call\b/i.test(s) || /\bpre\s*c[1-4]\b/i.test(s) || /\bpre\s*ob\b/i.test(s);
+}
+
 // Facility filter check matching any selected facility code against the active working facility
 export function isTargetFacility(facilityStr: string, allowedFacilities: string[] = DEFAULT_FACILITIES): boolean {
   if (!facilityStr || allowedFacilities.length === 0) return false;
@@ -182,6 +213,7 @@ export interface ParseOneUsapResult {
     qgendaAbbr: string;
     roomAssignment?: string;
     orderNumber?: number;
+    notes?: string;
   }>;
   callTeamCandidates: Array<{
     role: string;
@@ -254,20 +286,21 @@ function resolveEffectiveShift(
   if (!dShift) return rTag;
   if (!rTag) return dShift;
 
-  const isLate = (s: string) => /3p|4p|5p|7p|8p|night/i.test(s);
-  if (isLate(rTag) && !isLate(dShift)) {
-    return `${dShift}, ${rTag}`;
-  }
-  if (!isLate(rTag) && isLate(dShift)) {
-    return dShift;
-  }
   if (dShift.toLowerCase() === rTag.toLowerCase()) {
     return dShift;
   }
-  if (!dShift.toLowerCase().includes(rTag.toLowerCase())) {
-    return `${dShift}, ${rTag}`;
+
+  // If one already contains the other (e.g. "8p, preCall" and "8p"), return the more descriptive compound one
+  if (dShift.toLowerCase().includes(rTag.toLowerCase())) {
+    return dShift;
   }
-  return dShift;
+  if (rTag.toLowerCase().includes(dShift.toLowerCase())) {
+    return rTag;
+  }
+
+  // If both have distinct information (e.g. dShift="preCall" and rTag="8p", or "8p" and "preCall", or "13h" and "preCall"):
+  // Always combine both so that late status and weekend/precall nuance are preserved!
+  return `${dShift}, ${rTag}`;
 }
 
 export function parseOneUsapHtml(
@@ -355,7 +388,14 @@ export function parseOneUsapHtml(
       phoneBook.set(baseId, formatPhoneNumber(phone));
     }
     if (shiftTag && baseId) {
-      providerRoomShifts.set(baseId.toLowerCase(), shiftTag);
+      const existingTag = providerRoomShifts.get(baseId.toLowerCase());
+      if (existingTag && existingTag.toLowerCase() !== shiftTag.toLowerCase()) {
+        if (!existingTag.toLowerCase().includes(shiftTag.toLowerCase())) {
+          providerRoomShifts.set(baseId.toLowerCase(), `${existingTag}, ${shiftTag}`);
+        }
+      } else if (!existingTag) {
+        providerRoomShifts.set(baseId.toLowerCase(), shiftTag);
+      }
     }
   }
 
@@ -590,7 +630,8 @@ export function parseOneUsapHtml(
     // Fixed departure time rule:
     // If doctor is scheduled for a late shift (3p, 4p, 5p, 7p, 8p, Night, etc.), do not include in departure list
     const isLateDoc = /3p|4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(upperShift) ||
-      upperShift === '3P' || upperShift === '4P' || upperShift === '5P' || upperShift === '7P' || upperShift === '8P';
+      upperShift === '3P' || upperShift === '4P' || upperShift === '5P' || upperShift === '7P' || upperShift === '8P' ||
+      is13hShift(upperShift);
     if (!isPostCall && isLateDoc) {
       return;
     }
@@ -712,13 +753,16 @@ export function parseOneUsapHtml(
     else if (activeFac.includes('MHMC')) facilityLabel = 'MHMC';
     else facilityLabel = activeFac.replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/, '').replace(/W:\s*/g, '').trim();
 
+    const is13h = is13hShift(upperShift);
+    const has8p = upperShift.includes('8P') || is13h;
+
     let timeCat = '';
-    if (upperShift.includes('3P')) timeCat = '3p';
-    else if (upperShift.includes('4P')) timeCat = '4p';
-    else if (upperShift.includes('5P')) timeCat = '5p';
-    else if (upperShift.includes('7P-7A') || upperShift.includes('NIGHT')) timeCat = '7p-7a';
+    if (upperShift.includes('7P-7A') || upperShift.includes('NIGHT')) timeCat = '7p-7a';
+    else if (has8p) timeCat = '8p';
     else if (upperShift.includes('7P')) timeCat = '7p';
-    else if (upperShift.includes('8P')) timeCat = '8p';
+    else if (upperShift.includes('5P')) timeCat = '5p';
+    else if (upperShift.includes('4P')) timeCat = '4p';
+    else if (upperShift.includes('3P')) timeCat = '3p';
     else if (role === 'CRNA' && /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(upperShift)) {
       // If a CRNA has an atypical departure time (e.g. 2p), show in 'Special' section above 4p in Late list
       timeCat = 'special';
@@ -726,6 +770,16 @@ export function parseOneUsapHtml(
 
     if (timeCat) {
       const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
+
+      // Extract any precall or weekend designation from the compound shift (e.g. "preCall, 8p" -> "preCall")
+      let precallNote: string | undefined = undefined;
+      const precallMatch = effectiveShift.match(/\b(pre-?call|pre\s*c[1-4]|pre\s*ob|wknd)\b/i);
+      if (precallMatch) {
+        precallNote = precallMatch[1];
+      } else if (is13h && !upperShift.includes('8P')) {
+        precallNote = '13h';
+      }
+
       lateCandidates.push({
         name: formatted.lastName.toUpperCase(),
         timeCategory: timeCat,
@@ -734,7 +788,8 @@ export function parseOneUsapHtml(
         role,
         qgendaAbbr,
         roomAssignment: roomInfo.roomString || undefined,
-        orderNumber
+        orderNumber,
+        notes: precallNote
       });
     }
   };
@@ -813,7 +868,7 @@ export async function fetchAndScrapeOneUsap(options: {
   facilities?: string[];
   uniqueSchedules?: UniqueScheduleRule[];
 }): Promise<ScraperPreviewResult> {
-  const targetDate = options.date || new Date().toISOString().split('T')[0];
+  const targetDate = options.date || getHoustonDateString();
   let targetUrl = options.portalUrl || 'https://www.oneusap.com/assignments';
   const selectedFacilities = options.facilities && options.facilities.length > 0
     ? options.facilities

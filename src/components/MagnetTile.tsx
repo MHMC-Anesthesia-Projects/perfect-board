@@ -7,16 +7,18 @@ import { LogOut } from 'lucide-react';
 interface MagnetTileProps {
   staff: Staff;
   slotId?: string;
-  slotType?: 'room_slot' | 'runner_slot' | 'bullpen';
+  slotType?: 'room_slot' | 'runner_slot' | 'bullpen' | 'unassigned';
   breakfastDone?: boolean;
   lunchDone?: boolean;
   currentUserRole: UserRole;
+  showBreaks?: boolean;
   onToggleBreak?: (breakType: 'breakfast' | 'lunch', currentValue: boolean) => void;
   onSelectStaff?: (staff: Staff) => void;
   onDragStart?: (e: React.DragEvent, staff: Staff, source: { type: string; id?: string }) => void;
   onDragEnd?: (e: React.DragEvent) => void;
   onUnassign?: () => void;
   isCompact?: boolean;
+  isDraggable?: boolean;
 }
 
 export const MagnetTile: React.FC<MagnetTileProps> = ({
@@ -26,14 +28,22 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   breakfastDone = false,
   lunchDone = false,
   currentUserRole,
+  showBreaks,
   onToggleBreak,
   onSelectStaff,
   onDragStart,
   onDragEnd,
   onUnassign,
-  isCompact = false
+  isCompact = false,
+  isDraggable: propIsDraggable
 }) => {
-  const isDraggable = currentUserRole !== 'basic_user';
+  const isDraggable = propIsDraggable !== undefined 
+    ? propIsDraggable 
+    : (currentUserRole !== 'basic_user');
+
+  const canShowBreaks = showBreaks !== undefined
+    ? showBreaks
+    : (slotType !== 'unassigned' && (Boolean(onToggleBreak) || breakfastDone || lunchDone));
 
   const handleTileClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -72,7 +82,7 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
       onDragStart={handleDrag}
       onDragEnd={handleDragEnd}
       onClick={handleTileClick}
-      title={`${staff.firstName} ${staff.lastName} (${staff.credentials}) • Phone: ${staff.phone}`}
+      title={`${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials}) • Phone: ${staff.phone}`}
       style={{
         cursor: isDraggable ? 'grab' : 'pointer'
       }}
@@ -80,8 +90,9 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
       {/* Staff Name & Credential Badge (credential next to name) */}
       <div className="magnet-identity">
         <span className="magnet-name">
-          {staff.lastName.toUpperCase()}
-          {staff.firstName ? ` ${staff.firstName[0]}.` : ''}
+          {staff.displayName 
+            ? staff.displayName.toUpperCase() 
+            : `${staff.lastName.toUpperCase()}${staff.firstName ? ` ${staff.firstName[0]}.` : ''}`}
         </span>
         <span className={`magnet-cred cred-${staff.credentials}`}>
           {staff.credentials}
@@ -89,7 +100,7 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
       </div>
 
       {/* Breakfast & Lunch Checkboxes */}
-      {(onToggleBreak || breakfastDone || lunchDone) && (
+      {canShowBreaks && (
         <div className="break-controls">
           {/* Breakfast Checkbox [B] */}
           <button

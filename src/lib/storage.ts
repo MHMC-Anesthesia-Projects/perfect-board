@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { BoardState, User, AuditLogEntry, Staff, Department, UniqueScheduleRule } from '@/types/whiteboard';
+import { getSupabaseServerClient } from '@/lib/supabase';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const STATE_FILE = path.join(DATA_DIR, 'whiteboard_state.json');
@@ -9,18 +10,27 @@ const AUDIT_FILE = path.join(DATA_DIR, 'audit_log.json');
 
 // Ensure data directory exists
 function ensureDirectoryExistence(filePath: string) {
-  const dirname = path.dirname(filePath);
-  if (!fs.existsSync(dirname)) {
-    fs.mkdirSync(dirname, { recursive: true });
+  try {
+    const dirname = path.dirname(filePath);
+    if (!fs.existsSync(dirname)) {
+      fs.mkdirSync(dirname, { recursive: true });
+    }
+  } catch {
+    // Ignore in read-only environments
   }
 }
 
 // Atomic file write using temporary file to prevent corruption
 function safeWriteJSON(filePath: string, data: unknown) {
-  ensureDirectoryExistence(filePath);
-  const tempPath = `${filePath}.${Date.now()}.tmp`;
-  fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf-8');
-  fs.renameSync(tempPath, filePath);
+  try {
+    ensureDirectoryExistence(filePath);
+    const tempPath = `${filePath}.${Date.now()}.tmp`;
+    fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf-8');
+    fs.renameSync(tempPath, filePath);
+  } catch (err) {
+    // In serverless / read-only filesystem environments (e.g., Vercel), this may fail
+    // which is expected when using Supabase for persistence.
+  }
 }
 
 function safeReadJSON<T>(filePath: string, fallback: T): T {
@@ -449,13 +459,16 @@ export function resetDailyBreaks(state: BoardState): boolean {
 // PUBLIC STORAGE API
 // -------------------------------------------------------------
 
-export function loadBoardState(): BoardState {
-  if (!fs.existsSync(STATE_FILE)) {
-    const initialBoard = getInitialBoardState([]);
-    safeWriteJSON(STATE_FILE, initialBoard);
-    return initialBoard;
+function sanitizeBoardState(loaded: BoardState): BoardState {
+  if (!loaded.departments || !Array.isArray(loaded.departments)) {
+    loaded.departments = [];
   }
-  const loaded = safeReadJSON<BoardState>(STATE_FILE, getInitialBoardState([]));
+  if (!loaded.staff || !Array.isArray(loaded.staff)) {
+    loaded.staff = [];
+  }
+  if (!loaded.departureList || !Array.isArray(loaded.departureList)) {
+    loaded.departureList = [];
+  }
   if (!loaded.callTeamList || !Array.isArray(loaded.callTeamList)) {
     loaded.callTeamList = [];
   }
@@ -475,28 +488,12 @@ export function loadBoardState(): BoardState {
     loaded.infrequentStaffKeys = [];
   }
 
-  // Automatic Daily 1:00 AM Break Reset check
-  const threshold1Am = getLatest1AmThreshold();
-  if (loaded.lastBreakResetDate !== threshold1Am) {
-    const wasModified = resetDailyBreaks(loaded);
-    loaded.lastBreakResetDate = threshold1Am;
-    safeWriteJSON(STATE_FILE, loaded);
-    if (wasModified) {
-      recordAuditLog({
-        actionType: 'BREAKFAST_TOGGLED',
-        performedBy: 'System Scheduler (1:00 AM Auto-Reset)',
-        userRole: 'superuser',
-        details: 'Daily 1:00 AM reset: Cleared breakfast and lunch break completion for all rooms, runners, and bullpen staff'
-      });
-      broadcastStateChange();
-    }
-  }
-
   // Bidirectional sync for infrequent staff
   const infrequentIdSet = new Set(loaded.infrequentStaffIds);
   const infrequentKeySet = new Set((loaded.infrequentStaffKeys || []).map(k => k.toLowerCase()));
 
   for (const s of loaded.staff || []) {
+    s.active = true;
     const qKey = (s.qgendaAbbr || '').toLowerCase();
     const lastKey = (s.lastName || '').toLowerCase();
 
@@ -514,10 +511,111 @@ export function loadBoardState(): BoardState {
   return loaded;
 }
 
-export function saveBoardState(state: BoardState): void {
+export function loadBoardStateFromFile(): BoardState {
+  if (!fs.existsSync(STATE_FILE)) {
+    const initialBoard = getInitialBoardState([]);
+    safeWriteJSON(STATE_FILE, initialBoard);
+    return sanitizeBoardState(initialBoard);
+  }
+  const loaded = safeReadJSON<BoardState>(STATE_FILE, getInitialBoardState([]));
+  return sanitizeBoardState(loaded);
+}
+
+export async function loadBoardState(): Promise<BoardState> {
+  const supabase = getSupabaseServerClient();
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('board_state')
+        .select('state, updated_at')
+        .eq('id', 'current')
+        .maybeSingle();
+
+      if (error) {
+        console.error('Supabase error loading board_state:', error);
+      } else if (data && data.state) {
+        const loaded = sanitizeBoardState(data.state as BoardState);
+
+        // Automatic Daily 1:00 AM Break Reset check
+        const threshold1Am = getLatest1AmThreshold();
+        if (loaded.lastBreakResetDate !== threshold1Am) {
+          const wasModified = resetDailyBreaks(loaded);
+          loaded.lastBreakResetDate = threshold1Am;
+          await saveBoardState(loaded);
+          if (wasModified) {
+            await recordAuditLog({
+              actionType: 'BREAKFAST_TOGGLED',
+              performedBy: 'System Scheduler (1:00 AM Auto-Reset)',
+              userRole: 'superuser',
+              details: 'Daily 1:00 AM reset: Cleared breakfast and lunch break completion for all rooms, runners, and bullpen staff'
+            });
+            broadcastStateChange();
+          }
+        }
+
+        return loaded;
+      } else {
+        // No row in Supabase yet -> seed current state to Supabase
+        console.log('No board_state found in Supabase. Seeding current state to Supabase...');
+        const initial = loadBoardStateFromFile();
+        await saveBoardState(initial);
+        return initial;
+      }
+    } catch (err) {
+      console.error('Failed to load board state from Supabase, falling back to local file:', err);
+    }
+  }
+
+  // Fallback to local file
+  const loaded = loadBoardStateFromFile();
+
+  // Automatic Daily 1:00 AM Break Reset check
+  const threshold1Am = getLatest1AmThreshold();
+  if (loaded.lastBreakResetDate !== threshold1Am) {
+    const wasModified = resetDailyBreaks(loaded);
+    loaded.lastBreakResetDate = threshold1Am;
+    safeWriteJSON(STATE_FILE, loaded);
+    if (wasModified) {
+      recordAuditLog({
+        actionType: 'BREAKFAST_TOGGLED',
+        performedBy: 'System Scheduler (1:00 AM Auto-Reset)',
+        userRole: 'superuser',
+        details: 'Daily 1:00 AM reset: Cleared breakfast and lunch break completion for all rooms, runners, and bullpen staff'
+      });
+      broadcastStateChange();
+    }
+  }
+
+  return loaded;
+}
+
+export async function saveBoardState(state: BoardState): Promise<void> {
   state.lastUpdated = new Date().toISOString();
+
+  // Save to local file cache as well (if writable)
   safeWriteJSON(STATE_FILE, state);
-  // Trigger SSE broadcast
+
+  const supabase = getSupabaseServerClient();
+  if (supabase) {
+    try {
+      const { error } = await supabase
+        .from('board_state')
+        .upsert({
+          id: 'current',
+          state: state,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error saving board_state to Supabase:', error);
+      }
+    } catch (err) {
+      console.error('Failed to save board state to Supabase:', err);
+    }
+  }
+
+  // Trigger local SSE broadcast
   broadcastStateChange();
 }
 
@@ -534,23 +632,72 @@ export function saveUsers(users: User[]): void {
   safeWriteJSON(USERS_FILE, users);
 }
 
-export function loadAuditLog(): AuditLogEntry[] {
+export async function loadAuditLog(): Promise<AuditLogEntry[]> {
+  const supabase = getSupabaseServerClient();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('audit_log')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(2000);
+
+      if (!error && data) {
+        return data.map((row: any) => ({
+          id: String(row.id),
+          timestamp: row.timestamp,
+          actionType: row.action,
+          performedBy: row.user_name || 'System',
+          userRole: row.user_role || 'basic_user',
+          targetName: row.details?.targetName || '',
+          locationName: row.details?.locationName || '',
+          details: typeof row.details === 'string' ? row.details : (row.details?.details || JSON.stringify(row.details || ''))
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to load audit logs from Supabase:', err);
+    }
+  }
+
   return safeReadJSON<AuditLogEntry[]>(AUDIT_FILE, []);
 }
 
-export function recordAuditLog(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): void {
-  const logs = loadAuditLog();
-  const newEntry: AuditLogEntry = {
+export async function recordAuditLog(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): Promise<void> {
+  const localEntry: AuditLogEntry = {
     id: `audit_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     timestamp: new Date().toISOString(),
     ...entry
   };
-  logs.unshift(newEntry);
-  // Keep last 2,000 entries
-  if (logs.length > 2000) {
-    logs.length = 2000;
+
+  try {
+    const logs = safeReadJSON<AuditLogEntry[]>(AUDIT_FILE, []);
+    logs.unshift(localEntry);
+    // Keep last 2,000 entries
+    if (logs.length > 2000) {
+      logs.length = 2000;
+    }
+    safeWriteJSON(AUDIT_FILE, logs);
+  } catch {
+    // Ignore in read-only environments
   }
-  safeWriteJSON(AUDIT_FILE, logs);
+
+  const supabase = getSupabaseServerClient();
+  if (supabase) {
+    try {
+      await supabase.from('audit_log').insert({
+        user_name: entry.performedBy,
+        user_role: entry.userRole,
+        action: entry.actionType,
+        details: {
+          details: entry.details,
+          targetName: entry.targetName || '',
+          locationName: entry.locationName || ''
+        }
+      });
+    } catch (err) {
+      console.error('Failed to record audit log in Supabase:', err);
+    }
+  }
 }
 
 // Global SSE listener registry
@@ -592,16 +739,16 @@ export function initDaily1AmTimer(): void {
     next1Am.setHours(1, 0, 0, 0);
 
     const msUntil1Am = Math.max(1000, next1Am.getTime() - now.getTime());
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       try {
-        const state = loadBoardState();
+        const state = await loadBoardState();
         const threshold = getLatest1AmThreshold();
         if (state.lastBreakResetDate !== threshold) {
           const wasModified = resetDailyBreaks(state);
           state.lastBreakResetDate = threshold;
-          safeWriteJSON(STATE_FILE, state);
+          await saveBoardState(state);
           if (wasModified) {
-            recordAuditLog({
+            await recordAuditLog({
               actionType: 'BREAKFAST_TOGGLED',
               performedBy: 'System Scheduler (1:00 AM Auto-Reset)',
               userRole: 'superuser',

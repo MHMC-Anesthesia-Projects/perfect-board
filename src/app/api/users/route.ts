@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     users.push(newUser);
     saveUsers(users);
 
-    recordAuditLog({
+    await recordAuditLog({
       actionType: 'USER_CREATED',
       performedBy: currentUser?.displayName || 'Superuser',
       userRole: 'superuser',
@@ -86,7 +86,7 @@ export async function PUT(req: NextRequest) {
 
     saveUsers(users);
 
-    recordAuditLog({
+    await recordAuditLog({
       actionType: 'USER_UPDATED',
       performedBy: currentUser?.displayName || 'Superuser',
       userRole: 'superuser',
@@ -126,7 +126,7 @@ export async function DELETE(req: NextRequest) {
     const updatedUsers = users.filter(u => u.id !== id);
     saveUsers(updatedUsers);
 
-    recordAuditLog({
+    await recordAuditLog({
       actionType: 'USER_UPDATED',
       performedBy: currentName,
       userRole: 'superuser',

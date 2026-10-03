@@ -1,5 +1,8 @@
 'use client';
 
+import { apiUrl } from '@/lib/api';
+import { getBrowserSupabase } from '@/lib/supabase';
+import { getHoustonDateString } from '@/lib/dateUtils';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { BoardState, Staff, Department, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential, ReliefAssignment } from '@/types/whiteboard';
 import { HeaderNav } from '@/components/HeaderNav';
@@ -154,11 +157,41 @@ export default function WhiteboardPage() {
     };
   }, []);
 
-  // Set up real-time SSE listener
+  // Set up real-time board updates via Supabase Realtime (with SSE fallback)
   useEffect(() => {
+    const supabase = getBrowserSupabase();
+
+    // 1. If Supabase is configured in the environment, use Realtime WebSockets (<50ms sync)
+    if (supabase) {
+      const channel = supabase
+        .channel('whiteboard-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'whiteboard',
+            table: 'board_state',
+          },
+          (payload) => {
+            if (payload.new && (payload.new as any).state && (payload.new as any).state.departments) {
+              setBoardState((payload.new as any).state);
+              setLoadError(null);
+            } else {
+              fetchBoardState(false);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+
+    // 2. Fallback to SSE listener when running locally without Supabase keys
     let eventSource: EventSource | null = null;
     try {
-      eventSource = new EventSource('/api/realtime');
+      eventSource = new EventSource(apiUrl('/api/realtime'));
       eventSource.onmessage = (event) => {
         try {
           const parsed = JSON.parse(event.data);
@@ -181,7 +214,7 @@ export default function WhiteboardPage() {
   const fetchBoardState = async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
-      const res = await fetch('/api/board');
+      const res = await fetch(apiUrl('/api/board'));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data && data.departments) {
@@ -328,7 +361,7 @@ export default function WhiteboardPage() {
     });
 
     try {
-      await fetch('/api/board', {
+      await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -355,7 +388,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -385,7 +418,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -422,7 +455,7 @@ export default function WhiteboardPage() {
       return;
     }
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -452,7 +485,7 @@ export default function WhiteboardPage() {
       return;
     }
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -481,7 +514,7 @@ export default function WhiteboardPage() {
       return;
     }
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -522,7 +555,7 @@ export default function WhiteboardPage() {
     setIsCompleteReliefConfirmOpen(false);
     setIsCompletingAllReliefs(true);
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -555,7 +588,7 @@ export default function WhiteboardPage() {
       return;
     }
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -579,7 +612,7 @@ export default function WhiteboardPage() {
       return;
     }
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -609,7 +642,7 @@ export default function WhiteboardPage() {
     });
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -641,7 +674,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -668,6 +701,46 @@ export default function WhiteboardPage() {
     }
   };
 
+  // Update staff custom magnet display name
+  const handleUpdateStaffDisplayName = async (
+    staffId: string,
+    displayName: string
+  ) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      const res = await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SET_STAFF_DISPLAY_NAME',
+          payload: { staffId, displayName },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+        setSelectedStaff(prev => {
+          if (!prev) return null;
+          if (prev.id === staffId) {
+            return { ...prev, displayName: displayName || undefined };
+          }
+          return prev;
+        });
+        setToastMessage(`✓ Updated magnet name to "${displayName || 'Default'}"`);
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error('Error updating staff display name:', err);
+      setToastMessage('Error updating magnet name.');
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
+
   // 4a. Move staff directly to Bullpen (available for breaks & cases)
   const handleDropToBullpen = async (fromData: { staffId: string; type: string; id?: string }) => {
     if (currentUserRole === 'basic_user') {
@@ -676,7 +749,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -710,7 +783,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -742,7 +815,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -844,7 +917,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -870,7 +943,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -896,7 +969,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -915,21 +988,26 @@ export default function WhiteboardPage() {
   };
 
   // 7. Trigger Scraper Portal Sync
-  const executeTriggerSync = async () => {
+  const executeTriggerSync = async (customDate?: string) => {
     setIsSyncing(true);
     try {
-      const res = await fetch('/api/scraper', {
+      const targetDate = customDate || getHoustonDateString();
+      const res = await fetch(apiUrl('/api/scraper'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'TRIGGER_SYNC',
+          date: targetDate,
           currentUser: currentUser || { role: 'basic_user', displayName: 'Staff' }
         })
       });
       const data = await res.json();
       if (data.success) {
         fetchBoardState(false);
-        setToastMessage('✓ Synchronized Departure, Lates, Call Team and Staff Roster!');
+        setToastMessage(`✓ Synchronized Departure, Lates, Call Team and Staff Roster for ${targetDate}!`);
+        setTimeout(() => setToastMessage(null), 4000);
+      } else {
+        setToastMessage(`Portal sync error: ${data.error || 'Failed'}`);
         setTimeout(() => setToastMessage(null), 4000);
       }
     } catch (err) {
@@ -977,11 +1055,19 @@ export default function WhiteboardPage() {
 
     setIsAutoAssigning(true);
     try {
-      const res = await fetch('/api/board', {
+      const targetDate = getHoustonDateString();
+
+      // If departure list is empty, trigger sync for today's accurate date first so auto-assign works seamlessly
+      if (!boardState?.departureList || boardState.departureList.length === 0) {
+        await executeTriggerSync(targetDate);
+      }
+
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'AUTO_ASSIGN_ROOMS',
+          date: targetDate,
           user: currentUser
         })
       });
@@ -1011,7 +1097,7 @@ export default function WhiteboardPage() {
     }
 
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1040,7 +1126,7 @@ export default function WhiteboardPage() {
   // 8. Superuser Layout actions
   const handleSaveDepartments = async (departments: Department[]) => {
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1060,7 +1146,7 @@ export default function WhiteboardPage() {
 
   const handleResetToPhotoDefault = async () => {
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1106,7 +1192,7 @@ export default function WhiteboardPage() {
         }}>
           OR
         </div>
-        <div style={{ fontSize: 18, fontWeight: 800 }}>Loading Surgical Suite Whiteboard...</div>
+        <div style={{ fontSize: 18, fontWeight: 800 }}>Loading Perfect Board...</div>
         <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
           {loadError ? `Connection notice: ${loadError}. Reconnecting...` : 'Syncing rooms, runners, and staff roster...'}
         </div>
@@ -1315,6 +1401,7 @@ export default function WhiteboardPage() {
         onUnassign={staffId => handleMoveStaffToUnassigned(staffId)}
         onToggleBreak={handleToggleBreak}
         onUpdateShift={handleUpdateStaffShift}
+        onUpdateDisplayName={handleUpdateStaffDisplayName}
         onSetStaffInfrequent={handleSetStaffInfrequent}
         onOpenLogin={() => setIsLoginModalOpen(true)}
         onOpenReliefModal={target => setReliefTarget(target)}

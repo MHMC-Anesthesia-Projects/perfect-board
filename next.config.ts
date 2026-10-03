@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  basePath: '/board',
   allowedDevOrigins: [
     '192.168.86.84',
     '192.168.86.84:3000',

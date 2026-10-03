@@ -166,10 +166,10 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           </div>
           <div>
             <h1 style={{ fontSize: 16, fontWeight: 900, letterSpacing: 0.8, textTransform: 'uppercase', lineHeight: 1.1 }}>
-              Surgical Suite Whiteboard
+              Perfect Board
             </h1>
             <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>
-              Live Operational Board • 65&quot; Touch Station
+              Surgical Suite Whiteboard
             </div>
           </div>
         </div>

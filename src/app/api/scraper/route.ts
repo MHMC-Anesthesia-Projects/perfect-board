@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadBoardState, saveBoardState, recordAuditLog } from '@/lib/storage';
-import { fetchAndScrapeOneUsap } from '@/lib/oneusapScraper';
+import { fetchAndScrapeOneUsap, getHoustonDateString } from '@/lib/oneusapScraper';
 import { DepartureItem, LateShiftItem, CallTeamItem, Staff } from '@/types/whiteboard';
 
 export async function POST(req: NextRequest) {
@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { action, config, currentUser, date } = body;
 
-    const state = loadBoardState();
+    const state = await loadBoardState();
 
     // 1. UPDATE SCRAPER CONFIGURATION
     if (action === 'UPDATE_CONFIG') {
@@ -19,8 +19,8 @@ export async function POST(req: NextRequest) {
         ...state.scraperConfig,
         ...config
       };
-      saveBoardState(state);
-      recordAuditLog({
+      await saveBoardState(state);
+      await recordAuditLog({
         actionType: 'SCRAPER_SYNCED',
         performedBy: currentUser?.displayName || 'Superuser',
         userRole: 'superuser',
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       const activeUrl = config?.portalUrl || state.scraperConfig.portalUrl;
       const activePass = config?.password || state.scraperConfig.password || '321usap';
       const activeFacilities = config?.selectedFacilities || state.scraperConfig.selectedFacilities || ['MHMC', 'MHVIL-SC', 'HIVF-SC'];
-      const targetDate = date || new Date().toISOString().split('T')[0];
+      const targetDate = date || getHoustonDateString();
 
       if (activeType === 'oneusap') {
         const preview = await fetchAndScrapeOneUsap({
@@ -87,11 +87,13 @@ export async function POST(req: NextRequest) {
           lateCandidates: state.latesList.map(l => ({
             name: l.name,
             timeCategory: l.timeCategory,
+            timeEstimate: l.timeEstimate,
             facility: 'MHMC',
             role: l.role || 'CRNA',
             orderNumber: l.orderNumber,
             qgendaAbbr: l.qgendaAbbr,
-            roomAssignment: l.assignedRoom
+            roomAssignment: l.assignedRoom,
+            notes: l.notes
           })),
           callTeamCandidates: state.callTeamList.map(c => ({
             role: c.role,
@@ -120,7 +122,7 @@ export async function POST(req: NextRequest) {
       const activeFacilities = state.scraperConfig.selectedFacilities || ['MHMC', 'MHVIL-SC', 'HIVF-SC'];
 
       if (activeType === 'oneusap' && !state.scraperConfig.mockMode) {
-        const targetDate = date || new Date().toISOString().split('T')[0];
+        const targetDate = date || getHoustonDateString();
         const scraped = await fetchAndScrapeOneUsap({
           portalUrl: state.scraperConfig.portalUrl,
           password: state.scraperConfig.password || '321usap',
@@ -131,7 +133,7 @@ export async function POST(req: NextRequest) {
 
         if (!scraped.success) {
           state.scraperConfig.lastSyncStatus = 'failed';
-          saveBoardState(state);
+          await saveBoardState(state);
           return NextResponse.json({
             success: false,
             error: scraped.error || 'Failed to scrape OneUSAP schedule.'
@@ -202,51 +204,101 @@ export async function POST(req: NextRequest) {
           role: l.role,
           qgendaAbbr: l.qgendaAbbr,
           assignedRoom: l.roomAssignment,
-          timeEstimate: (l as any).shift || (l.timeCategory === 'special' ? (l as any).shift : undefined)
+          timeEstimate: l.timeEstimate,
+          notes: l.notes
         }));
 
         // Apply Working Staff Roster for Available Unassigned Staff
-        // (Ensures the unassigned list contains all staff working today at selected facilities)
-        const existingStaffMap = new Map<string, Staff>();
-        state.staff.forEach(s => {
-          const key = (s.qgendaAbbr || s.lastName).toLowerCase();
-          existingStaffMap.set(key, s);
-        });
+        // (Builds up and persists the Site Staff Roster over daily syncs)
+        const existingStaffList = [...state.staff];
+        const matchedExistingIds = new Set<string>();
+        let newStaffAddedCount = 0;
 
-        // Update or add working staff
-        const updatedStaffList: Staff[] = [];
+        // Helper to match scraped provider against existing site roster
+        const findMatch = (ws: typeof scraped.workingStaff[0]): Staff | undefined => {
+          const wsQ = (ws.qgendaAbbr || '').trim().toLowerCase();
+          const wsLast = (ws.lastName || '').trim().toLowerCase();
+          const wsFirst = (ws.firstName || '').trim().toLowerCase();
 
+          // 1. Exact ID match
+          if (ws.id) {
+            const byId = existingStaffList.find(s => s.id === ws.id);
+            if (byId) return byId;
+          }
+
+          // 2. QGenda abbreviation match
+          if (wsQ) {
+            const byQ = existingStaffList.find(s => s.qgendaAbbr && s.qgendaAbbr.trim().toLowerCase() === wsQ);
+            if (byQ) return byQ;
+          }
+
+          // 3. Last name + First name / First initial match
+          if (wsLast) {
+            const byLastFirst = existingStaffList.find(s => {
+              const sLast = (s.lastName || '').trim().toLowerCase();
+              const sFirst = (s.firstName || '').trim().toLowerCase();
+              if (sLast === wsLast) {
+                if (!wsFirst || !sFirst) return true;
+                if (sFirst === wsFirst) return true;
+                if (sFirst[0] === wsFirst[0]) return true;
+              }
+              return false;
+            });
+            if (byLastFirst) return byLastFirst;
+
+            // 4. Unique last name match in site roster
+            const byLastOnly = existingStaffList.filter(s => (s.lastName || '').trim().toLowerCase() === wsLast);
+            if (byLastOnly.length === 1) {
+              return byLastOnly[0];
+            }
+          }
+
+          return undefined;
+        };
+
+        // Process all scraped working staff for today's selected facilities
         scraped.workingStaff.forEach(ws => {
-          const qKey = (ws.qgendaAbbr || ws.lastName).toLowerCase();
-          const lastKey = ws.lastName.toLowerCase();
-          const existing = existingStaffMap.get(qKey) || existingStaffMap.get(lastKey);
-          
+          const existing = findMatch(ws);
+
           const isInfrequent = Boolean(existing?.isInfrequent) ||
             Boolean(state.infrequentStaffIds?.includes(ws.id)) ||
             Boolean(ws.qgendaAbbr && state.infrequentStaffKeys?.includes(ws.qgendaAbbr.toLowerCase())) ||
             Boolean(state.infrequentStaffKeys?.includes(ws.lastName.toLowerCase()));
 
           if (existing) {
-            existing.phone = ws.phone || existing.phone;
-            existing.shift = ws.shift || existing.shift;
-            existing.facility = ws.facility || existing.facility;
+            matchedExistingIds.add(existing.id);
+
+            // Update dynamic schedule data for today
+            if (ws.phone && (!existing.phone || existing.phone.includes('000-0000'))) {
+              existing.phone = ws.phone;
+            }
+            if (ws.shift) existing.shift = ws.shift;
+            if (ws.facility) existing.facility = ws.facility;
             existing.assignedRoom = ws.roomAssignment || undefined;
             existing.assignedRooms = ws.assignedRooms || (ws.roomAssignment ? ws.roomAssignment.split(',').map(s => s.trim()) : undefined);
-            existing.qgendaAbbr = ws.qgendaAbbr || existing.qgendaAbbr;
-            existing.orderNumber = ws.orderNumber || existing.orderNumber;
+            if (ws.qgendaAbbr) existing.qgendaAbbr = ws.qgendaAbbr;
+            if (ws.orderNumber) existing.orderNumber = ws.orderNumber;
+
+            // PRESERVE user customizations:
+            // Custom magnet display name is retained
+            if (!existing.displayName && ws.displayName) {
+              existing.displayName = ws.displayName;
+            }
+            // Infrequent status is retained
             existing.isInfrequent = isInfrequent;
             existing.active = true;
-            updatedStaffList.push(existing);
-            existingStaffMap.delete(qKey);
-            existingStaffMap.delete(lastKey);
           } else {
-            updatedStaffList.push({
-              id: ws.id,
+            // New user detected! Store into Site Staff Roster
+            newStaffAddedCount++;
+            const newStaffId = ws.id || `staff_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+            const newStaff: Staff = {
+              id: newStaffId,
               firstName: ws.firstName,
               lastName: ws.lastName,
+              displayName: ws.displayName || `${ws.lastName.toUpperCase()} ${ws.firstName ? ws.firstName[0] + '.' : ''}`.trim(),
               credentials: ws.credentials,
-              phone: ws.phone,
-              shift: ws.shift,
+              phone: ws.phone || '(555) 000-0000',
+              shift: ws.shift || '07:00 - 15:30',
               facility: ws.facility,
               assignedRoom: ws.roomAssignment || undefined,
               assignedRooms: ws.assignedRooms || (ws.roomAssignment ? ws.roomAssignment.split(',').map(s => s.trim()) : undefined),
@@ -254,32 +306,36 @@ export async function POST(req: NextRequest) {
               orderNumber: ws.orderNumber,
               isInfrequent,
               active: true
-            });
+            };
+            existingStaffList.push(newStaff);
+            matchedExistingIds.add(newStaffId);
           }
         });
 
-        // Set non-working staff to inactive so they don't clutter today's roster
-        existingStaffMap.forEach(inactiveStaff => {
-          inactiveStaff.active = false;
-          inactiveStaff.assignedRoom = undefined;
-          inactiveStaff.assignedRooms = undefined;
-          updatedStaffList.push(inactiveStaff);
+        // For existing credentialed staff who are NOT scheduled on today's portal list:
+        // KEEP THEM ACTIVE in the Site Staff Roster and unassigned magnets pool, but clear room assignment
+        existingStaffList.forEach(s => {
+          if (!matchedExistingIds.has(s.id)) {
+            s.active = true;
+            s.assignedRoom = undefined;
+            s.assignedRooms = undefined;
+          }
         });
 
-        state.staff = updatedStaffList;
+        state.staff = existingStaffList;
       }
 
       state.scraperConfig.lastSyncTime = new Date().toISOString();
       state.scraperConfig.lastSyncStatus = 'success';
 
-      recordAuditLog({
+      await recordAuditLog({
         actionType: 'SCRAPER_SYNCED',
         performedBy: currentUser?.displayName || 'User',
         userRole: currentUser?.role || 'board_runner',
         details: `Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ${state.scraperConfig.portalType.toUpperCase()}`
       });
 
-      saveBoardState(state);
+      await saveBoardState(state);
       return NextResponse.json({
         success: true,
         message: `Synced with ${state.scraperConfig.portalType.toUpperCase()} at ${new Date().toLocaleTimeString()}`,

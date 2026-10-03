@@ -17,6 +17,7 @@ export interface Staff {
   id: string;
   firstName: string;
   lastName: string;
+  displayName?: string; // Custom magnet name (e.g. Dr. Dave, Johnny, Smith, J.)
   initials?: string;
   credentials: StaffCredential;
   phone: string;
@@ -215,6 +216,7 @@ export interface ScraperPreviewResult {
     qgendaAbbr?: string;
     roomAssignment?: string;
     orderNumber?: number;
+    notes?: string;
   }>;
   callTeamCandidates: Array<{
     role: string;

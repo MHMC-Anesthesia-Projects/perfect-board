@@ -429,8 +429,10 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   };
 
   const sortAlphabetical = (a: Staff, b: Staff) => {
-    const lastComp = a.lastName.localeCompare(b.lastName, undefined, { sensitivity: 'base' });
-    if (lastComp !== 0) return lastComp;
+    const nameA = a.displayName || a.lastName;
+    const nameB = b.displayName || b.lastName;
+    const comp = nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
+    if (comp !== 0) return comp;
     return a.firstName.localeCompare(b.firstName, undefined, { sensitivity: 'base' });
   };
 
@@ -455,7 +457,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
 
   // Available unassigned staff partitioned into MD, CRNA, and Infrequent (alphabetical)
   const mobileAvailableStaffGroups = useMemo(() => {
-    const unassigned = (boardState.staff || []).filter(s => s.active && !assignedStaffIds.has(s.id));
+    const unassigned = (boardState.staff || []).filter(s => s.active !== false && !assignedStaffIds.has(s.id));
     const mdList: Staff[] = [];
     const crnaList: Staff[] = [];
     const infrequentList: Staff[] = [];
@@ -488,7 +490,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
         <div className="mobile-header-brand">
           <div className="mobile-brand-icon">OR</div>
           <div className="mobile-brand-text">
-            <span className="mobile-brand-title">WHITEBOARD</span>
+            <span className="mobile-brand-title">PERFECT BOARD</span>
             <div className="mobile-sync-status">
               <span className="mobile-pulse-dot" />
               <span>LIVE</span>
@@ -722,6 +724,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                       onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
                                       onSelectStaff={onSelectStaff}
                                       isCompact={true}
+                                      isDraggable={false}
                                     />
                                   </div>
                                   <span className="relief-arrow" title="Relief assignment">➔</span>
@@ -761,6 +764,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                     onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
                                     onSelectStaff={onSelectStaff}
                                     isCompact={true}
+                                    isDraggable={false}
                                   />
                                 </div>
                                 {isEditor && onOpenReliefModal && (
@@ -855,6 +859,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                               currentUserRole={currentUserRole}
                                               onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
                                               onSelectStaff={onSelectStaff}
+                                              isDraggable={false}
                                             />
                                           </div>
                                           <span className="relief-arrow" title="Relief assignment">➔</span>
@@ -893,6 +898,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                             currentUserRole={currentUserRole}
                                             onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
                                             onSelectStaff={onSelectStaff}
+                                            isDraggable={false}
                                           />
                                         </div>
                                         {isEditor && onOpenReliefModal && (
@@ -1317,6 +1323,18 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                               </span>
                             )}
                             <span className="mobile-late-chip-name">{item.name}</span>
+                            {item.notes && (
+                              <span
+                                className="mobile-late-chip-role"
+                                style={{
+                                  background: 'rgba(234, 88, 12, 0.12)',
+                                  color: '#ea580c',
+                                  border: '1px solid rgba(234, 88, 12, 0.3)'
+                                }}
+                              >
+                                {item.notes}
+                              </span>
+                            )}
                             {item.role && <span className="mobile-late-chip-role">{item.role}</span>}
                           </div>
                         ))
@@ -1377,6 +1395,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                           currentUserRole={currentUserRole}
                           onToggleBreak={(type, val) => onToggleBreak('bullpen', staffId, type, val)}
                           onSelectStaff={onSelectStaff}
+                          isDraggable={false}
                         />
                       </div>
                     );
@@ -1427,12 +1446,11 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                           <MagnetTile
                             staff={s}
                             slotId={s.id}
-                            slotType="bullpen"
-                            breakfastDone={breakStatus.breakfastDone}
-                            lunchDone={breakStatus.lunchDone}
+                            slotType="unassigned"
+                            showBreaks={false}
                             currentUserRole={currentUserRole}
-                            onToggleBreak={(type, val) => onToggleBreak('bullpen', s.id, type, val)}
                             onSelectStaff={onSelectStaff}
+                            isDraggable={false}
                           />
                         </div>
                       );

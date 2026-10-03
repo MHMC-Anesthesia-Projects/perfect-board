@@ -1,5 +1,6 @@
 'use client';
 
+import { apiUrl } from '@/lib/api';
 import React, { useState, useEffect } from 'react';
 import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential, RunnerSlot, ScraperPreviewResult, UniqueScheduleRule } from '@/types/whiteboard';
 import { 
@@ -151,7 +152,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setIsSavingRules(true);
     setRulesStatusMsg(null);
     try {
-      const res = await fetch('/api/board', {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -233,9 +234,22 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [isAddingStaff, setIsAddingStaff] = useState(false);
   const [staffFirst, setStaffFirst] = useState('');
   const [staffLast, setStaffLast] = useState('');
+  const [staffDisplayName, setStaffDisplayName] = useState('');
   const [staffCred, setStaffCred] = useState<StaffCredential>('CRNA');
   const [staffPhone, setStaffPhone] = useState('(555) ');
   const [staffShift, setStaffShift] = useState('07:00 - 15:30');
+  const [staffIsInfrequent, setStaffIsInfrequent] = useState(false);
+
+  // Edit Staff State
+  const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
+  const [editDisplayName, setEditDisplayName] = useState('');
+  const [editCred, setEditCred] = useState<StaffCredential>('CRNA');
+  const [editPhone, setEditPhone] = useState('');
+  const [editShift, setEditShift] = useState('');
+  const [editIsInfrequent, setEditIsInfrequent] = useState(false);
+  const [staffSaving, setStaffSaving] = useState(false);
 
   // --- Scraper Settings State ---
   const [portalType, setPortalType] = useState(scraperConfig.portalType);
@@ -295,7 +309,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/users');
+      const res = await fetch(apiUrl('/api/users'));
       const data = await res.json();
       if (Array.isArray(data)) {
         setUserList(data);
@@ -313,7 +327,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setUserActionError('');
     setUserActionSuccess('');
     try {
-      const res = await fetch('/api/users', {
+      const res = await fetch(apiUrl('/api/users'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -344,7 +358,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   const executeDeleteUser = async (id: string) => {
     try {
-      const res = await fetch(`/api/users?id=${id}`, {
+      const res = await fetch(apiUrl(`/api/users?id=${id}`), {
         method: 'DELETE',
         headers: {
           'x-user-role': currentUser.role,
@@ -371,18 +385,62 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   };
 
   // --- Handlers for Staff Management ---
+  const startEditStaff = (s: Staff) => {
+    setEditingStaff(s);
+    setEditFirstName(s.firstName || '');
+    setEditLastName(s.lastName || '');
+    setEditDisplayName(s.displayName || '');
+    setEditCred(s.credentials || 'CRNA');
+    setEditPhone(s.phone || '');
+    setEditShift(s.shift || '07:00 - 15:30');
+    setEditIsInfrequent(Boolean(s.isInfrequent));
+  };
+
+  const handleUpdateStaff = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStaff) return;
+    setStaffSaving(true);
+    try {
+      const res = await fetch(apiUrl('/api/staff'), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingStaff.id,
+          firstName: editFirstName,
+          lastName: editLastName,
+          displayName: editDisplayName.trim() || undefined,
+          credentials: editCred,
+          phone: editPhone,
+          shift: editShift,
+          isInfrequent: editIsInfrequent,
+          currentUser
+        })
+      });
+      if (res.ok) {
+        setEditingStaff(null);
+        onRefreshData();
+      }
+    } catch (err) {
+      console.error('Error updating staff:', err);
+    } finally {
+      setStaffSaving(false);
+    }
+  };
+
   const handleCreateStaff = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/staff', {
+      const res = await fetch(apiUrl('/api/staff'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName: staffFirst,
           lastName: staffLast,
+          displayName: staffDisplayName.trim() || undefined,
           credentials: staffCred,
           phone: staffPhone,
           shift: staffShift,
+          isInfrequent: staffIsInfrequent,
           currentUser
         })
       });
@@ -390,7 +448,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
         setIsAddingStaff(false);
         setStaffFirst('');
         setStaffLast('');
+        setStaffDisplayName('');
         setStaffPhone('(555) ');
+        setStaffIsInfrequent(false);
         onRefreshData();
       }
     } catch (err) {
@@ -400,7 +460,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   const executeDeleteStaff = async (id: string) => {
     try {
-      const res = await fetch(`/api/staff?id=${id}`, {
+      const res = await fetch(apiUrl(`/api/staff?id=${id}`), {
         method: 'DELETE',
         headers: {
           'x-user-role': currentUser.role,
@@ -452,7 +512,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setScraperSaving(true);
     setScraperMsg('');
     try {
-      const res = await fetch('/api/scraper', {
+      const res = await fetch(apiUrl('/api/scraper'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -488,7 +548,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setTestSyncError('');
     setTestSyncResult(null);
     try {
-      const res = await fetch('/api/scraper', {
+      const res = await fetch(apiUrl('/api/scraper'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -956,15 +1016,23 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           {activeTab === 'staff' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <input
-                  type="text"
-                  placeholder="Search staff by name, credential, or phone..."
-                  value={staffSearch}
-                  onChange={e => setStaffSearch(e.target.value)}
-                  style={{ width: 320, padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}
-                />
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Search site staff by name, magnet name, or credential..."
+                    value={staffSearch}
+                    onChange={e => setStaffSearch(e.target.value)}
+                    style={{ width: 340, padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}
+                  />
+                  <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>
+                    Persisted site roster &bull; Built up as daily syncs occur &bull; All members appear as magnets
+                  </div>
+                </div>
                 <button
-                  onClick={() => setIsAddingStaff(prev => !prev)}
+                  onClick={() => {
+                    setIsAddingStaff(prev => !prev);
+                    if (editingStaff) setEditingStaff(null);
+                  }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -982,10 +1050,120 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 </button>
               </div>
 
+              {/* Edit Staff Card */}
+              {editingStaff && (
+                <form onSubmit={handleUpdateStaff} style={{ background: 'var(--surface-hover)', padding: 14, borderRadius: 8, marginBottom: 16, border: '2px solid var(--accent-primary)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Edit2 size={15} style={{ color: 'var(--accent-primary)' }} />
+                      <strong style={{ fontSize: 13 }}>Edit Staff &amp; Magnet Display Name: {editingStaff.lastName}, {editingStaff.firstName}</strong>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingStaff(null)}
+                      style={{ fontSize: 12, color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                    >
+                      ✕ Cancel
+                    </button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, marginBottom: 10 }}>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>First Name</label>
+                      <input
+                        type="text"
+                        value={editFirstName}
+                        onChange={e => setEditFirstName(e.target.value)}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Last Name</label>
+                      <input
+                        type="text"
+                        value={editLastName}
+                        onChange={e => setEditLastName(e.target.value)}
+                        required
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Magnet Name</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Dr. Dave, Johnny"
+                        value={editDisplayName}
+                        onChange={e => setEditDisplayName(e.target.value)}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)', fontWeight: 700 }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Credentials</label>
+                      <select
+                        value={editCred}
+                        onChange={e => setEditCred(e.target.value as StaffCredential)}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)', background: 'var(--surface-card)' }}
+                      >
+                        <option value="CRNA">CRNA</option>
+                        <option value="MD">MD</option>
+                        <option value="Resident">Resident</option>
+                        <option value="SRNA">SRNA</option>
+                        <option value="PA">PA</option>
+                        <option value="Fellow">Fellow</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Cell Phone</label>
+                      <input
+                        type="text"
+                        value={editPhone}
+                        onChange={e => setEditPhone(e.target.value)}
+                        required
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Shift</label>
+                      <input
+                        type="text"
+                        value={editShift}
+                        onChange={e => setEditShift(e.target.value)}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
+                      <input
+                        type="checkbox"
+                        checked={editIsInfrequent}
+                        onChange={e => setEditIsInfrequent(e.target.checked)}
+                      />
+                      <span>Mark as Infrequent (PRN) Staff &bull; Place magnet in Infrequent bin</span>
+                    </label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        type="button"
+                        onClick={() => setEditingStaff(null)}
+                        style={{ padding: '6px 12px', background: 'var(--surface-card)', border: '1px solid var(--border-light)', borderRadius: 6, fontSize: 12, fontWeight: 600 }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={staffSaving}
+                        style={{ padding: '6px 16px', background: 'var(--accent-primary)', color: '#fff', borderRadius: 6, fontWeight: 700, fontSize: 12 }}
+                      >
+                        {staffSaving ? 'Saving...' : 'Save Changes'}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
+
               {/* Add Staff Form */}
               {isAddingStaff && (
                 <form onSubmit={handleCreateStaff} style={{ background: 'var(--surface-hover)', padding: 14, borderRadius: 8, marginBottom: 16, border: '1px solid var(--border-light)' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, marginBottom: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, marginBottom: 10 }}>
                     <div>
                       <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>First Name</label>
                       <input
@@ -1002,6 +1180,16 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         value={staffLast}
                         onChange={e => setStaffLast(e.target.value)}
                         required
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Magnet Name</label>
+                      <input
+                        type="text"
+                        placeholder="Optional custom display"
+                        value={staffDisplayName}
+                        onChange={e => setStaffDisplayName(e.target.value)}
                         style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
                       />
                     </div>
@@ -1040,12 +1228,22 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       />
                     </div>
                   </div>
-                  <button
-                    type="submit"
-                    style={{ padding: '8px 16px', background: 'var(--accent-primary)', color: '#fff', borderRadius: 6, fontWeight: 700, fontSize: 13 }}
-                  >
-                    Save to Staff Roster
-                  </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
+                      <input
+                        type="checkbox"
+                        checked={staffIsInfrequent}
+                        onChange={e => setStaffIsInfrequent(e.target.checked)}
+                      />
+                      <span>Mark as Infrequent (PRN) Staff &bull; Place magnet in Infrequent bin</span>
+                    </label>
+                    <button
+                      type="submit"
+                      style={{ padding: '8px 16px', background: 'var(--accent-primary)', color: '#fff', borderRadius: 6, fontWeight: 700, fontSize: 13 }}
+                    >
+                      Save to Staff Roster
+                    </button>
+                  </div>
                 </form>
               )}
 
@@ -1055,7 +1253,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   <thead>
                     <tr style={{ background: 'var(--surface-hover)', textAlign: 'left', borderBottom: '2px solid var(--border-light)' }}>
                       <th style={{ padding: '8px 10px' }}>Staff Name</th>
-                      <th style={{ padding: '8px 10px' }}>Credentials</th>
+                      <th style={{ padding: '8px 10px' }}>Magnet Display Name</th>
+                      <th style={{ padding: '8px 10px' }}>Group / Role</th>
                       <th style={{ padding: '8px 10px' }}>Cell Phone</th>
                       <th style={{ padding: '8px 10px' }}>Shift</th>
                       <th style={{ padding: '8px 10px', textAlign: 'right' }}>Actions</th>
@@ -1066,33 +1265,101 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       .filter(s => {
                         if (!staffSearch.trim()) return true;
                         const q = staffSearch.toLowerCase();
-                        return s.lastName.toLowerCase().includes(q) || s.firstName.toLowerCase().includes(q) || s.credentials.toLowerCase().includes(q) || s.phone.includes(q);
+                        return (
+                          (s.displayName && s.displayName.toLowerCase().includes(q)) ||
+                          s.lastName.toLowerCase().includes(q) ||
+                          s.firstName.toLowerCase().includes(q) ||
+                          s.credentials.toLowerCase().includes(q) ||
+                          s.phone.includes(q)
+                        );
                       })
-                      .map(s => (
-                        <tr key={s.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                          <td style={{ padding: '8px 10px', fontWeight: 800, textTransform: 'uppercase' }}>
-                            {s.lastName}, {s.firstName || ''}
-                          </td>
-                          <td style={{ padding: '8px 10px' }}>
-                            <span className={`magnet-cred cred-${s.credentials}`} style={{ fontSize: 11 }}>
-                              {s.credentials}
-                            </span>
-                          </td>
-                          <td style={{ padding: '8px 10px' }}>
-                            <a href={`tel:${s.phone}`} style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>{s.phone}</a>
-                          </td>
-                          <td style={{ padding: '8px 10px', color: 'var(--text-secondary)' }}>{s.shift || '07:00 - 15:30'}</td>
-                          <td style={{ padding: '8px 10px', textAlign: 'right' }}>
-                            <button
-                              onClick={() => promptDeleteStaff(s)}
-                              style={{ color: 'var(--marker-red)', padding: 4 }}
-                              title="Delete staff member"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                      .map(s => {
+                        const magnetLabel = s.displayName || `${s.lastName.toUpperCase()}${s.firstName ? ` ${s.firstName[0]}.` : ''}`;
+                        return (
+                          <tr key={s.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
+                            <td style={{ padding: '8px 10px', fontWeight: 800, textTransform: 'uppercase' }}>
+                              {s.lastName}, {s.firstName || ''}
+                            </td>
+                            <td style={{ padding: '8px 10px' }}>
+                              <span style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                padding: '2px 8px',
+                                borderRadius: 4,
+                                background: 'var(--surface-card)',
+                                border: '1px solid var(--border-light)',
+                                fontWeight: 700,
+                                fontSize: 12
+                              }}>
+                                {magnetLabel}
+                                {s.displayName && (
+                                  <span style={{ fontSize: 9, color: 'var(--accent-primary)', fontWeight: 800 }}>[CUSTOM]</span>
+                                )}
+                              </span>
+                            </td>
+                            <td style={{ padding: '8px 10px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <span className={`magnet-cred cred-${s.credentials}`} style={{ fontSize: 11 }}>
+                                  {s.credentials}
+                                </span>
+                                {s.isInfrequent && (
+                                  <span style={{
+                                    fontSize: 10,
+                                    fontWeight: 800,
+                                    padding: '1px 5px',
+                                    borderRadius: 3,
+                                    background: 'rgba(217, 119, 6, 0.12)',
+                                    color: '#d97706',
+                                    border: '1px solid rgba(217, 119, 6, 0.3)'
+                                  }}>
+                                    INFREQUENT
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td style={{ padding: '8px 10px' }}>
+                              <a href={`tel:${s.phone}`} style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>{s.phone}</a>
+                            </td>
+                            <td style={{ padding: '8px 10px', color: 'var(--text-secondary)' }}>{s.shift || '07:00 - 15:30'}</td>
+                            <td style={{ padding: '8px 10px', textAlign: 'right' }}>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsAddingStaff(false);
+                                    startEditStaff(s);
+                                  }}
+                                  style={{
+                                    padding: '4px 8px',
+                                    borderRadius: 4,
+                                    background: 'var(--surface-hover)',
+                                    border: '1px solid var(--border-light)',
+                                    color: 'var(--text-primary)',
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                    fontSize: 12
+                                  }}
+                                  title="Edit staff details and magnet display name"
+                                >
+                                  <Edit2 size={12} />
+                                  <span>Edit</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => promptDeleteStaff(s)}
+                                  style={{ color: 'var(--marker-red)', padding: 4 }}
+                                  title="Delete staff member"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
               </div>
@@ -2384,6 +2651,19 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                                         </span>
                                       )}
                                       <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', fontSize: 12 }}>{l.name}</span>
+                                      {l.notes && (
+                                        <span style={{
+                                          fontSize: 9,
+                                          fontWeight: 800,
+                                          padding: '1px 4px',
+                                          borderRadius: 3,
+                                          background: 'rgba(234, 88, 12, 0.12)',
+                                          color: '#ea580c',
+                                          border: '1px solid rgba(234, 88, 12, 0.3)'
+                                        }}>
+                                          {l.notes}
+                                        </span>
+                                      )}
                                     </div>
                                     <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{l.role} &bull; {l.facility}</span>
                                   </div>

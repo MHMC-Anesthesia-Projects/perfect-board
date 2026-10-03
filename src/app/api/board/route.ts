@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loadBoardState, saveBoardState, recordAuditLog, getInitialBoardState, resetDailyBreaks, broadcastStateChange } from '@/lib/storage';
 import { UserRole, RunnerSlot } from '@/types/whiteboard';
 import { autoAssignBoardState } from '@/lib/autoAssign';
+import { getHoustonDateString } from '@/lib/dateUtils';
 
 export async function GET() {
-  const state = loadBoardState();
+  const state = await loadBoardState();
   return NextResponse.json(state);
 }
 
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { action, payload, user } = body;
 
-    const state = loadBoardState();
+    const state = await loadBoardState();
     const currentUserRole: UserRole = user?.role || 'basic_user';
     const currentUserName = user?.displayName || 'Anonymous Staff';
 
@@ -98,8 +99,8 @@ export async function POST(req: NextRequest) {
           };
         }
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: breakType === 'breakfast' ? 'BREAKFAST_TOGGLED' : 'LUNCH_TOGGLED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -207,8 +208,8 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: staffId ? 'STAFF_ASSIGNED' : 'STAFF_UNASSIGNED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -414,8 +415,8 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: toTargetType === 'bullpen' ? 'BULLPEN_UPDATED' : (toTargetType === 'unassigned' ? 'STAFF_UNASSIGNED' : 'STAFF_MOVED'),
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -453,8 +454,8 @@ export async function POST(req: NextRequest) {
           locationName = 'Lates Scratchpad';
         }
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'NOTE_UPDATED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -474,8 +475,8 @@ export async function POST(req: NextRequest) {
         if (payload.latesList) state.latesList = payload.latesList;
         if (payload.callTeamList) state.callTeamList = payload.callTeamList;
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: payload.isReorder ? 'DEPARTURE_REORDERED' : payload.callTeamList ? 'CALL_TEAM_UPDATED' : 'DEPARTURE_UPDATED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -490,8 +491,8 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
         }
         if (payload.callTeamList) state.callTeamList = payload.callTeamList;
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'CALL_TEAM_UPDATED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -506,16 +507,17 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
         }
 
+        const targetDate = body.date || payload?.date || getHoustonDateString();
         const result = autoAssignBoardState(state);
         state.departments = result.departments;
         state.bullpenStaffIds = result.bullpenStaffIds;
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'STAFF_ASSIGNED',
           performedBy: currentUserName,
           userRole: currentUserRole,
-          details: `Auto-assigned ${result.assignedCount} staff magnets to department rooms and runner slots based on portal schedule`
+          details: `Auto-assigned ${result.assignedCount} staff magnets to department rooms and runner slots for ${targetDate}`
         });
 
         return NextResponse.json({
@@ -569,8 +571,8 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'STAFF_UNASSIGNED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -592,8 +594,8 @@ export async function POST(req: NextRequest) {
         }
         const rules = payload.uniqueSchedules || [];
         state.uniqueSchedules = rules;
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'UNIQUE_SCHEDULE_UPDATED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -608,8 +610,8 @@ export async function POST(req: NextRequest) {
         const item = state.departureList.find(d => d.id === id);
         if (item) {
           item.departed = !item.departed;
-          saveBoardState(state);
-          recordAuditLog({
+          await saveBoardState(state);
+          await recordAuditLog({
             actionType: 'DEPARTURE_STRUCK_TOGGLED',
             performedBy: currentUserName,
             userRole: currentUserRole,
@@ -802,8 +804,8 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'STAFF_UPDATED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -854,8 +856,8 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'STAFF_UPDATED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -863,6 +865,32 @@ export async function POST(req: NextRequest) {
           details: s.isInfrequent
             ? `Marked ${staffName} as Infrequent / PRN staff`
             : `Moved ${staffName} to regular ${s.credentials === 'MD' ? 'MD' : 'CRNA'} staff group`
+        });
+
+        return NextResponse.json({ success: true, state });
+      }
+
+      // 6c-2. Set staff display name (custom magnet name on whiteboard)
+      case 'SET_STAFF_DISPLAY_NAME': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const { staffId, displayName } = payload;
+        const s = state.staff.find(st => st.id === staffId);
+        if (!s) {
+          return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
+        }
+
+        const oldName = s.displayName || `${s.lastName.toUpperCase()} ${s.firstName ? s.firstName[0] + '.' : ''}`.trim();
+        s.displayName = displayName?.trim() || undefined;
+
+        await saveBoardState(state);
+        await recordAuditLog({
+          actionType: 'STAFF_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          targetName: `${s.firstName} ${s.lastName}`.trim(),
+          details: `Updated magnet display name from "${oldName}" to "${s.displayName || 'Default'}"`
         });
 
         return NextResponse.json({ success: true, state });
@@ -916,9 +944,9 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        saveBoardState(state);
+        await saveBoardState(state);
         const isSelfRelief = outgoingStaffName && incomingStaffName && outgoingStaffName === incomingStaffName;
-        recordAuditLog({
+        await recordAuditLog({
           actionType: 'STAFF_ASSIGNED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -962,8 +990,8 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'STAFF_UNASSIGNED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -1057,8 +1085,8 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'STAFF_MOVED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -1154,8 +1182,8 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'STAFF_MOVED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -1170,8 +1198,8 @@ export async function POST(req: NextRequest) {
       // 6g. Manual or testing trigger for 1:00 AM break reset
       case 'RESET_DAILY_BREAKS': {
         const wasModified = resetDailyBreaks(state);
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'BREAKFAST_TOGGLED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -1197,8 +1225,8 @@ export async function POST(req: NextRequest) {
             lunchDone: false
           };
           dept.runnerSlots.push(newSlot);
-          saveBoardState(state);
-          recordAuditLog({
+          await saveBoardState(state);
+          await recordAuditLog({
             actionType: 'RUNNER_SLOT_ADDED',
             performedBy: currentUserName,
             userRole: currentUserRole,
@@ -1221,8 +1249,8 @@ export async function POST(req: NextRequest) {
           const idx = dept.runnerSlots.findIndex(r => r.id === runnerSlotId);
           if (idx !== -1) {
             const removed = dept.runnerSlots.splice(idx, 1)[0];
-            saveBoardState(state);
-            recordAuditLog({
+            await saveBoardState(state);
+            await recordAuditLog({
               actionType: 'RUNNER_SLOT_REMOVED',
               performedBy: currentUserName,
               userRole: currentUserRole,
@@ -1243,8 +1271,8 @@ export async function POST(req: NextRequest) {
         if (payload.departments) {
           state.departments = payload.departments;
         }
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'LAYOUT_CHANGED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -1260,8 +1288,8 @@ export async function POST(req: NextRequest) {
         }
         const initialStaff = state.staff.length > 0 ? state.staff : [];
         const freshBoard = getInitialBoardState(initialStaff);
-        saveBoardState(freshBoard);
-        recordAuditLog({
+        await saveBoardState(freshBoard);
+        await recordAuditLog({
           actionType: 'LAYOUT_CHANGED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -1293,8 +1321,8 @@ export async function POST(req: NextRequest) {
 
         dept.runnerSlots.push(newRunner);
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'LAYOUT_CHANGED',
           performedBy: currentUserName,
           userRole: currentUserRole,
@@ -1330,8 +1358,8 @@ export async function POST(req: NextRequest) {
 
         dept.runnerSlots.splice(slotIndex, 1);
 
-        saveBoardState(state);
-        recordAuditLog({
+        await saveBoardState(state);
+        await recordAuditLog({
           actionType: 'LAYOUT_CHANGED',
           performedBy: currentUserName,
           userRole: currentUserRole,

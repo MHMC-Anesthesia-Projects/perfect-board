@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   const query = searchParams.get('q')?.toLowerCase() || '';
   const dateFilter = searchParams.get('date'); // YYYY-MM-DD
 
-  let logs = loadAuditLog();
+  let logs = await loadAuditLog();
 
   if (dateFilter) {
     logs = logs.filter(l => l.timestamp.startsWith(dateFilter));
