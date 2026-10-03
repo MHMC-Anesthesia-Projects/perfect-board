@@ -2,6 +2,7 @@
 
 import { apiUrl } from '@/lib/api';
 import { getBrowserSupabase } from '@/lib/supabase';
+import { getHoustonDateString } from '@/lib/dateUtils';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { BoardState, Staff, Department, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential } from '@/types/whiteboard';
 import { HeaderNav } from '@/components/HeaderNav';
@@ -794,21 +795,26 @@ export default function WhiteboardPage() {
   };
 
   // 7. Trigger Scraper Portal Sync
-  const executeTriggerSync = async () => {
+  const executeTriggerSync = async (customDate?: string) => {
     setIsSyncing(true);
     try {
+      const targetDate = customDate || getHoustonDateString();
       const res = await fetch(apiUrl('/api/scraper'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'TRIGGER_SYNC',
+          date: targetDate,
           currentUser: currentUser || { role: 'basic_user', displayName: 'Staff' }
         })
       });
       const data = await res.json();
       if (data.success) {
         fetchBoardState(false);
-        setToastMessage('✓ Synchronized Departure, Lates, Call Team and Staff Roster!');
+        setToastMessage(`✓ Synchronized Departure, Lates, Call Team and Staff Roster for ${targetDate}!`);
+        setTimeout(() => setToastMessage(null), 4000);
+      } else {
+        setToastMessage(`Portal sync error: ${data.error || 'Failed'}`);
         setTimeout(() => setToastMessage(null), 4000);
       }
     } catch (err) {
@@ -856,11 +862,19 @@ export default function WhiteboardPage() {
 
     setIsAutoAssigning(true);
     try {
+      const targetDate = getHoustonDateString();
+
+      // If departure list is empty, trigger sync for today's accurate date first so auto-assign works seamlessly
+      if (!boardState?.departureList || boardState.departureList.length === 0) {
+        await executeTriggerSync(targetDate);
+      }
+
       const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'AUTO_ASSIGN_ROOMS',
+          date: targetDate,
           user: currentUser
         })
       });

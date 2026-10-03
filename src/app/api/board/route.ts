@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loadBoardState, saveBoardState, recordAuditLog, getInitialBoardState, resetDailyBreaks, broadcastStateChange } from '@/lib/storage';
 import { UserRole, RunnerSlot } from '@/types/whiteboard';
 import { autoAssignBoardState } from '@/lib/autoAssign';
+import { getHoustonDateString } from '@/lib/dateUtils';
 
 export async function GET() {
   const state = await loadBoardState();
@@ -506,6 +507,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
         }
 
+        const targetDate = body.date || payload?.date || getHoustonDateString();
         const result = autoAssignBoardState(state);
         state.departments = result.departments;
         state.bullpenStaffIds = result.bullpenStaffIds;
@@ -515,7 +517,7 @@ export async function POST(req: NextRequest) {
           actionType: 'STAFF_ASSIGNED',
           performedBy: currentUserName,
           userRole: currentUserRole,
-          details: `Auto-assigned ${result.assignedCount} staff magnets to department rooms and runner slots based on portal schedule`
+          details: `Auto-assigned ${result.assignedCount} staff magnets to department rooms and runner slots for ${targetDate}`
         });
 
         return NextResponse.json({

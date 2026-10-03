@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadBoardState, saveBoardState, recordAuditLog } from '@/lib/storage';
-import { fetchAndScrapeOneUsap } from '@/lib/oneusapScraper';
+import { fetchAndScrapeOneUsap, getHoustonDateString } from '@/lib/oneusapScraper';
 import { DepartureItem, LateShiftItem, CallTeamItem, Staff } from '@/types/whiteboard';
 
 export async function POST(req: NextRequest) {
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       const activeUrl = config?.portalUrl || state.scraperConfig.portalUrl;
       const activePass = config?.password || state.scraperConfig.password || '321usap';
       const activeFacilities = config?.selectedFacilities || state.scraperConfig.selectedFacilities || ['MHMC', 'MHVIL-SC', 'HIVF-SC'];
-      const targetDate = date || new Date().toISOString().split('T')[0];
+      const targetDate = date || getHoustonDateString();
 
       if (activeType === 'oneusap') {
         const preview = await fetchAndScrapeOneUsap({
@@ -87,11 +87,13 @@ export async function POST(req: NextRequest) {
           lateCandidates: state.latesList.map(l => ({
             name: l.name,
             timeCategory: l.timeCategory,
+            timeEstimate: l.timeEstimate,
             facility: 'MHMC',
             role: l.role || 'CRNA',
             orderNumber: l.orderNumber,
             qgendaAbbr: l.qgendaAbbr,
-            roomAssignment: l.assignedRoom
+            roomAssignment: l.assignedRoom,
+            notes: l.notes
           })),
           callTeamCandidates: state.callTeamList.map(c => ({
             role: c.role,
@@ -120,7 +122,7 @@ export async function POST(req: NextRequest) {
       const activeFacilities = state.scraperConfig.selectedFacilities || ['MHMC', 'MHVIL-SC', 'HIVF-SC'];
 
       if (activeType === 'oneusap' && !state.scraperConfig.mockMode) {
-        const targetDate = date || new Date().toISOString().split('T')[0];
+        const targetDate = date || getHoustonDateString();
         const scraped = await fetchAndScrapeOneUsap({
           portalUrl: state.scraperConfig.portalUrl,
           password: state.scraperConfig.password || '321usap',
@@ -202,7 +204,8 @@ export async function POST(req: NextRequest) {
           role: l.role,
           qgendaAbbr: l.qgendaAbbr,
           assignedRoom: l.roomAssignment,
-          timeEstimate: (l as any).shift || (l.timeCategory === 'special' ? (l as any).shift : undefined)
+          timeEstimate: l.timeEstimate,
+          notes: l.notes
         }));
 
         // Apply Working Staff Roster for Available Unassigned Staff

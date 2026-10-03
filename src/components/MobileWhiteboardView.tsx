@@ -887,6 +887,18 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                               </span>
                             )}
                             <span className="mobile-late-chip-name">{item.name}</span>
+                            {item.notes && (
+                              <span
+                                className="mobile-late-chip-role"
+                                style={{
+                                  background: 'rgba(234, 88, 12, 0.12)',
+                                  color: '#ea580c',
+                                  border: '1px solid rgba(234, 88, 12, 0.3)'
+                                }}
+                              >
+                                {item.notes}
+                              </span>
+                            )}
                             {item.role && <span className="mobile-late-chip-role">{item.role}</span>}
                           </div>
                         ))

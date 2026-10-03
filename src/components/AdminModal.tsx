@@ -2651,6 +2651,19 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                                         </span>
                                       )}
                                       <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', fontSize: 12 }}>{l.name}</span>
+                                      {l.notes && (
+                                        <span style={{
+                                          fontSize: 9,
+                                          fontWeight: 800,
+                                          padding: '1px 4px',
+                                          borderRadius: 3,
+                                          background: 'rgba(234, 88, 12, 0.12)',
+                                          color: '#ea580c',
+                                          border: '1px solid rgba(234, 88, 12, 0.3)'
+                                        }}>
+                                          {l.notes}
+                                        </span>
+                                      )}
                                     </div>
                                     <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{l.role} &bull; {l.facility}</span>
                                   </div>
