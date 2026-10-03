@@ -611,26 +611,21 @@ export function normalizeDepartmentRunnerSlots(departments?: Department[], staff
       dept.runnerSlots = [];
     }
 
-    if (dept.runnerSlots.length === 0) {
-      dept.runnerSlots.push({
-        id: `runner_${dept.id}_1`,
-        title: 'Runner 1',
-        staffId: null,
-        breakfastDone: false,
-        lunchDone: false
-      });
-    }
+    // Keep ONLY occupied runner slots with valid staff (do not display empty +runner boxes)
+    const occupied = dept.runnerSlots.filter(r => {
+      if (!r.staffId) return false;
+      if (validStaffIds && !validStaffIds.has(r.staffId)) return false;
+      return true;
+    });
 
-    // Normalize all runner slots: validate staffId, ensure Title Case title, strip relief
-    dept.runnerSlots = dept.runnerSlots.map((r, idx) => {
-      const validStaffId = r.staffId && validStaffIds && !validStaffIds.has(r.staffId) ? null : r.staffId;
-      const normalizedTitle = r.title
+    // Normalize occupied runners: ensure Title Case ("Runner 1", "Runner 2"), strip any relief
+    dept.runnerSlots = occupied.map((r, idx) => {
+      const normalizedTitle = r.title && !r.title.match(/^RUNNER\s*\d*$/i)
         ? r.title.replace(/^RUNNER(\s+\d+)?$/i, (m: string, n?: string) => `Runner${n || ''}`)
         : `Runner ${idx + 1}`;
 
       return {
         ...r,
-        staffId: validStaffId,
         title: normalizedTitle,
         relief: undefined
       };

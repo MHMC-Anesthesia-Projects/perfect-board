@@ -1,5 +1,65 @@
 [
   {
+    "id": "audit_1791048455277_e6wfd",
+    "timestamp": "2026-10-03T17:27:35.277Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "WEST PAV Runner (Runner 1)",
+    "details": "Moved from ORTHO Runner (Runner 1) -> WEST PAV Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1791048453318_uq63v",
+    "timestamp": "2026-10-03T17:27:33.318Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "ORTHO Runner (Runner 1)",
+    "details": "Moved from WEST PAV Runner (Runner 1) -> ORTHO Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1791048448935_bavc7",
+    "timestamp": "2026-10-03T17:27:28.935Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "WEST PAV Runner (Runner 1)",
+    "details": "Moved from MAIN OR Runner (Runner 1) -> WEST PAV Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1791048447161_bnqai",
+    "timestamp": "2026-10-03T17:27:27.161Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "MAIN OR Runner (Runner 1)",
+    "details": "Moved from Bullpen -> MAIN OR Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1791048444208_dokc3",
+    "timestamp": "2026-10-03T17:27:24.208Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from MAIN OR Runner (Runner 1) -> Bullpen (Available Staff)"
+  },
+  {
+    "id": "audit_1791048441108_xjhbw",
+    "timestamp": "2026-10-03T17:27:21.108Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "MAIN OR Runner (Runner 1)",
+    "details": "Moved from Bullpen -> MAIN OR Runner (Runner 1)"
+  },
+  {
     "id": "audit_1791046461437_e7zgy",
     "timestamp": "2026-10-03T16:54:21.437Z",
     "actionType": "BULLPEN_UPDATED",

@@ -680,110 +680,46 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                       {activeDepartment.rooms.filter(r => r.slots.some(s => !!s.staffId)).length}/{activeDepartment.rooms.length}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {isEditor && onAddRunnerSlot && (
-                      <button
-                        type="button"
-                        onClick={() => onAddRunnerSlot(activeDepartment.id)}
-                        className="dept-add-runner-btn"
-                        title={`Add runner slot to ${activeDepartment.name}`}
-                      >
-                        <Plus size={10} />
-                        <span>Runner</span>
-                      </button>
-                    )}
-                  </div>
                 </div>
 
-                {/* Runner Slots Group */}
+                {/* Runner Slots Group (Only occupied runners) */}
                 {(() => {
-                  const runnerSlots = activeDepartment.runnerSlots || [];
-                  if (runnerSlots.length === 0) return null;
-                  const isMultiRunner = runnerSlots.length > 1;
+                  const occupied = (activeDepartment.runnerSlots || []).filter(r => Boolean(r.staffId && getStaffById(r.staffId)));
+                  if (occupied.length === 0) return null;
+                  const isMultiRunner = occupied.length > 1;
 
                   return (
                     <div className="runner-slots-group">
-                      {runnerSlots.map((runner, idx) => {
+                      {occupied.map((runner, idx) => {
                         const assignedStaff = getStaffById(runner.staffId);
-                        const displayTitle = (runner.title || `Runner ${idx + 1}`).replace(/^RUNNER(\s+\d+)?$/i, (m: string, n?: string) => `Runner${n || ''}`);
-
-                        if (assignedStaff) {
-                          return (
-                            <div
-                              key={runner.id}
-                              className={`runner-slot ${isMultiRunner ? 'multi' : 'single'}`}
-                              style={{
-                                flex: isMultiRunner ? '1 1 0' : '1 1 100%',
-                                minWidth: 0,
-                                position: 'relative'
-                              }}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%' }}>
-                                <div style={{ flex: 1, minWidth: 0, height: '100%' }}>
-                                  <MagnetTile
-                                    staff={assignedStaff}
-                                    slotId={runner.id}
-                                    slotType="runner_slot"
-                                    breakfastDone={runner.breakfastDone}
-                                    lunchDone={runner.lunchDone}
-                                    currentUserRole={currentUserRole}
-                                    onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
-                                    onSelectStaff={onSelectStaff}
-                                    isCompact={true}
-                                    isDraggable={false}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        }
+                        if (!assignedStaff) return null;
 
                         return (
                           <div
                             key={runner.id}
                             className={`runner-slot ${isMultiRunner ? 'multi' : 'single'}`}
-                            onClick={() => {
-                              onSelectEmptySlot('runner_slot', runner.id, `${activeDepartment.name} Runner (${displayTitle})`);
-                            }}
                             style={{
                               flex: isMultiRunner ? '1 1 0' : '1 1 100%',
                               minWidth: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              padding: '2px 4px',
-                              cursor: 'pointer'
+                              position: 'relative'
                             }}
-                            title={`Tap to assign ${displayTitle}`}
                           >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, overflow: 'hidden' }}>
-                              <Plus size={11} style={{ flexShrink: 0 }} />
-                              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {displayTitle}
-                              </span>
+                            <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%' }}>
+                              <div style={{ flex: 1, minWidth: 0, height: '100%' }}>
+                                <MagnetTile
+                                  staff={assignedStaff}
+                                  slotId={runner.id}
+                                  slotType="runner_slot"
+                                  breakfastDone={runner.breakfastDone}
+                                  lunchDone={runner.lunchDone}
+                                  currentUserRole={currentUserRole}
+                                  onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
+                                  onSelectStaff={onSelectStaff}
+                                  isCompact={true}
+                                  isDraggable={false}
+                                />
+                              </div>
                             </div>
-                            {isEditor && onRemoveRunnerSlot && runnerSlots.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onRemoveRunnerSlot(activeDepartment.id, runner.id);
-                                }}
-                                style={{
-                                  color: 'var(--text-muted)',
-                                  padding: 1,
-                                  background: 'none',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  flexShrink: 0
-                                }}
-                                title="Remove extra empty runner slot"
-                              >
-                                <X size={11} />
-                              </button>
-                            )}
                           </div>
                         );
                       })}

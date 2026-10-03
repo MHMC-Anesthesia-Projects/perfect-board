@@ -149,14 +149,34 @@ export async function POST(req: NextRequest) {
           for (const dept of state.departments) {
             const runner = dept.runnerSlots.find(r => r.id === targetId);
             if (runner) {
-              runner.staffId = staffId || null;
-              if (staffId && state.bullpenBreaks?.[staffId]) {
-                runner.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
-                runner.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
-                runner.breakfastTime = state.bullpenBreaks[staffId].breakfastTime || null;
-                runner.lunchTime = state.bullpenBreaks[staffId].lunchTime || null;
+              if (!runner.staffId || !staffId) {
+                runner.staffId = staffId || null;
+                if (staffId && state.bullpenBreaks?.[staffId]) {
+                  runner.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
+                  runner.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
+                  runner.breakfastTime = state.bullpenBreaks[staffId].breakfastTime || null;
+                  runner.lunchTime = state.bullpenBreaks[staffId].lunchTime || null;
+                }
+                locationName = `${dept.name} Runner (${runner.title})`;
+              } else {
+                // Drop on existing runner: becomes an additional runner, NOT replace!
+                const alreadyRunnerHere = dept.runnerSlots.some(slot => slot.staffId === staffId);
+                if (!alreadyRunnerHere) {
+                  const newRunner = {
+                    id: `runner_${dept.id}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                    title: `Runner ${dept.runnerSlots.length + 1}`,
+                    staffId: staffId,
+                    breakfastDone: Boolean(state.bullpenBreaks?.[staffId]?.breakfastDone),
+                    lunchDone: Boolean(state.bullpenBreaks?.[staffId]?.lunchDone),
+                    breakfastTime: state.bullpenBreaks?.[staffId]?.breakfastTime || null,
+                    lunchTime: state.bullpenBreaks?.[staffId]?.lunchTime || null
+                  };
+                  dept.runnerSlots.push(newRunner);
+                  locationName = `${dept.name} Runner (${newRunner.title})`;
+                } else {
+                  locationName = `${dept.name} Runner (Already Assigned)`;
+                }
               }
-              locationName = `${dept.name} Runner (${runner.title})`;
               break;
             }
           }
@@ -165,27 +185,17 @@ export async function POST(req: NextRequest) {
             if (dept.id === targetId) {
               const alreadyRunnerHere = dept.runnerSlots.some(slot => slot.staffId === staffId);
               if (!alreadyRunnerHere) {
-                const emptySlot = dept.runnerSlots.find(slot => !slot.staffId);
-                if (emptySlot) {
-                  emptySlot.staffId = staffId || null;
-                  emptySlot.breakfastDone = (staffId && state.bullpenBreaks?.[staffId]?.breakfastDone) || false;
-                  emptySlot.lunchDone = (staffId && state.bullpenBreaks?.[staffId]?.lunchDone) || false;
-                  emptySlot.breakfastTime = (staffId && state.bullpenBreaks?.[staffId]?.breakfastTime) || null;
-                  emptySlot.lunchTime = (staffId && state.bullpenBreaks?.[staffId]?.lunchTime) || null;
-                  locationName = `${dept.name} Runner (${emptySlot.title})`;
-                } else {
-                  const newRunner = {
-                    id: `runner_${dept.id}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-                    title: `Runner ${dept.runnerSlots.length + 1}`,
-                    staffId: staffId || null,
-                    breakfastDone: (staffId && state.bullpenBreaks?.[staffId]?.breakfastDone) || false,
-                    lunchDone: (staffId && state.bullpenBreaks?.[staffId]?.lunchDone) || false,
-                    breakfastTime: (staffId && state.bullpenBreaks?.[staffId]?.breakfastTime) || null,
-                    lunchTime: (staffId && state.bullpenBreaks?.[staffId]?.lunchTime) || null
-                  };
-                  dept.runnerSlots.push(newRunner);
-                  locationName = `${dept.name} Runner (${newRunner.title})`;
-                }
+                const newRunner = {
+                  id: `runner_${dept.id}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                  title: `Runner ${dept.runnerSlots.length + 1}`,
+                  staffId: staffId || null,
+                  breakfastDone: (staffId && state.bullpenBreaks?.[staffId]?.breakfastDone) || false,
+                  lunchDone: (staffId && state.bullpenBreaks?.[staffId]?.lunchDone) || false,
+                  breakfastTime: (staffId && state.bullpenBreaks?.[staffId]?.breakfastTime) || null,
+                  lunchTime: (staffId && state.bullpenBreaks?.[staffId]?.lunchTime) || null
+                };
+                dept.runnerSlots.push(newRunner);
+                locationName = `${dept.name} Runner (${newRunner.title})`;
               } else {
                 locationName = `${dept.name} Runner (Already Assigned)`;
               }
@@ -383,34 +393,19 @@ export async function POST(req: NextRequest) {
           for (const dept of state.departments) {
             const r = dept.runnerSlots.find(slot => slot.id === toId);
             if (r) {
-              r.staffId = staffId;
-              if (staffId && state.bullpenBreaks?.[staffId]) {
-                r.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
-                r.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
-                r.breakfastTime = state.bullpenBreaks[staffId].breakfastTime || null;
-                r.lunchTime = state.bullpenBreaks[staffId].lunchTime || null;
-              }
-              toLocation = `${dept.name} Runner (${r.title})`;
-            }
-          }
-        } else if (toTargetType === 'runner_dept') {
-          // Runners cannot be in the bullpen!
-          if (staffId) {
-            state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
-          }
-          for (const dept of state.departments) {
-            if (dept.id === toId) {
-              const alreadyRunnerHere = dept.runnerSlots.some(slot => slot.staffId === staffId);
-              if (!alreadyRunnerHere) {
-                const emptySlot = dept.runnerSlots.find(slot => !slot.staffId);
-                if (emptySlot) {
-                  emptySlot.staffId = staffId;
-                  emptySlot.breakfastDone = (staffId && state.bullpenBreaks?.[staffId]?.breakfastDone) || false;
-                  emptySlot.lunchDone = (staffId && state.bullpenBreaks?.[staffId]?.lunchDone) || false;
-                  emptySlot.breakfastTime = (staffId && state.bullpenBreaks?.[staffId]?.breakfastTime) || null;
-                  emptySlot.lunchTime = (staffId && state.bullpenBreaks?.[staffId]?.lunchTime) || null;
-                  toLocation = `${dept.name} Runner (${emptySlot.title})`;
-                } else {
+              if (!r.staffId || !staffId) {
+                r.staffId = staffId;
+                if (staffId && state.bullpenBreaks?.[staffId]) {
+                  r.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
+                  r.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
+                  r.breakfastTime = state.bullpenBreaks[staffId].breakfastTime || null;
+                  r.lunchTime = state.bullpenBreaks[staffId].lunchTime || null;
+                }
+                toLocation = `${dept.name} Runner (${r.title})`;
+              } else {
+                // Drop on existing runner: becomes an additional runner, NOT replace!
+                const alreadyRunnerHere = dept.runnerSlots.some(slot => slot.staffId === staffId);
+                if (!alreadyRunnerHere) {
                   const newRunner = {
                     id: `runner_${dept.id}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
                     title: `Runner ${dept.runnerSlots.length + 1}`,
@@ -422,7 +417,33 @@ export async function POST(req: NextRequest) {
                   };
                   dept.runnerSlots.push(newRunner);
                   toLocation = `${dept.name} Runner (${newRunner.title})`;
+                } else {
+                  toLocation = `${dept.name} Runner (Already Assigned)`;
                 }
+              }
+              break;
+            }
+          }
+        } else if (toTargetType === 'runner_dept') {
+          // Runners cannot be in the bullpen!
+          if (staffId) {
+            state.bullpenStaffIds = state.bullpenStaffIds.filter(id => id !== staffId);
+          }
+          for (const dept of state.departments) {
+            if (dept.id === toId) {
+              const alreadyRunnerHere = dept.runnerSlots.some(slot => slot.staffId === staffId);
+              if (!alreadyRunnerHere) {
+                const newRunner = {
+                  id: `runner_${dept.id}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                  title: `Runner ${dept.runnerSlots.length + 1}`,
+                  staffId: staffId,
+                  breakfastDone: (staffId && state.bullpenBreaks?.[staffId]?.breakfastDone) || false,
+                  lunchDone: (staffId && state.bullpenBreaks?.[staffId]?.lunchDone) || false,
+                  breakfastTime: (staffId && state.bullpenBreaks?.[staffId]?.breakfastTime) || null,
+                  lunchTime: (staffId && state.bullpenBreaks?.[staffId]?.lunchTime) || null
+                };
+                dept.runnerSlots.push(newRunner);
+                toLocation = `${dept.name} Runner (${newRunner.title})`;
               } else {
                 toLocation = `${dept.name} Runner (Already Assigned)`;
               }
