@@ -732,7 +732,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           ...d.runnerSlots,
           {
             id: `runner_${deptId}_${Date.now()}`,
-            title: `RUNNER ${num}`,
+            title: `Runner ${num}`,
             staffId: null,
             breakfastDone: false,
             lunchDone: false
@@ -755,9 +755,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const handleRenameRunner = (deptId: string, runnerId: string, title: string) => {
     setLayoutDepts(prev => prev.map(d => {
       if (d.id !== deptId) return d;
+      const formattedTitle = title.trim().replace(/^RUNNER(\s+\d+)?$/i, (m: string, n?: string) => `Runner${n || ''}`);
       return {
         ...d,
-        runnerSlots: d.runnerSlots.map(r => r.id === runnerId ? { ...r, title: title.toUpperCase() } : r)
+        runnerSlots: d.runnerSlots.map(r => r.id === runnerId ? { ...r, title: formattedTitle } : r)
       };
     }));
   };
@@ -773,7 +774,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       runnerSlots: [
         {
           id: `runner_${id}_1`,
-          title: 'RUNNER 1',
+          title: 'Runner 1',
           staffId: null,
           breakfastDone: false,
           lunchDone: false
