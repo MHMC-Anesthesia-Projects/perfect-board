@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, displayName, role, pin, password, active, currentUser } = body;
+    const { id, username, displayName, role, pin, password, active, currentUser } = body;
 
     if (currentUser?.role !== 'superuser') {
       return NextResponse.json({ error: 'Only Superusers can modify users.' }, { status: 403 });
@@ -78,11 +78,48 @@ export async function PUT(req: NextRequest) {
     }
 
     const targetUser = users[userIndex];
-    if (displayName !== undefined) targetUser.displayName = displayName;
-    if (role !== undefined) targetUser.role = role;
-    if (pin !== undefined) targetUser.pin = pin;
-    if (password !== undefined && password.trim() !== '') targetUser.password = password;
-    if (active !== undefined) targetUser.active = active;
+
+    if (username !== undefined && username.trim() !== '' && username.trim().toLowerCase() !== targetUser.username.toLowerCase()) {
+      const trimmedUsername = username.trim();
+      if (users.some(u => u.id !== id && u.username.toLowerCase() === trimmedUsername.toLowerCase())) {
+        return NextResponse.json({ error: 'Username already taken by another account.' }, { status: 400 });
+      }
+      targetUser.username = trimmedUsername;
+    }
+
+    if (displayName !== undefined && displayName.trim() !== '') {
+      targetUser.displayName = displayName.trim();
+    }
+
+    if (role !== undefined) {
+      // Prevent demoting the only active superuser
+      if (targetUser.role === 'superuser' && role !== 'superuser') {
+        const activeSuperusers = users.filter(u => u.id !== id && u.role === 'superuser' && u.active);
+        if (activeSuperusers.length === 0) {
+          return NextResponse.json({ error: 'Cannot demote the only active superuser account.' }, { status: 400 });
+        }
+      }
+      targetUser.role = role;
+    }
+
+    if (pin !== undefined && pin.trim() !== '') {
+      targetUser.pin = pin.trim();
+    }
+
+    if (password !== undefined && password.trim() !== '') {
+      targetUser.password = password.trim();
+    }
+
+    if (active !== undefined) {
+      // Prevent deactivating the only active superuser
+      if (targetUser.role === 'superuser' && active === false) {
+        const activeSuperusers = users.filter(u => u.id !== id && u.role === 'superuser' && u.active);
+        if (activeSuperusers.length === 0) {
+          return NextResponse.json({ error: 'Cannot deactivate the only active superuser account.' }, { status: 400 });
+        }
+      }
+      targetUser.active = active;
+    }
 
     saveUsers(users);
 
@@ -91,7 +128,7 @@ export async function PUT(req: NextRequest) {
       performedBy: currentUser?.displayName || 'Superuser',
       userRole: 'superuser',
       targetName: targetUser.displayName,
-      details: `Updated user ${targetUser.username}: role=${targetUser.role}, active=${targetUser.active}`
+      details: `Updated user @${targetUser.username} (${targetUser.displayName}): role=${targetUser.role}, PIN=${targetUser.pin}, active=${targetUser.active}`
     });
 
     return NextResponse.json({ success: true, user: targetUser });
