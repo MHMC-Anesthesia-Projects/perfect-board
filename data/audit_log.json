@@ -1,5 +1,13 @@
 [
   {
+    "id": "audit_1791037068599_pkklv",
+    "timestamp": "2026-10-03T14:17:48.599Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "System Scheduler (1:00 AM Auto-Reset)",
+    "userRole": "superuser",
+    "details": "Daily 1:00 AM reset: Cleared breakfast and lunch break completion for all rooms, runners, and bullpen staff"
+  },
+  {
     "id": "audit_1790951887443_4d88r",
     "timestamp": "2026-10-02T14:38:07.443Z",
     "actionType": "BREAKFAST_TOGGLED",

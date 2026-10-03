@@ -1763,7 +1763,7 @@
       "shift": "3p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "HillerKen",
-      "active": false,
+      "active": true,
       "orderNumber": 133,
       "isInfrequent": false
     },
@@ -1776,7 +1776,7 @@
       "shift": "Day",
       "facility": "MH Memorial City",
       "qgendaAbbr": "JamesIka",
-      "active": false,
+      "active": true,
       "orderNumber": 170,
       "isInfrequent": false
     },
@@ -1789,7 +1789,7 @@
       "shift": "C1",
       "facility": "MH Memorial City",
       "qgendaAbbr": "RameshRek",
-      "active": false,
+      "active": true,
       "orderNumber": 215,
       "isInfrequent": false
     },
@@ -1804,7 +1804,7 @@
       "qgendaAbbr": "TamTom",
       "orderNumber": 326,
       "isInfrequent": false,
-      "active": false
+      "active": true
     },
     {
       "id": "staff_oneusap_anes_songbry",
@@ -1815,7 +1815,7 @@
       "shift": "Day",
       "facility": "MH Memorial City",
       "qgendaAbbr": "SongBry",
-      "active": false,
+      "active": true,
       "orderNumber": 360,
       "isInfrequent": false
     },
@@ -1830,7 +1830,7 @@
       "qgendaAbbr": "KentReb",
       "orderNumber": 306,
       "isInfrequent": false,
-      "active": false
+      "active": true
     },
     {
       "id": "staff_oneusap_doc_farias kovacmar",
@@ -1841,7 +1841,7 @@
       "shift": "postCV",
       "facility": "MH Memorial City",
       "qgendaAbbr": "Farias KovacMar",
-      "active": false,
+      "active": true,
       "orderNumber": 86
     },
     {
@@ -1853,7 +1853,7 @@
       "shift": "Day",
       "facility": "MH Memorial City",
       "qgendaAbbr": "GashlerKyl",
-      "active": false,
+      "active": true,
       "orderNumber": 195
     },
     {
@@ -1865,7 +1865,7 @@
       "shift": "Day",
       "facility": "MH Memorial City",
       "qgendaAbbr": "ChenKev",
-      "active": false,
+      "active": true,
       "orderNumber": 198
     },
     {
@@ -1877,7 +1877,7 @@
       "shift": "CV",
       "facility": "MH Memorial City",
       "qgendaAbbr": "RuizJua",
-      "active": false,
+      "active": true,
       "orderNumber": 207
     },
     {
@@ -1889,7 +1889,7 @@
       "shift": "3p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "CrossleyLad",
-      "active": false,
+      "active": true,
       "orderNumber": 179
     },
     {
@@ -1901,7 +1901,7 @@
       "shift": "3p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "HudzikVer",
-      "active": false,
+      "active": true,
       "orderNumber": 206
     },
     {
@@ -1913,7 +1913,7 @@
       "shift": "3p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "MoodyMat",
-      "active": false,
+      "active": true,
       "orderNumber": 231
     },
     {
@@ -1925,7 +1925,7 @@
       "shift": "3p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "PaloianMer",
-      "active": false,
+      "active": true,
       "orderNumber": 238
     },
     {
@@ -1937,7 +1937,7 @@
       "shift": "3p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "SongYeu",
-      "active": false,
+      "active": true,
       "orderNumber": 252
     },
     {
@@ -1949,7 +1949,7 @@
       "shift": "5p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "WalkerNes",
-      "active": false,
+      "active": true,
       "orderNumber": 327
     },
     {
@@ -1961,7 +1961,7 @@
       "shift": "7p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "NdujiubaEny",
-      "active": false,
+      "active": true,
       "orderNumber": 338
     },
     {
@@ -1973,7 +1973,7 @@
       "shift": "7p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "PatagocSun",
-      "active": false,
+      "active": true,
       "orderNumber": 342,
       "isInfrequent": true
     },
@@ -1986,7 +1986,7 @@
       "shift": "7p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "TekweChr",
-      "active": false,
+      "active": true,
       "orderNumber": 345
     },
     {
@@ -1998,7 +1998,7 @@
       "shift": "8p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "BeardEri",
-      "active": false,
+      "active": true,
       "orderNumber": 351
     },
     {
@@ -2010,7 +2010,7 @@
       "shift": "8p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "FlemmingCin",
-      "active": false,
+      "active": true,
       "orderNumber": 354
     },
     {
@@ -2022,7 +2022,7 @@
       "shift": "8p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "TranTon",
-      "active": false,
+      "active": true,
       "orderNumber": 368
     },
     {
@@ -2034,7 +2034,7 @@
       "shift": "8p",
       "facility": "MH Memorial City",
       "qgendaAbbr": "VanTasselChr",
-      "active": false,
+      "active": true,
       "orderNumber": 370
     },
     {
@@ -2046,7 +2046,7 @@
       "shift": "3p,Swing",
       "facility": "MH Memorial City",
       "qgendaAbbr": "LouisKes",
-      "active": false,
+      "active": true,
       "orderNumber": 372
     }
   ],
@@ -2440,14 +2440,7 @@
       "HIVF-SC"
     ]
   },
-  "bullpenBreaks": {
-    "staff_oneusap_anes_atagasas": {
-      "breakfastDone": false,
-      "lunchDone": false,
-      "breakfastTime": null,
-      "lunchTime": null
-    }
-  },
+  "bullpenBreaks": {},
   "uniqueSchedules": [
     {
       "id": "rule_hirsch",
@@ -2520,5 +2513,5 @@
     "rojasart",
     "rojas"
   ],
-  "lastBreakResetDate": "2026-10-02"
+  "lastBreakResetDate": "2026-10-03"
 }

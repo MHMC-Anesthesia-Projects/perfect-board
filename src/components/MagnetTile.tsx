@@ -77,7 +77,7 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
 
   return (
     <div
-      className={`magnet-tile ${isCompact ? 'compact' : ''}`}
+      className={`magnet-tile ${isCompact ? 'compact' : ''} cred-tile-${staff.credentials}`}
       draggable={isDraggable}
       onDragStart={handleDrag}
       onDragEnd={handleDragEnd}
@@ -87,15 +87,12 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
         cursor: isDraggable ? 'grab' : 'pointer'
       }}
     >
-      {/* Staff Name & Credential Badge (credential next to name) */}
+      {/* Staff Name (credentials color-coded via left accent stripe) */}
       <div className="magnet-identity">
         <span className="magnet-name">
           {staff.displayName 
             ? staff.displayName.toUpperCase() 
             : `${staff.lastName.toUpperCase()}${staff.firstName ? ` ${staff.firstName[0]}.` : ''}`}
-        </span>
-        <span className={`magnet-cred cred-${staff.credentials}`}>
-          {staff.credentials}
         </span>
       </div>
 
