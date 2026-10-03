@@ -658,6 +658,47 @@ export default function WhiteboardPage() {
     }
   };
 
+  // Remove staff from a specific placement (runner slot, room slot, or bullpen)
+  const handleRemoveFromSlot = async (
+    targetType: 'runner_slot' | 'room_slot' | 'bullpen',
+    targetId: string,
+    departmentId?: string,
+    staffId?: string
+  ) => {
+    if (currentUserRole === 'basic_user') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      if (targetType === 'runner_slot') {
+        let deptId = departmentId;
+        if (!deptId && boardState) {
+          const dept = boardState.departments.find(d => d.runnerSlots?.some(r => r.id === targetId));
+          if (dept) deptId = dept.id;
+        }
+        await handleRemoveRunnerSlot(deptId || '', targetId);
+        setToastMessage('Runner assignment removed.');
+        setTimeout(() => setToastMessage(null), 3000);
+        return;
+      }
+
+      if (targetType === 'room_slot') {
+        await handleAssignStaff('room_slot', targetId, '');
+        setToastMessage('Room assignment removed.');
+        setTimeout(() => setToastMessage(null), 3000);
+        return;
+      }
+
+      if (targetType === 'bullpen' && staffId) {
+        await handleMoveStaffToUnassigned(staffId, { type: 'bullpen', id: staffId });
+        return;
+      }
+    } catch (err) {
+      console.error('Error removing from slot:', err);
+    }
+  };
+
   // Set or clear estimated future case time for a room (e.g. "1030")
   const handleSetRoomFutureTime = async (roomId: string, futureTime: string | null) => {
     if (currentUserRole === 'basic_user') {
@@ -960,18 +1001,61 @@ export default function WhiteboardPage() {
     handleMoveStaffToUnassigned(fromData.staffId, fromData);
   };
 
+  // Other active assignments if dragged staff has multiple locations
+  const promptOtherAssignments = useMemo(() => {
+    if (!unassignPromptTarget || !boardState) return [];
+    const staffId = unassignPromptTarget.staff.id;
+    const currentSlotId = unassignPromptTarget.fromData.id;
+    const list: string[] = [];
+    for (const dept of boardState.departments) {
+      for (const r of dept.runnerSlots || []) {
+        if (r.staffId === staffId && r.id !== currentSlotId) {
+          list.push(`${dept.name} Runner (${r.title})`);
+        }
+      }
+      for (const rm of dept.rooms || []) {
+        for (const s of rm.slots || []) {
+          if (s.staffId === staffId && s.id !== currentSlotId) {
+            list.push(`${dept.name} Room ${rm.name}`);
+          }
+        }
+      }
+    }
+    return list;
+  }, [unassignPromptTarget, boardState]);
+
+  const handleConfirmRemoveCurrentOnly = async () => {
+    if (!unassignPromptTarget) return;
+    const { fromData } = unassignPromptTarget;
+    setUnassignPromptTarget(null);
+    if (fromData.type === 'runner_slot' && fromData.id) {
+      let deptId = '';
+      if (boardState) {
+        const dept = boardState.departments.find(d => d.runnerSlots?.some(r => r.id === fromData.id));
+        if (dept) deptId = dept.id;
+      }
+      await handleRemoveRunnerSlot(deptId, fromData.id);
+      setToastMessage('Removed from runner slot.');
+      setTimeout(() => setToastMessage(null), 3000);
+    } else if (fromData.type === 'room_slot' && fromData.id) {
+      await handleAssignStaff('room_slot', fromData.id, '');
+      setToastMessage('Removed from room.');
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
+
   const handleConfirmUnassignToBullpen = async () => {
     if (!unassignPromptTarget) return;
     const { fromData } = unassignPromptTarget;
     setUnassignPromptTarget(null);
-    await handleDropToBullpen(fromData);
+    await handleDropToBullpen({ ...fromData, removeAllLocations: true } as any);
   };
 
   const handleConfirmUnassignLeaving = async () => {
     if (!unassignPromptTarget) return;
     const { staff, fromData } = unassignPromptTarget;
     setUnassignPromptTarget(null);
-    await handleMoveStaffToUnassigned(staff.id, fromData);
+    await handleMoveStaffToUnassigned(staff.id, { ...fromData, removeAllLocations: true } as any);
   };
 
   // 5. Update Notes
@@ -1456,7 +1540,7 @@ export default function WhiteboardPage() {
       />
 
       <StaffModal
-        staff={selectedStaff}
+        staff={boardState?.staff.find(s => s.id === selectedStaff?.id) || selectedStaff}
         departments={boardState.departments}
         allStaff={boardState.staff}
         bullpenStaffIds={effectiveBullpenStaffIds}
@@ -1464,6 +1548,7 @@ export default function WhiteboardPage() {
         currentUserRole={currentUserRole}
         onClose={() => setSelectedStaff(null)}
         onAssignToSlot={handleAssignStaff}
+        onRemoveFromSlot={handleRemoveFromSlot}
         onMoveToBullpen={staffId => handleDropToBullpen({ staffId, type: 'bullpen_transfer' })}
         onUnassign={staffId => handleMoveStaffToUnassigned(staffId)}
         onToggleBreak={handleToggleBreak}
@@ -1591,6 +1676,8 @@ export default function WhiteboardPage() {
         isOpen={!!unassignPromptTarget}
         staff={unassignPromptTarget?.staff || null}
         fromLocationName={unassignPromptTarget?.fromLocationName}
+        otherAssignments={promptOtherAssignments}
+        onRemoveFromCurrentOnly={handleConfirmRemoveCurrentOnly}
         onSendToBullpen={handleConfirmUnassignToBullpen}
         onMarkLeaving={handleConfirmUnassignLeaving}
         onClose={() => setUnassignPromptTarget(null)}

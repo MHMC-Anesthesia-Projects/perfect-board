@@ -202,7 +202,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         <button
           onClick={onTriggerSync}
           disabled={isSyncing}
-          title={lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString()}` : 'Sync with Portal'}
+          title={lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString()}` : 'Sync'}
           style={{
             padding: '6px 12px',
             borderRadius: 6,
@@ -217,7 +217,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           }}
         >
           <RotateCw size={14} className={isSyncing ? 'spin-animation' : ''} />
-          <span>{isSyncing ? 'Syncing...' : 'Sync Portal'}</span>
+          <span>{isSyncing ? 'Syncing...' : 'Sync'}</span>
         </button>
 
         {/* Auto-Assign Magnets Button */}

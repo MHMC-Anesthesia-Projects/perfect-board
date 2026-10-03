@@ -4,6 +4,20 @@ import React, { useState } from 'react';
 import { Staff, Department, UserRole, ReliefAssignment } from '@/types/whiteboard';
 import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, CheckCircle, ShieldCheck, Sparkles, UserCheck } from 'lucide-react';
 
+export interface StaffPlacement {
+  type: 'runner_slot' | 'room_slot' | 'bullpen';
+  id: string;
+  departmentId?: string;
+  departmentName?: string;
+  roomName?: string;
+  roomId?: string;
+  locationName: string;
+  futureTime?: string | null;
+  breakfastDone: boolean;
+  lunchDone: boolean;
+  relief?: ReliefAssignment | null;
+}
+
 interface StaffModalProps {
   staff: Staff | null;
   departments: Department[];
@@ -14,6 +28,12 @@ interface StaffModalProps {
   onClose: () => void;
   onAssignToSlot: (targetType: 'room_slot' | 'runner_slot', targetId: string, staffId: string) => void;
   onUnassign: (staffId: string) => void;
+  onRemoveFromSlot?: (
+    targetType: 'runner_slot' | 'room_slot' | 'bullpen',
+    targetId: string,
+    departmentId?: string,
+    staffId?: string
+  ) => Promise<void> | void;
   onMoveToBullpen?: (staffId: string) => void;
   onToggleBreak: (targetType: 'room_slot' | 'runner_slot' | 'bullpen', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
   onUpdateShift?: (staffId: string, newShift: string, lastName?: string, credentials?: Staff['credentials']) => void;
@@ -41,6 +61,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   onClose,
   onAssignToSlot,
   onUnassign,
+  onRemoveFromSlot,
   onMoveToBullpen,
   onToggleBreak,
   onUpdateShift,
@@ -69,71 +90,64 @@ export const StaffModal: React.FC<StaffModalProps> = ({
 
   const isEditor = currentUserRole !== 'basic_user';
 
-  // Find where this staff is currently assigned
-  let currentPlacement: {
-    type: 'runner_slot' | 'room_slot' | 'bullpen';
-    id: string;
-    roomId?: string;
-    futureTime?: string | null;
-    locationName: string;
-    departmentName?: string;
-    roomName?: string;
-    breakfastDone: boolean;
-    lunchDone: boolean;
-    relief?: ReliefAssignment | null;
-  } | null = null;
+  // Find where this staff is currently assigned (supports multiple runner slots across departments)
+  const allPlacements: StaffPlacement[] = [];
 
   for (const dept of departments) {
-    for (const r of dept.runnerSlots) {
+    for (const r of dept.runnerSlots || []) {
       if (r.staffId === staff.id) {
-        currentPlacement = {
+        allPlacements.push({
           type: 'runner_slot',
           id: r.id,
-          locationName: `${dept.name} Runner (${r.title})`,
+          departmentId: dept.id,
           departmentName: dept.name,
           roomName: r.title,
+          locationName: `${dept.name} Runner (${r.title})`,
           breakfastDone: r.breakfastDone,
           lunchDone: r.lunchDone,
           relief: r.relief
-        };
-        break;
+        });
       }
     }
-    if (currentPlacement) break;
 
-    for (const room of dept.rooms) {
-      for (const slot of room.slots) {
+    for (const room of dept.rooms || []) {
+      for (const slot of room.slots || []) {
         if (slot.staffId === staff.id) {
-          currentPlacement = {
+          allPlacements.push({
             type: 'room_slot',
             id: slot.id,
+            departmentId: dept.id,
+            departmentName: dept.name,
             roomId: room.id,
+            roomName: `Room ${room.name}`,
             futureTime: room.futureTime,
             locationName: `${dept.name} Room ${room.name}`,
-            departmentName: dept.name,
-            roomName: `Room ${room.name}`,
             breakfastDone: slot.breakfastDone,
             lunchDone: slot.lunchDone,
             relief: slot.relief
-          };
-          break;
+          });
         }
       }
-      if (currentPlacement) break;
     }
-    if (currentPlacement) break;
   }
 
-  if (!currentPlacement && bullpenStaffIds.includes(staff.id)) {
+  if (allPlacements.length === 0 && bullpenStaffIds.includes(staff.id)) {
     const b = bullpenBreaks[staff.id];
-    currentPlacement = {
+    allPlacements.push({
       type: 'bullpen',
       id: staff.id,
       locationName: 'Bullpen (Available Staff)',
       breakfastDone: b?.breakfastDone ?? false,
       lunchDone: b?.lunchDone ?? false
-    };
+    });
   }
+
+  const currentPlacement = allPlacements[0] || null;
+  const roomPlacement = allPlacements.find(p => p.type === 'room_slot') || null;
+
+  // Synced break statuses across all active placements
+  const isBreakfastDone = allPlacements.some(p => p.breakfastDone) || Boolean(bullpenBreaks[staff.id]?.breakfastDone);
+  const isLunchDone = allPlacements.some(p => p.lunchDone) || Boolean(bullpenBreaks[staff.id]?.lunchDone);
 
   // Available room & runner slots for quick reassignment
   const availableSlots: Array<{ id: string; type: 'room_slot' | 'runner_slot'; label: string }> = [];
@@ -162,6 +176,35 @@ export const StaffModal: React.FC<StaffModalProps> = ({
     if (dest) {
       onAssignToSlot(dest.type, dest.id, staff.id);
       onClose();
+    }
+  };
+
+  const handleRemovePlacement = async (placement: StaffPlacement) => {
+    if (onRemoveFromSlot) {
+      await onRemoveFromSlot(placement.type, placement.id, placement.departmentId, staff.id);
+      if (allPlacements.length <= 1) {
+        onClose();
+      }
+    }
+  };
+
+  const handleToggleBreakfast = () => {
+    if (allPlacements.length > 0) {
+      allPlacements.forEach(p => {
+        onToggleBreak(p.type, p.id, 'breakfast', !isBreakfastDone);
+      });
+    } else {
+      onToggleBreak('bullpen', staff.id, 'breakfast', !isBreakfastDone);
+    }
+  };
+
+  const handleToggleLunch = () => {
+    if (allPlacements.length > 0) {
+      allPlacements.forEach(p => {
+        onToggleBreak(p.type, p.id, 'lunch', !isLunchDone);
+      });
+    } else {
+      onToggleBreak('bullpen', staff.id, 'lunch', !isLunchDone);
     }
   };
 
@@ -521,25 +564,141 @@ export const StaffModal: React.FC<StaffModalProps> = ({
             </div>
           )}
 
-          {/* Current Assignment */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
-            <MapPin size={15} style={{ color: 'var(--marker-green)' }} />
-            <span style={{ fontWeight: 600 }}>Current Assignment:</span>
-            <span style={{
-              fontWeight: 800,
-              color: currentPlacement ? 'var(--text-primary)' : 'var(--text-muted)',
-              background: currentPlacement ? 'var(--surface-card)' : 'transparent',
-              padding: currentPlacement ? '2px 6px' : '0',
-              borderRadius: 4,
-              border: currentPlacement ? '1px solid var(--border-light)' : 'none'
-            }}>
-              {currentPlacement ? currentPlacement.locationName : 'Available Unassigned Staff'}
-            </span>
-          </div>
+          {/* Current Assignment(s) Display */}
+          {allPlacements.length <= 1 ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <MapPin size={15} style={{ color: 'var(--marker-green)', flexShrink: 0 }} />
+                <span style={{ fontWeight: 600, flexShrink: 0 }}>Current Assignment:</span>
+                <span style={{
+                  fontWeight: 800,
+                  color: currentPlacement ? 'var(--text-primary)' : 'var(--text-muted)',
+                  background: currentPlacement ? 'var(--surface-card)' : 'transparent',
+                  padding: currentPlacement ? '2px 8px' : '0',
+                  borderRadius: 4,
+                  border: currentPlacement ? '1px solid var(--border-light)' : 'none',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}>
+                  {currentPlacement ? currentPlacement.locationName : 'Available Unassigned Staff'}
+                </span>
+              </div>
+              {isEditor && currentPlacement && onRemoveFromSlot && (
+                <button
+                  type="button"
+                  onClick={() => handleRemovePlacement(currentPlacement)}
+                  title={`Remove from ${currentPlacement.locationName}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '3px 8px',
+                    borderRadius: 4,
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    color: 'var(--marker-red)',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    flexShrink: 0
+                  }}
+                >
+                  <X size={12} />
+                  <span>Remove</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
+                  <MapPin size={15} style={{ color: 'var(--marker-green)', flexShrink: 0 }} />
+                  <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                    Current Assignments ({allPlacements.length}):
+                  </span>
+                </div>
+                <span style={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  color: 'var(--accent-primary)',
+                  background: 'rgba(9, 105, 218, 0.1)',
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  textTransform: 'uppercase'
+                }}>
+                  Multi-Dept Runner
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {allPlacements.map((p) => (
+                  <div
+                    key={p.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      background: 'var(--surface-card)',
+                      padding: '7px 10px',
+                      borderRadius: 6,
+                      border: '1.5px solid var(--border-light)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+                      <span style={{
+                        display: 'inline-block',
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        background: 'var(--marker-green)',
+                        flexShrink: 0
+                      }} />
+                      <span style={{
+                        fontWeight: 800,
+                        fontSize: 12.5,
+                        color: 'var(--text-primary)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {p.locationName}
+                      </span>
+                    </div>
+                    {isEditor && onRemoveFromSlot && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePlacement(p)}
+                        title={`Remove from ${p.locationName}`}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '3px 8px',
+                          borderRadius: 4,
+                          background: 'rgba(239, 68, 68, 0.08)',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          color: 'var(--marker-red)',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          flexShrink: 0
+                        }}
+                      >
+                        <X size={12} />
+                        <span>Remove from {p.departmentName || 'Slot'}</span>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Break Management Status (Accessible to ALL users, including Basic User!) */}
-        {currentPlacement && (
+        {allPlacements.length > 0 && (
           <div style={{
             background: 'var(--surface-card)',
             borderRadius: 8,
@@ -566,16 +725,12 @@ export const StaffModal: React.FC<StaffModalProps> = ({
               {/* Breakfast Break Toggle */}
               <button
                 type="button"
-                onClick={() => {
-                  if (currentPlacement) {
-                    onToggleBreak(currentPlacement.type, currentPlacement.id, 'breakfast', !currentPlacement.breakfastDone);
-                  }
-                }}
+                onClick={handleToggleBreakfast}
                 style={{
                   padding: '10px 12px',
                   borderRadius: 6,
-                  border: currentPlacement.breakfastDone ? '1.5px solid var(--break-done-border)' : '1px solid var(--border-light)',
-                  background: currentPlacement.breakfastDone ? 'rgba(46, 160, 67, 0.12)' : 'var(--surface-hover)',
+                  border: isBreakfastDone ? '1.5px solid var(--break-done-border)' : '1px solid var(--border-light)',
+                  background: isBreakfastDone ? 'rgba(46, 160, 67, 0.12)' : 'var(--surface-hover)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
@@ -586,20 +741,20 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   width: 24,
                   height: 24,
                   borderRadius: 4,
-                  background: currentPlacement.breakfastDone ? 'var(--break-done-bg)' : 'var(--break-empty-bg)',
-                  color: currentPlacement.breakfastDone ? '#fff' : 'var(--text-secondary)',
+                  background: isBreakfastDone ? 'var(--break-done-bg)' : 'var(--break-empty-bg)',
+                  color: isBreakfastDone ? '#fff' : 'var(--text-secondary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontWeight: 800,
                   fontSize: 12
                 }}>
-                  {currentPlacement.breakfastDone ? '✓' : 'B'}
+                  {isBreakfastDone ? '✓' : 'B'}
                 </div>
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)' }}>Breakfast</div>
-                  <div style={{ fontSize: 10, color: currentPlacement.breakfastDone ? 'var(--break-done-border)' : 'var(--text-muted)' }}>
-                    {currentPlacement.breakfastDone ? 'Completed [✓]' : 'Pending'}
+                  <div style={{ fontSize: 10, color: isBreakfastDone ? 'var(--break-done-border)' : 'var(--text-muted)' }}>
+                    {isBreakfastDone ? 'Completed [✓]' : 'Pending'}
                   </div>
                 </div>
               </button>
@@ -607,16 +762,12 @@ export const StaffModal: React.FC<StaffModalProps> = ({
               {/* Lunch Break Toggle */}
               <button
                 type="button"
-                onClick={() => {
-                  if (currentPlacement) {
-                    onToggleBreak(currentPlacement.type, currentPlacement.id, 'lunch', !currentPlacement.lunchDone);
-                  }
-                }}
+                onClick={handleToggleLunch}
                 style={{
                   padding: '10px 12px',
                   borderRadius: 6,
-                  border: currentPlacement.lunchDone ? '1.5px solid var(--break-done-border)' : '1px solid var(--border-light)',
-                  background: currentPlacement.lunchDone ? 'rgba(46, 160, 67, 0.12)' : 'var(--surface-hover)',
+                  border: isLunchDone ? '1.5px solid var(--break-done-border)' : '1px solid var(--border-light)',
+                  background: isLunchDone ? 'rgba(46, 160, 67, 0.12)' : 'var(--surface-hover)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
@@ -627,20 +778,20 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   width: 24,
                   height: 24,
                   borderRadius: 4,
-                  background: currentPlacement.lunchDone ? 'var(--break-done-bg)' : 'var(--break-empty-bg)',
-                  color: currentPlacement.lunchDone ? '#fff' : 'var(--text-secondary)',
+                  background: isLunchDone ? 'var(--break-done-bg)' : 'var(--break-empty-bg)',
+                  color: isLunchDone ? '#fff' : 'var(--text-secondary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontWeight: 800,
                   fontSize: 12
                 }}>
-                  {currentPlacement.lunchDone ? '✓' : 'L'}
+                  {isLunchDone ? '✓' : 'L'}
                 </div>
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)' }}>Lunch</div>
-                  <div style={{ fontSize: 10, color: currentPlacement.lunchDone ? 'var(--break-done-border)' : 'var(--text-muted)' }}>
-                    {currentPlacement.lunchDone ? 'Completed [✓]' : 'Pending'}
+                  <div style={{ fontSize: 10, color: isLunchDone ? 'var(--break-done-border)' : 'var(--text-muted)' }}>
+                    {isLunchDone ? 'Completed [✓]' : 'Pending'}
                   </div>
                 </div>
               </button>
@@ -652,10 +803,10 @@ export const StaffModal: React.FC<StaffModalProps> = ({
         {isEditor ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {/* Scheduled Relief Section (Red Box) */}
-            {currentPlacement && currentPlacement.type === 'room_slot' && (
+            {roomPlacement && (
               <div style={{
-                background: currentPlacement.relief ? 'rgba(239, 68, 68, 0.08)' : 'var(--surface-hover)',
-                border: currentPlacement.relief ? '1.5px solid var(--marker-red)' : '1px solid var(--border-light)',
+                background: roomPlacement.relief ? 'rgba(239, 68, 68, 0.08)' : 'var(--surface-hover)',
+                border: roomPlacement.relief ? '1.5px solid var(--marker-red)' : '1px solid var(--border-light)',
                 borderRadius: 8,
                 padding: '10px 12px',
                 display: 'flex',
@@ -666,11 +817,11 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: 'var(--marker-red)', textTransform: 'uppercase' }}>
                     <Clock size={12} />
-                    <span>{currentPlacement.relief ? 'Relief Assigned' : 'Relief Planning'}</span>
+                    <span>{roomPlacement.relief ? 'Relief Assigned' : 'Relief Planning'}</span>
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 700, marginTop: 2 }}>
-                    {currentPlacement.relief
-                      ? `Relief: ${allStaff.find(s => s.id === currentPlacement?.relief?.staffId)?.lastName || 'Assigned'}`
+                    {roomPlacement.relief
+                      ? `Relief: ${allStaff.find(s => s.id === roomPlacement?.relief?.staffId)?.lastName || 'Assigned'}`
                       : 'No relief scheduled for this assignment yet.'}
                   </div>
                 </div>
@@ -681,18 +832,18 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                     onClick={() => {
                       onClose();
                       onOpenReliefModal({
-                        type: currentPlacement!.type as 'room_slot' | 'runner_slot',
-                        id: currentPlacement!.id,
-                        roomName: currentPlacement!.roomName || '',
-                        departmentName: currentPlacement!.departmentName || '',
+                        type: 'room_slot',
+                        id: roomPlacement.id,
+                        roomName: roomPlacement.roomName || '',
+                        departmentName: roomPlacement.departmentName || '',
                         currentStaff: staff,
-                        currentRelief: currentPlacement!.relief
+                        currentRelief: roomPlacement.relief
                       });
                     }}
                     style={{
                       padding: '6px 12px',
                       borderRadius: 6,
-                      background: currentPlacement.relief ? 'var(--marker-red)' : 'var(--accent-primary)',
+                      background: roomPlacement.relief ? 'var(--marker-red)' : 'var(--accent-primary)',
                       color: '#fff',
                       fontSize: 11,
                       fontWeight: 800,
@@ -701,14 +852,14 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                       whiteSpace: 'nowrap'
                     }}
                   >
-                    {currentPlacement.relief ? 'Manage Relief' : 'Set Relief (3 PM / Lates)'}
+                    {roomPlacement.relief ? 'Manage Relief' : 'Set Relief (3 PM / Lates)'}
                   </button>
                 )}
               </div>
             )}
 
             {/* Future Case Time for this Room */}
-            {currentPlacement && currentPlacement.type === 'room_slot' && (currentPlacement as any).roomId && onSetRoomFutureTime && (
+            {roomPlacement && roomPlacement.roomId && onSetRoomFutureTime && (
               <div style={{
                 background: 'rgba(239, 68, 68, 0.06)',
                 border: '1px solid rgba(239, 68, 68, 0.25)',
@@ -725,18 +876,18 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                     <span>Future Case Time</span>
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 700, marginTop: 2, fontFamily: 'var(--font-mono)' }}>
-                    {(currentPlacement as any).futureTime
-                      ? `Scheduled: ${(currentPlacement as any).futureTime} (Military)`
+                    {roomPlacement.futureTime
+                      ? `Scheduled: ${roomPlacement.futureTime} (Military)`
                       : 'None set for this room'}
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {(currentPlacement as any).futureTime ? (
+                  {roomPlacement.futureTime ? (
                     <button
                       type="button"
                       onClick={() => {
-                        onSetRoomFutureTime((currentPlacement as any).roomId, null);
+                        onSetRoomFutureTime(roomPlacement.roomId!, null);
                         onClose();
                       }}
                       style={{
@@ -759,7 +910,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                           key={preset}
                           type="button"
                           onClick={() => {
-                            onSetRoomFutureTime((currentPlacement as any).roomId, preset);
+                            onSetRoomFutureTime(roomPlacement.roomId!, preset);
                             onClose();
                           }}
                           style={{
@@ -866,8 +1017,9 @@ export const StaffModal: React.FC<StaffModalProps> = ({
               </div>
             )}
 
+
             {/* Unassign or move to bullpen if placed */}
-            {currentPlacement && (
+            {allPlacements.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
                 {onMoveToBullpen && (
                   <button
@@ -892,7 +1044,11 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                     }}
                   >
                     <Sparkles size={16} />
-                    <span>Move to Bullpen (Available for Breaks / Cases)</span>
+                    <span>
+                      {allPlacements.length > 1
+                        ? 'Move to Bullpen (Remove from All Locations)'
+                        : 'Move to Bullpen (Available for Breaks / Cases)'}
+                    </span>
                   </button>
                 )}
                 <button
@@ -914,7 +1070,11 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   }}
                 >
                   <CornerDownLeft size={16} />
-                  <span>Return to Available Unassigned Staff</span>
+                  <span>
+                    {allPlacements.length > 1
+                      ? 'Remove from All Locations (Return to Unassigned)'
+                      : 'Return to Available Unassigned Staff'}
+                  </span>
                 </button>
               </div>
             )}

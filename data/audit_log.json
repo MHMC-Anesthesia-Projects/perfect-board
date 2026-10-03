@@ -1,5 +1,42 @@
 [
   {
+    "id": "audit_1791068919583_5886r",
+    "timestamp": "2026-10-03T23:08:39.583Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "WEST PAV Runner (Runner 1)",
+    "details": "Moved from MAIN OR Runner (Runner 1) -> WEST PAV Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1791068912249_t5ia4",
+    "timestamp": "2026-10-03T23:08:32.249Z",
+    "actionType": "RUNNER_SLOT_REMOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "WEST PAV",
+    "details": "Removed runner slot \"Runner 1\" from WEST PAV"
+  },
+  {
+    "id": "audit_1791068903942_bs2qd",
+    "timestamp": "2026-10-03T23:08:23.942Z",
+    "actionType": "RUNNER_SLOT_REMOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "VILLAGE",
+    "details": "Removed runner slot \"Runner 1\" from VILLAGE"
+  },
+  {
+    "id": "audit_1791068902370_ibhd2",
+    "timestamp": "2026-10-03T23:08:22.370Z",
+    "actionType": "RUNNER_SLOT_REMOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "ORTHO",
+    "details": "Removed runner slot \"Runner 1\" from ORTHO"
+  },
+  {
     "id": "audit_1791067127134_bw9kx",
     "timestamp": "2026-10-03T22:38:47.134Z",
     "actionType": "STAFF_ASSIGNED",

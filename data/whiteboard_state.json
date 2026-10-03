@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-10-03T22:38:47.133Z",
+  "lastUpdated": "2026-10-03T23:08:39.582Z",
   "departments": [
     {
       "id": "dept_main_or",
@@ -220,7 +220,7 @@
       "orderIndex": 1,
       "runnerSlots": [
         {
-          "id": "runner_dept_west_pav_1791045642783_tyob",
+          "id": "runner_dept_west_pav_1791068919581_y436",
           "title": "Runner 1",
           "staffId": "staff_oneusap_doc_choiseu",
           "breakfastDone": false,
@@ -428,17 +428,7 @@
       "id": "dept_ortho",
       "name": "ORTHO",
       "orderIndex": 2,
-      "runnerSlots": [
-        {
-          "id": "runner_dept_ortho_1791045656515_lmbu",
-          "title": "Runner 1",
-          "staffId": "staff_oneusap_doc_choiseu",
-          "breakfastDone": false,
-          "lunchDone": false,
-          "breakfastTime": null,
-          "lunchTime": null
-        }
-      ],
+      "runnerSlots": [],
       "rooms": [
         {
           "id": "dept_ortho_room_1",
@@ -574,17 +564,7 @@
       "id": "dept_village",
       "name": "VILLAGE",
       "orderIndex": 3,
-      "runnerSlots": [
-        {
-          "id": "runner_dept_village_1791066580354_k77t",
-          "title": "Runner 1",
-          "staffId": "staff_oneusap_doc_choiseu",
-          "breakfastDone": false,
-          "lunchDone": false,
-          "breakfastTime": null,
-          "lunchTime": null
-        }
-      ],
+      "runnerSlots": [],
       "rooms": [
         {
           "id": "dept_village_room_1",
