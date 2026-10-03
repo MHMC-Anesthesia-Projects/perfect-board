@@ -304,7 +304,7 @@ export async function POST(req: NextRequest) {
               dept.runnerSlots = (dept.runnerSlots || []).filter(r => r.staffId !== staffId);
               dept.runnerSlots.forEach((r, idx) => {
                 if (!r.title || r.title.match(/^RUNNER\s*\d*$/i)) {
-                  r.title = `RUNNER ${idx + 1}`;
+                  r.title = `Runner ${idx + 1}`;
                 }
               });
             }
@@ -328,7 +328,7 @@ export async function POST(req: NextRequest) {
               dept.runnerSlots = (dept.runnerSlots || []).filter(r => r.staffId !== staffId);
               dept.runnerSlots.forEach((r, idx) => {
                 if (!r.title || r.title.match(/^RUNNER\s*\d*$/i)) {
-                  r.title = `RUNNER ${idx + 1}`;
+                  r.title = `Runner ${idx + 1}`;
                 }
               });
             }
