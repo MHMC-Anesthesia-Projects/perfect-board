@@ -998,11 +998,9 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                           <MagnetTile
                             staff={s}
                             slotId={s.id}
-                            slotType="bullpen"
-                            breakfastDone={breakStatus.breakfastDone}
-                            lunchDone={breakStatus.lunchDone}
+                            slotType="unassigned"
+                            showBreaks={false}
                             currentUserRole={currentUserRole}
-                            onToggleBreak={(type, val) => onToggleBreak('bullpen', s.id, type, val)}
                             onSelectStaff={onSelectStaff}
                             isDraggable={false}
                           />

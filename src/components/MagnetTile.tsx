@@ -7,10 +7,11 @@ import { LogOut } from 'lucide-react';
 interface MagnetTileProps {
   staff: Staff;
   slotId?: string;
-  slotType?: 'room_slot' | 'runner_slot' | 'bullpen';
+  slotType?: 'room_slot' | 'runner_slot' | 'bullpen' | 'unassigned';
   breakfastDone?: boolean;
   lunchDone?: boolean;
   currentUserRole: UserRole;
+  showBreaks?: boolean;
   onToggleBreak?: (breakType: 'breakfast' | 'lunch', currentValue: boolean) => void;
   onSelectStaff?: (staff: Staff) => void;
   onDragStart?: (e: React.DragEvent, staff: Staff, source: { type: string; id?: string }) => void;
@@ -26,6 +27,7 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   breakfastDone = false,
   lunchDone = false,
   currentUserRole,
+  showBreaks,
   onToggleBreak,
   onSelectStaff,
   onDragStart,
@@ -36,6 +38,10 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   const isDraggable = propIsDraggable !== undefined 
     ? propIsDraggable 
     : (currentUserRole !== 'basic_user');
+
+  const canShowBreaks = showBreaks !== undefined
+    ? showBreaks
+    : (slotType !== 'unassigned' && (Boolean(onToggleBreak) || breakfastDone || lunchDone));
 
   const handleTileClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -85,7 +91,7 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
       </div>
 
       {/* Breakfast & Lunch Checkboxes */}
-      {(onToggleBreak || breakfastDone || lunchDone) && (
+      {canShowBreaks && (
         <div className="break-controls">
           {/* Breakfast Checkbox [B] */}
           <button

@@ -478,15 +478,9 @@ export const Bullpen: React.FC<BullpenProps> = ({
                       key={s.id}
                       staff={s}
                       slotId={s.id}
-                      slotType="bullpen"
-                      breakfastDone={bullpenBreaks[s.id]?.breakfastDone ?? false}
-                      lunchDone={bullpenBreaks[s.id]?.lunchDone ?? false}
+                      slotType="unassigned"
+                      showBreaks={false}
                       currentUserRole={currentUserRole}
-                      onToggleBreak={(breakType, currentValue) => {
-                        if (onToggleBreak) {
-                          onToggleBreak(breakType, s.id, currentValue);
-                        }
-                      }}
                       onSelectStaff={onSelectStaff}
                       onDragStart={(e) => handleTileDragStart(e, s)}
                     />
