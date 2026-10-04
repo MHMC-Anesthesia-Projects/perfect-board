@@ -1,5 +1,21 @@
 [
   {
+    "id": "audit_1791139493239_00vxn",
+    "timestamp": "2026-10-04T18:44:53.239Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1791138799161_804cf",
+    "timestamp": "2026-10-04T18:33:19.161Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
     "id": "audit_1791134839995_m0wqp",
     "timestamp": "2026-10-04T17:27:19.995Z",
     "actionType": "STAFF_MOVED",

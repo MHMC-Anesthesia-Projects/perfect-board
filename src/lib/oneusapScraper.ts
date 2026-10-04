@@ -69,7 +69,11 @@ const KNOWN_NAME_MAP: Record<string, { lastName: string; firstName: string }> = 
   'vuan': { lastName: 'Vu', firstName: 'An' },
   'vuand': { lastName: 'Vu', firstName: 'An' },
   'yiale': { lastName: 'Yi', firstName: 'Alex' },
-  'zemraulud': { lastName: 'Zemrau', firstName: 'Ludwig' }
+  'zemraulud': { lastName: 'Zemrau', firstName: 'Ludwig' },
+  'floresma.': { lastName: 'Flores', firstName: 'Maria' },
+  'floresma': { lastName: 'Flores', firstName: 'Maria' },
+  'staesbob': { lastName: 'Staes', firstName: 'Bob' },
+  'flemmingcin': { lastName: 'Flemming', firstName: 'Cindy' }
 };
 
 export function formatProviderName(rawId: string): {
@@ -174,8 +178,26 @@ export function isTargetFacility(facilityStr: string, allowedFacilities: string[
 
 export function isOffShift(shiftStr: string): boolean {
   if (!shiftStr) return false;
-  const s = shiftStr.toUpperCase();
-  return s.includes('PTO') || s.includes('RDO') || s.includes('VACATION') || s.includes('MEETING') || s.includes('OFF');
+  const s = shiftStr.toUpperCase().trim();
+  if (
+    s.includes('PTO') ||
+    s.includes('RDO') ||
+    s.includes('VACATION') ||
+    s.includes('MEETING') ||
+    s.includes('OFF')
+  ) {
+    return true;
+  }
+  // Remove preNight and preCall strings to check for an accompanying active working shift (e.g. "preCall, 8p")
+  const stripped = s.replace(/PRE-?NIGHT/gi, '').replace(/PRE-?CALL/gi, '').trim();
+  if (s.includes('PRENIGHT') || s.includes('PRE-NIGHT') || s.includes('PRE NIGHT')) {
+    const hasWorking = /3p|4p|5p|7p|8p|12h|13h|\bnight\b|noct|cih/i.test(stripped);
+    if (!hasWorking) return true;
+  }
+  if (s === 'PRECALL' || s === 'PRE-CALL' || s === 'PRE CALL') {
+    return true;
+  }
+  return false;
 }
 
 export function getFriendlyFacilityName(facilityStr: string): string {
@@ -527,6 +549,14 @@ export function parseOneUsapHtml(
     if (s.includes('OB') && s.includes('C1')) c1ObDoc = true;
   });
 
+  targetAnes.forEach(a => {
+    if (isOffShift(a.shift)) return;
+    const s = a.shift.toUpperCase();
+    if (s.includes('CIH') || s.includes('CIHAM') || s.includes('CIHOB')) {
+      hasExplicitAmPm = true;
+    }
+  });
+
   const isSplitCallMode = hasExplicitAmPm || (c1Count >= 2 && c1ObDoc);
 
   // 7. Build Working Staff list (excluding PTO / RDO / Off)
@@ -591,6 +621,13 @@ export function parseOneUsapHtml(
     });
   });
 
+  // Pre-filter active OB CRNAs for split weekend matching (1st = AM 7a-7p, 2nd = PM 7p-7a)
+  const activeObCrnas = targetAnes.filter(a => {
+    if (isOffShift(a.shift)) return false;
+    const s = a.shift.toUpperCase();
+    return s.includes('OB') || s.includes('CIHOB');
+  });
+
   // Process CRNAs / Anesthetists
   targetAnes.forEach(entry => {
     const { rawName, facility, shift, orderNumber } = entry;
@@ -625,15 +662,27 @@ export function parseOneUsapHtml(
 
     // Recognize weekend / holiday and 12h CRNA shift nomenclature
     if (upperShift.includes('CIHAM') || upperShift === 'CIH') {
-      effectiveShift = 'CIH AM';
+      effectiveShift = '7a-3p (CIH)';
     } else if (upperShift.includes('CIHOBAM') || upperShift.includes('OBAM')) {
-      effectiveShift = 'OB AM';
+      effectiveShift = '7a-7p (OB)';
     } else if (upperShift.includes('CIHOBPM') || upperShift.includes('OBPM')) {
-      effectiveShift = 'OB PM';
+      effectiveShift = '7p-7a (OB)';
     } else if (upperShift.includes('12H-7P') || upperShift.includes('NOCT')) {
       effectiveShift = '12h-7p:Noct';
     } else if (upperShift.includes('7A-7P') || upperShift === '12H' || upperShift.startsWith('12H ')) {
       effectiveShift = '7a-7p';
+    } else if (isSplitCallMode) {
+      if (upperShift.includes('OB')) {
+        const obIdx = activeObCrnas.findIndex(o => o.rawName === rawName);
+        const isAm = qgendaAbbr.toLowerCase().includes('yi') || obIdx === 0;
+        effectiveShift = isAm ? '7a-7p (OB)' : '7p-7a (OB)';
+      } else if (upperShift.includes('NIGHT') && !upperShift.includes('PRENIGHT')) {
+        effectiveShift = '12h-7p:Noct';
+      } else if (upperShift === '7P') {
+        effectiveShift = '7p';
+      } else if (upperShift === 'CALL' || upperShift === '' || upperShift === 'DAY') {
+        effectiveShift = '7a-3p (CIH)';
+      }
     }
 
     workingStaffMap.set(cleanId, {
@@ -909,8 +958,38 @@ export function parseOneUsapHtml(
     }
 
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
-    const upperShift = effectiveShift.toUpperCase();
+    let effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
+    let upperShift = effectiveShift.toUpperCase();
+
+    // In split call / weekend mode, harmonize CRNA effective shifts if not already formatted
+    if (role === 'CRNA') {
+      if (upperShift.includes('CIHAM') || upperShift === 'CIH') {
+        effectiveShift = '7a-3p (CIH)';
+        upperShift = effectiveShift.toUpperCase();
+      } else if (upperShift.includes('CIHOBAM') || upperShift.includes('OBAM')) {
+        effectiveShift = '7a-7p (OB)';
+        upperShift = effectiveShift.toUpperCase();
+      } else if (upperShift.includes('CIHOBPM') || upperShift.includes('OBPM')) {
+        effectiveShift = '7p-7a (OB)';
+        upperShift = effectiveShift.toUpperCase();
+      } else if (isSplitCallMode) {
+        if (upperShift.includes('OB')) {
+          const obIdx = activeObCrnas.findIndex(o => o.rawName === rawName);
+          const isAm = qgendaAbbr.toLowerCase().includes('yi') || obIdx === 0;
+          effectiveShift = isAm ? '7a-7p (OB)' : '7p-7a (OB)';
+          upperShift = effectiveShift.toUpperCase();
+        } else if (upperShift.includes('NIGHT') && !upperShift.includes('PRENIGHT')) {
+          effectiveShift = '12h-7p:Noct';
+          upperShift = effectiveShift.toUpperCase();
+        } else if (upperShift === '7P') {
+          effectiveShift = '7p';
+          upperShift = effectiveShift.toUpperCase();
+        } else if (upperShift === 'CALL' || upperShift === '' || upperShift === 'DAY') {
+          effectiveShift = '7a-3p (CIH)';
+          upperShift = effectiveShift.toUpperCase();
+        }
+      }
+    }
 
     const activeFac = getActiveFacilityCode(facility);
     let facilityLabel = 'MHMC';
@@ -925,7 +1004,7 @@ export function parseOneUsapHtml(
     let timeCat = '';
     if (
       upperShift.includes('7P-7A') ||
-      upperShift.includes('NIGHT') ||
+      (upperShift.includes('NIGHT') && !upperShift.includes('PRENIGHT') && !upperShift.includes('PRE-NIGHT')) ||
       upperShift.includes('NOCT') ||
       upperShift.includes('CIHOBPM') ||
       upperShift.includes('OBPM')
@@ -937,14 +1016,22 @@ export function parseOneUsapHtml(
       /\b7p\b/i.test(upperShift) ||
       upperShift.includes('7A-7P') ||
       upperShift === '12H' ||
-      upperShift.startsWith('12H ')
+      upperShift.startsWith('12H ') ||
+      upperShift.includes('CIHOBAM') ||
+      upperShift.includes('OBAM')
     ) {
       timeCat = '7p';
     } else if (/\b5p\b/i.test(upperShift) || upperShift === '5P') {
       timeCat = '5p';
     } else if (/\b4p\b/i.test(upperShift) || upperShift === '4P') {
       timeCat = '4p';
-    } else if (/\b3p\b/i.test(upperShift) || upperShift === '3P') {
+    } else if (
+      /\b3p\b/i.test(upperShift) ||
+      upperShift === '3P' ||
+      upperShift.includes('7A-3P') ||
+      upperShift.includes('CIHAM') ||
+      upperShift === 'CIH'
+    ) {
       timeCat = '3p';
     } else if (role === 'CRNA' && /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(upperShift)) {
       timeCat = 'special';
@@ -988,7 +1075,7 @@ export function parseOneUsapHtml(
       }
       return 14 * 60; // 2:00 PM (before 3pm)
     }
-    if (cat === '7p-7a' || cat.includes('night')) return 19 * 60 + 1;
+    if (cat === '7p-7a' || cat.includes('night')) return 24 * 60 + 1;
     const match = cat.match(/(\d{1,2})(?::(\d{2}))?\s*(a|p|am|pm)?/i);
     if (match) {
       let hours = parseInt(match[1], 10);
