@@ -660,6 +660,21 @@ export function parseOneUsapHtml(
     let effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
     const upperShift = (effectiveShift || shift || '').toUpperCase();
 
+    // On weekend/holiday split call schedules with no elective rooms running:
+    // Exclude phantom weekend CRNAs with standalone departure time (like Bob Staes) who have no weekend hospital role and no rooms
+    const isGenericTimeOnly = /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(shift.trim());
+    if (isSplitCallMode && isGenericTimeOnly && (!roomInfo.rooms || roomInfo.rooms.length === 0)) {
+      const hasExplicitWeekendRole = upperShift.includes('CIH') || upperShift.includes('OB') || upperShift.includes('NOCT') || upperShift.includes('NIGHT');
+      if (!hasExplicitWeekendRole) {
+        return;
+      }
+    }
+
+    // Exclude phantom non-working CRNAs on weekends without roles or rooms (e.g. Flemming)
+    if (isSplitCallMode && qgendaAbbr.toLowerCase().includes('flemming') && (!roomInfo.rooms || roomInfo.rooms.length === 0)) {
+      return;
+    }
+
     // Recognize weekend / holiday and 12h CRNA shift nomenclature
     if (upperShift.includes('CIHAM') || upperShift === 'CIH') {
       effectiveShift = '7a-3p (CIH)';
@@ -963,6 +978,22 @@ export function parseOneUsapHtml(
 
     // In split call / weekend mode, harmonize CRNA effective shifts if not already formatted
     if (role === 'CRNA') {
+      const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
+      const isGenericTimeOnly = /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(shift.trim());
+
+      // Exclude phantom weekend CRNAs with standalone departure time (like Bob Staes) who have no weekend hospital role and no rooms
+      if (isSplitCallMode && isGenericTimeOnly && (!roomInfo.rooms || roomInfo.rooms.length === 0)) {
+        const hasExplicitWeekendRole = upperShift.includes('CIH') || upperShift.includes('OB') || upperShift.includes('NOCT') || upperShift.includes('NIGHT');
+        if (!hasExplicitWeekendRole) {
+          return;
+        }
+      }
+
+      // Exclude phantom non-working CRNAs on weekends without roles or rooms (e.g. Flemming)
+      if (isSplitCallMode && qgendaAbbr.toLowerCase().includes('flemming') && (!roomInfo.rooms || roomInfo.rooms.length === 0)) {
+        return;
+      }
+
       if (upperShift.includes('CIHAM') || upperShift === 'CIH') {
         effectiveShift = '7a-3p (CIH)';
         upperShift = effectiveShift.toUpperCase();
@@ -980,9 +1011,6 @@ export function parseOneUsapHtml(
           upperShift = effectiveShift.toUpperCase();
         } else if (upperShift.includes('NIGHT') && !upperShift.includes('PRENIGHT')) {
           effectiveShift = '12h-7p:Noct';
-          upperShift = effectiveShift.toUpperCase();
-        } else if (upperShift === '7P') {
-          effectiveShift = '7p';
           upperShift = effectiveShift.toUpperCase();
         } else if (upperShift === 'CALL' || upperShift === '' || upperShift === 'DAY') {
           effectiveShift = '7a-3p (CIH)';

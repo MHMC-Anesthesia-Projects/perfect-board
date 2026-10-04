@@ -38,7 +38,7 @@
       "qgendaAbbr": "ChangAle",
       "credentials": "MD",
       "displayName": "CHANG A.",
-      "orderNumber": 41,
+      "orderNumber": 38,
       "isInfrequent": false
     },
     {
@@ -144,7 +144,7 @@
       "qgendaAbbr": "ShevchenkoYev",
       "credentials": "MD",
       "displayName": "SHEVCHENKO Y.",
-      "orderNumber": 59,
+      "orderNumber": 58,
       "isInfrequent": false
     },
     {
@@ -249,7 +249,7 @@
       "qgendaAbbr": "ShirakMic",
       "credentials": "MD",
       "displayName": "SHIRAK M.",
-      "orderNumber": 38,
+      "orderNumber": 35,
       "isInfrequent": false
     },
     {
@@ -263,7 +263,7 @@
       "qgendaAbbr": "AlanizPed",
       "credentials": "MD",
       "displayName": "ALANIZ P.",
-      "orderNumber": 60,
+      "orderNumber": 59,
       "isInfrequent": false
     },
     {
@@ -277,7 +277,7 @@
       "qgendaAbbr": "CavanaughMar",
       "credentials": "MD",
       "displayName": "CAVANAUGH M.",
-      "orderNumber": 43,
+      "orderNumber": 40,
       "isInfrequent": false
     },
     {
@@ -304,7 +304,7 @@
       "qgendaAbbr": "NormandKen",
       "credentials": "CRNA",
       "displayName": "NORMAND K.",
-      "orderNumber": 4,
+      "orderNumber": 3,
       "isInfrequent": false
     },
     {
@@ -344,7 +344,7 @@
       "qgendaAbbr": "YiAle",
       "credentials": "CRNA",
       "displayName": "YI A.",
-      "orderNumber": 3,
+      "orderNumber": 2,
       "isInfrequent": false
     },
     {
@@ -410,7 +410,7 @@
       "qgendaAbbr": "MateoCar",
       "credentials": "CRNA",
       "displayName": "MATEO C.",
-      "orderNumber": 34,
+      "orderNumber": 21,
       "isInfrequent": false
     },
     {
@@ -450,7 +450,7 @@
       "qgendaAbbr": "HartsgroveMar",
       "credentials": "CRNA",
       "displayName": "HARTSGROVE M.",
-      "orderNumber": 33,
+      "orderNumber": 29,
       "isInfrequent": false
     },
     {
@@ -838,76 +838,67 @@
       "shift": "7a-3p (CIH)",
       "active": true,
       "facility": "MH Memorial City",
-      "lastName": "Flores",
-      "firstName": "Maria",
+      "lastName": "FloresMa.",
+      "firstName": "",
       "qgendaAbbr": "FloresMa.",
       "credentials": "CRNA",
-      "displayName": "FLORES M.",
-      "orderNumber": 32,
+      "displayName": "FLORESMA.",
+      "orderNumber": 30,
       "isInfrequent": false
     }
   ],
   "version": 1,
   "latesList": [
     {
-      "id": "late_0_1791139493238",
-      "name": "FLORES",
-      "timeCategory": "3p",
-      "orderIndex": 0,
-      "orderNumber": 32,
-      "role": "CRNA",
-      "qgendaAbbr": "FloresMa."
-    },
-    {
-      "id": "late_1_1791139493238",
-      "name": "HARTSGROVE",
-      "timeCategory": "3p",
-      "orderIndex": 1,
-      "orderNumber": 33,
-      "role": "CRNA",
-      "qgendaAbbr": "HartsgroveMar"
-    },
-    {
-      "id": "late_2_1791139493238",
+      "id": "late_0_1791140275562",
       "name": "MATEO",
       "timeCategory": "3p",
-      "orderIndex": 2,
-      "orderNumber": 34,
+      "orderIndex": 0,
+      "orderNumber": 21,
       "role": "CRNA",
       "qgendaAbbr": "MateoCar"
     },
     {
-      "id": "late_3_1791139493238",
+      "id": "late_1_1791140275562",
+      "name": "HARTSGROVE",
+      "timeCategory": "3p",
+      "orderIndex": 1,
+      "orderNumber": 29,
+      "role": "CRNA",
+      "qgendaAbbr": "HartsgroveMar"
+    },
+    {
+      "id": "late_2_1791140275562",
+      "name": "FLORES",
+      "timeCategory": "3p",
+      "orderIndex": 2,
+      "orderNumber": 30,
+      "role": "CRNA",
+      "qgendaAbbr": "FloresMa."
+    },
+    {
+      "id": "late_3_1791140275562",
       "name": "YI",
       "timeCategory": "7p",
       "orderIndex": 3,
-      "orderNumber": 3,
+      "orderNumber": 2,
       "role": "CRNA",
       "qgendaAbbr": "YiAle"
     },
     {
-      "id": "late_4_1791139493238",
-      "name": "STAES",
-      "timeCategory": "7p",
-      "orderIndex": 4,
-      "orderNumber": 15,
-      "role": "CRNA",
-      "qgendaAbbr": "StaesBob"
-    },
-    {
-      "id": "late_5_1791139493238",
+      "id": "late_4_1791140275562",
       "name": "NORMAND",
       "timeCategory": "7p-7a",
-      "orderIndex": 5,
-      "orderNumber": 4,
+      "orderIndex": 4,
+      "orderNumber": 3,
       "role": "CRNA",
       "qgendaAbbr": "NormandKen"
     },
     {
-      "id": "late_6_1791139493238",
+      "id": "late_5_1791140275562",
       "name": "VU",
       "timeCategory": "7p-7a",
-      "orderIndex": 6,
+      "orderIndex": 5,
       "orderNumber": 78,
       "role": "CRNA",
       "qgendaAbbr": "VuAnD"
@@ -2013,86 +2004,86 @@
       "runnerSlots": []
     }
   ],
-  "lastUpdated": "2026-10-04T18:44:53.392Z",
+  "lastUpdated": "2026-10-04T18:57:55.678Z",
   "callTeamList": [
     {
-      "id": "call_0_1791139493238",
+      "id": "call_0_1791140275562",
       "role": "CV AM",
       "doctorName": "SHIRAK",
       "qgendaAbbr": "ShirakMic",
-      "orderNumber": 38,
+      "orderNumber": 35,
       "orderIndex": 0
     },
     {
-      "id": "call_1_1791139493238",
+      "id": "call_1_1791140275562",
       "role": "CV PM",
       "doctorName": "SHIRAK",
       "qgendaAbbr": "ShirakMic",
-      "orderNumber": 38,
+      "orderNumber": 35,
       "orderIndex": 1
     },
     {
-      "id": "call_2_1791139493238",
+      "id": "call_2_1791140275562",
       "role": "Call 3 AM",
       "doctorName": "CHANG",
       "qgendaAbbr": "ChangAle",
-      "orderNumber": 41,
+      "orderNumber": 38,
       "orderIndex": 2
     },
     {
-      "id": "call_3_1791139493238",
+      "id": "call_3_1791140275562",
       "role": "Call 3 PM",
       "doctorName": "CHANG",
       "qgendaAbbr": "ChangAle",
-      "orderNumber": 41,
+      "orderNumber": 38,
       "orderIndex": 3
     },
     {
-      "id": "call_4_1791139493238",
+      "id": "call_4_1791140275562",
       "role": "Call 2 AM",
       "doctorName": "CAVANAUGH",
       "qgendaAbbr": "CavanaughMar",
-      "orderNumber": 43,
+      "orderNumber": 40,
       "orderIndex": 4
     },
     {
-      "id": "call_5_1791139493238",
+      "id": "call_5_1791140275562",
       "role": "Call 2 PM",
       "doctorName": "CAVANAUGH",
       "qgendaAbbr": "CavanaughMar",
-      "orderNumber": 43,
+      "orderNumber": 40,
       "orderIndex": 5
     },
     {
-      "id": "call_6_1791139493238",
+      "id": "call_6_1791140275562",
       "role": "Call 1 AM",
       "doctorName": "ALANIZ",
       "qgendaAbbr": "AlanizPed",
-      "orderNumber": 60,
+      "orderNumber": 59,
       "orderIndex": 6
     },
     {
-      "id": "call_7_1791139493238",
+      "id": "call_7_1791140275562",
       "role": "Call 1 PM",
       "doctorName": "SHEVCHENKO",
       "qgendaAbbr": "ShevchenkoYev",
-      "orderNumber": 59,
+      "orderNumber": 58,
       "orderIndex": 7
     },
     {
-      "id": "call_8_1791139493238",
+      "id": "call_8_1791140275562",
       "role": "OB AM",
       "doctorName": "SHEVCHENKO",
       "qgendaAbbr": "ShevchenkoYev",
-      "orderNumber": 59,
+      "orderNumber": 58,
       "orderIndex": 8
     },
     {
-      "id": "call_9_1791139493238",
+      "id": "call_9_1791140275562",
       "role": "OB PM",
       "doctorName": "SHEVCHENKO",
       "qgendaAbbr": "ShevchenkoYev",
-      "orderNumber": 59,
+      "orderNumber": 58,
       "orderIndex": 9
     }
   ],
@@ -2115,7 +2106,7 @@
     "username": "",
     "portalUrl": "https://www.oneusap.com/assignments",
     "portalType": "oneusap",
-    "lastSyncTime": "2026-10-04T18:44:53.239Z",
+    "lastSyncTime": "2026-10-04T18:57:55.562Z",
     "lastSyncStatus": "success",
     "selectedFacilities": [
       "MHMC",
