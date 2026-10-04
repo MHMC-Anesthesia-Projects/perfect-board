@@ -1,5 +1,31 @@
 [
   {
+    "id": "audit_1791093600217_xcfns",
+    "timestamp": "2026-10-04T06:00:00.218Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "System Scheduler (1:00 AM Auto-Reset)",
+    "userRole": "superuser",
+    "details": "Daily 1:00 AM reset: Cleared breakfast and lunch break completion for all rooms, runners, and bullpen staff"
+  },
+  {
+    "id": "audit_1791075144097_vkvnn",
+    "timestamp": "2026-10-04T00:52:24.097Z",
+    "actionType": "USER_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Board Runner",
+    "details": "Updated user @runner (Board Runner): role=board_runner, PIN=1234, active=true"
+  },
+  {
+    "id": "audit_1791075135423_c2f2m",
+    "timestamp": "2026-10-04T00:52:15.423Z",
+    "actionType": "USER_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Admin",
+    "details": "Updated user @admin (Admin): role=superuser, PIN=9999, active=true"
+  },
+  {
     "id": "audit_1791071547587_li2hc",
     "timestamp": "2026-10-03T23:52:27.587Z",
     "actionType": "STAFF_UPDATED",

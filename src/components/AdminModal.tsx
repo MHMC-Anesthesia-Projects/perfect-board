@@ -2,11 +2,11 @@
 
 import { apiUrl } from '@/lib/api';
 import React, { useState, useEffect } from 'react';
-import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential, RunnerSlot, ScraperPreviewResult, UniqueScheduleRule } from '@/types/whiteboard';
+import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential, RunnerSlot, ScraperPreviewResult, UniqueScheduleRule, MessagingConfig } from '@/types/whiteboard';
 import { 
   Users, UserCheck, ShieldCheck, Layout, Globe, 
   Plus, Trash2, Edit2, Key, RefreshCw, X, Check, RotateCcw, AlertTriangle,
-  Eye, Search, Phone, Building2, CheckCircle2, ChevronRight, Sparkles, Clock
+  Eye, EyeOff, Search, Phone, Building2, CheckCircle2, ChevronRight, Sparkles, Clock, MessageSquare, Send, Radio
 } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
@@ -18,6 +18,7 @@ interface AdminModalProps {
   staff: Staff[];
   scraperConfig: ScraperConfig;
   uniqueSchedules?: UniqueScheduleRule[];
+  messagingConfig?: MessagingConfig;
   onSaveDepartments: (departments: Department[]) => void;
   onResetToPhotoDefault: () => void;
   onRefreshData: () => void;
@@ -118,12 +119,13 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   staff,
   scraperConfig,
   uniqueSchedules,
+  messagingConfig,
   onSaveDepartments,
   onResetToPhotoDefault,
   onRefreshData,
   onUpdateCurrentUser
 }) => {
-  const [activeTab, setActiveTab] = useState<'users' | 'staff' | 'layout' | 'scraper' | 'unique_schedules'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'staff' | 'layout' | 'scraper' | 'unique_schedules' | 'messaging'>('users');
 
   // --- Unique Schedules State ---
   const [uniqueRules, setUniqueRules] = useState<UniqueScheduleRule[]>([]);
@@ -141,6 +143,109 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   });
   const [isSavingRules, setIsSavingRules] = useState(false);
   const [rulesStatusMsg, setRulesStatusMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  // --- Perfect Call Messaging State ---
+  const [messagingEnabled, setMessagingEnabled] = useState(messagingConfig?.enabled ?? false);
+  const [boardRunnerEmail, setBoardRunnerEmail] = useState(messagingConfig?.boardRunnerEmail || 'boardrunner@boardrunner.com');
+  const [boardRunnerPassword, setBoardRunnerPassword] = useState(messagingConfig?.boardRunnerPassword || 'boardrunner@boardrunner.com');
+  const [boardRunnerName, setBoardRunnerName] = useState(messagingConfig?.boardRunnerName || 'OR Board Runner');
+  const [pushEndpoint, setPushEndpoint] = useState(messagingConfig?.pushEndpoint || 'https://pinecone-backend-7m1p.onrender.com/api/send-chat-push');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isTestingMessaging, setIsTestingMessaging] = useState(false);
+  const [isSavingMessaging, setIsSavingMessaging] = useState(false);
+  const [messagingTestResult, setMessagingTestResult] = useState<{ success: boolean; message: string; details?: string } | null>(null);
+  const [messagingStatusMsg, setMessagingStatusMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    if (messagingConfig) {
+      setMessagingEnabled(messagingConfig.enabled);
+      setBoardRunnerEmail(messagingConfig.boardRunnerEmail || 'boardrunner@boardrunner.com');
+      setBoardRunnerPassword(messagingConfig.boardRunnerPassword || 'boardrunner@boardrunner.com');
+      setBoardRunnerName(messagingConfig.boardRunnerName || 'OR Board Runner');
+      setPushEndpoint(messagingConfig.pushEndpoint || 'https://pinecone-backend-7m1p.onrender.com/api/send-chat-push');
+    }
+  }, [messagingConfig]);
+
+  const handleTestMessagingConnection = async () => {
+    setIsTestingMessaging(true);
+    setMessagingTestResult(null);
+    try {
+      const res = await fetch(apiUrl('/api/messages'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'TEST_CONNECTION',
+          email: boardRunnerEmail,
+          password: boardRunnerPassword,
+          name: boardRunnerName,
+          pushEndpoint
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setMessagingTestResult({
+          success: true,
+          message: `Connected successfully! Authenticated as "${data.name}" (${data.email})`,
+          details: `User UUID: ${data.userId}`
+        });
+      } else {
+        setMessagingTestResult({
+          success: false,
+          message: data.error || 'Connection failed. Please check email and password.'
+        });
+      }
+    } catch (err: any) {
+      setMessagingTestResult({
+        success: false,
+        message: err.message || 'Network error while testing connection'
+      });
+    } finally {
+      setIsTestingMessaging(false);
+    }
+  };
+
+  const handleSaveMessagingConfig = async (overrideEnabled?: boolean) => {
+    setIsSavingMessaging(true);
+    setMessagingStatusMsg(null);
+    try {
+      const targetEnabled = overrideEnabled !== undefined ? overrideEnabled : messagingEnabled;
+      const res = await fetch(apiUrl('/api/messages'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_CONFIG',
+          currentUser,
+          newConfig: {
+            enabled: targetEnabled,
+            boardRunnerEmail,
+            boardRunnerPassword,
+            boardRunnerName,
+            pushEndpoint
+          }
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setMessagingStatusMsg({
+          text: targetEnabled ? 'Messaging configuration saved and enabled!' : 'Messaging configuration saved (disabled).',
+          type: 'success'
+        });
+        onRefreshData();
+      } else {
+        setMessagingStatusMsg({
+          text: data.error || 'Failed to save messaging configuration',
+          type: 'error'
+        });
+      }
+    } catch (err: any) {
+      setMessagingStatusMsg({
+        text: err.message || 'Network error saving configuration',
+        type: 'error'
+      });
+    } finally {
+      setIsSavingMessaging(false);
+    }
+  };
 
   useEffect(() => {
     if (uniqueSchedules && uniqueSchedules.length > 0) {
@@ -946,6 +1051,34 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           >
             <Clock size={15} />
             <span>Unique Schedules ({uniqueRules.filter(r => r.active).length} Active)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('messaging')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 14px',
+              borderRadius: 6,
+              background: activeTab === 'messaging' ? '#10b981' : 'var(--surface-hover)',
+              color: activeTab === 'messaging' ? '#fff' : 'var(--text-primary)',
+              fontWeight: 700,
+              fontSize: 13
+            }}
+          >
+            <MessageSquare size={15} />
+            <span>Perfect Call Messaging</span>
+            <span style={{
+              fontSize: 10,
+              padding: '1px 6px',
+              borderRadius: 10,
+              fontWeight: 800,
+              background: messagingEnabled ? '#059669' : '#6b7280',
+              color: '#fff'
+            }}>
+              {messagingEnabled ? 'ACTIVE' : 'OFF'}
+            </span>
           </button>
         </div>
 
@@ -3607,6 +3740,337 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     No unique schedule rules defined. Click "Add Unique Rule" or "Reset Defaults" above.
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* ===================== TAB 6: MESSAGING ===================== */}
+          {activeTab === 'messaging' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* Header card */}
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 95, 70, 0.05) 100%)',
+                border: '1.5px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: 10,
+                padding: '16px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 16
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 10,
+                    background: '#10b981',
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                  }}>
+                    <Radio size={24} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
+                      Perfect Call Internal Messaging & Clinician Paging
+                    </h3>
+                    <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
+                      Two-way instant messaging between the OR Whiteboard (65" TV / mobile) and staff members on <strong>perfectcall.app</strong>.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Master Switch */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: messagingEnabled ? '#10b981' : 'var(--text-muted)' }}>
+                    {messagingEnabled ? 'MESSAGING ENABLED' : 'MESSAGING DISABLED'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !messagingEnabled;
+                      setMessagingEnabled(next);
+                      handleSaveMessagingConfig(next);
+                    }}
+                    style={{
+                      width: 52,
+                      height: 28,
+                      borderRadius: 14,
+                      background: messagingEnabled ? '#10b981' : '#cbd5e1',
+                      position: 'relative',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'background 0.2s',
+                      padding: 2
+                    }}
+                  >
+                    <div style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
+                      background: '#fff',
+                      position: 'absolute',
+                      top: 2,
+                      left: messagingEnabled ? 26 : 2,
+                      transition: 'left 0.2s',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Status Message */}
+              {messagingStatusMsg && (
+                <div style={{
+                  padding: '10px 14px',
+                  borderRadius: 6,
+                  background: messagingStatusMsg.type === 'success' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                  border: `1.5px solid ${messagingStatusMsg.type === 'success' ? '#10b981' : '#ef4444'}`,
+                  color: messagingStatusMsg.type === 'success' ? '#047857' : '#b91c1c',
+                  fontSize: 13,
+                  fontWeight: 700
+                }}>
+                  {messagingStatusMsg.text}
+                </div>
+              )}
+
+              {/* Configuration Form */}
+              <div style={{
+                background: 'var(--surface-card)',
+                border: '1.5px solid var(--border-light)',
+                borderRadius: 10,
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border-light)', paddingBottom: 10 }}>
+                  <ShieldCheck size={18} style={{ color: '#10b981' }} />
+                  <h4 style={{ fontSize: 14, fontWeight: 800, margin: 0 }}>
+                    Dedicated Kiosk Board Runner Account (Approach A)
+                  </h4>
+                </div>
+
+                <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                  The Whiteboard communicates with the shared Supabase database using a designated Kiosk identity. 
+                  When the board sends a quick page (*"Need a break?"*, *"Relief coming in 15m"*), it appears on the clinician&apos;s phone under this account name. 
+                  When the clinician replies, their whiteboard magnet flashes and displays an unread indicator.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
+                      Board Runner Account Email:
+                    </label>
+                    <input
+                      type="email"
+                      value={boardRunnerEmail}
+                      onChange={e => setBoardRunnerEmail(e.target.value)}
+                      placeholder="boardrunner@boardrunner.com"
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: 6,
+                        border: '1px solid var(--border-light)',
+                        background: 'var(--bg-board)',
+                        color: 'var(--text-primary)',
+                        fontSize: 13,
+                        fontWeight: 600
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
+                      Board Runner Password:
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={boardRunnerPassword}
+                        onChange={e => setBoardRunnerPassword(e.target.value)}
+                        placeholder="••••••••••••"
+                        style={{
+                          width: '100%',
+                          padding: '9px 36px 9px 12px',
+                          borderRadius: 6,
+                          border: '1px solid var(--border-light)',
+                          background: 'var(--bg-board)',
+                          color: 'var(--text-primary)',
+                          fontSize: 13,
+                          fontWeight: 600
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          position: 'absolute',
+                          right: 10,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--text-muted)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
+                      Sender Display Name (Shown in Clinician Chat):
+                    </label>
+                    <input
+                      type="text"
+                      value={boardRunnerName}
+                      onChange={e => setBoardRunnerName(e.target.value)}
+                      placeholder="OR Board Runner"
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: 6,
+                        border: '1px solid var(--border-light)',
+                        background: 'var(--bg-board)',
+                        color: 'var(--text-primary)',
+                        fontSize: 13,
+                        fontWeight: 600
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
+                      Mobile Push Notification Webhook (Render):
+                    </label>
+                    <input
+                      type="text"
+                      value={pushEndpoint}
+                      onChange={e => setPushEndpoint(e.target.value)}
+                      placeholder="https://pinecone-backend-7m1p.onrender.com/api/send-chat-push"
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: 6,
+                        border: '1px solid var(--border-light)',
+                        background: 'var(--bg-board)',
+                        color: 'var(--text-primary)',
+                        fontSize: 12,
+                        fontFamily: 'monospace'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Connection Test Output */}
+                {messagingTestResult && (
+                  <div style={{
+                    padding: '12px 14px',
+                    borderRadius: 6,
+                    background: messagingTestResult.success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                    border: `1px solid ${messagingTestResult.success ? '#10b981' : '#ef4444'}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: messagingTestResult.success ? '#059669' : '#dc2626'
+                    }}>
+                      {messagingTestResult.success ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+                      <span>{messagingTestResult.message}</span>
+                    </div>
+                    {messagingTestResult.details && (
+                      <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-secondary)', paddingLeft: 22 }}>
+                        {messagingTestResult.details}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
+                  <button
+                    type="button"
+                    onClick={handleTestMessagingConnection}
+                    disabled={isTestingMessaging}
+                    style={{
+                      padding: '9px 16px',
+                      borderRadius: 6,
+                      background: 'var(--surface-hover)',
+                      border: '1px solid var(--border-light)',
+                      color: 'var(--text-primary)',
+                      fontWeight: 700,
+                      fontSize: 13,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      cursor: isTestingMessaging ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    <RefreshCw size={14} className={isTestingMessaging ? 'animate-spin' : ''} />
+                    <span>{isTestingMessaging ? 'Testing Auth...' : 'Test Perfect Call Connection'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSaveMessagingConfig()}
+                    disabled={isSavingMessaging}
+                    style={{
+                      padding: '9px 20px',
+                      borderRadius: 6,
+                      background: '#10b981',
+                      border: 'none',
+                      color: '#fff',
+                      fontWeight: 800,
+                      fontSize: 13,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      cursor: isSavingMessaging ? 'not-allowed' : 'pointer',
+                      boxShadow: '0 2px 6px rgba(16, 185, 129, 0.4)'
+                    }}
+                  >
+                    <Check size={16} />
+                    <span>{isSavingMessaging ? 'Saving...' : 'Save Messaging Settings'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Architecture & Flow Guide */}
+              <div style={{
+                background: 'var(--surface-card)',
+                border: '1px solid var(--border-light)',
+                borderRadius: 8,
+                padding: '16px',
+                fontSize: 12.5,
+                color: 'var(--text-secondary)',
+                lineHeight: 1.6
+              }}>
+                <div style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6 }}>
+                  How Perfect Call Whiteboard Integration Works:
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <li>
+                    <strong>Matching Clinicians:</strong> The whiteboard matches staff members via cell phone digits against registered Perfect Call profiles in Supabase.
+                  </li>
+                  <li>
+                    <strong>Sending Pages:</strong> Clicking a staff magnet displays their active status and quick preset messages (*"Need a break?"*, *"Relief coming in 15m"*, etc.). Clicking send writes to <code style={{ color: 'var(--accent-primary)' }}>public.board_messages</code> and dispatches a background push chime to the clinician&apos;s phone.
+                  </li>
+                  <li>
+                    <strong>Incoming Doctor Replies:</strong> When a clinician responds from the mobile app, the whiteboard detects the unread message in real time, pulsing the doctor&apos;s magnet on the 65" TV with a <code style={{ color: '#f59e0b' }}>💬 1</code> indicator until the board runner opens their details.
+                  </li>
+                </ul>
               </div>
             </div>
           )}

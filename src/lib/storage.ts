@@ -303,6 +303,13 @@ export function getInitialBoardState(staff: Staff[] = []): BoardState {
       mockMode: false,
       selectedFacilities: ['MHMC', 'MHVIL-SC', 'HIVF-SC']
     },
+    messagingConfig: {
+      enabled: false,
+      boardRunnerEmail: 'boardrunner@boardrunner.com',
+      boardRunnerPassword: 'boardrunner@boardrunner.com',
+      boardRunnerName: 'OR Board Runner',
+      pushEndpoint: 'https://pinecone-backend-7m1p.onrender.com/api/send-chat-push'
+    },
     uniqueSchedules: getDefaultUniqueSchedules()
   };
 }
@@ -486,6 +493,15 @@ function sanitizeBoardState(loaded: BoardState): BoardState {
   }
   if (!loaded.infrequentStaffKeys || !Array.isArray(loaded.infrequentStaffKeys)) {
     loaded.infrequentStaffKeys = [];
+  }
+  if (!loaded.messagingConfig || typeof loaded.messagingConfig !== 'object') {
+    loaded.messagingConfig = {
+      enabled: false,
+      boardRunnerEmail: 'boardrunner@boardrunner.com',
+      boardRunnerPassword: 'boardrunner@boardrunner.com',
+      boardRunnerName: 'OR Board Runner',
+      pushEndpoint: 'https://pinecone-backend-7m1p.onrender.com/api/send-chat-push'
+    };
   }
 
   // Bidirectional sync for infrequent staff

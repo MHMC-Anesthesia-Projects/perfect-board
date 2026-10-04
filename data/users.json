@@ -2,7 +2,7 @@
   {
     "id": "user_superuser_1",
     "username": "admin",
-    "displayName": "Dr. Admin (Superuser)",
+    "displayName": "Admin",
     "role": "superuser",
     "pin": "9999",
     "password": "admin",
@@ -12,7 +12,7 @@
   {
     "id": "user_runner_1",
     "username": "runner",
-    "displayName": "Charge Nurse (Board Runner)",
+    "displayName": "Board Runner",
     "role": "board_runner",
     "pin": "1234",
     "password": "runner",

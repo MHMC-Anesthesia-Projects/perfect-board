@@ -18,6 +18,7 @@ interface BullpenProps {
   onSetStaffInfrequent?: (staffId: string, isInfrequent: boolean) => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  unreadCountsByPhone?: Record<string, number>;
 }
 
 const isPhysician = (s: Staff) => {
@@ -45,8 +46,14 @@ export const Bullpen: React.FC<BullpenProps> = ({
   onToggleBreak,
   onSetStaffInfrequent,
   isCollapsed: propIsCollapsed,
-  onToggleCollapse
+  onToggleCollapse,
+  unreadCountsByPhone
 }) => {
+  const getStaffUnreadCount = (staffMember: Staff | null): number => {
+    if (!staffMember?.phone || !unreadCountsByPhone) return 0;
+    const clean = staffMember.phone.replace(/\D/g, '').slice(-10);
+    return unreadCountsByPhone[clean] || 0;
+  };
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const isCollapsed = propIsCollapsed !== undefined ? propIsCollapsed : internalCollapsed;
 
@@ -494,6 +501,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
                       slotType="unassigned"
                       showBreaks={false}
                       currentUserRole={currentUserRole}
+                      unreadMessageCount={getStaffUnreadCount(s)}
                       onSelectStaff={onSelectStaff}
                       onDragStart={(e) => handleTileDragStart(e, s)}
                       onDragEnd={handleTileDragEnd}

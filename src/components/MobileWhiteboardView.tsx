@@ -73,6 +73,7 @@ interface MobileWhiteboardViewProps {
   onCompleteAllReliefs?: () => void;
   reliefCount?: number;
   isCompletingRelief?: boolean;
+  unreadCountsByPhone?: Record<string, number>;
 }
 
 export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
@@ -103,9 +104,16 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   onOpenReliefTextModal,
   onCompleteAllReliefs,
   reliefCount = 0,
-  isCompletingRelief = false
+  isCompletingRelief = false,
+  unreadCountsByPhone
 }) => {
   const isEditor = currentUserRole !== 'basic_user';
+
+  const getStaffUnreadCount = (staffMember: Staff | null): number => {
+    if (!staffMember?.phone || !unreadCountsByPhone) return 0;
+    const clean = staffMember.phone.replace(/\D/g, '').slice(-10);
+    return unreadCountsByPhone[clean] || 0;
+  };
 
   // The first department is default as requested: "make it so that it the default screen shows the first department."
   const defaultViewKey = useMemo(() => {
@@ -714,6 +722,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                   breakfastDone={runner.breakfastDone}
                                   lunchDone={runner.lunchDone}
                                   currentUserRole={currentUserRole}
+                                  unreadMessageCount={getStaffUnreadCount(assignedStaff)}
                                   onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
                                   onSelectStaff={onSelectStaff}
                                   isDraggable={false}
@@ -783,6 +792,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                               breakfastDone={slot.breakfastDone}
                                               lunchDone={slot.lunchDone}
                                               currentUserRole={currentUserRole}
+                                              unreadMessageCount={getStaffUnreadCount(assignedStaff)}
                                               onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
                                               onSelectStaff={onSelectStaff}
                                               isDraggable={false}
@@ -822,6 +832,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                             breakfastDone={slot.breakfastDone}
                                             lunchDone={slot.lunchDone}
                                             currentUserRole={currentUserRole}
+                                            unreadMessageCount={getStaffUnreadCount(assignedStaff)}
                                             onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
                                             onSelectStaff={onSelectStaff}
                                             isDraggable={false}
@@ -1314,6 +1325,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                           breakfastDone={breakStatus.breakfastDone}
                           lunchDone={breakStatus.lunchDone}
                           currentUserRole={currentUserRole}
+                          unreadMessageCount={getStaffUnreadCount(staffMember)}
                           onToggleBreak={(type, val) => onToggleBreak('bullpen', staffId, type, val)}
                           onSelectStaff={onSelectStaff}
                           isDraggable={false}
@@ -1370,6 +1382,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                             slotType="unassigned"
                             showBreaks={false}
                             currentUserRole={currentUserRole}
+                            unreadMessageCount={getStaffUnreadCount(s)}
                             onSelectStaff={onSelectStaff}
                             isDraggable={false}
                           />

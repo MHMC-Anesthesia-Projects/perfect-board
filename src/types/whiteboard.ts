@@ -246,6 +246,35 @@ export interface ScraperPreviewResult {
   error?: string;
 }
 
+export interface MessagingConfig {
+  enabled: boolean;
+  boardRunnerEmail: string;
+  boardRunnerPassword: string;
+  boardRunnerName: string;
+  pushEndpoint: string;
+  cachedBoardRunnerId?: string;
+  supabaseUrl?: string;
+  supabaseAnonKey?: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  chat_id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+  is_outgoing?: boolean;
+}
+
+export interface UnreadChatState {
+  chatId: string;
+  senderId: string;
+  count: number;
+  lastMessage: string;
+  lastTimestamp: string;
+  matchedStaffId?: string;
+}
+
 export interface BoardState {
   version: number;
   lastUpdated: string;
@@ -263,4 +292,5 @@ export interface BoardState {
   latesNotes: string;
   scraperConfig: ScraperConfig;
   uniqueSchedules?: UniqueScheduleRule[];
+  messagingConfig?: MessagingConfig;
 }

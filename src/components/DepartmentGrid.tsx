@@ -27,6 +27,7 @@ interface DepartmentGridProps {
   }) => void;
   onExecuteHandoff?: (targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
   onSetRelief?: (targetType: 'room_slot' | 'runner_slot', targetId: string, reliefStaffId: string, reliefTime?: string, notes?: string) => void;
+  unreadCountsByPhone?: Record<string, number>;
 }
 
 export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
@@ -42,8 +43,14 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
   onOpenReliefModal,
   onExecuteHandoff,
   onSetRelief,
-  onSetRoomFutureTime
+  onSetRoomFutureTime,
+  unreadCountsByPhone
 }) => {
+  const getStaffUnreadCount = (staffMember: Staff | null): number => {
+    if (!staffMember?.phone || !unreadCountsByPhone) return 0;
+    const clean = staffMember.phone.replace(/\D/g, '').slice(-10);
+    return unreadCountsByPhone[clean] || 0;
+  };
   const justDroppedRef = React.useRef(false);
   const isEditor = currentUserRole !== 'basic_user';
 
@@ -292,6 +299,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                           breakfastDone={runner.breakfastDone}
                           lunchDone={runner.lunchDone}
                           currentUserRole={currentUserRole}
+                          unreadMessageCount={getStaffUnreadCount(assignedStaff)}
                           onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
                           onSelectStaff={onSelectStaff}
                           onDragStart={handleTileDragStart}
@@ -365,6 +373,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                               breakfastDone={slot.breakfastDone}
                               lunchDone={slot.lunchDone}
                               currentUserRole={currentUserRole}
+                              unreadMessageCount={getStaffUnreadCount(assignedStaff)}
                               onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
                               onSelectStaff={onSelectStaff}
                               onDragStart={handleTileDragStart}

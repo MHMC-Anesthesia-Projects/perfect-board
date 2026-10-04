@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Staff, Department, UserRole, ReliefAssignment } from '@/types/whiteboard';
-import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, CheckCircle, ShieldCheck, Sparkles, UserCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { apiUrl } from '@/lib/api';
+import { Staff, Department, UserRole, ReliefAssignment, ChatMessage } from '@/types/whiteboard';
+import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, CheckCircle, ShieldCheck, Sparkles, UserCheck, MessageSquare, Send, RefreshCw, Radio, Check } from 'lucide-react';
 
 export interface StaffPlacement {
   type: 'runner_slot' | 'room_slot' | 'bullpen';
@@ -49,6 +50,7 @@ interface StaffModalProps {
     currentRelief?: ReliefAssignment | null;
   }) => void;
   onSetRoomFutureTime?: (roomId: string, futureTime: string | null) => void;
+  onChatRead?: (staffPhone: string) => void;
 }
 
 export const StaffModal: React.FC<StaffModalProps> = ({
@@ -69,7 +71,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   onSetStaffInfrequent,
   onOpenLogin,
   onOpenReliefModal,
-  onSetRoomFutureTime
+  onSetRoomFutureTime,
+  onChatRead
 }) => {
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [isEditingShift, setIsEditingShift] = useState(false);
@@ -77,14 +80,108 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
   const [displayNameInput, setDisplayNameInput] = useState(staff?.displayName || '');
 
-  React.useEffect(() => {
+  // --- Perfect Call Messaging State ---
+  const [messagingEnabled, setMessagingEnabled] = useState(false);
+  const [recipientProfile, setRecipientProfile] = useState<{
+    id: string;
+    fullName: string;
+    phone?: string;
+    isOnline: boolean;
+    lastSeenAt?: string | null;
+  } | null>(null);
+  const [chatId, setChatId] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [messageInput, setMessageInput] = useState('');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [isLoadingChat, setIsLoadingChat] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
+  const [quickSendSuccess, setQuickSendSuccess] = useState<string | null>(null);
+
+  const fetchMessagingStatus = async (phone?: string) => {
+    if (!phone) {
+      setMessagingEnabled(false);
+      setRecipientProfile(null);
+      return;
+    }
+    setIsLoadingChat(true);
+    setChatError(null);
+    try {
+      const res = await fetch(apiUrl(`/api/messages?action=check_status&phone=${encodeURIComponent(phone)}`));
+      const data = await res.json();
+      setMessagingEnabled(Boolean(data.enabled));
+      if (data.enabled && data.recipientProfile) {
+        setRecipientProfile(data.recipientProfile);
+        loadChatMessages(data.recipientProfile.id);
+      } else {
+        setRecipientProfile(null);
+        setChatMessages([]);
+      }
+    } catch (err: any) {
+      console.warn('Failed to load messaging status:', err);
+    } finally {
+      setIsLoadingChat(false);
+    }
+  };
+
+  const loadChatMessages = async (recipientId: string) => {
+    try {
+      const res = await fetch(apiUrl(`/api/messages?action=get_chat&recipientId=${encodeURIComponent(recipientId)}`));
+      const data = await res.json();
+      if (res.ok && data.messages) {
+        setChatId(data.chatId);
+        setChatMessages(data.messages);
+        if (staff?.phone && onChatRead) {
+          onChatRead(staff.phone);
+        }
+      } else if (data.error) {
+        setChatError(data.error);
+      }
+    } catch (err: any) {
+      console.warn('Error loading chat messages:', err);
+    }
+  };
+
+  const handleSendMessage = async (textToSend?: string) => {
+    const text = (textToSend || messageInput).trim();
+    if (!text || !recipientProfile || isSendingMessage) return;
+
+    setIsSendingMessage(true);
+    setChatError(null);
+    try {
+      const res = await fetch(apiUrl('/api/messages'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SEND_MESSAGE',
+          recipientId: recipientProfile.id,
+          content: text
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.message) {
+        setChatMessages((prev: ChatMessage[]) => [...prev, data.message]);
+        setMessageInput('');
+        setQuickSendSuccess(`Page sent: "${text}"`);
+        setTimeout(() => setQuickSendSuccess(null), 4000);
+      } else {
+        setChatError(data.error || 'Failed to send message');
+      }
+    } catch (err: any) {
+      setChatError(err.message || 'Network error while sending');
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
+
+  useEffect(() => {
     if (staff) {
       setCustomShift(staff.shift || 'Day');
       setIsEditingShift(false);
       setDisplayNameInput(staff.displayName || '');
       setIsEditingDisplayName(false);
+      fetchMessagingStatus(staff.phone);
     }
-  }, [staff?.id, staff?.shift, staff?.displayName]);
+  }, [staff?.id, staff?.shift, staff?.displayName, staff?.phone]);
 
   if (!staff) return null;
 
@@ -748,6 +845,303 @@ export const StaffModal: React.FC<StaffModalProps> = ({
             </div>
           )}
         </div>
+
+        {/* ==========================================================================
+            PERFECT CALL INTERNAL CLINICIAN PAGING & MESSAGING
+            ========================================================================== */}
+        {messagingEnabled && (
+          <div style={{
+            background: 'var(--surface-card)',
+            borderRadius: 8,
+            padding: '12px 14px',
+            border: '1.5px solid rgba(16, 185, 129, 0.35)',
+            marginBottom: 16,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10
+          }}>
+            {/* Header & Status Indicator */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', paddingBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <MessageSquare size={16} style={{ color: '#10b981' }} />
+                <span style={{
+                  fontSize: 12,
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                  color: 'var(--text-primary)'
+                }}>
+                  Perfect Call Clinician Paging
+                </span>
+              </div>
+
+              {/* Status Pill */}
+              {recipientProfile ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {recipientProfile.isOnline ? (
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      padding: '2px 8px',
+                      borderRadius: 12,
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      color: '#059669',
+                      border: '1px solid #10b981',
+                      fontSize: 10,
+                      fontWeight: 800,
+                      letterSpacing: 0.3
+                    }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                      ONLINE ON APP
+                    </span>
+                  ) : (
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      padding: '2px 8px',
+                      borderRadius: 12,
+                      background: 'var(--surface-hover)',
+                      color: 'var(--text-muted)',
+                      border: '1px solid var(--border-light)',
+                      fontSize: 10,
+                      fontWeight: 700
+                    }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#94a3b8', display: 'inline-block' }} />
+                      OFFLINE (PUSH DELIVERED)
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <span style={{
+                  padding: '2px 8px',
+                  borderRadius: 12,
+                  background: 'rgba(245, 158, 11, 0.12)',
+                  color: '#d97706',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  fontSize: 10,
+                  fontWeight: 700
+                }}>
+                  NOT ON PERFECT CALL
+                </span>
+              )}
+            </div>
+
+            {recipientProfile ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {/* Feedback notices */}
+                {quickSendSuccess && (
+                  <div style={{
+                    padding: '6px 10px',
+                    borderRadius: 5,
+                    background: 'rgba(16, 185, 129, 0.12)',
+                    border: '1px solid #10b981',
+                    color: '#047857',
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6
+                  }}>
+                    <Check size={14} />
+                    <span>{quickSendSuccess}</span>
+                  </div>
+                )}
+
+                {chatError && (
+                  <div style={{
+                    padding: '6px 10px',
+                    borderRadius: 5,
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid #ef4444',
+                    color: '#dc2626',
+                    fontSize: 11.5,
+                    fontWeight: 700
+                  }}>
+                    {chatError}
+                  </div>
+                )}
+
+                {/* Quick Presets Row */}
+                <div>
+                  <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: 5 }}>
+                    Quick Preset Pages (Tap to instant-send):
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                    {[
+                      'Need a break?',
+                      'Relief coming in 15m',
+                      'Please call OR Board Runner',
+                      'Case delayed / Add-on pending',
+                      'What is your estimated finish time?'
+                    ].map(preset => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => handleSendMessage(preset)}
+                        disabled={isSendingMessage}
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: 5,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          background: 'rgba(16, 185, 129, 0.08)',
+                          border: '1px solid rgba(16, 185, 129, 0.25)',
+                          color: '#059669',
+                          cursor: isSendingMessage ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4
+                        }}
+                      >
+                        <Send size={10} />
+                        <span>{preset}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom Message Field */}
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <input
+                    type="text"
+                    value={messageInput}
+                    onChange={e => setMessageInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder={`Message ${staff.displayName || staff.lastName}...`}
+                    disabled={isSendingMessage}
+                    style={{
+                      flex: 1,
+                      padding: '7px 10px',
+                      borderRadius: 6,
+                      border: '1px solid var(--border-light)',
+                      background: 'var(--bg-board)',
+                      color: 'var(--text-primary)',
+                      fontSize: 12,
+                      fontWeight: 600
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSendMessage()}
+                    disabled={isSendingMessage || !messageInput.trim()}
+                    style={{
+                      padding: '7px 14px',
+                      borderRadius: 6,
+                      background: messageInput.trim() ? '#10b981' : 'var(--surface-hover)',
+                      border: 'none',
+                      color: messageInput.trim() ? '#fff' : 'var(--text-muted)',
+                      fontWeight: 800,
+                      fontSize: 12,
+                      cursor: isSendingMessage || !messageInput.trim() ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5
+                    }}
+                  >
+                    <Send size={12} />
+                    <span>{isSendingMessage ? 'Sending...' : 'Send'}</span>
+                  </button>
+                </div>
+
+                {/* Mini Chat Thread Stream */}
+                <div style={{
+                  background: 'var(--bg-board)',
+                  border: '1px solid var(--border-light)',
+                  borderRadius: 6,
+                  padding: '8px 10px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', paddingBottom: 4 }}>
+                    <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      Recent Conversation Thread ({chatMessages.length})
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => recipientProfile && loadChatMessages(recipientProfile.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 3,
+                        fontSize: 10,
+                        fontWeight: 700
+                      }}
+                    >
+                      <RefreshCw size={10} className={isLoadingChat ? 'animate-spin' : ''} />
+                      <span>Refresh</span>
+                    </button>
+                  </div>
+
+                  <div style={{
+                    maxHeight: 140,
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                    paddingRight: 2
+                  }}>
+                    {chatMessages.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '10px 0', fontSize: 11, color: 'var(--text-muted)' }}>
+                        No messages yet. Send a page above to start communication.
+                      </div>
+                    ) : (
+                      chatMessages.map((msg: ChatMessage) => (
+                        <div
+                          key={msg.id}
+                          style={{
+                            alignSelf: msg.is_outgoing ? 'flex-end' : 'flex-start',
+                            maxWidth: '85%',
+                            background: msg.is_outgoing ? 'rgba(16, 185, 129, 0.15)' : 'var(--surface-hover)',
+                            border: `1px solid ${msg.is_outgoing ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-light)'}`,
+                            borderRadius: 6,
+                            padding: '5px 8px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 9.5, fontWeight: 800, color: msg.is_outgoing ? '#059669' : 'var(--text-secondary)' }}>
+                            <span>{msg.is_outgoing ? 'Board Runner' : (recipientProfile.fullName || staff.lastName)}</span>
+                            <span style={{ fontWeight: 500, color: 'var(--text-muted)' }}>
+                              {new Date(msg.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: 11.5, color: 'var(--text-primary)', wordBreak: 'break-word', fontWeight: 600 }}>
+                            {msg.content}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                background: 'var(--bg-board)',
+                padding: '10px 12px',
+                borderRadius: 6,
+                fontSize: 12,
+                color: 'var(--text-secondary)',
+                lineHeight: 1.5
+              }}>
+                No Perfect Call account found with phone: <strong>{staff.phone || 'None'}</strong>. 
+                Clinicians must register in <em>perfectcall.app</em> with their cell phone to receive internal pages directly from this whiteboard.
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Break Management Status (Accessible to ALL users, including Basic User!) */}
         {allPlacements.length > 0 && (

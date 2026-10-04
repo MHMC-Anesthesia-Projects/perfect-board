@@ -19,6 +19,7 @@ interface MagnetTileProps {
   onUnassign?: () => void;
   isCompact?: boolean;
   isDraggable?: boolean;
+  unreadMessageCount?: number;
 }
 
 export const MagnetTile: React.FC<MagnetTileProps> = ({
@@ -35,7 +36,8 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   onDragEnd,
   onUnassign,
   isCompact = false,
-  isDraggable: propIsDraggable
+  isDraggable: propIsDraggable,
+  unreadMessageCount = 0
 }) => {
   const isDraggable = propIsDraggable !== undefined 
     ? propIsDraggable 
@@ -77,12 +79,12 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
 
   return (
     <div
-      className={`magnet-tile ${isCompact ? 'compact' : ''} cred-tile-${staff.credentials}`}
+      className={`magnet-tile ${isCompact ? 'compact' : ''} cred-tile-${staff.credentials} ${unreadMessageCount > 0 ? 'has-unread-message' : ''}`}
       draggable={isDraggable}
       onDragStart={handleDrag}
       onDragEnd={handleDragEnd}
       onClick={handleTileClick}
-      title={`${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials}) • Phone: ${staff.phone}`}
+      title={`${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials}) • Phone: ${staff.phone}${unreadMessageCount > 0 ? ` • ${unreadMessageCount} NEW MESSAGE(S)` : ''}`}
       style={{
         cursor: isDraggable ? 'grab' : 'pointer'
       }}
@@ -94,6 +96,14 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
             ? staff.displayName.toUpperCase() 
             : `${staff.lastName.toUpperCase()}${staff.firstName ? ` ${staff.firstName[0]}.` : ''}`}
         </span>
+        {unreadMessageCount > 0 && (
+          <span
+            className="magnet-unread-badge"
+            title={`${unreadMessageCount} new message(s) from ${staff.lastName}`}
+          >
+            💬{unreadMessageCount > 1 ? unreadMessageCount : ''}
+          </span>
+        )}
       </div>
 
       {/* Breakfast & Lunch Checkboxes */}

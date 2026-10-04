@@ -1,7 +1,7 @@
 'use client';
 
 import { apiUrl } from '@/lib/api';
-import { getBrowserSupabase } from '@/lib/supabase';
+import { getBrowserSupabase, getPublicBrowserSupabase } from '@/lib/supabase';
 import { getHoustonDateString } from '@/lib/dateUtils';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { BoardState, Staff, Department, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential, ReliefAssignment } from '@/types/whiteboard';
@@ -88,6 +88,9 @@ export default function WhiteboardPage() {
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);
   const [isCleanBoardModalOpen, setIsCleanBoardModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Perfect Call Messaging & Unread Counts
+  const [unreadCountsByPhone, setUnreadCountsByPhone] = useState<Record<string, number>>({});
 
   // Initialize theme and load board
   useEffect(() => {
@@ -215,6 +218,76 @@ export default function WhiteboardPage() {
       }
     };
   }, []);
+
+  // Monitor unread incoming messages from clinical staff on Perfect Call
+  const fetchUnreadMessages = useCallback(async () => {
+    if (!boardState?.messagingConfig?.enabled) {
+      setUnreadCountsByPhone({});
+      return;
+    }
+    try {
+      const res = await fetch(apiUrl('/api/messages?action=get_unread_summary'));
+      const data = await res.json();
+      if (data?.unreadByPhone) {
+        const counts: Record<string, number> = {};
+        for (const [phone, info] of Object.entries<any>(data.unreadByPhone)) {
+          if (info?.count > 0) {
+            counts[phone] = info.count;
+          }
+        }
+        setUnreadCountsByPhone(counts);
+      }
+    } catch (err) {
+      console.warn('Error fetching unread messages summary:', err);
+    }
+  }, [boardState?.messagingConfig?.enabled]);
+
+  useEffect(() => {
+    if (!boardState?.messagingConfig?.enabled) {
+      setUnreadCountsByPhone({});
+      return;
+    }
+
+    fetchUnreadMessages();
+    const interval = setInterval(fetchUnreadMessages, 10000);
+
+    const pubSupabase = getPublicBrowserSupabase();
+    let channel: any = null;
+
+    if (pubSupabase) {
+      channel = pubSupabase
+        .channel('board-messages-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'board_messages'
+          },
+          () => {
+            fetchUnreadMessages();
+          }
+        )
+        .subscribe();
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (pubSupabase && channel) {
+        pubSupabase.removeChannel(channel);
+      }
+    };
+  }, [boardState?.messagingConfig?.enabled, fetchUnreadMessages]);
+
+  const handleChatRead = (staffPhone: string) => {
+    const clean = staffPhone.replace(/\D/g, '').slice(-10);
+    setUnreadCountsByPhone(prev => {
+      if (!prev[clean]) return prev;
+      const next = { ...prev };
+      delete next[clean];
+      return next;
+    });
+  };
 
   const fetchBoardState = async (showLoading = true) => {
     if (showLoading) setLoading(true);
@@ -1400,6 +1473,7 @@ export default function WhiteboardPage() {
           onCompleteAllReliefs={handleTriggerCompleteAllReliefs}
           reliefCount={totalScheduledReliefsCount}
           isCompletingRelief={isCompletingAllReliefs}
+          unreadCountsByPhone={unreadCountsByPhone}
         />
       ) : (
         <div className="whiteboard-container">
@@ -1447,6 +1521,7 @@ export default function WhiteboardPage() {
             onMoveStaffToUnassigned={handleMoveStaffToUnassigned}
             onToggleCollapse={() => setIsBullpenOpen(false)}
             onToggleBreak={(breakType, staffId, currentValue) => handleToggleBreak('bullpen', staffId, breakType, currentValue)}
+            unreadCountsByPhone={unreadCountsByPhone}
           />
         ) : (
           /* Expand Tab on Left Edge to slide Bullpen back open */
@@ -1479,6 +1554,7 @@ export default function WhiteboardPage() {
           onOpenReliefModal={target => setReliefTarget(target)}
           onExecuteHandoff={handleExecuteHandoff}
           onSetRelief={handleSetRelief}
+          unreadCountsByPhone={unreadCountsByPhone}
         />
 
         {/* Right 2 Columns: DEPARTURE & LATES (Can be hidden to the right) */}
@@ -1528,6 +1604,7 @@ export default function WhiteboardPage() {
         onSetStaffInfrequent={handleSetStaffInfrequent}
         isCollapsed={isBullpenCollapsed}
         onToggleCollapse={() => setIsBullpenCollapsed(prev => !prev)}
+        unreadCountsByPhone={unreadCountsByPhone}
       />
         </div>
       )}
@@ -1558,6 +1635,7 @@ export default function WhiteboardPage() {
         onOpenLogin={() => setIsLoginModalOpen(true)}
         onOpenReliefModal={target => setReliefTarget(target)}
         onSetRoomFutureTime={handleSetRoomFutureTime}
+        onChatRead={handleChatRead}
       />
 
       <SlotAssignModal
@@ -1618,6 +1696,7 @@ export default function WhiteboardPage() {
         staff={boardState.staff}
         scraperConfig={boardState.scraperConfig}
         uniqueSchedules={boardState.uniqueSchedules || []}
+        messagingConfig={boardState.messagingConfig}
         onSaveDepartments={handleSaveDepartments}
         onResetToPhotoDefault={handleResetToPhotoDefault}
         onRefreshData={() => fetchBoardState(false)}

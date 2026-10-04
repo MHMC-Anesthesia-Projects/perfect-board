@@ -15,6 +15,7 @@ interface BullpenSidebarProps {
   onMoveStaffToUnassigned: (staffId: string) => void;
   onToggleCollapse: () => void;
   onToggleBreak?: (breakType: 'breakfast' | 'lunch', staffId: string, currentValue: boolean) => void;
+  unreadCountsByPhone?: Record<string, number>;
 }
 
 const CREDENTIAL_ORDER: Record<string, number> = {
@@ -47,8 +48,14 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
   onDropToBullpen,
   onMoveStaffToUnassigned,
   onToggleCollapse,
-  onToggleBreak
+  onToggleBreak,
+  unreadCountsByPhone
 }) => {
+  const getStaffUnreadCount = (staffMember: Staff | null): number => {
+    if (!staffMember?.phone || !unreadCountsByPhone) return 0;
+    const clean = staffMember.phone.replace(/\D/g, '').slice(-10);
+    return unreadCountsByPhone[clean] || 0;
+  };
   const isEditor = currentUserRole !== 'basic_user';
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -204,6 +211,7 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
                       breakfastDone={b?.breakfastDone ?? false}
                       lunchDone={b?.lunchDone ?? false}
                       currentUserRole={currentUserRole}
+                      unreadMessageCount={getStaffUnreadCount(s)}
                       onToggleBreak={(breakType, currentValue) => {
                         if (onToggleBreak) {
                           onToggleBreak(breakType, s.id, currentValue);
