@@ -1351,7 +1351,7 @@
             {
               "id": "dept_main_or_room_11_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_doc_cavanaughmar",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2260,7 +2260,7 @@
       "runnerSlots": []
     }
   ],
-  "lastUpdated": "2026-10-04T17:26:59.461Z",
+  "lastUpdated": "2026-10-04T17:27:19.708Z",
   "callTeamList": [
     {
       "id": "call_0_1790982049373",
@@ -2438,10 +2438,10 @@
   "bullpenStaffIds": [],
   "messagingConfig": {
     "enabled": true,
+    "pushEndpoint": "https://pinecone-backend-7m1p.onrender.com/api/send-chat-push",
+    "boardRunnerName": "OR Board Runner",
     "boardRunnerEmail": "boardrunner@boardrunner.com",
     "boardRunnerPassword": "boardrunner@boardrunner.com",
-    "boardRunnerName": "OR Board Runner",
-    "pushEndpoint": "https://pinecone-backend-7m1p.onrender.com/api/send-chat-push",
     "cachedBoardRunnerId": "e1fc30ea-245b-4ae2-94fc-d5d1b24e68e7"
   },
   "uniqueSchedules": [

@@ -65,7 +65,9 @@ const KNOWN_NAME_MAP: Record<string, { lastName: string; firstName: string }> = 
   'schroedtertim': { lastName: 'Schroedter', firstName: 'Timothy' },
   'tamtom': { lastName: 'Tam', firstName: 'Tommy' },
   'townechr': { lastName: 'Towne', firstName: 'Christopher' },
+  'shirakmic': { lastName: 'Shirak', firstName: 'Mic' },
   'vuan': { lastName: 'Vu', firstName: 'An' },
+  'vuand': { lastName: 'Vu', firstName: 'An' },
   'yiale': { lastName: 'Yi', firstName: 'Alex' },
   'zemraulud': { lastName: 'Zemrau', firstName: 'Ludwig' }
 };
@@ -303,10 +305,17 @@ function resolveEffectiveShift(
   return `${dShift}, ${rTag}`;
 }
 
+// Known MHMC CV anesthesiologists for USAP Houston region
+const KNOWN_MHMC_CV_ABBRS = [
+  'shirakmic', 'dwarakanathkis', 'ruizjua', 'chenkev',
+  'farias kovacmar', 'baerenstechejoh', 'loubserpau', 'jamesika'
+];
+
 export function parseOneUsapHtml(
   htmlContent: string,
   selectedFacilities: string[] = DEFAULT_FACILITIES,
-  uniqueSchedules?: UniqueScheduleRule[]
+  uniqueSchedules?: UniqueScheduleRule[],
+  existingStaff?: Array<{ qgendaAbbr?: string; credentials?: string; lastName?: string }>
 ): ParseOneUsapResult {
   // Normalize selected facilities list
   const activeFacilities = selectedFacilities && selectedFacilities.length > 0
@@ -467,8 +476,16 @@ export function parseOneUsapHtml(
   };
 
   // Helper to determine if a provider belongs to the target hospital roster
-  const shouldIncludeProvider = (rawName: string, facilityStr: string): boolean => {
+  const shouldIncludeProvider = (rawName: string, facilityStr: string, shiftStr?: string): boolean => {
     const cleanId = rawName.replace(/\[.*?\]/g, '').toLowerCase().trim();
+    const cleanShift = (shiftStr || '').toUpperCase();
+    const cleanRaw = rawName.toUpperCase();
+
+    // Explicit facility suffixes in name or shift (e.g. HDrC1AM_MHMC, CIHAM_MHMC)
+    if (cleanRaw.includes('_MHMC') || cleanShift.includes('_MHMC')) {
+      return activeFacilities.some(fac => fac.toUpperCase().includes('MHMC'));
+    }
+
     const assignedSites = providerSiteMap.get(cleanId);
     // If provider has room assignments in the HTML:
     if (assignedSites && assignedSites.size > 0) {
@@ -477,13 +494,40 @@ export function parseOneUsapHtml(
       if (!hasTargetRoom) return false;
       return true;
     }
+
+    // Special case: USAP groups Cardiovascular call under department 'CV'.
+    // Include Memorial City's CV anesthesiologists (like Dr. Mic Shirak, Dr. KD, etc.):
+    if (facilityStr.trim().toUpperCase() === 'CV' || facilityStr.toUpperCase().includes('CV')) {
+      const isMhmcTarget = activeFacilities.some(fac => fac.toUpperCase().includes('MHMC'));
+      if (isMhmcTarget) {
+        const isMhmcCv = KNOWN_MHMC_CV_ABBRS.includes(cleanId) ||
+          (existingStaff && existingStaff.some(s => s.qgendaAbbr?.toLowerCase() === cleanId && s.credentials === 'MD'));
+        if (isMhmcCv) return true;
+      }
+    }
+
     // If no room assignments in HTML, fallback to active working facility
     return isTargetFacility(facilityStr, activeFacilities);
   };
 
   // 6. Filter for selected target facilities
-  const targetDocs = docEntries.filter(d => shouldIncludeProvider(d.rawName, d.facility));
-  const targetAnes = anesEntries.filter(a => shouldIncludeProvider(a.rawName, a.facility));
+  const targetDocs = docEntries.filter(d => shouldIncludeProvider(d.rawName, d.facility, d.shift));
+  const targetAnes = anesEntries.filter(a => shouldIncludeProvider(a.rawName, a.facility, a.shift));
+
+  // Detect if split AM/PM weekend & holiday call mode is active
+  let hasExplicitAmPm = false;
+  let c1Count = 0;
+  let c1ObDoc = false;
+
+  targetDocs.forEach(d => {
+    if (isOffShift(d.shift)) return;
+    const s = d.shift.toUpperCase();
+    if (/(?:HDR|IDR)?(?:C[123]|CV|OB)(?:AM|PM)/i.test(s)) hasExplicitAmPm = true;
+    if (s.includes('C1')) c1Count++;
+    if (s.includes('OB') && s.includes('C1')) c1ObDoc = true;
+  });
+
+  const isSplitCallMode = hasExplicitAmPm || (c1Count >= 2 && c1ObDoc);
 
   // 7. Build Working Staff list (excluding PTO / RDO / Off)
   const workingStaffMap = new Map<string, ScrapedWorkingStaffItem>();
@@ -498,8 +542,26 @@ export function parseOneUsapHtml(
 
     const formatted = formatProviderName(rawName);
     const cleanId = rawName.replace(/\[.*?\]/g, '').toLowerCase();
-    const facilityName = getFriendlyFacilityName(facility);
+    const isCvFacility = facility.trim().toUpperCase() === 'CV' || facility.toUpperCase().includes('CV');
+    const facilityName = isCvFacility ? 'MH Memorial City' : getFriendlyFacilityName(facility);
     const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
+
+    const phone = phoneBook.get(qgendaAbbr) || '(555) 000-0000';
+    const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
+    const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
+    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
+
+    // On weekend/holiday split call schedules with no elective rooms running:
+    // Standalone non-call '1st' departures without rooms (such as home-facility defaulted entries like Dr. Mankarious on call elsewhere) do not belong to MHMC
+    if (isSplitCallMode && (shift === '1st' || effectiveShift === '1st') && (!roomInfo.rooms || roomInfo.rooms.length === 0)) {
+      return;
+    }
+
+    // Outside CV doctors (from Methodist, Woodlands, etc.) who are not on call for MHMC and have no rooms at MHMC
+    const isMhmcCvDoc = qgendaAbbr.toLowerCase().includes('shirak') || qgendaAbbr.toLowerCase().includes('dwarakanath') || effectiveShift.toUpperCase().includes('_MHMC');
+    if (isCvFacility && !isMhmcCvDoc && (!roomInfo.rooms || roomInfo.rooms.length === 0)) {
+      return;
+    }
 
     // Tally facility counts
     const upperFac = getActiveFacilityCode(facility).toUpperCase();
@@ -510,11 +572,6 @@ export function parseOneUsapHtml(
     }
     if (upperFac.includes('MHMC')) mhmcCount++;
     if (upperFac.includes('MHVIL')) mhvilCount++;
-
-    const phone = phoneBook.get(qgendaAbbr) || '(555) 000-0000';
-    const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
-    const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
 
     workingStaffMap.set(cleanId, {
       id: `staff_oneusap_doc_${cleanId}`,
@@ -563,7 +620,21 @@ export function parseOneUsapHtml(
 
     const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
+    let effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
+    const upperShift = (effectiveShift || shift || '').toUpperCase();
+
+    // Recognize weekend / holiday and 12h CRNA shift nomenclature
+    if (upperShift.includes('CIHAM') || upperShift === 'CIH') {
+      effectiveShift = 'CIH AM';
+    } else if (upperShift.includes('CIHOBAM') || upperShift.includes('OBAM')) {
+      effectiveShift = 'OB AM';
+    } else if (upperShift.includes('CIHOBPM') || upperShift.includes('OBPM')) {
+      effectiveShift = 'OB PM';
+    } else if (upperShift.includes('12H-7P') || upperShift.includes('NOCT')) {
+      effectiveShift = '12h-7p:Noct';
+    } else if (upperShift.includes('7A-7P') || upperShift === '12H' || upperShift.startsWith('12H ')) {
+      effectiveShift = '7a-7p';
+    }
 
     workingStaffMap.set(cleanId, {
       id: `staff_oneusap_anes_${cleanId}`,
@@ -583,9 +654,153 @@ export function parseOneUsapHtml(
     });
   });
 
-  // 8. Build Departure Candidates (Working Doctors)
-  const rawDepartureCandidates: ParseOneUsapResult['departureCandidates'] = [];
+  // 8. Build Call Team Candidates (with AM / PM Weekend & Holiday Split Nuance)
+  // Hospital calls are named: Call 1, Call 2, Call 3, CV, OB.
+  // On weekends/holidays or when AM/PM designations are present, call roles expand to:
+  // CV AM, CV PM, Call 3 AM, Call 3 PM, Call 2 AM, Call 2 PM, Call 1 AM, Call 1 PM, OB AM, OB PM.
   const callTeamMap = new Map<string, { doctorName: string; qgendaAbbr: string; orderNumber?: number; isCombined?: boolean }>();
+
+  if (isSplitCallMode) {
+    // --- SPLIT AM / PM CALL MODE ---
+    // 1. Assign explicit AM/PM tags (e.g. HDrC1AM_MHMC, C3PM_MHMC, IDrOBAM_MHMC, etc.)
+    targetDocs.forEach(entry => {
+      if (isOffShift(entry.shift)) return;
+      const formatted = formatProviderName(entry.rawName);
+      const qgendaAbbr = entry.rawName.replace(/\[.*?\]/g, '').trim();
+      const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
+      const effectiveShift = resolveEffectiveShift(entry.shift, roomTag, qgendaAbbr);
+      const upperShift = effectiveShift.toUpperCase();
+
+      const matches = upperShift.match(/(?:HDR|IDR)?(C[123]|CV|OB)(AM|PM)(?:_MHMC)?/gi);
+      if (matches) {
+        matches.forEach(m => {
+          const sub = m.match(/(?:HDR|IDR)?(C[123]|CV|OB)(AM|PM)(?:_MHMC)?/i);
+          if (sub) {
+            const roleBase = sub[1] === 'CV' ? 'CV' : sub[1] === 'OB' ? 'OB' : `Call ${sub[1].replace('C', '')}`;
+            const role = `${roleBase} ${sub[2].toUpperCase()}`;
+            const alias = formatted.lastName === 'Dwarakanath' ? 'KD' : formatted.lastName.toUpperCase();
+            callTeamMap.set(role, { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+          }
+        });
+      }
+    });
+
+    // 2. Assign standard/compound codes into unfilled AM/PM slots
+    targetDocs.forEach(entry => {
+      if (isOffShift(entry.shift)) return;
+      const formatted = formatProviderName(entry.rawName);
+      const qgendaAbbr = entry.rawName.replace(/\[.*?\]/g, '').trim();
+      const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
+      const effectiveShift = resolveEffectiveShift(entry.shift, roomTag, qgendaAbbr);
+      const upperShift = effectiveShift.toUpperCase();
+      const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
+      const alias = formatted.lastName === 'Dwarakanath' ? 'KD' : formatted.lastName.toUpperCase();
+
+      // CV: covers CV AM and CV PM
+      if (shiftParts.some(p => (p === 'CV' || p.startsWith('CV-') || p.startsWith('CV ')) && !p.startsWith('POST') && !p.startsWith('PRE'))) {
+        // Prefer explicit MHMC or primary MHMC CV doctor (e.g. ShirakMic or DwarakanathKis)
+        const isPrimaryCv = qgendaAbbr.toLowerCase().includes('shirak') || qgendaAbbr.toLowerCase().includes('dwarakanath') || upperShift.includes('_MHMC');
+        if (isPrimaryCv || !callTeamMap.has('CV AM')) {
+          callTeamMap.set('CV AM', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+          callTeamMap.set('CV PM', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+        }
+      }
+
+      // Call 3: covers Call 3 AM and Call 3 PM
+      if (shiftParts.some(p => (p === 'C3' || p === '3RD' || p === 'CALL 3' || p === 'CALL3') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
+        if (!callTeamMap.has('Call 3 AM')) callTeamMap.set('Call 3 AM', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+        if (!callTeamMap.has('Call 3 PM')) callTeamMap.set('Call 3 PM', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+      }
+
+      // Call 2: covers Call 2 AM and Call 2 PM
+      if (shiftParts.some(p => (p === 'C2' || p === '2ND' || p === 'CALL 2' || p === 'CALL2') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
+        const c2Alias = formatted.lastName === 'Tallackson' ? 'TALL' : alias;
+        if (!callTeamMap.has('Call 2 AM')) callTeamMap.set('Call 2 AM', { doctorName: c2Alias, qgendaAbbr, orderNumber: entry.orderNumber });
+        if (!callTeamMap.has('Call 2 PM')) callTeamMap.set('Call 2 PM', { doctorName: c2Alias, qgendaAbbr, orderNumber: entry.orderNumber });
+      }
+
+      // Combined OB,C1 doctor (e.g. Dr. Shevchenko): covers Call 1 PM and both OB AM & OB PM
+      if (upperShift.includes('C1,OB') || upperShift.includes('OB,C1') || (shiftParts.includes('C1') && shiftParts.includes('OB'))) {
+        if (!callTeamMap.has('Call 1 PM')) callTeamMap.set('Call 1 PM', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+        if (!callTeamMap.has('OB AM')) callTeamMap.set('OB AM', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+        if (!callTeamMap.has('OB PM')) callTeamMap.set('OB PM', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+      } else if (shiftParts.some(p => (p === 'C1' || p === 'CALL 1' || p === 'CALL1' || p.startsWith('C1-') || p.startsWith('C1 ')) && !p.startsWith('POST') && !p.startsWith('PRE'))) {
+        // Pure C1 doctor (e.g. Dr. Alaniz): covers Call 1 AM (or Call 1 PM if AM filled)
+        if (!callTeamMap.has('Call 1 AM')) {
+          callTeamMap.set('Call 1 AM', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+        } else if (!callTeamMap.has('Call 1 PM')) {
+          callTeamMap.set('Call 1 PM', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+        }
+      } else if (shiftParts.some(p => (p === 'OB' || p === 'OBCALL') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
+        // Pure OB doctor: covers OB AM and OB PM
+        if (!callTeamMap.has('OB AM')) callTeamMap.set('OB AM', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+        if (!callTeamMap.has('OB PM')) callTeamMap.set('OB PM', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+      }
+    });
+  } else {
+    // --- STANDARD WEEKDAY CALL MODE ---
+    // Pass 1: Providers listed with "C1,OB" (like Dr. Lu) are both Call 1 and OB today.
+    targetDocs.forEach(entry => {
+      if (isOffShift(entry.shift)) return;
+      const formatted = formatProviderName(entry.rawName);
+      const qgendaAbbr = entry.rawName.replace(/\[.*?\]/g, '').trim();
+      const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
+      const effectiveShift = resolveEffectiveShift(entry.shift, roomTag, qgendaAbbr);
+      const upperShift = effectiveShift.toUpperCase();
+      const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
+
+      const isC1OB = upperShift.includes('C1,OB') || (shiftParts.includes('C1') && shiftParts.includes('OB'));
+      if (isC1OB) {
+        callTeamMap.set('Call 1', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber, isCombined: true });
+        callTeamMap.set('OB', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber, isCombined: true });
+      }
+    });
+
+    // Pass 2: Remaining call roles (CV, Call 3, Call 2, Call 1, OB)
+    targetDocs.forEach(entry => {
+      if (isOffShift(entry.shift)) return;
+      const formatted = formatProviderName(entry.rawName);
+      const qgendaAbbr = entry.rawName.replace(/\[.*?\]/g, '').trim();
+      const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
+      const effectiveShift = resolveEffectiveShift(entry.shift, roomTag, qgendaAbbr);
+      const upperShift = effectiveShift.toUpperCase();
+      const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
+
+      // CV
+      if (shiftParts.some(p => (p === 'CV' || p.startsWith('CV-') || p.startsWith('CV ')) && !p.startsWith('POST') && !p.startsWith('PRE'))) {
+        const alias = formatted.lastName === 'Dwarakanath' ? 'KD' : formatted.lastName.toUpperCase();
+        callTeamMap.set('CV', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+      }
+
+      // Call 3
+      if (shiftParts.some(p => (p === 'C3' || p === '3RD' || p === 'CALL 3' || p === 'CALL3') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
+        callTeamMap.set('Call 3', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber });
+      }
+
+      // Call 2
+      if (shiftParts.some(p => (p === 'C2' || p === '2ND' || p === 'CALL 2' || p === 'CALL2') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
+        const alias = formatted.lastName === 'Tallackson' ? 'TALL' : formatted.lastName.toUpperCase();
+        callTeamMap.set('Call 2', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
+      }
+
+      // Call 1 (only if not already claimed by a combined C1,OB doctor)
+      if (shiftParts.some(p => (p === 'C1' || p === '1ST' || p === 'CALL 1' || p === 'CALL1') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
+        if (!callTeamMap.get('Call 1')?.isCombined && !callTeamMap.has('Call 1')) {
+          callTeamMap.set('Call 1', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber });
+        }
+      }
+
+      // OB (only if not already claimed by a combined C1,OB doctor)
+      if (shiftParts.some(p => (p === 'OB' || p === 'OBCALL') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
+        if (!callTeamMap.get('OB')?.isCombined && !callTeamMap.has('OB')) {
+          callTeamMap.set('OB', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber });
+        }
+      }
+    });
+  }
+
+  // 9. Build Departure Candidates (Working Doctors not on Call)
+  const rawDepartureCandidates: ParseOneUsapResult['departureCandidates'] = [];
 
   targetDocs.forEach(entry => {
     const { rawName, facility, shift, orderNumber } = entry;
@@ -611,19 +826,17 @@ export function parseOneUsapHtml(
       upperShift.includes('POST1') ||
       upperShift.includes('POSTNICU');
 
-    const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
-    const isC1OB = upperShift.includes('C1,OB') || (shiftParts.includes('C1') && shiftParts.includes('OB'));
-    const isActiveCall = isC1OB || shiftParts.some(p => 
-      (p === 'CV' || p.startsWith('CV-') || p.startsWith('CV ') ||
-       p === 'C1' || p === '1ST' || p === 'CALL 1' || p === 'CALL1' ||
-       p === 'C2' || p === '2ND' || p === 'CALL 2' || p === 'CALL2' ||
-       p === 'C3' || p === '3RD' || p === 'CALL 3' || p === 'CALL3' ||
-       p === 'OB' || p === 'OBCALL') && 
-      !p.startsWith('POST') && !p.startsWith('PRE')
+    // If doctor is claimed by any active call slot, do not include them in the departure list
+    const isCallDoctor = Array.from(callTeamMap.values()).some(
+      c => c.qgendaAbbr.toLowerCase() === qgendaAbbr.toLowerCase()
     );
+    if (!isPostCall && isCallDoctor) {
+      return;
+    }
 
-    // If doctor is on active call (e.g. Dr. Lu with "C1,OB"), do not include them in the departure list
-    if (!isPostCall && isActiveCall) {
+    // Outside CV doctors (from Methodist, Woodlands, etc.) who are not the MHMC CV call doctor
+    const isCvFacility = facility.trim().toUpperCase() === 'CV' || facility.toUpperCase().includes('CV');
+    if (isCvFacility && !isCallDoctor) {
       return;
     }
 
@@ -636,10 +849,16 @@ export function parseOneUsapHtml(
       return;
     }
 
+    const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
+
+    // On weekend/holiday split call schedules with no elective rooms running:
+    // Standalone non-call '1st' departures without rooms (such as home-facility defaulted entries like Dr. Mankarious on call elsewhere) do not belong to MHMC
+    if (isSplitCallMode && (shift === '1st' || effectiveShift === '1st') && (!roomInfo.rooms || roomInfo.rooms.length === 0)) {
+      return;
+    }
+
     // Check for atypical departure time (e.g. 2p, 1p, 1:30p)
     const isAtypicalTime = /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(upperShift) && !isLateDoc;
-
-    const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
 
     rawDepartureCandidates.push({
       name: formatted.lastName.toUpperCase(),
@@ -650,68 +869,6 @@ export function parseOneUsapHtml(
       roomAssignment: roomInfo.roomString || undefined,
       orderNumber
     });
-  });
-
-  // Call Team detection from shift codes:
-  // Hospital calls are named: Call 1, Call 2, Call 3, CV, OB.
-  // Sorted in order: CV, Call 3, Call 2, Call 1, OB.
-  // Pass 1: Providers listed with "C1,OB" (like Dr. Lu) are both Call 1 and OB today.
-  targetDocs.forEach(entry => {
-    if (isOffShift(entry.shift)) return;
-    const formatted = formatProviderName(entry.rawName);
-    const qgendaAbbr = entry.rawName.replace(/\[.*?\]/g, '').trim();
-    const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(entry.shift, roomTag, qgendaAbbr);
-    const upperShift = effectiveShift.toUpperCase();
-    const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
-
-    const isC1OB = upperShift.includes('C1,OB') || (shiftParts.includes('C1') && shiftParts.includes('OB'));
-    if (isC1OB) {
-      callTeamMap.set('Call 1', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber, isCombined: true });
-      callTeamMap.set('OB', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber, isCombined: true });
-    }
-  });
-
-  // Pass 2: Remaining call roles (CV, Call 3, Call 2, Call 1, OB)
-  targetDocs.forEach(entry => {
-    if (isOffShift(entry.shift)) return;
-    const formatted = formatProviderName(entry.rawName);
-    const qgendaAbbr = entry.rawName.replace(/\[.*?\]/g, '').trim();
-    const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const effectiveShift = resolveEffectiveShift(entry.shift, roomTag, qgendaAbbr);
-    const upperShift = effectiveShift.toUpperCase();
-    const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
-
-    // CV
-    if (shiftParts.some(p => (p === 'CV' || p.startsWith('CV-') || p.startsWith('CV ')) && !p.startsWith('POST') && !p.startsWith('PRE'))) {
-      const alias = formatted.lastName === 'Dwarakanath' ? 'KD' : formatted.lastName.toUpperCase();
-      callTeamMap.set('CV', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
-    }
-
-    // Call 3
-    if (shiftParts.some(p => (p === 'C3' || p === '3RD' || p === 'CALL 3' || p === 'CALL3') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
-      callTeamMap.set('Call 3', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber });
-    }
-
-    // Call 2
-    if (shiftParts.some(p => (p === 'C2' || p === '2ND' || p === 'CALL 2' || p === 'CALL2') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
-      const alias = formatted.lastName === 'Tallackson' ? 'TALL' : formatted.lastName.toUpperCase();
-      callTeamMap.set('Call 2', { doctorName: alias, qgendaAbbr, orderNumber: entry.orderNumber });
-    }
-
-    // Call 1 (only if not already claimed by a combined C1,OB doctor)
-    if (shiftParts.some(p => (p === 'C1' || p === '1ST' || p === 'CALL 1' || p === 'CALL1') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
-      if (!callTeamMap.get('Call 1')?.isCombined && !callTeamMap.has('Call 1')) {
-        callTeamMap.set('Call 1', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber });
-      }
-    }
-
-    // OB (only if not already claimed by a combined C1,OB doctor)
-    if (shiftParts.some(p => (p === 'OB' || p === 'OBCALL') && !p.startsWith('POST') && !p.startsWith('PRE'))) {
-      if (!callTeamMap.get('OB')?.isCombined && !callTeamMap.has('OB')) {
-        callTeamMap.set('OB', { doctorName: formatted.lastName.toUpperCase(), qgendaAbbr, orderNumber: entry.orderNumber });
-      }
-    }
   });
 
   // Sort Departure Candidates: Post-Call -> Special (atypical times) -> Non-Call
@@ -729,7 +886,7 @@ export function parseOneUsapHtml(
 
   const departureCandidates = [...sortedPostCall, ...sortedSpecial, ...sortedNonCall];
 
-  // 9. Build Late List Candidates (CRNAs and Docs with 3p, 4p, 5p, 7p, 8p, Night)
+  // 10. Build Late List Candidates (CRNAs and Docs with 3p, 4p, 5p, 7p, 8p, Night, 7a-7p, 12h)
   const lateCandidates: ParseOneUsapResult['lateCandidates'] = [];
 
   const checkLate = (
@@ -742,6 +899,15 @@ export function parseOneUsapHtml(
     if (isOffShift(shift)) return;
     const formatted = formatProviderName(rawName);
     const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
+
+    // Active call doctors belong to Call Team, not the Lates list
+    const isCallDoctor = Array.from(callTeamMap.values()).some(
+      c => c.qgendaAbbr.toLowerCase() === qgendaAbbr.toLowerCase()
+    );
+    if (role === 'MD' && isCallDoctor) {
+      return;
+    }
+
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
     const effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
     const upperShift = effectiveShift.toUpperCase();
@@ -754,17 +920,33 @@ export function parseOneUsapHtml(
     else facilityLabel = activeFac.replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/, '').replace(/W:\s*/g, '').trim();
 
     const is13h = is13hShift(upperShift);
-    const has8p = upperShift.includes('8P') || is13h;
+    const has8p = /\b8p\b/i.test(upperShift) || upperShift.includes('8P') || is13h;
 
     let timeCat = '';
-    if (upperShift.includes('7P-7A') || upperShift.includes('NIGHT')) timeCat = '7p-7a';
-    else if (has8p) timeCat = '8p';
-    else if (upperShift.includes('7P')) timeCat = '7p';
-    else if (upperShift.includes('5P')) timeCat = '5p';
-    else if (upperShift.includes('4P')) timeCat = '4p';
-    else if (upperShift.includes('3P')) timeCat = '3p';
-    else if (role === 'CRNA' && /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(upperShift)) {
-      // If a CRNA has an atypical departure time (e.g. 2p), show in 'Special' section above 4p in Late list
+    if (
+      upperShift.includes('7P-7A') ||
+      upperShift.includes('NIGHT') ||
+      upperShift.includes('NOCT') ||
+      upperShift.includes('CIHOBPM') ||
+      upperShift.includes('OBPM')
+    ) {
+      timeCat = '7p-7a';
+    } else if (has8p) {
+      timeCat = '8p';
+    } else if (
+      /\b7p\b/i.test(upperShift) ||
+      upperShift.includes('7A-7P') ||
+      upperShift === '12H' ||
+      upperShift.startsWith('12H ')
+    ) {
+      timeCat = '7p';
+    } else if (/\b5p\b/i.test(upperShift) || upperShift === '5P') {
+      timeCat = '5p';
+    } else if (/\b4p\b/i.test(upperShift) || upperShift === '4P') {
+      timeCat = '4p';
+    } else if (/\b3p\b/i.test(upperShift) || upperShift === '3P') {
+      timeCat = '3p';
+    } else if (role === 'CRNA' && /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(upperShift)) {
       timeCat = 'special';
     }
 
@@ -830,8 +1012,12 @@ export function parseOneUsapHtml(
     return (a.orderNumber ?? 999) - (b.orderNumber ?? 999);
   });
 
-  // Build Call Team List in exact order: CV, Call 3, Call 2, Call 1, OB
-  const callTeamOrder = ['CV', 'Call 3', 'Call 2', 'Call 1', 'OB'];
+  // Build Call Team List in exact order:
+  // Split mode: CV AM, CV PM, Call 3 AM, Call 3 PM, Call 2 AM, Call 2 PM, Call 1 AM, Call 1 PM, OB AM, OB PM
+  // Weekday mode: CV, Call 3, Call 2, Call 1, OB
+  const callTeamOrder = isSplitCallMode
+    ? ['CV AM', 'CV PM', 'Call 3 AM', 'Call 3 PM', 'Call 2 AM', 'Call 2 PM', 'Call 1 AM', 'Call 1 PM', 'OB AM', 'OB PM']
+    : ['CV', 'Call 3', 'Call 2', 'Call 1', 'OB'];
   const callTeamCandidates = callTeamOrder
     .filter(role => callTeamMap.has(role))
     .map(role => ({
@@ -867,6 +1053,7 @@ export async function fetchAndScrapeOneUsap(options: {
   date?: string;
   facilities?: string[];
   uniqueSchedules?: UniqueScheduleRule[];
+  existingStaff?: Array<{ qgendaAbbr?: string; credentials?: string; lastName?: string }>;
 }): Promise<ScraperPreviewResult> {
   const targetDate = options.date || getHoustonDateString();
   let targetUrl = options.portalUrl || 'https://www.oneusap.com/assignments';
@@ -946,7 +1133,7 @@ export async function fetchAndScrapeOneUsap(options: {
       };
     }
 
-    const parsed = parseOneUsapHtml(html, selectedFacilities, options.uniqueSchedules);
+    const parsed = parseOneUsapHtml(html, selectedFacilities, options.uniqueSchedules, options.existingStaff);
 
     return {
       success: true,

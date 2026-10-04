@@ -834,8 +834,14 @@ export async function POST(req: NextRequest) {
             if (isCall2) assignCallRole('Call 2');
             if (isCall3) assignCallRole('Call 3');
 
-            // Maintain exact Call Team Order: CV, Call 3, Call 2, Call 1, OB
-            const CALL_ORDER: Record<string, number> = { 'CV': 1, 'CALL 3': 2, 'CALL 2': 3, 'CALL 1': 4, 'OB': 5 };
+            // Maintain exact Call Team Order: CV (AM/PM), Call 3 (AM/PM), Call 2 (AM/PM), Call 1 (AM/PM), OB (AM/PM)
+            const CALL_ORDER: Record<string, number> = {
+              'CV': 1, 'CV AM': 1, 'CV PM': 2,
+              'CALL 3': 3, 'CALL 3 AM': 3, 'CALL 3 PM': 4,
+              'CALL 2': 5, 'CALL 2 AM': 5, 'CALL 2 PM': 6,
+              'CALL 1': 7, 'CALL 1 AM': 7, 'CALL 1 PM': 8,
+              'OB': 9, 'OB AM': 9, 'OB PM': 10
+            };
             state.callTeamList.sort((a, b) => (CALL_ORDER[a.role.toUpperCase()] || 99) - (CALL_ORDER[b.role.toUpperCase()] || 99));
 
             // Call doctors must NOT exist in departure list

@@ -43,7 +43,8 @@ export async function POST(req: NextRequest) {
           password: activePass,
           date: targetDate,
           facilities: activeFacilities,
-          uniqueSchedules: state.uniqueSchedules
+          uniqueSchedules: state.uniqueSchedules,
+          existingStaff: state.staff
         });
 
         return NextResponse.json({
@@ -128,7 +129,8 @@ export async function POST(req: NextRequest) {
           password: state.scraperConfig.password || '321usap',
           date: targetDate,
           facilities: activeFacilities,
-          uniqueSchedules: state.uniqueSchedules
+          uniqueSchedules: state.uniqueSchedules,
+          existingStaff: state.staff
         });
 
         if (!scraped.success) {

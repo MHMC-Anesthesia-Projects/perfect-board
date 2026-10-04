@@ -1,5 +1,15 @@
 [
   {
+    "id": "audit_1791134839995_m0wqp",
+    "timestamp": "2026-10-04T17:27:19.995Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "MAIN OR Room 11",
+    "details": "Moved from Staff Pool -> MAIN OR Room 11"
+  },
+  {
     "id": "audit_1791093600217_xcfns",
     "timestamp": "2026-10-04T06:00:00.218Z",
     "actionType": "BREAKFAST_TOGGLED",
