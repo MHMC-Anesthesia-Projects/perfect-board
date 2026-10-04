@@ -341,25 +341,24 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           <span>Audit Log</span>
         </button>
 
-        {/* Admin Dashboard (Visible to Superuser) */}
+        {/* Admin Dashboard (Visible to Superuser - Gear icon only to save space) */}
         {currentUser?.role === 'superuser' && (
           <button
             onClick={onOpenAdmin}
+            title="Superuser Admin Settings & Command Center"
             style={{
-              padding: '6px 12px',
+              padding: '6px 10px',
               borderRadius: 6,
               background: 'rgba(211, 47, 47, 0.1)',
               border: '1px solid var(--marker-red)',
               display: 'flex',
               alignItems: 'center',
-              gap: 6,
-              fontSize: 12,
-              fontWeight: 800,
-              color: 'var(--marker-red)'
+              justifyContent: 'center',
+              color: 'var(--marker-red)',
+              cursor: 'pointer'
             }}
           >
-            <Settings size={14} />
-            <span>Superuser Admin</span>
+            <Settings size={15} />
           </button>
         )}
 
