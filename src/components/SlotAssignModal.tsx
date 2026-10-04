@@ -91,22 +91,74 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
       <div
         className="pin-pad-card"
         onClick={e => e.stopPropagation()}
-        style={{ width: 440, padding: 20, textAlign: 'left', alignItems: 'stretch' }}
+        style={{
+          width: '100%',
+          maxWidth: 440,
+          maxHeight: 'min(92vh, calc(100dvh - 32px))',
+          padding: 0,
+          textAlign: 'left',
+          alignItems: 'stretch',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          borderRadius: 14,
+          boxShadow: '0 20px 48px rgba(0, 0, 0, 0.4)'
+        }}
       >
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        {/* Sticky Header with prominent Close button */}
+        <div style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          background: 'var(--surface-card)',
+          borderBottom: '1px solid var(--border-light)',
+          padding: '14px 18px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexShrink: 0
+        }}>
           <div>
-            <h3 style={{ fontSize: 16, fontWeight: 900, textTransform: 'uppercase' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>
               Assign Staff: {targetSlot.label}
             </h3>
-            <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+            <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '2px 0 0 0' }}>
               Tap any available staff member to place them in this slot.
             </p>
           </div>
-          <button onClick={onClose} style={{ color: 'var(--text-muted)' }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--border-light)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              padding: 0,
+              flexShrink: 0,
+              marginLeft: 8
+            }}
+            title="Close modal"
+          >
             <X size={18} />
           </button>
         </div>
+
+        {/* Scrollable Modal Content */}
+        <div style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '16px 18px',
+          display: 'flex',
+          flexDirection: 'column',
+          WebkitOverflowScrolling: 'touch'
+        }}>
 
         {!isEditor ? (
           <div style={{
@@ -214,9 +266,9 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
                         border: '1.5px solid var(--border-light)',
                         background: 'var(--surface-card)',
                         color: 'var(--text-primary)',
-                        fontSize: 13,
+                        fontSize: 16,
                         fontWeight: 800,
-                        fontFamily: 'var(--font-mono)',
+                        fontFamily: 'var(--font-main)',
                         textAlign: 'center',
                         letterSpacing: 1
                       }}
@@ -288,12 +340,11 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
                 placeholder="Search by last name, initial, or credential..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                autoFocus
                 style={{
                   border: 'none',
                   background: 'transparent',
                   outline: 'none',
-                  fontSize: 13,
+                  fontSize: 16,
                   color: 'var(--text-primary)',
                   width: '100%'
                 }}
@@ -358,6 +409,44 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
             </div>
           </>
         )}
+        </div>
+
+        {/* Sticky Footer with Clear/Close Button */}
+        <div style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 10,
+          background: 'var(--surface-card)',
+          borderTop: '1px solid var(--border-light)',
+          padding: '10px 18px',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          flexShrink: 0
+        }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              width: '100%',
+              padding: '10px 16px',
+              borderRadius: 8,
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--border-light)',
+              color: 'var(--text-primary)',
+              fontWeight: 800,
+              fontSize: 13,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6
+            }}
+          >
+            <X size={15} />
+            <span>Close / Cancel</span>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -218,20 +218,43 @@ export const StaffModal: React.FC<StaffModalProps> = ({
       <div
         className="pin-pad-card"
         onClick={e => e.stopPropagation()}
-        style={{ width: 440, padding: 24, textAlign: 'left', alignItems: 'stretch' }}
+        style={{
+          width: '100%',
+          maxWidth: 460,
+          maxHeight: 'min(92vh, calc(100dvh - 32px))',
+          padding: 0,
+          textAlign: 'left',
+          alignItems: 'stretch',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          borderRadius: 14,
+          boxShadow: '0 20px 48px rgba(0, 0, 0, 0.4)'
+        }}
       >
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+        {/* Sticky Header with Doctor Info & prominent Close button */}
+        <div style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          background: 'var(--surface-card)',
+          borderBottom: '1px solid var(--border-light)',
+          padding: '16px 20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          flexShrink: 0
+        }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 900, textTransform: 'uppercase' }}>
+              <h2 style={{ fontSize: 18, fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>
                 {staff.lastName}, {staff.firstName || ''}
               </h2>
               <span className={`magnet-cred cred-${staff.credentials}`} style={{ fontSize: 11, padding: '2px 6px' }}>
                 {staff.credentials}
               </span>
             </div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span>ID: {staff.id.split('_').slice(-1)[0]} • Anesthesia Care Team</span>
               {staff.orderNumber && (
                 <span
@@ -251,10 +274,39 @@ export const StaffModal: React.FC<StaffModalProps> = ({
               )}
             </div>
           </div>
-          <button onClick={onClose} style={{ color: 'var(--text-muted)' }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--border-light)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              padding: 0,
+              flexShrink: 0,
+              marginLeft: 8
+            }}
+            title="Close modal"
+          >
             <X size={20} />
           </button>
         </div>
+
+        {/* Scrollable Modal Content */}
+        <div style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '16px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          WebkitOverflowScrolling: 'touch'
+        }}>
 
         {/* Contact & Shift Info */}
         <div style={{
@@ -1119,6 +1171,44 @@ export const StaffModal: React.FC<StaffModalProps> = ({
             )}
           </div>
         )}
+        </div>
+
+        {/* Sticky Footer with Clear/Close Button */}
+        <div style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 10,
+          background: 'var(--surface-card)',
+          borderTop: '1px solid var(--border-light)',
+          padding: '12px 20px',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          flexShrink: 0
+        }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              width: '100%',
+              padding: '11px 16px',
+              borderRadius: 8,
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--border-light)',
+              color: 'var(--text-primary)',
+              fontWeight: 800,
+              fontSize: 13,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8
+            }}
+          >
+            <X size={16} />
+            <span>Close Details</span>
+          </button>
+        </div>
       </div>
     </div>
   );
