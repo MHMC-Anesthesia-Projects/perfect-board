@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       role: role as UserRole,
       pin: pin.trim(),
       password: password || 'hospital123',
-      active: true,
+      active: body.active !== undefined ? Boolean(body.active) : true,
       createdAt: new Date().toISOString()
     };
 

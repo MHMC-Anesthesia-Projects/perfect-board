@@ -4,7 +4,7 @@ import { apiUrl } from '@/lib/api';
 import React, { useState, useEffect } from 'react';
 import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential, RunnerSlot, ScraperPreviewResult, UniqueScheduleRule, MessagingConfig } from '@/types/whiteboard';
 import { 
-  Users, UserCheck, ShieldCheck, Layout, Globe, 
+  Users, UserCheck, UserPlus, ShieldCheck, Layout, Globe, 
   Plus, Trash2, Edit2, Key, RefreshCw, X, Check, RotateCcw, AlertTriangle,
   Eye, EyeOff, Search, Phone, Building2, CheckCircle2, ChevronRight, Sparkles, Clock, MessageSquare, Send, Radio
 } from 'lucide-react';
@@ -322,6 +322,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [newRole, setNewRole] = useState<UserRole>('board_runner');
   const [newPin, setNewPin] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [newActive, setNewActive] = useState<boolean>(true);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [userActionError, setUserActionError] = useState('');
   const [userActionSuccess, setUserActionSuccess] = useState('');
 
@@ -444,10 +446,21 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   if (!isOpen) return null;
 
   // --- Handlers for User Management ---
+  const resetAddUserForm = () => {
+    setIsAddingUser(false);
+    setNewUsername('');
+    setNewDisplayName('');
+    setNewPin('');
+    setNewPassword('');
+    setNewRole('board_runner');
+    setNewActive(true);
+  };
+
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setUserActionError('');
     setUserActionSuccess('');
+    setIsCreatingUser(true);
     try {
       const res = await fetch(apiUrl('/api/users'), {
         method: 'POST',
@@ -458,6 +471,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           role: newRole,
           pin: newPin,
           password: newPassword,
+          active: newActive,
           currentUser
         })
       });
@@ -470,19 +484,17 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       if (data.user) {
         setUserList(prev => [...prev, data.user]);
       }
-      setIsAddingUser(false);
-      setNewUsername('');
-      setNewDisplayName('');
-      setNewPin('');
-      setNewPassword('');
+      resetAddUserForm();
       await fetchUsers();
     } catch {
       setUserActionError('Network error creating user');
+    } finally {
+      setIsCreatingUser(false);
     }
   };
 
   const startEditUser = (u: User) => {
-    setIsAddingUser(false);
+    resetAddUserForm();
     setEditingUser(u);
     setEditUsername(u.username);
     setEditUserDisplayName(u.displayName);
@@ -1096,8 +1108,12 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 </div>
                 <button
                   onClick={() => {
-                    if (!isAddingUser && editingUser) setEditingUser(null);
-                    setIsAddingUser(prev => !prev);
+                    if (isAddingUser) {
+                      resetAddUserForm();
+                    } else {
+                      if (editingUser) setEditingUser(null);
+                      setIsAddingUser(true);
+                    }
                   }}
                   style={{
                     display: 'flex',
@@ -1129,19 +1145,21 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
               {/* Add User Form */}
               {isAddingUser && (
-                <form onSubmit={handleCreateUser} style={{ background: 'var(--surface-hover)', padding: 14, borderRadius: 8, marginBottom: 16, border: '1px solid var(--border-light)' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                    <div>
-                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Username</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. jdoe_crna"
-                        value={newUsername}
-                        onChange={e => setNewUsername(e.target.value)}
-                        required
-                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
-                      />
+                <form onSubmit={handleCreateUser} style={{ background: 'var(--surface-hover)', padding: 14, borderRadius: 8, marginBottom: 16, border: '2px solid var(--accent-primary)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <UserPlus size={15} style={{ color: 'var(--accent-primary)' }} />
+                      <strong style={{ fontSize: 13 }}>Add New System User</strong>
                     </div>
+                    <button
+                      type="button"
+                      onClick={resetAddUserForm}
+                      style={{ fontSize: 12, color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                    >
+                      ✕ Cancel
+                    </button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 10 }}>
                     <div>
                       <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Display Name</label>
                       <input
@@ -1149,6 +1167,17 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         placeholder="e.g. Jane Doe, CRNA"
                         value={newDisplayName}
                         onChange={e => setNewDisplayName(e.target.value)}
+                        required
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Username</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. jdoe_crna"
+                        value={newUsername}
+                        onChange={e => setNewUsername(e.target.value)}
                         required
                         style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
                       />
@@ -1177,13 +1206,44 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
                       />
                     </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Password (Optional)</label>
+                      <input
+                        type="password"
+                        placeholder="Default: hospital123"
+                        value={newPassword}
+                        onChange={e => setNewPassword(e.target.value)}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Account Status</label>
+                      <select
+                        value={newActive ? 'active' : 'disabled'}
+                        onChange={e => setNewActive(e.target.value === 'active')}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)', background: 'var(--surface-card)' }}
+                      >
+                        <option value="active">Active (Allowed to log in)</option>
+                        <option value="disabled">Disabled (Cannot log in)</option>
+                      </select>
+                    </div>
                   </div>
-                  <button
-                    type="submit"
-                    style={{ padding: '8px 16px', background: 'var(--accent-primary)', color: '#fff', borderRadius: 6, fontWeight: 700, fontSize: 13 }}
-                  >
-                    Save User Account
-                  </button>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
+                    <button
+                      type="button"
+                      onClick={resetAddUserForm}
+                      style={{ padding: '6px 12px', background: 'var(--surface-card)', border: '1px solid var(--border-light)', borderRadius: 6, fontSize: 12, fontWeight: 600 }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isCreatingUser}
+                      style={{ padding: '6px 16px', background: 'var(--accent-primary)', color: '#fff', borderRadius: 6, fontWeight: 700, fontSize: 12 }}
+                    >
+                      {isCreatingUser ? 'Saving...' : 'Save User Account'}
+                    </button>
+                  </div>
                 </form>
               )}
 
