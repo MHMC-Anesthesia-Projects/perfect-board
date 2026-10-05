@@ -283,7 +283,11 @@ function resolveEffectiveShift(
   const cleanLast = (providerLastName || '').toLowerCase().trim();
 
   // If known scheduled late providers are working (not PTO / RDO / Off / Vacation):
-  if (!isOffShift(dShift) && !isOffShift(rTag)) {
+  // Active hospital call doctors (C1, C2, C3, CV, OB) must retain their call shift and NEVER be overridden with a default late shift!
+  const hasActiveCall = /(?:^|[,/ ])(?:C[123]|CV|OB)(?:[,/ ]|$)/i.test(dShift) &&
+    !dShift.toLowerCase().includes('post') &&
+    !dShift.toLowerCase().includes('pre');
+  if (!hasActiveCall && !isOffShift(dShift) && !isOffShift(rTag)) {
     // 1. Check against configurable Unique Schedule rules first
     if (uniqueSchedules && uniqueSchedules.length > 0) {
       const matchedRule = uniqueSchedules.find(rule => {
@@ -337,7 +341,8 @@ export function parseOneUsapHtml(
   htmlContent: string,
   selectedFacilities: string[] = DEFAULT_FACILITIES,
   uniqueSchedules?: UniqueScheduleRule[],
-  existingStaff?: Array<{ qgendaAbbr?: string; credentials?: string; lastName?: string }>
+  existingStaff?: Array<{ qgendaAbbr?: string; credentials?: string; lastName?: string }>,
+  targetDate?: string
 ): ParseOneUsapResult {
   // Normalize selected facilities list
   const activeFacilities = selectedFacilities && selectedFacilities.length > 0
@@ -536,28 +541,35 @@ export function parseOneUsapHtml(
   const targetDocs = docEntries.filter(d => shouldIncludeProvider(d.rawName, d.facility, d.shift));
   const targetAnes = anesEntries.filter(a => shouldIncludeProvider(a.rawName, a.facility, a.shift));
 
-  // Detect if split AM/PM weekend & holiday call mode is active
-  let hasExplicitAmPm = false;
-  let c1Count = 0;
-  let c1ObDoc = false;
+  // Detect if split AM/PM weekend & holiday call mode is active.
+  // On normal weekdays (Monday - Friday), the call team is strictly: CV, Call 3, Call 2, Call 1, OB.
+  // Split call mode (AM / PM) is ONLY active on weekends or holidays with explicit AM call shifts!
+  const datePickerMatch = htmlContent.match(/id=["\x27]date_picker["\x27][^>]*value=["\x27]([0-9]{4}-[0-9]{2}-[0-9]{2})["\x27]/i);
+  const effectiveDateStr = targetDate || (datePickerMatch ? datePickerMatch[1] : getHoustonDateString());
+  let isWeekend = false;
+  try {
+    const day = new Date(`${effectiveDateStr}T12:00:00`).getDay();
+    isWeekend = day === 0 || day === 6;
+  } catch {}
 
+  let hasExplicitAmCall = false;
   targetDocs.forEach(d => {
     if (isOffShift(d.shift)) return;
     const s = d.shift.toUpperCase();
-    if (/(?:HDR|IDR)?(?:C[123]|CV|OB)(?:AM|PM)/i.test(s)) hasExplicitAmPm = true;
-    if (s.includes('C1')) c1Count++;
-    if (s.includes('OB') && s.includes('C1')) c1ObDoc = true;
+    if (/(?:HDR|IDR)?(?:C[123]|CV|OB)AM/i.test(s) || s.includes('C1AM') || s.includes('C2AM') || s.includes('C3AM') || s.includes('CVAM') || s.includes('OBAM')) {
+      hasExplicitAmCall = true;
+    }
   });
 
   targetAnes.forEach(a => {
     if (isOffShift(a.shift)) return;
     const s = a.shift.toUpperCase();
-    if (s.includes('CIH') || s.includes('CIHAM') || s.includes('CIHOB')) {
-      hasExplicitAmPm = true;
+    if (s.includes('CIHAM') || s.includes('CIHOBAM') || s.includes('OBAM')) {
+      hasExplicitAmCall = true;
     }
   });
 
-  const isSplitCallMode = hasExplicitAmPm || (c1Count >= 2 && c1ObDoc);
+  const isSplitCallMode = isWeekend || hasExplicitAmCall;
 
   // 7. Build Working Staff list (excluding PTO / RDO / Off)
   const workingStaffMap = new Map<string, ScrapedWorkingStaffItem>();
@@ -621,11 +633,12 @@ export function parseOneUsapHtml(
     });
   });
 
-  // Pre-filter active OB CRNAs for split weekend matching (1st = AM 7a-7p, 2nd = PM 7p-7a)
+  // Pre-filter active OB CRNAs for split weekend matching (1st = AM 7a-7p, 2nd = PM 7p-7a).
+  // Exclude post-call, pre-call, or PC tags so post-call CRNAs (e.g. postOB, CIHOBPC) are never treated as active OB coverage.
   const activeObCrnas = targetAnes.filter(a => {
     if (isOffShift(a.shift)) return false;
     const s = a.shift.toUpperCase();
-    return s.includes('OB') || s.includes('CIHOB');
+    return (s.includes('OB') || s.includes('CIHOB')) && !s.includes('POST') && !s.includes('PC') && !s.includes('PRE');
   });
 
   // Process CRNAs / Anesthetists
@@ -668,11 +681,6 @@ export function parseOneUsapHtml(
       if (!hasExplicitWeekendRole) {
         return;
       }
-    }
-
-    // Exclude phantom non-working CRNAs on weekends without roles or rooms (e.g. Flemming)
-    if (isSplitCallMode && qgendaAbbr.toLowerCase().includes('flemming') && (!roomInfo.rooms || roomInfo.rooms.length === 0)) {
-      return;
     }
 
     // Recognize weekend / holiday and 12h CRNA shift nomenclature
@@ -976,6 +984,12 @@ export function parseOneUsapHtml(
     let effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
     let upperShift = effectiveShift.toUpperCase();
 
+    // Post-call providers (e.g. postOB, postC1, postCV, CIHOBPC) are resting from overnight call and not working a late shift
+    const isPostCall = upperShift.includes('POST') || upperShift.includes('PC_') || upperShift.endsWith('PC');
+    if (role === 'CRNA' && isPostCall && !isLateShift(upperShift)) {
+      return;
+    }
+
     // In split call / weekend mode, harmonize CRNA effective shifts if not already formatted
     if (role === 'CRNA') {
       const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
@@ -987,11 +1001,6 @@ export function parseOneUsapHtml(
         if (!hasExplicitWeekendRole) {
           return;
         }
-      }
-
-      // Exclude phantom non-working CRNAs on weekends without roles or rooms (e.g. Flemming)
-      if (isSplitCallMode && qgendaAbbr.toLowerCase().includes('flemming') && (!roomInfo.rooms || roomInfo.rooms.length === 0)) {
-        return;
       }
 
       if (upperShift.includes('CIHAM') || upperShift === 'CIH') {
@@ -1248,7 +1257,7 @@ export async function fetchAndScrapeOneUsap(options: {
       };
     }
 
-    const parsed = parseOneUsapHtml(html, selectedFacilities, options.uniqueSchedules, options.existingStaff);
+    const parsed = parseOneUsapHtml(html, selectedFacilities, options.uniqueSchedules, options.existingStaff, targetDate);
 
     return {
       success: true,
