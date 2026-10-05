@@ -876,7 +876,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           <div className="departure-sub-section">
             <div className="departure-sub-header non-call-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: 11 }}>NON-CALL</span>
+                <span style={{ fontWeight: 800, color: 'var(--accent-primary)', fontSize: 11 }}>NON-CALL</span>
                 <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>({nonCallList.length})</span>
               </div>
               {isEditor && (
@@ -894,7 +894,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     justifyContent: 'center',
                     borderRadius: 3,
                     background: 'var(--surface-card)',
-                    border: '1px solid var(--border-light)',
+                    border: '1px solid rgba(37, 99, 235, 0.3)',
                     color: 'var(--accent-primary)',
                     cursor: 'pointer'
                   }}
