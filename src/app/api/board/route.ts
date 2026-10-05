@@ -786,9 +786,10 @@ export async function POST(req: NextRequest) {
         // Classify shift: standard late (>= 3p) vs atypical/special (e.g. 2p, 1p, Special) vs call shift
         const upperShift = (shift || '').toUpperCase().trim();
         const isL1 = upperShift.includes('L1_MHMC') || upperShift.includes('L1-MHMC') || /\bL1\b/i.test(upperShift);
+        const is8h = upperShift.includes('8H_MHMC') || upperShift.includes('8H-MHMC') || /\b8H\b/i.test(upperShift);
         const isCallShift = !isL1 && /CALL|C1|C2|C3|CV|OB/i.test(upperShift);
         const standardLateKeys = ['3P', '4P', '5P', '7P', '8P', '7P-7A', '11A-11P'];
-        const isStandardLate = !isCallShift && (isL1 || standardLateKeys.some(k => upperShift === k || upperShift.startsWith(k)));
+        const isStandardLate = !isCallShift && (isL1 || is8h || standardLateKeys.some(k => upperShift === k || upperShift.startsWith(k)));
         const isAtypicalTime = !isCallShift && (
           upperShift === 'SPECIAL' ||
           /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)?$/i.test(upperShift)
@@ -918,7 +919,7 @@ export async function POST(req: NextRequest) {
         );
 
         const shouldBeInLates = !isCallShift && (isStandardLate || isAtypicalTime);
-        const lateCategory = isL1 ? '7p' : (isStandardLate ? shift.toLowerCase() : (isAtypicalTime ? 'special' : ''));
+        const lateCategory = isL1 ? '7p' : (is8h ? '3p' : (isStandardLate ? shift.toLowerCase() : (isAtypicalTime ? 'special' : '')));
 
         if (lateIdx !== -1) {
           if (shouldBeInLates) {
@@ -926,20 +927,30 @@ export async function POST(req: NextRequest) {
             state.latesList[lateIdx].timeEstimate = effectiveTimeEstimate;
             if (isL1) {
               state.latesList[lateIdx].role = 'CRNA';
-              state.latesList[lateIdx].notes = 'L1';
+              const hasPostCall = upperShift.includes('POSTOB') ? 'postOB' :
+                                  upperShift.includes('POSTC1') ? 'postC1' :
+                                  upperShift.includes('POST') ? 'postCall' : '';
+              state.latesList[lateIdx].notes = hasPostCall ? `L1, ${hasPostCall}` : 'L1';
+            } else if (is8h) {
+              state.latesList[lateIdx].role = 'CRNA';
             }
           } else {
             state.latesList.splice(lateIdx, 1);
           }
         } else if (shouldBeInLates) {
+          const hasPostCall = upperShift.includes('POSTOB') ? 'postOB' :
+                              upperShift.includes('POSTC1') ? 'postC1' :
+                              upperShift.includes('POST') ? 'postCall' : '';
+          const lateNote = isL1 ? (hasPostCall ? `L1, ${hasPostCall}` : 'L1') : undefined;
+
           state.latesList.push({
             id: `late_${s.id}_${Date.now()}`,
             name: targetLastName.toUpperCase(),
             timeCategory: lateCategory,
-            role: isL1 ? 'CRNA' : (targetCreds === 'MD' ? 'MD' : 'CRNA'),
+            role: (isL1 || is8h) ? 'CRNA' : (targetCreds === 'MD' ? 'MD' : 'CRNA'),
             timeEstimate: effectiveTimeEstimate,
             orderIndex: state.latesList.length,
-            notes: isL1 ? 'L1' : undefined
+            notes: lateNote
           });
         }
 

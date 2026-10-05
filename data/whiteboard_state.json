@@ -419,7 +419,7 @@
     {
       "id": "staff_oneusap_anes_yiale",
       "phone": "(281) 772-7965",
-      "shift": "7p",
+      "shift": "7p, postOB",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Yi",
@@ -1338,7 +1338,7 @@
       "role": "CRNA",
       "qgendaAbbr": "YiAle",
       "assignedRoom": "MHMC Ortho2",
-      "notes": "L1"
+      "notes": "L1, postOB"
     },
     {
       "id": "late_23_1791216912530",
