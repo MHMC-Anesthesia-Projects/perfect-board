@@ -413,7 +413,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
                 )}
               </div>
 
-              {currentUserRole !== 'basic_user' && (
+              {(currentUserRole === 'board_runner' || currentUserRole === 'superuser') && (
                 <button
                   onClick={onOpenAddStaff}
                   style={{

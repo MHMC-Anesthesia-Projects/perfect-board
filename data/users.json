@@ -18,5 +18,15 @@
     "password": "runner",
     "active": true,
     "createdAt": "2026-10-01T13:20:55.289Z"
+  },
+  {
+    "id": "user_basic_1",
+    "username": "staff",
+    "displayName": "Staff",
+    "role": "basic_user",
+    "pin": "0000",
+    "password": "staff",
+    "active": true,
+    "createdAt": "2026-10-01T13:20:55.289Z"
   }
 ]

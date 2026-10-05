@@ -19,6 +19,17 @@ export const PinPadModal: React.FC<PinPadModalProps> = ({ isOpen, onClose, onLog
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setPin('');
+      setError('');
+      setLoading(false);
+      setShowPasswordMode(false);
+      setUsername('');
+      setPassword('');
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleKeyPress = (num: string) => {
@@ -102,7 +113,7 @@ export const PinPadModal: React.FC<PinPadModalProps> = ({ isOpen, onClose, onLog
             </div>
             <div>
               <h3 style={{ fontSize: 18, fontWeight: 800 }}>Role Authentication</h3>
-              <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Login for Board Runner or Superuser</p>
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Login with PIN for Staff, Board Runner, or Admin</p>
             </div>
           </div>
           <button onClick={onClose} style={{ padding: 6, borderRadius: 6, color: 'var(--text-muted)' }}>
@@ -159,44 +170,38 @@ export const PinPadModal: React.FC<PinPadModalProps> = ({ isOpen, onClose, onLog
               </button>
             </div>
 
-            {/* Quick Preset Buttons for Convenience */}
-            <div style={{ width: '100%', marginTop: 20, paddingTop: 14, borderTop: '1px solid var(--border-light)' }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                Touchscreen Quick Access Demo Pins:
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <button
-                  onClick={() => { setPin('1234'); trySubmitPin('1234'); }}
-                  style={{
-                    padding: '8px 10px',
-                    borderRadius: 6,
-                    background: 'var(--surface-hover)',
-                    border: '1px solid var(--border-light)',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    textAlign: 'left'
-                  }}
-                >
-                  <div style={{ color: 'var(--accent-primary)' }}>Charge Nurse (Runner)</div>
-                  <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>PIN: 1234</div>
-                </button>
-                <button
-                  onClick={() => { setPin('9999'); trySubmitPin('9999'); }}
-                  style={{
-                    padding: '8px 10px',
-                    borderRadius: 6,
-                    background: 'var(--surface-hover)',
-                    border: '1px solid var(--border-light)',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    textAlign: 'left'
-                  }}
-                >
-                  <div style={{ color: 'var(--marker-red)' }}>Dr. Admin (Superuser)</div>
-                  <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>PIN: 9999</div>
-                </button>
-              </div>
-            </div>
+            {/* Dedicated Log In Button */}
+            <button
+              type="button"
+              onClick={() => {
+                if (pin.length >= 4) {
+                  trySubmitPin(pin);
+                }
+              }}
+              disabled={loading || pin.length < 4}
+              style={{
+                marginTop: 14,
+                width: '100%',
+                padding: '12px',
+                borderRadius: 8,
+                background: 'var(--accent-primary)',
+                color: '#fff',
+                fontWeight: 800,
+                fontSize: 15,
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                cursor: (loading || pin.length < 4) ? 'not-allowed' : 'pointer',
+                opacity: (loading || pin.length < 4) ? 0.6 : 1,
+                boxShadow: (loading || pin.length < 4) ? 'none' : '0 2px 8px rgba(9, 105, 218, 0.35)',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Lock size={16} />
+              <span>{loading ? 'Authenticating...' : 'Log In'}</span>
+            </button>
 
             <button
               onClick={() => setShowPasswordMode(true)}

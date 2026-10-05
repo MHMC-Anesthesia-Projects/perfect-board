@@ -1,4 +1,4 @@
-export type UserRole = 'superuser' | 'board_runner' | 'basic_user';
+export type UserRole = 'superuser' | 'board_runner' | 'basic_user' | 'view_only';
 
 export interface User {
   id: string;

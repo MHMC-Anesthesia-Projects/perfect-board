@@ -80,8 +80,10 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
     return () => clearInterval(interval);
   }, []);
 
+  const isEditor = currentUser && (currentUser.role === 'board_runner' || currentUser.role === 'superuser');
+
   const getRoleBadge = () => {
-    if (!currentUser || currentUser.role === 'basic_user') {
+    if (!currentUser || currentUser.role === 'view_only') {
       return (
         <button
           type="button"
@@ -99,11 +101,30 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             color: 'var(--text-secondary)',
             cursor: 'pointer'
           }}
-          title="Basic User mode allows break toggling. Tap to log in as Board Runner to move magnets."
+          title="View Only mode. Tap to log in with PIN."
         >
           <Lock size={13} style={{ color: 'var(--text-muted)' }} />
-          <span>Basic User (Breaks Only) • Tap to Move Magnets</span>
+          <span>View Only &bull; Tap to Authenticate</span>
         </button>
+      );
+    }
+    if (currentUser.role === 'basic_user') {
+      return (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '4px 10px',
+          background: 'rgba(34, 197, 94, 0.12)',
+          border: '1px solid rgba(34, 197, 94, 0.3)',
+          borderRadius: 20,
+          fontSize: 12,
+          fontWeight: 700,
+          color: 'var(--text-primary)'
+        }}>
+          <Lock size={13} style={{ color: 'var(--text-muted)' }} />
+          <span>Basic User: {currentUser.displayName}</span>
+        </div>
       );
     }
     if (currentUser.role === 'board_runner') {
@@ -198,30 +219,32 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
 
       {/* Right Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {/* Scraper Sync Button */}
-        <button
-          onClick={onTriggerSync}
-          disabled={isSyncing}
-          title={lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString()}` : 'Sync'}
-          style={{
-            padding: '6px 12px',
-            borderRadius: 6,
-            background: 'var(--surface-hover)',
-            border: '1px solid var(--border-light)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            fontSize: 12,
-            fontWeight: 700,
-            color: 'var(--text-primary)'
-          }}
-        >
-          <RotateCw size={14} className={isSyncing ? 'spin-animation' : ''} />
-          <span>{isSyncing ? 'Syncing...' : 'Sync'}</span>
-        </button>
+        {/* Scraper Sync Button (Board Runner & Superuser only) */}
+        {isEditor && (
+          <button
+            onClick={onTriggerSync}
+            disabled={isSyncing}
+            title={lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString()}` : 'Sync'}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 6,
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 700,
+              color: 'var(--text-primary)'
+            }}
+          >
+            <RotateCw size={14} className={isSyncing ? 'spin-animation' : ''} />
+            <span>{isSyncing ? 'Syncing...' : 'Sync'}</span>
+          </button>
+        )}
 
-        {/* Auto-Assign Magnets Button */}
-        {onAutoAssign && (
+        {/* Auto-Assign Magnets Button (Board Runner & Superuser only) */}
+        {onAutoAssign && isEditor && (
           <button
             onClick={onAutoAssign}
             disabled={isAutoAssigning}
@@ -246,7 +269,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         )}
 
         {/* Clean Whiteboard / Reset for Today Button (Board Runner & Superuser) */}
-        {onCleanWhiteboard && currentUser?.role !== 'basic_user' && (
+        {onCleanWhiteboard && isEditor && (
           <button
             onClick={onCleanWhiteboard}
             title="Clean Whiteboard: Clear all room and runner magnets to start a fresh day"
@@ -271,7 +294,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
 
 
         {/* Complete All Reliefs Button */}
-        {currentUser && currentUser.role !== 'basic_user' && onCompleteAllReliefs && (
+        {isEditor && onCompleteAllReliefs && (
           <button
             onClick={onCompleteAllReliefs}
             disabled={reliefCount === 0 || isCompletingRelief}
@@ -298,7 +321,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         )}
 
         {/* Relief Assignments Group SMS Button */}
-        {currentUser && currentUser.role !== 'basic_user' && onOpenReliefTextModal && (
+        {isEditor && onOpenReliefTextModal && (
           <button
             onClick={onOpenReliefTextModal}
             style={{
@@ -321,25 +344,28 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           </button>
         )}
 
-        {/* Audit Log / Historical Ledger Button */}
-        <button
-          onClick={onOpenAudit}
-          style={{
-            padding: '6px 12px',
-            borderRadius: 6,
-            background: 'var(--surface-hover)',
-            border: '1px solid var(--border-light)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            fontSize: 12,
-            fontWeight: 700,
-            color: 'var(--text-primary)'
-          }}
-        >
-          <FileSpreadsheet size={14} />
-          <span>Audit Log</span>
-        </button>
+        {/* Audit Log / Historical Ledger Button (Board Runner & Superuser only) */}
+        {isEditor && (
+          <button
+            onClick={onOpenAudit}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 6,
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 700,
+              color: 'var(--text-primary)',
+              cursor: 'pointer'
+            }}
+          >
+            <FileSpreadsheet size={14} />
+            <span>Audit Log</span>
+          </button>
+        )}
 
         {/* Admin Dashboard (Visible to Superuser - Gear icon only to save space) */}
         {currentUser?.role === 'superuser' && (
@@ -451,7 +477,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         )}
 
         {/* Auth / Login Button */}
-        {currentUser && currentUser.role !== 'basic_user' ? (
+        {currentUser && currentUser.role !== 'view_only' ? (
           <button
             onClick={onLogout}
             style={{
@@ -464,11 +490,12 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
               gap: 6,
               fontSize: 12,
               fontWeight: 700,
-              color: 'var(--text-secondary)'
+              color: 'var(--text-secondary)',
+              cursor: 'pointer'
             }}
           >
             <LogOut size={14} />
-            <span>Switch Role</span>
+            <span>Switch Role / Logout</span>
           </button>
         ) : (
           <button
@@ -482,11 +509,12 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
               alignItems: 'center',
               gap: 6,
               fontSize: 12,
-              fontWeight: 800
+              fontWeight: 800,
+              cursor: 'pointer'
             }}
           >
             <LogIn size={14} />
-            <span>Runner / Admin Login</span>
+            <span>Login</span>
           </button>
         )}
       </div>

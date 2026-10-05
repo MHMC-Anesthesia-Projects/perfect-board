@@ -52,7 +52,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
     return unreadCountsByPhone[clean] || 0;
   };
   const justDroppedRef = React.useRef(false);
-  const isEditor = currentUserRole !== 'basic_user';
+  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
 
   const getStaffById = (id: string | null): Staff | undefined => {
     if (!id) return undefined;

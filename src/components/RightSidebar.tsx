@@ -38,7 +38,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   onToggleDepartureStruck,
   onToggleCollapse
 }) => {
-  const isEditor = currentUserRole !== 'basic_user';
+  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
 
   // Resizable column state (persisted to localStorage)
   const [sidebarWidth, setSidebarWidth] = useState<number>(380);

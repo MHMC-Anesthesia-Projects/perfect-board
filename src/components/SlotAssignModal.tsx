@@ -48,7 +48,7 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
 
   if (!isOpen || !targetSlot) return null;
 
-  const isEditor = currentUserRole !== 'basic_user';
+  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
 
   // Get available unassigned staff
   const availableStaff = staff.filter(s => s.active && !assignedStaffIds.has(s.id));

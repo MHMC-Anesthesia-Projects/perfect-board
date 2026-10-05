@@ -48,7 +48,7 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
     setSearch('');
   }, [target]);
 
-  const isEditor = currentUserRole !== 'basic_user';
+  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
 
   // Group staff into: Self, Lates/Call staff, and other staff
   const { selfStaff, lateStaff, otherStaff } = useMemo(() => {

@@ -400,6 +400,16 @@ export function getInitialUsers(): User[] {
       password: 'runner',
       active: true,
       createdAt: new Date().toISOString()
+    },
+    {
+      id: 'user_basic_1',
+      username: 'staff',
+      displayName: 'Staff (Basic User)',
+      role: 'basic_user',
+      pin: '0000',
+      password: 'staff',
+      active: true,
+      createdAt: new Date().toISOString()
     }
   ];
 }
@@ -710,7 +720,16 @@ export function loadUsersFromFile(): User[] {
     safeWriteJSON(USERS_FILE, users);
     return users;
   }
-  return safeReadJSON<User[]>(USERS_FILE, getInitialUsers());
+  const users = safeReadJSON<User[]>(USERS_FILE, getInitialUsers());
+  if (!users.some(u => u.role === 'basic_user')) {
+    const initial = getInitialUsers();
+    const defaultBasic = initial.find(u => u.role === 'basic_user');
+    if (defaultBasic) {
+      users.push(defaultBasic);
+      safeWriteJSON(USERS_FILE, users);
+    }
+  }
+  return users;
 }
 
 export async function loadUsers(): Promise<User[]> {

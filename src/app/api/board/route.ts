@@ -15,8 +15,16 @@ export async function POST(req: NextRequest) {
     const { action, payload, user } = body;
 
     const state = await loadBoardState();
-    const currentUserRole: UserRole = user?.role || 'basic_user';
+    const currentUserRole: UserRole = user?.role || 'view_only';
     const currentUserName = user?.displayName || 'Anonymous Staff';
+
+    if (currentUserRole === 'view_only') {
+      return NextResponse.json({ error: 'View only access. Please log in to make changes.' }, { status: 403 });
+    }
+
+    if (currentUserRole === 'basic_user' && action !== 'TOGGLE_BREAK') {
+      return NextResponse.json({ error: 'Permission denied. Board runner or superuser access required.' }, { status: 403 });
+    }
 
     switch (action) {
       // 1. Toggle Breakfast or Lunch break (Basic User allowed!)

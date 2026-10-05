@@ -57,6 +57,12 @@ export default function WhiteboardPage() {
   // Modals
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
+  // Deferred action when prompting auth for view_only users
+  const [pendingAction, setPendingAction] = useState<
+    | { type: 'select_staff'; staff: Staff }
+    | { type: 'toggle_break'; targetType: 'room_slot' | 'runner_slot' | 'bullpen'; targetId: string; breakType: 'breakfast' | 'lunch'; value: boolean }
+    | null
+  >(null);
   const [slotAssignTarget, setSlotAssignTarget] = useState<{
     type: 'room_slot' | 'runner_slot';
     id: string;
@@ -326,15 +332,43 @@ export default function WhiteboardPage() {
   const handleLoginSuccess = (user: { id: string; username: string; displayName: string; role: UserRole }) => {
     setCurrentUser(user);
     localStorage.setItem('whiteboard_user', JSON.stringify(user));
+    setToastMessage(`Welcome, ${user.displayName} (${user.role.replace('_', ' ').toUpperCase()})`);
+
+    // Execute any pending action deferred during view_only state
+    if (pendingAction) {
+      if (pendingAction.type === 'select_staff') {
+        setSelectedStaff(pendingAction.staff);
+      } else if (pendingAction.type === 'toggle_break') {
+        executeToggleBreak(
+          pendingAction.targetType,
+          pendingAction.targetId,
+          pendingAction.breakType,
+          pendingAction.value,
+          user
+        );
+      }
+      setPendingAction(null);
+    }
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
     localStorage.removeItem('whiteboard_user');
+    setToastMessage('Logged out to View Only mode.');
   };
 
-  // User role helper
-  const currentUserRole: UserRole = currentUser?.role || 'basic_user';
+  // User role helper - defaults to view_only access
+  const currentUserRole: UserRole = currentUser?.role || 'view_only';
+  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
+
+  const handleSelectStaff = (staff: Staff) => {
+    if (currentUserRole === 'view_only') {
+      setPendingAction({ type: 'select_staff', staff });
+      setIsLoginModalOpen(true);
+      return;
+    }
+    setSelectedStaff(staff);
+  };
 
   // Find all assigned staff IDs across departments
   const assignedStaffIds = useMemo(() => {
@@ -394,11 +428,12 @@ export default function WhiteboardPage() {
   }, [boardState]);
 
   // 1. Break toggle (Basic User Allowed!)
-  const handleToggleBreak = async (
+  const executeToggleBreak = async (
     targetType: 'room_slot' | 'runner_slot' | 'bullpen',
     targetId: string,
     breakType: 'breakfast' | 'lunch',
-    value: boolean
+    value: boolean,
+    actingUser = currentUser
   ) => {
     // Optimistic UI update
     setBoardState(prev => {
@@ -468,7 +503,7 @@ export default function WhiteboardPage() {
         body: JSON.stringify({
           action: 'TOGGLE_BREAK',
           payload: { targetType, targetId, breakType, value },
-          user: currentUser || { role: 'basic_user', displayName: 'Staff (Basic User)' }
+          user: actingUser || { role: 'basic_user', displayName: 'Staff (Basic User)' }
         })
       });
     } catch (err) {
@@ -477,13 +512,33 @@ export default function WhiteboardPage() {
     }
   };
 
+  const handleToggleBreak = async (
+    targetType: 'room_slot' | 'runner_slot' | 'bullpen',
+    targetId: string,
+    breakType: 'breakfast' | 'lunch',
+    value: boolean
+  ) => {
+    if (currentUserRole === 'view_only') {
+      setPendingAction({
+        type: 'toggle_break',
+        targetType,
+        targetId,
+        breakType,
+        value
+      });
+      setIsLoginModalOpen(true);
+      return;
+    }
+    await executeToggleBreak(targetType, targetId, breakType, value, currentUser);
+  };
+
   // 2. Assign staff to slot
   const handleAssignStaff = async (
     targetType: 'room_slot' | 'runner_slot',
     targetId: string,
     staffId: string
   ) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -513,7 +568,7 @@ export default function WhiteboardPage() {
     toType: 'room_slot' | 'runner_slot' | 'runner_dept',
     toId: string
   ) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -551,7 +606,7 @@ export default function WhiteboardPage() {
     reliefTime?: string,
     notes?: string
   ) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -581,7 +636,7 @@ export default function WhiteboardPage() {
     targetType: 'room_slot' | 'runner_slot',
     targetId: string
   ) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -610,7 +665,7 @@ export default function WhiteboardPage() {
     targetType: 'room_slot' | 'runner_slot',
     targetId: string
   ) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -636,7 +691,7 @@ export default function WhiteboardPage() {
   };
 
   const handleTriggerCompleteAllReliefs = () => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -649,7 +704,7 @@ export default function WhiteboardPage() {
   };
 
   const handleConfirmCompleteAllReliefs = async () => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -684,7 +739,7 @@ export default function WhiteboardPage() {
 
   // Dynamic Runner Slot actions
   const handleAddRunnerSlot = async (departmentId: string) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -708,7 +763,7 @@ export default function WhiteboardPage() {
   };
 
   const handleRemoveRunnerSlot = async (departmentId: string, runnerSlotId: string) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -738,7 +793,7 @@ export default function WhiteboardPage() {
     departmentId?: string,
     staffId?: string
   ) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -774,7 +829,7 @@ export default function WhiteboardPage() {
 
   // Set or clear estimated future case time for a room (e.g. "1030")
   const handleSetRoomFutureTime = async (roomId: string, futureTime: string | null) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -847,7 +902,7 @@ export default function WhiteboardPage() {
     lastName?: string,
     credentials?: StaffCredential
   ) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -885,7 +940,7 @@ export default function WhiteboardPage() {
     staffId: string,
     displayName: string
   ) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -922,7 +977,7 @@ export default function WhiteboardPage() {
 
   // 4a. Move staff directly to Bullpen (available for breaks & cases)
   const handleDropToBullpen = async (fromData: { staffId: string; type: string; id?: string }) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -956,7 +1011,7 @@ export default function WhiteboardPage() {
     staffId: string,
     fromData?: { type?: string; id?: string; targetGroup?: 'MD' | 'CRNA' | 'Infrequent' }
   ) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -988,7 +1043,7 @@ export default function WhiteboardPage() {
 
   // 4c. Set staff infrequent status
   const handleSetStaffInfrequent = async (staffId: string, isInfrequent: boolean) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -1014,7 +1069,7 @@ export default function WhiteboardPage() {
 
   // 4d. Dropped onto bottom "AVAILABLE UNASSIGNED STAFF" drawer:
   const handleDropToUnassignedDrawer = (fromData: { staffId: string; type: string; id?: string; targetGroup?: 'MD' | 'CRNA' | 'Infrequent' }) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -1133,7 +1188,7 @@ export default function WhiteboardPage() {
 
   // 5. Update Notes
   const handleSaveNotes = async (type: 'room' | 'departure' | 'lates' | 'general', id: string | undefined, notes: string) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -1159,7 +1214,7 @@ export default function WhiteboardPage() {
 
   // 6. Update Departure or Lates lists
   const handleUpdateLists = async (departureList: DepartureItem[], latesList: LateShiftItem[], isReorder?: boolean) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -1185,7 +1240,7 @@ export default function WhiteboardPage() {
 
   // 6b. Update Call Team list
   const handleUpdateCallTeam = async (callTeamList: CallTeamItem[]) => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -1243,7 +1298,7 @@ export default function WhiteboardPage() {
 
   // 7. Trigger Scraper Portal Sync
   const handleTriggerSync = async () => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -1270,7 +1325,7 @@ export default function WhiteboardPage() {
 
   // 7b. Trigger Auto-Assign of Magnets to Rooms and Runner Slots
   const handleAutoAssign = async () => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -1313,7 +1368,7 @@ export default function WhiteboardPage() {
 
   // 7b. Clean Whiteboard for the new operating day
   const handleCleanWhiteboard = async () => {
-    if (currentUserRole === 'basic_user') {
+    if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -1453,8 +1508,14 @@ export default function WhiteboardPage() {
           onOpenLogin={() => setIsLoginModalOpen(true)}
           onLogout={handleLogout}
           onToggleBreak={handleToggleBreak}
-          onSelectStaff={staff => setSelectedStaff(staff)}
-          onSelectEmptySlot={(type, id, label, roomId, currentFutureTime) => setSlotAssignTarget({ type, id, label, roomId, currentFutureTime })}
+          onSelectStaff={handleSelectStaff}
+          onSelectEmptySlot={(type, id, label, roomId, currentFutureTime) => {
+            if (currentUserRole === 'view_only') {
+              setIsLoginModalOpen(true);
+              return;
+            }
+            setSlotAssignTarget({ type, id, label, roomId, currentFutureTime });
+          }}
           onSetRoomFutureTime={handleSetRoomFutureTime}
           onToggleDepartureStruck={handleToggleDepartureStruck}
           onUpdateLists={handleUpdateLists}
@@ -1466,7 +1527,13 @@ export default function WhiteboardPage() {
           onAutoAssign={handleAutoAssign}
           isAutoAssigning={isAutoAssigning}
           onSwitchToDesktop={() => setForcedDesktop(true)}
-          onOpenReliefModal={target => setReliefTarget(target)}
+          onOpenReliefModal={target => {
+            if (currentUserRole === 'view_only') {
+              setIsLoginModalOpen(true);
+              return;
+            }
+            setReliefTarget(target);
+          }}
           onExecuteHandoff={handleExecuteHandoff}
           onRemoveRelief={handleRemoveRelief}
           onOpenReliefTextModal={() => setIsReliefTextModalOpen(true)}
@@ -1516,7 +1583,7 @@ export default function WhiteboardPage() {
             bullpenBreaks={boardState.bullpenBreaks || {}}
             staff={boardState.staff}
             currentUserRole={currentUserRole}
-            onSelectStaff={staff => setSelectedStaff(staff)}
+            onSelectStaff={handleSelectStaff}
             onDropToBullpen={handleDropToBullpen}
             onMoveStaffToUnassigned={handleMoveStaffToUnassigned}
             onToggleCollapse={() => setIsBullpenOpen(false)}
@@ -1544,14 +1611,26 @@ export default function WhiteboardPage() {
           staff={boardState.staff}
           currentUserRole={currentUserRole}
           onToggleBreak={handleToggleBreak}
-          onSelectStaff={staff => setSelectedStaff(staff)}
-          onSelectEmptySlot={(type, id, label, roomId, currentFutureTime) => setSlotAssignTarget({ type, id, label, roomId, currentFutureTime })}
+          onSelectStaff={handleSelectStaff}
+          onSelectEmptySlot={(type, id, label, roomId, currentFutureTime) => {
+            if (currentUserRole === 'view_only') {
+              setIsLoginModalOpen(true);
+              return;
+            }
+            setSlotAssignTarget({ type, id, label, roomId, currentFutureTime });
+          }}
           onSetRoomFutureTime={handleSetRoomFutureTime}
           onDropStaff={handleDropStaff}
           onOpenVoiceNotes={(type, id, currentNotes) => setVoiceNoteTarget({ type, id, currentNotes: currentNotes || '' })}
           onAddRunnerSlot={handleAddRunnerSlot}
           onRemoveRunnerSlot={handleRemoveRunnerSlot}
-          onOpenReliefModal={target => setReliefTarget(target)}
+          onOpenReliefModal={target => {
+            if (currentUserRole === 'view_only') {
+              setIsLoginModalOpen(true);
+              return;
+            }
+            setReliefTarget(target);
+          }}
           onExecuteHandoff={handleExecuteHandoff}
           onSetRelief={handleSetRelief}
           unreadCountsByPhone={unreadCountsByPhone}
@@ -1567,7 +1646,7 @@ export default function WhiteboardPage() {
             latesNotes={boardState.latesNotes}
             currentUserRole={currentUserRole}
             staff={boardState.staff}
-            onSelectStaff={staff => setSelectedStaff(staff)}
+            onSelectStaff={handleSelectStaff}
             onUpdateDepartureNotes={notes => handleSaveNotes('departure', undefined, notes)}
             onUpdateLatesNotes={notes => handleSaveNotes('lates', undefined, notes)}
             onUpdateLists={handleUpdateLists}
@@ -1597,7 +1676,7 @@ export default function WhiteboardPage() {
         bullpenStaffIds={effectiveBullpenStaffIds}
         bullpenBreaks={boardState.bullpenBreaks || {}}
         currentUserRole={currentUserRole}
-        onSelectStaff={staff => setSelectedStaff(staff)}
+        onSelectStaff={handleSelectStaff}
         onOpenAddStaff={() => setIsAdminModalOpen(true)}
         onDropToBullpen={handleDropToUnassignedDrawer}
         onToggleBreak={(breakType, staffId, currentValue) => handleToggleBreak('bullpen', staffId, breakType, currentValue)}
@@ -1612,7 +1691,10 @@ export default function WhiteboardPage() {
       {/* Modals & Slide-outs */}
       <PinPadModal
         isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
+        onClose={() => {
+          setIsLoginModalOpen(false);
+          setPendingAction(null);
+        }}
         onLoginSuccess={handleLoginSuccess}
       />
 

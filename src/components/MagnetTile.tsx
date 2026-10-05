@@ -41,7 +41,7 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
 }) => {
   const isDraggable = propIsDraggable !== undefined 
     ? propIsDraggable 
-    : (currentUserRole !== 'basic_user');
+    : (currentUserRole === 'board_runner' || currentUserRole === 'superuser');
 
   const canShowBreaks = showBreaks !== undefined
     ? showBreaks
@@ -84,7 +84,9 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
       onDragStart={handleDrag}
       onDragEnd={handleDragEnd}
       onClick={handleTileClick}
-      title={`${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials}) • Phone: ${staff.phone}${unreadMessageCount > 0 ? ` • ${unreadMessageCount} NEW MESSAGE(S)` : ''}`}
+      title={currentUserRole === 'view_only'
+        ? `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials}) • Tap to login`
+        : `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials}) • Phone: ${staff.phone}${unreadMessageCount > 0 ? ` • ${unreadMessageCount} NEW MESSAGE(S)` : ''}`}
       style={{
         cursor: isDraggable ? 'grab' : 'pointer'
       }}
@@ -115,7 +117,9 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
             className={`break-toggle-btn ${breakfastDone ? 'done' : ''}`}
             onClick={(e) => handleBreakClick(e, 'breakfast', breakfastDone)}
             disabled={!onToggleBreak}
-            title={`Breakfast Break: ${breakfastDone ? 'Completed (Tap to undo)' : 'Pending (Tap to mark done)'}`}
+            title={currentUserRole === 'view_only'
+              ? 'Login required to toggle breakfast break'
+              : `Breakfast Break: ${breakfastDone ? 'Completed (Tap to undo)' : 'Pending (Tap to mark done)'}`}
           >
             {breakfastDone ? '✓' : 'B'}
           </button>
@@ -126,7 +130,9 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
             className={`break-toggle-btn ${lunchDone ? 'done' : ''}`}
             onClick={(e) => handleBreakClick(e, 'lunch', lunchDone)}
             disabled={!onToggleBreak}
-            title={`Lunch Break: ${lunchDone ? 'Completed (Tap to undo)' : 'Pending (Tap to mark done)'}`}
+            title={currentUserRole === 'view_only'
+              ? 'Login required to toggle lunch break'
+              : `Lunch Break: ${lunchDone ? 'Completed (Tap to undo)' : 'Pending (Tap to mark done)'}`}
           >
             {lunchDone ? '✓' : 'L'}
           </button>

@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Last name, credentials, and phone number are required.' }, { status: 400 });
     }
 
-    if (currentUser?.role === 'basic_user') {
+    if (!currentUser || currentUser?.role === 'basic_user' || currentUser?.role === 'view_only') {
       return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
     }
 
@@ -69,7 +69,7 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const { id, firstName, lastName, displayName, credentials, phone, shift, active, isInfrequent, currentUser } = body;
 
-    if (currentUser?.role === 'basic_user') {
+    if (!currentUser || currentUser?.role === 'basic_user' || currentUser?.role === 'view_only') {
       return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
     }
 
@@ -138,7 +138,7 @@ export async function DELETE(req: NextRequest) {
     const role = req.headers.get('x-user-role');
     const name = req.headers.get('x-user-name') || 'User';
 
-    if (role === 'basic_user') {
+    if (!role || role === 'basic_user' || role === 'view_only') {
       return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
     }
 

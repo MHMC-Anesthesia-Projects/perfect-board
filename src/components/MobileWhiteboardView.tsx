@@ -107,7 +107,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   isCompletingRelief = false,
   unreadCountsByPhone
 }) => {
-  const isEditor = currentUserRole !== 'basic_user';
+  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
 
   const getStaffUnreadCount = (staffMember: Staff | null): number => {
     if (!staffMember?.phone || !unreadCountsByPhone) return 0;
@@ -558,7 +558,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
           )}
 
           {/* Auth Button */}
-          {currentUser && currentUser.role !== 'basic_user' ? (
+          {currentUser && currentUser.role !== 'view_only' ? (
             <button
               type="button"
               className="mobile-auth-btn logged-in"
@@ -573,10 +573,10 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
               type="button"
               className="mobile-auth-btn"
               onClick={onOpenLogin}
-              title="Unlock Editor PIN"
+              title="Unlock Access PIN"
             >
               <Lock size={14} />
-              <span>PIN</span>
+              <span>Login</span>
             </button>
           )}
         </div>
@@ -643,7 +643,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
       </div>
 
       {/* 2b. Administrator Relief Action Bar */}
-      {currentUserRole !== 'basic_user' && onOpenReliefTextModal && (
+      {isEditor && onOpenReliefTextModal && (
         <div 
           className="mobile-admin-quick-bar"
           style={{

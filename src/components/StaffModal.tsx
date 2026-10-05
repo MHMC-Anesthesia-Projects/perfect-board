@@ -185,7 +185,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
 
   if (!staff) return null;
 
-  const isEditor = currentUserRole !== 'basic_user';
+  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
 
   // Find where this staff is currently assigned (supports multiple runner slots across departments)
   const allPlacements: StaffPlacement[] = [];
