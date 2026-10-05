@@ -158,9 +158,27 @@ export function is13hShift(s: string): boolean {
   return /\b13\s*-?\s*h(?:r|our)?\b/i.test(s) || /13h/i.test(s);
 }
 
+/**
+ * Detects if a shift, role, facility, or provider tag represents the L1_MHMC role.
+ * A L1_MHMC role strictly designates a CRNA working until 7p at MHMC (Memorial Hermann Medical Center).
+ */
+export function isL1MhmcRole(shiftOrRole?: string, facilityStr?: string, rawName?: string): boolean {
+  const combined = `${shiftOrRole || ''} ${facilityStr || ''} ${rawName || ''}`.toUpperCase();
+  if (combined.includes('L1_MHMC') || combined.includes('L1-MHMC') || /\bL1_MHMC\b/i.test(combined)) {
+    return true;
+  }
+  // Check standalone L1 when associated with MHMC or general schedule
+  if (/\bL1\b/i.test(shiftOrRole || '') || (rawName && /\bL1\b/i.test(rawName))) {
+    if (combined.includes('MHMC') || !facilityStr || facilityStr.toUpperCase().includes('W: MHMC')) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function isLateShift(s: string): boolean {
   if (!s) return false;
-  return /3p|4p|5p|7p|8p|9p|night|7p-7a|11a-11p/i.test(s) || is13hShift(s);
+  return /3p|4p|5p|7p|8p|9p|night|7p-7a|11a-11p/i.test(s) || is13hShift(s) || isL1MhmcRole(s);
 }
 
 export function isPreCallShift(s: string): boolean {
@@ -173,6 +191,9 @@ export function isTargetFacility(facilityStr: string, allowedFacilities: string[
   if (!facilityStr || allowedFacilities.length === 0) return false;
   const activeWorkingFacility = getActiveFacilityCode(facilityStr);
   const upper = activeWorkingFacility.toUpperCase();
+  if (upper.includes('L1_MHMC')) {
+    return allowedFacilities.some(fac => fac.toUpperCase().includes('MHMC'));
+  }
   return allowedFacilities.some(fac => upper.includes(fac.toUpperCase()));
 }
 
@@ -191,7 +212,7 @@ export function isOffShift(shiftStr: string): boolean {
   // Remove preNight and preCall strings to check for an accompanying active working shift (e.g. "preCall, 8p")
   const stripped = s.replace(/PRE-?NIGHT/gi, '').replace(/PRE-?CALL/gi, '').trim();
   if (s.includes('PRENIGHT') || s.includes('PRE-NIGHT') || s.includes('PRE NIGHT')) {
-    const hasWorking = /3p|4p|5p|7p|8p|12h|13h|\bnight\b|noct|cih/i.test(stripped);
+    const hasWorking = /3p|4p|5p|7p|8p|12h|13h|\bnight\b|noct|cih/i.test(stripped) || isL1MhmcRole(stripped);
     if (!hasWorking) return true;
   }
   if (s === 'PRECALL' || s === 'PRE-CALL' || s === 'PRE CALL') {
@@ -203,7 +224,7 @@ export function isOffShift(shiftStr: string): boolean {
 export function getFriendlyFacilityName(facilityStr: string): string {
   const activeSegment = getActiveFacilityCode(facilityStr);
   const upper = activeSegment.toUpperCase();
-  if (upper.includes('MHMC')) return 'MH Memorial City';
+  if (upper.includes('MHMC') || upper.includes('L1_MHMC')) return 'MH Memorial City';
   if (upper.includes('MHVIL')) return 'MH Village SC';
   if (upper.includes('HIVF')) return 'Houston IVF';
   if (upper.includes('HMWST')) return 'Methodist West';
@@ -275,12 +296,19 @@ function resolveEffectiveShift(
   roomTag?: string,
   qgendaAbbr?: string,
   providerLastName?: string,
-  uniqueSchedules?: UniqueScheduleRule[]
+  uniqueSchedules?: UniqueScheduleRule[],
+  facilityStr?: string
 ): string {
   const dShift = (departureShift || '').trim();
   const rTag = (roomTag || '').trim();
   const cleanAbbr = (qgendaAbbr || '').replace(/\[.*?\]/g, '').toLowerCase().trim();
   const cleanLast = (providerLastName || '').toLowerCase().trim();
+
+  // 0. A L1_MHMC role strictly designates a CRNA working until 7p at MHMC
+  if (isL1MhmcRole(dShift, facilityStr, qgendaAbbr) || isL1MhmcRole(rTag, facilityStr, qgendaAbbr)) {
+    const hasPrecall = isPreCallShift(dShift) || isPreCallShift(rTag);
+    return hasPrecall ? '7p, preCall' : '7p';
+  }
 
   // If known scheduled late providers are working (not PTO / RDO / Off / Vacation):
   // Active hospital call doctors (C1, C2, C3, CV, OB) must retain their call shift and NEVER be overridden with a default late shift!
@@ -406,6 +434,15 @@ export function parseOneUsapHtml(
     } catch {}
   }
 
+  // 3b. Ensure any provider with L1_MHMC role is classified as CRNA (at MHMC working until 7p)
+  for (let i = docEntries.length - 1; i >= 0; i--) {
+    const d = docEntries[i];
+    if (isL1MhmcRole(d.shift, d.facility, d.rawName)) {
+      anesEntries.push(d);
+      docEntries.splice(i, 1);
+    }
+  }
+
   // 4. Extract phone numbers and bracketed shift tags from SMS links across the entire HTML
   const phoneBook = new Map<string, string>();
   const providerRoomShifts = new Map<string, string>();
@@ -508,8 +545,13 @@ export function parseOneUsapHtml(
     const cleanShift = (shiftStr || '').toUpperCase();
     const cleanRaw = rawName.toUpperCase();
 
-    // Explicit facility suffixes in name or shift (e.g. HDrC1AM_MHMC, CIHAM_MHMC)
-    if (cleanRaw.includes('_MHMC') || cleanShift.includes('_MHMC')) {
+    // Explicit facility suffixes in name or shift (e.g. HDrC1AM_MHMC, CIHAM_MHMC) or L1_MHMC role
+    if (
+      cleanRaw.includes('_MHMC') ||
+      cleanShift.includes('_MHMC') ||
+      facilityStr.toUpperCase().includes('_MHMC') ||
+      isL1MhmcRole(shiftStr, facilityStr, rawName)
+    ) {
       return activeFacilities.some(fac => fac.toUpperCase().includes('MHMC'));
     }
 
@@ -648,43 +690,53 @@ export function parseOneUsapHtml(
 
     const formatted = formatProviderName(rawName);
     const cleanId = rawName.replace(/\[.*?\]/g, '').toLowerCase();
-    const facilityName = getFriendlyFacilityName(facility);
     const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
+
+    const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
+    const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
+    let effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules, facility);
+    const upperShift = (effectiveShift || shift || '').toUpperCase();
+
+    // Recognize L1_MHMC role: strictly designates a CRNA working until 7p at MHMC
+    const isL1 = isL1MhmcRole(shift, facility, rawName) ||
+      isL1MhmcRole(effectiveShift, facility, rawName) ||
+      isL1MhmcRole(roomTag, facility, rawName);
+
+    const facilityName = isL1 ? 'MH Memorial City' : getFriendlyFacilityName(facility);
 
     // Tally facility counts
     const upperFac = getActiveFacilityCode(facility).toUpperCase();
     for (const facCode of activeFacilities) {
-      if (upperFac.includes(facCode.toUpperCase())) {
+      if (upperFac.includes(facCode.toUpperCase()) || (isL1 && facCode.toUpperCase().includes('MHMC'))) {
         facilityStaffCounts[facCode] = (facilityStaffCounts[facCode] || 0) + 1;
       }
     }
-    if (upperFac.includes('MHMC')) mhmcCount++;
-    if (upperFac.includes('MHVIL')) mhvilCount++;
+    if (upperFac.includes('MHMC') || isL1) mhmcCount++;
+    if (upperFac.includes('MHVIL') && !isL1) mhvilCount++;
 
     const phone = phoneBook.get(qgendaAbbr) || '(555) 000-0000';
 
     let cred: StaffCredential = 'CRNA';
-    if (rawName.includes('[RES]')) cred = 'Resident';
+    if (isL1) cred = 'CRNA';
+    else if (rawName.includes('[RES]')) cred = 'Resident';
     else if (rawName.includes('[SRNA]')) cred = 'SRNA';
     else if (rawName.includes('[PA]')) cred = 'PA';
-
-    const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName);
-    const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    let effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
-    const upperShift = (effectiveShift || shift || '').toUpperCase();
 
     // On weekend/holiday split call schedules with no elective rooms running:
     // Exclude phantom weekend CRNAs with standalone departure time (like Bob Staes) who have no weekend hospital role and no rooms
     const isGenericTimeOnly = /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(shift.trim());
-    if (isSplitCallMode && isGenericTimeOnly && (!roomInfo.rooms || roomInfo.rooms.length === 0)) {
+    if (isSplitCallMode && isGenericTimeOnly && (!roomInfo.rooms || roomInfo.rooms.length === 0) && !isL1) {
       const hasExplicitWeekendRole = upperShift.includes('CIH') || upperShift.includes('OB') || upperShift.includes('NOCT') || upperShift.includes('NIGHT');
       if (!hasExplicitWeekendRole) {
         return;
       }
     }
 
-    // Recognize weekend / holiday and 12h CRNA shift nomenclature
-    if (upperShift.includes('CIHAM') || upperShift === 'CIH') {
+    // Recognize L1_MHMC, weekend / holiday, and 12h CRNA shift nomenclature
+    if (isL1) {
+      const hasPrecall = isPreCallShift(shift) || isPreCallShift(roomTag || '') || isPreCallShift(effectiveShift);
+      effectiveShift = hasPrecall ? '7p, preCall' : '7p';
+    } else if (upperShift.includes('CIHAM') || upperShift === 'CIH') {
       effectiveShift = '7a-3p (CIH)';
     } else if (upperShift.includes('CIHOBAM') || upperShift.includes('OBAM')) {
       effectiveShift = '7a-7p (OB)';
@@ -912,11 +964,16 @@ export function parseOneUsapHtml(
       return;
     }
 
+    // Exclude any L1_MHMC provider (a L1_MHMC role strictly designates a CRNA working until 7p at MHMC)
+    if (isL1MhmcRole(shift, facility, rawName) || isL1MhmcRole(effectiveShift, facility, rawName)) {
+      return;
+    }
+
     // Fixed departure time rule:
     // If doctor is scheduled for a late shift (3p, 4p, 5p, 7p, 8p, Night, etc.), do not include in departure list
     const isLateDoc = /3p|4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(upperShift) ||
       upperShift === '3P' || upperShift === '4P' || upperShift === '5P' || upperShift === '7P' || upperShift === '8P' ||
-      is13hShift(upperShift);
+      is13hShift(upperShift) || isL1MhmcRole(upperShift, facility, qgendaAbbr);
     if (!isPostCall && isLateDoc) {
       return;
     }
@@ -981,12 +1038,21 @@ export function parseOneUsapHtml(
     }
 
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    let effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
+    let effectiveShift = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules, facility);
     let upperShift = effectiveShift.toUpperCase();
+
+    // Recognize L1_MHMC role: strictly designates a CRNA working until 7p at MHMC
+    const isL1 = isL1MhmcRole(shift, facility, rawName) ||
+      isL1MhmcRole(effectiveShift, facility, rawName) ||
+      isL1MhmcRole(roomTag, facility, rawName);
+
+    if (isL1) {
+      role = 'CRNA';
+    }
 
     // Post-call providers (e.g. postOB, postC1, postCV, CIHOBPC) are resting from overnight call and not working a late shift
     const isPostCall = upperShift.includes('POST') || upperShift.includes('PC_') || upperShift.endsWith('PC');
-    if (role === 'CRNA' && isPostCall && !isLateShift(upperShift)) {
+    if (role === 'CRNA' && isPostCall && !isLateShift(upperShift) && !isL1) {
       return;
     }
 
@@ -996,14 +1062,18 @@ export function parseOneUsapHtml(
       const isGenericTimeOnly = /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(shift.trim());
 
       // Exclude phantom weekend CRNAs with standalone departure time (like Bob Staes) who have no weekend hospital role and no rooms
-      if (isSplitCallMode && isGenericTimeOnly && (!roomInfo.rooms || roomInfo.rooms.length === 0)) {
+      if (isSplitCallMode && isGenericTimeOnly && (!roomInfo.rooms || roomInfo.rooms.length === 0) && !isL1) {
         const hasExplicitWeekendRole = upperShift.includes('CIH') || upperShift.includes('OB') || upperShift.includes('NOCT') || upperShift.includes('NIGHT');
         if (!hasExplicitWeekendRole) {
           return;
         }
       }
 
-      if (upperShift.includes('CIHAM') || upperShift === 'CIH') {
+      if (isL1) {
+        const hasPrecall = isPreCallShift(shift) || isPreCallShift(roomTag || '') || isPreCallShift(effectiveShift);
+        effectiveShift = hasPrecall ? '7p, preCall' : '7p';
+        upperShift = effectiveShift.toUpperCase();
+      } else if (upperShift.includes('CIHAM') || upperShift === 'CIH') {
         effectiveShift = '7a-3p (CIH)';
         upperShift = effectiveShift.toUpperCase();
       } else if (upperShift.includes('CIHOBAM') || upperShift.includes('OBAM')) {
@@ -1030,7 +1100,8 @@ export function parseOneUsapHtml(
 
     const activeFac = getActiveFacilityCode(facility);
     let facilityLabel = 'MHMC';
-    if (activeFac.includes('HIVF')) facilityLabel = 'HIVF';
+    if (isL1) facilityLabel = 'MHMC';
+    else if (activeFac.includes('HIVF')) facilityLabel = 'HIVF';
     else if (activeFac.includes('MHVIL')) facilityLabel = 'Village';
     else if (activeFac.includes('MHMC')) facilityLabel = 'MHMC';
     else facilityLabel = activeFac.replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/, '').replace(/W:\s*/g, '').trim();
@@ -1050,6 +1121,7 @@ export function parseOneUsapHtml(
     } else if (has8p) {
       timeCat = '8p';
     } else if (
+      isL1 ||
       /\b7p\b/i.test(upperShift) ||
       upperShift.includes('7A-7P') ||
       upperShift === '12H' ||
@@ -1086,6 +1158,11 @@ export function parseOneUsapHtml(
         precallNote = '13h';
       }
 
+      let noteVal = precallNote;
+      if (isL1) {
+        noteVal = precallNote ? `${precallNote} (L1)` : 'L1';
+      }
+
       lateCandidates.push({
         name: formatted.lastName.toUpperCase(),
         timeCategory: timeCat,
@@ -1095,7 +1172,7 @@ export function parseOneUsapHtml(
         qgendaAbbr,
         roomAssignment: roomInfo.roomString || undefined,
         orderNumber,
-        notes: precallNote
+        notes: noteVal
       });
     }
   };
