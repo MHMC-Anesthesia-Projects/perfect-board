@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { apiUrl } from '@/lib/api';
 import { Staff, Department, UserRole, ReliefAssignment, ChatMessage } from '@/types/whiteboard';
 import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, CheckCircle, ShieldCheck, Sparkles, UserCheck, MessageSquare, Send, RefreshCw, Radio, Check } from 'lucide-react';
@@ -96,6 +96,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   const [isLoadingChat, setIsLoadingChat] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const [quickSendSuccess, setQuickSendSuccess] = useState<string | null>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
 
   const fetchMessagingStatus = async (phone?: string) => {
     if (!phone) {
@@ -182,6 +184,24 @@ export const StaffModal: React.FC<StaffModalProps> = ({
       fetchMessagingStatus(staff.phone);
     }
   }, [staff?.id, staff?.shift, staff?.displayName, staff?.phone]);
+
+  // Auto-scroll chat thread to bottom so latest messages are immediately visible
+  useEffect(() => {
+    if (chatMessages.length > 0) {
+      const scrollToBottom = () => {
+        if (chatScrollRef.current) {
+          chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+        }
+      };
+      scrollToBottom();
+      const t1 = setTimeout(scrollToBottom, 40);
+      const t2 = setTimeout(scrollToBottom, 150);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    }
+  }, [chatMessages, messagingEnabled]);
 
   if (!staff) return null;
 
@@ -1084,14 +1104,17 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                     </button>
                   </div>
 
-                  <div style={{
-                    maxHeight: 140,
-                    overflowY: 'auto',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 6,
-                    paddingRight: 2
-                  }}>
+                  <div
+                    ref={chatScrollRef}
+                    style={{
+                      maxHeight: 140,
+                      overflowY: 'auto',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 6,
+                      paddingRight: 2
+                    }}
+                  >
                     {chatMessages.length === 0 ? (
                       <div style={{ textAlign: 'center', padding: '10px 0', fontSize: 11, color: 'var(--text-muted)' }}>
                         No messages yet. Send a page above to start communication.
@@ -1124,6 +1147,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                         </div>
                       ))
                     )}
+                    <div ref={chatBottomRef} />
                   </div>
                 </div>
               </div>

@@ -95,6 +95,15 @@ export default function WhiteboardPage() {
   const [isCleanBoardModalOpen, setIsCleanBoardModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Auto-dismiss floating toast notifications after 3.5 seconds
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => {
+      setToastMessage(null);
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
   // Perfect Call Messaging & Unread Counts
   const [unreadCountsByPhone, setUnreadCountsByPhone] = useState<Record<string, number>>({});
 
