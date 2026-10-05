@@ -1111,13 +1111,14 @@
   "version": 1,
   "latesList": [
     {
-      "id": "late_0_1791216912530",
-      "name": "SHEVCHENKO",
+      "id": "late_5_1791216912530",
+      "name": "GUNN",
       "timeCategory": "3p",
       "orderIndex": 0,
-      "orderNumber": 34,
+      "orderNumber": 177,
       "role": "MD",
-      "qgendaAbbr": "ShevchenkoYev"
+      "qgendaAbbr": "GunnCli",
+      "assignedRoom": "MHMC OR9, MHMC OR10, MHMC TEE"
     },
     {
       "id": "late_1_1791216912530",
@@ -1140,10 +1141,19 @@
       "assignedRoom": "Village OR1"
     },
     {
+      "id": "late_0_1791216912530",
+      "name": "SHEVCHENKO",
+      "timeCategory": "3p",
+      "orderIndex": 3,
+      "orderNumber": 34,
+      "role": "MD",
+      "qgendaAbbr": "ShevchenkoYev"
+    },
+    {
       "id": "late_3_1791216912530",
       "name": "AHMMED",
       "timeCategory": "3p",
-      "orderIndex": 3,
+      "orderIndex": 4,
       "orderNumber": 140,
       "role": "CRNA",
       "qgendaAbbr": "AhmmedZah",
@@ -1153,21 +1163,11 @@
       "id": "late_4_1791216912530",
       "name": "CROSSLEY",
       "timeCategory": "3p",
-      "orderIndex": 4,
+      "orderIndex": 5,
       "orderNumber": 161,
       "role": "CRNA",
       "qgendaAbbr": "CrossleyLad",
       "assignedRoom": "Village OR8"
-    },
-    {
-      "id": "late_5_1791216912530",
-      "name": "GUNN",
-      "timeCategory": "3p",
-      "orderIndex": 5,
-      "orderNumber": 177,
-      "role": "MD",
-      "qgendaAbbr": "GunnCli",
-      "assignedRoom": "MHMC OR9, MHMC OR10, MHMC TEE"
     },
     {
       "id": "late_6_1791216912530",
@@ -1260,24 +1260,24 @@
       "assignedRoom": "MHMC DS 04"
     },
     {
-      "id": "late_16_1791216912530",
-      "name": "HIRSCH",
-      "timeCategory": "5p",
-      "orderIndex": 15,
-      "orderNumber": 111,
-      "role": "MD",
-      "qgendaAbbr": "HirschDou",
-      "assignedRoom": "Village OR2"
-    },
-    {
       "id": "late_17_1791216912530",
       "name": "BAERENSTECHE",
       "timeCategory": "5p",
-      "orderIndex": 16,
+      "orderIndex": 15,
       "orderNumber": 148,
       "role": "MD",
       "qgendaAbbr": "BaerenstecheJoh",
       "assignedRoom": "MHMC Ortho5"
+    },
+    {
+      "id": "late_16_1791216912530",
+      "name": "HIRSCH",
+      "timeCategory": "5p",
+      "orderIndex": 16,
+      "orderNumber": 111,
+      "role": "MD",
+      "qgendaAbbr": "HirschDou",
+      "assignedRoom": "Village OR2"
     },
     {
       "id": "late_18_1791216912530",

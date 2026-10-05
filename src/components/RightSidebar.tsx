@@ -295,14 +295,35 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     });
   });
 
-  // Sort items within 'special' chronologically if multiple atypical times exist
-  if (latesGrouped['special']) {
-    latesGrouped['special'].sort((a, b) => {
-      const aMins = parseLateCategoryMinutes(a.timeEstimate || '2p');
-      const bMins = parseLateCategoryMinutes(b.timeEstimate || '2p');
-      return aMins - bMins;
-    });
-  }
+  // Sort each time section first by MD then by CRNA, and sort alphabetically
+  const isItemMd = (item: LateShiftItem) => {
+    if (item.role === 'MD') return true;
+    if (item.role === 'CRNA') return false;
+    const match = staff.find(s =>
+      s.lastName.toUpperCase() === item.name.toUpperCase() ||
+      (item.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === item.qgendaAbbr.toUpperCase())
+    );
+    return match?.credentials === 'MD';
+  };
+
+  baseLateCategories.forEach(cat => {
+    if (latesGrouped[cat]) {
+      latesGrouped[cat].sort((a, b) => {
+        if (cat === 'special' && a.timeEstimate && b.timeEstimate && a.timeEstimate !== b.timeEstimate) {
+          const aMins = parseLateCategoryMinutes(a.timeEstimate);
+          const bMins = parseLateCategoryMinutes(b.timeEstimate);
+          if (aMins !== bMins) return aMins - bMins;
+        }
+
+        const isMdA = isItemMd(a);
+        const isMdB = isItemMd(b);
+        if (isMdA && !isMdB) return -1;
+        if (!isMdA && isMdB) return 1;
+
+        return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+      });
+    }
+  });
 
   // Sort late categories chronologically by time: Special (with times before 3pm like 2p) appears at the TOP!
   const sortedLateCategories = Object.keys(latesGrouped).sort((a, b) => {
@@ -405,12 +426,16 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   const handleAddLateToCategory = (category: string, e: React.FormEvent) => {
     e.preventDefault();
     if (!newLateName.trim()) return;
+    const cleanName = newLateName.trim().toUpperCase();
+    const matchedStaff = staff.find(s => s.lastName.toUpperCase() === cleanName);
     const updated = [
       ...latesList,
       {
         id: `late_${Date.now()}`,
-        name: newLateName.trim().toUpperCase(),
+        name: cleanName,
         timeCategory: category,
+        role: matchedStaff ? (matchedStaff.credentials as any) : 'CRNA',
+        qgendaAbbr: matchedStaff?.qgendaAbbr,
         orderIndex: latesList.length
       }
     ];

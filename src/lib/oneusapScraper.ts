@@ -1381,11 +1381,17 @@ export function parseOneUsapHtml(
     return 9999;
   }
 
-  // Sort late list candidates chronologically: times before 3pm (e.g. 2p/special) at top, then 3p, 4p, 5p, 7p, 8p, 7p-7a
+  // Sort late list candidates: chronologically by time, then within each time section first by MD then by CRNA, sorted alphabetically
   lateCandidates.sort((a, b) => {
     const timeDiff = getLateCategorySortMinutes(a.timeCategory, a.timeEstimate) - getLateCategorySortMinutes(b.timeCategory, b.timeEstimate);
     if (timeDiff !== 0) return timeDiff;
-    return (a.orderNumber ?? 999) - (b.orderNumber ?? 999);
+
+    const isMdA = a.role === 'MD';
+    const isMdB = b.role === 'MD';
+    if (isMdA && !isMdB) return -1;
+    if (!isMdA && isMdB) return 1;
+
+    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
   });
 
   // Build Call Team List in exact order:

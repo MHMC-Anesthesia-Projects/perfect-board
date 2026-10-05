@@ -405,13 +405,34 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
       });
     });
 
-    if (grouped['special']) {
-      grouped['special'].sort((a, b) => {
-        const aMins = parseLateCategoryMinutes(a.timeEstimate || '2p');
-        const bMins = parseLateCategoryMinutes(b.timeEstimate || '2p');
-        return aMins - bMins;
-      });
-    }
+    const isItemMd = (item: LateShiftItem) => {
+      if (item.role === 'MD') return true;
+      if (item.role === 'CRNA') return false;
+      const match = (boardState.staff || []).find(s =>
+        s.lastName.toUpperCase() === item.name.toUpperCase() ||
+        (item.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === item.qgendaAbbr.toUpperCase())
+      );
+      return match?.credentials === 'MD';
+    };
+
+    baseCats.forEach(cat => {
+      if (grouped[cat]) {
+        grouped[cat].sort((a, b) => {
+          if (cat === 'special' && a.timeEstimate && b.timeEstimate && a.timeEstimate !== b.timeEstimate) {
+            const aMins = parseLateCategoryMinutes(a.timeEstimate);
+            const bMins = parseLateCategoryMinutes(b.timeEstimate);
+            if (aMins !== bMins) return aMins - bMins;
+          }
+
+          const isMdA = isItemMd(a);
+          const isMdB = isItemMd(b);
+          if (isMdA && !isMdB) return -1;
+          if (!isMdA && isMdB) return 1;
+
+          return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+        });
+      }
+    });
 
     return grouped;
   }, [boardState.latesList]);
