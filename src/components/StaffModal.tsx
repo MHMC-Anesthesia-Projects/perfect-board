@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { apiUrl } from '@/lib/api';
 import { Staff, Department, UserRole, ReliefAssignment, ChatMessage } from '@/types/whiteboard';
-import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, CheckCircle, ShieldCheck, Sparkles, UserCheck, MessageSquare, Send, RefreshCw, Radio, Check } from 'lucide-react';
+import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, CheckCircle, ShieldCheck, Sparkles, UserCheck, MessageSquare, Send, RefreshCw, Radio, Check, GraduationCap } from 'lucide-react';
 
 export interface StaffPlacement {
   type: 'runner_slot' | 'room_slot' | 'bullpen';
@@ -51,6 +51,7 @@ interface StaffModalProps {
   }) => void;
   onSetRoomFutureTime?: (roomId: string, futureTime: string | null) => void;
   onChatRead?: (staffPhone: string) => void;
+  onUpdateStudent?: (staffId: string, hasStudent: boolean, studentName?: string) => Promise<void> | void;
 }
 
 export const StaffModal: React.FC<StaffModalProps> = ({
@@ -72,7 +73,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   onOpenLogin,
   onOpenReliefModal,
   onSetRoomFutureTime,
-  onChatRead
+  onChatRead,
+  onUpdateStudent
 }) => {
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [isEditingShift, setIsEditingShift] = useState(false);
@@ -96,6 +98,10 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   const [isLoadingChat, setIsLoadingChat] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const [quickSendSuccess, setQuickSendSuccess] = useState<string | null>(null);
+  const [hasStudentInput, setHasStudentInput] = useState(Boolean(staff?.hasStudent));
+  const [studentNameInput, setStudentNameInput] = useState(staff?.studentName || '');
+  const [isSavingStudent, setIsSavingStudent] = useState(false);
+  const [studentSaveSuccess, setStudentSaveSuccess] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
@@ -181,9 +187,26 @@ export const StaffModal: React.FC<StaffModalProps> = ({
       setIsEditingShift(false);
       setDisplayNameInput(staff.displayName || '');
       setIsEditingDisplayName(false);
+      setHasStudentInput(Boolean(staff.hasStudent));
+      setStudentNameInput(staff.studentName || '');
+      setStudentSaveSuccess(false);
       fetchMessagingStatus(staff.phone);
     }
-  }, [staff?.id, staff?.shift, staff?.displayName, staff?.phone]);
+  }, [staff?.id, staff?.shift, staff?.displayName, staff?.phone, staff?.hasStudent, staff?.studentName]);
+
+  const handleSaveStudent = async (hasStudent: boolean, name?: string) => {
+    if (!onUpdateStudent || !staff) return;
+    setIsSavingStudent(true);
+    try {
+      await onUpdateStudent(staff.id, hasStudent, name);
+      setStudentSaveSuccess(true);
+      setTimeout(() => setStudentSaveSuccess(false), 2500);
+    } catch {
+      // error handled in parent
+    } finally {
+      setIsSavingStudent(false);
+    }
+  };
 
   // Auto-scroll chat thread to bottom so latest messages are immediately visible
   useEffect(() => {
@@ -206,6 +229,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   if (!staff) return null;
 
   const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
+  const canEditStudent = currentUserRole !== 'view_only';
 
   // Find where this staff is currently assigned (supports multiple runner slots across departments)
   const allPlacements: StaffPlacement[] = [];
@@ -862,6 +886,168 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Clinical Teaching / Student Precepting Card */}
+        <div style={{
+          background: 'var(--surface-hover)',
+          borderRadius: 8,
+          padding: '12px 14px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+          border: hasStudentInput ? '1.5px solid rgba(99, 102, 241, 0.45)' : '1px solid var(--border-light)',
+          marginBottom: 16,
+          transition: 'border 0.2s ease-in-out'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <GraduationCap size={17} style={{ color: '#6366f1' }} />
+              <span style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.3, color: 'var(--text-primary)' }}>
+                Student / Trainee Precepting
+              </span>
+              {staff.hasStudent && (
+                <span style={{
+                  background: 'rgba(99, 102, 241, 0.18)',
+                  color: '#818cf8',
+                  border: '1px solid rgba(129, 140, 248, 0.4)',
+                  fontSize: 10,
+                  fontWeight: 800,
+                  padding: '1px 6px',
+                  borderRadius: 4
+                }}>
+                  ACTIVE
+                </span>
+              )}
+            </div>
+            {studentSaveSuccess && (
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--marker-green)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Check size={13} />
+                <span>Saved</span>
+              </span>
+            )}
+          </div>
+
+          {canEditStudent ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, userSelect: 'none' }}>
+                <input
+                  type="checkbox"
+                  checked={hasStudentInput}
+                  onChange={e => {
+                    const checked = e.target.checked;
+                    setHasStudentInput(checked);
+                    if (!checked) {
+                      setStudentNameInput('');
+                      handleSaveStudent(false, '');
+                    }
+                  }}
+                  style={{ width: 16, height: 16, accentColor: '#6366f1', cursor: 'pointer' }}
+                />
+                <span>Working with a student / trainee today</span>
+              </label>
+
+              {hasStudentInput && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingLeft: 24 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>
+                    Student Name &amp; Role (Reference):
+                  </label>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <input
+                      type="text"
+                      placeholder="e.g. Jessica Miller, SRNA or Mark Tan, MS4"
+                      value={studentNameInput}
+                      onChange={e => setStudentNameInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          handleSaveStudent(true, studentNameInput);
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '6px 8px',
+                        borderRadius: 4,
+                        border: '1px solid var(--border-light)',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        background: 'var(--bg-board)',
+                        color: 'var(--text-primary)'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSaveStudent(true, studentNameInput)}
+                      disabled={isSavingStudent}
+                      style={{
+                        padding: '6px 14px',
+                        background: '#6366f1',
+                        color: '#fff',
+                        borderRadius: 4,
+                        fontWeight: 700,
+                        fontSize: 12,
+                        cursor: 'pointer',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}
+                    >
+                      <Check size={13} />
+                      <span>{isSavingStudent ? 'Saving...' : 'Save'}</span>
+                    </button>
+                    {staff.hasStudent && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHasStudentInput(false);
+                          setStudentNameInput('');
+                          handleSaveStudent(false, '');
+                        }}
+                        title="Remove student assignment"
+                        style={{
+                          padding: '6px 10px',
+                          background: 'rgba(239, 68, 68, 0.08)',
+                          border: '1px solid rgba(239, 68, 68, 0.25)',
+                          borderRadius: 4,
+                          color: 'var(--marker-red)',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <span style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                    💡 Displays a 🎓 STU badge on this clinician&apos;s magnet across all rooms and runner slots.
+                  </span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div>
+              {staff.hasStudent ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                  <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Assigned Student:</span>
+                  <span style={{
+                    fontWeight: 800,
+                    color: '#818cf8',
+                    background: 'rgba(99, 102, 241, 0.12)',
+                    padding: '3px 10px',
+                    borderRadius: 4,
+                    border: '1px solid rgba(99, 102, 241, 0.3)'
+                  }}>
+                    🎓 {staff.studentName || 'Student Trainee'}
+                  </span>
+                </div>
+              ) : (
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  No student assigned today.
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -30,6 +30,8 @@ export interface Staff {
   qgendaAbbr?: string;
   orderNumber?: number;
   isInfrequent?: boolean;
+  hasStudent?: boolean;
+  studentName?: string;
 }
 
 export interface ReliefAssignment {

@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'View only access. Please log in to make changes.' }, { status: 403 });
     }
 
-    if (currentUserRole === 'basic_user' && action !== 'TOGGLE_BREAK') {
+    if (currentUserRole === 'basic_user' && action !== 'TOGGLE_BREAK' && action !== 'SET_STAFF_STUDENT') {
       return NextResponse.json({ error: 'Permission denied. Board runner or superuser access required.' }, { status: 403 });
     }
 
@@ -706,6 +706,14 @@ export async function POST(req: NextRequest) {
           });
         }
 
+        // Clear student assignments for the new day
+        if (state.staff) {
+          state.staff.forEach(s => {
+            s.hasStudent = false;
+            s.studentName = undefined;
+          });
+        }
+
         await saveBoardState(state);
         await recordAuditLog({
           actionType: 'STAFF_UNASSIGNED',
@@ -1051,6 +1059,32 @@ export async function POST(req: NextRequest) {
           details: `Updated magnet display name from "${oldName}" to "${s.displayName || 'Default'}"`
         });
 
+        return NextResponse.json({ success: true, state });
+      }
+
+      // 6c-3. Set staff student info
+      case 'SET_STAFF_STUDENT': {
+        const { staffId, hasStudent, studentName } = payload;
+        const s = state.staff.find(st => st.id === staffId);
+        if (!s) {
+          return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
+        }
+
+        s.hasStudent = Boolean(hasStudent);
+        s.studentName = hasStudent && studentName ? String(studentName).trim() : undefined;
+
+        await saveBoardState(state);
+        await recordAuditLog({
+          actionType: 'STAFF_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          targetName: `${s.firstName} ${s.lastName}`.trim(),
+          details: s.hasStudent
+            ? `Assigned student "${s.studentName || 'Student'}" to ${s.lastName}`
+            : `Removed student assignment from ${s.lastName}`
+        });
+
+        broadcastStateChange();
         return NextResponse.json({ success: true, state });
       }
 

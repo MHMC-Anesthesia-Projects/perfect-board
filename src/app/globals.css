@@ -255,6 +255,28 @@ button {
   line-height: 1.1;
 }
 
+.magnet-student-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(99, 102, 241, 0.28);
+  color: #c7d2fe;
+  border: 1px solid rgba(165, 180, 252, 0.5);
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 0.5px 3.5px;
+  border-radius: 3.5px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
+  letter-spacing: 0.2px;
+  line-height: 1.2;
+}
+
+.magnet-tile.compact .magnet-student-badge {
+  font-size: 7.5px;
+  padding: 0 2px;
+}
+
 .magnet-tile.compact {
   padding: 0 3px;
   gap: 2px;

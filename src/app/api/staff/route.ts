@@ -87,6 +87,8 @@ export async function PUT(req: NextRequest) {
     if (phone !== undefined) staffMember.phone = phone.trim();
     if (shift !== undefined) staffMember.shift = shift;
     if (active !== undefined) staffMember.active = active;
+    if (body.hasStudent !== undefined) staffMember.hasStudent = Boolean(body.hasStudent);
+    if (body.studentName !== undefined) staffMember.studentName = body.studentName ? String(body.studentName).trim() : undefined;
     if (isInfrequent !== undefined) {
       staffMember.isInfrequent = Boolean(isInfrequent);
       state.infrequentStaffIds = state.infrequentStaffIds || [];

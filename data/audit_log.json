@@ -1,5 +1,41 @@
 [
   {
+    "id": "audit_1791246372851_xgtgc",
+    "timestamp": "2026-10-06T00:26:12.851Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "Ludwig Zemrau",
+    "details": "Removed student assignment from Zemrau"
+  },
+  {
+    "id": "audit_1791246367148_zj3h1",
+    "timestamp": "2026-10-06T00:26:07.148Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "Ludwig Zemrau",
+    "details": "Removed student assignment from Zemrau"
+  },
+  {
+    "id": "audit_1791246356100_17p21",
+    "timestamp": "2026-10-06T00:25:56.100Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "Ludwig Zemrau",
+    "details": "Removed student assignment from Zemrau"
+  },
+  {
+    "id": "audit_1791246057118_9ifme",
+    "timestamp": "2026-10-06T00:20:57.118Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ludwig Zemrau",
+    "details": "Assigned student \"John Smith, SRNA\" to Zemrau"
+  },
+  {
     "id": "audit_1791216912530_rycuq",
     "timestamp": "2026-10-05T16:15:12.530Z",
     "actionType": "SCRAPER_SYNCED",

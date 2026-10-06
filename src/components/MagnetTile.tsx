@@ -85,8 +85,8 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
       onDragEnd={handleDragEnd}
       onClick={handleTileClick}
       title={currentUserRole === 'view_only'
-        ? `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials}) • Tap to login`
-        : `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials}) • Phone: ${staff.phone}${unreadMessageCount > 0 ? ` • ${unreadMessageCount} NEW MESSAGE(S)` : ''}`}
+        ? `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials})${staff.hasStudent ? ` • 🎓 Student: ${staff.studentName || 'Assigned'}` : ''} • Tap to login`
+        : `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials})${staff.hasStudent ? ` • 🎓 Student: ${staff.studentName || 'Assigned'}` : ''} • Phone: ${staff.phone}${unreadMessageCount > 0 ? ` • ${unreadMessageCount} NEW MESSAGE(S)` : ''}`}
       style={{
         cursor: isDraggable ? 'grab' : 'pointer'
       }}
@@ -98,6 +98,14 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
             ? staff.displayName.toUpperCase() 
             : `${staff.lastName.toUpperCase()}${staff.firstName ? ` ${staff.firstName[0]}.` : ''}`}
         </span>
+        {staff.hasStudent && (
+          <span
+            className="magnet-student-badge"
+            title={staff.studentName ? `🎓 Student: ${staff.studentName}` : '🎓 Student with clinician'}
+          >
+            🎓 STU
+          </span>
+        )}
         {unreadMessageCount > 0 && (
           <span
             className="magnet-unread-badge"

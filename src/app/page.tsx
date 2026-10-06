@@ -984,6 +984,53 @@ export default function WhiteboardPage() {
     }
   };
 
+  // 3c. Set staff student info
+  const handleUpdateStaffStudent = async (
+    staffId: string,
+    hasStudent: boolean,
+    studentName?: string
+  ) => {
+    if (currentUserRole === 'view_only') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      const res = await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SET_STAFF_STUDENT',
+          payload: { staffId, hasStudent, studentName },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+        setSelectedStaff(prev => {
+          if (!prev) return null;
+          if (prev.id === staffId) {
+            return {
+              ...prev,
+              hasStudent: Boolean(hasStudent),
+              studentName: hasStudent && studentName ? studentName.trim() : undefined
+            };
+          }
+          return prev;
+        });
+        setToastMessage(
+          hasStudent
+            ? `✓ Assigned student "${studentName || 'Student'}"`
+            : '✓ Removed student assignment'
+        );
+      }
+    } catch (err) {
+      console.error('Error updating staff student info:', err);
+      setToastMessage('Error updating student info.');
+    }
+  };
+
   // 4a. Move staff directly to Bullpen (available for breaks & cases)
   const handleDropToBullpen = async (fromData: { staffId: string; type: string; id?: string }) => {
     if (!isEditor) {
@@ -1722,6 +1769,7 @@ export default function WhiteboardPage() {
         onToggleBreak={handleToggleBreak}
         onUpdateShift={handleUpdateStaffShift}
         onUpdateDisplayName={handleUpdateStaffDisplayName}
+        onUpdateStudent={handleUpdateStaffStudent}
         onSetStaffInfrequent={handleSetStaffInfrequent}
         onOpenLogin={() => setIsLoginModalOpen(true)}
         onOpenReliefModal={target => setReliefTarget(target)}
