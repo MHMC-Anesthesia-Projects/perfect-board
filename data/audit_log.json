@@ -1,5 +1,145 @@
 [
   {
+    "id": "audit_1791327954609_vxgj2",
+    "timestamp": "2026-10-06T23:05:54.610Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Schroedter (CRNA)",
+    "locationName": "WEST PAV Room 7",
+    "details": "Assigned relief: Schroedter (CRNA) relieving Jeffcoat (MD) in WEST PAV Room 7"
+  },
+  {
+    "id": "audit_1791327939122_foi4k",
+    "timestamp": "2026-10-06T23:05:39.122Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 7",
+    "details": "Removed relief assignment for WEST PAV Room 7"
+  },
+  {
+    "id": "audit_1791326350417_uqfsg",
+    "timestamp": "2026-10-06T22:39:10.417Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Yi (CRNA)",
+    "locationName": "WEST PAV Room 7",
+    "details": "Assigned relief: Yi (CRNA) relieving Jeffcoat (MD) in WEST PAV Room 7"
+  },
+  {
+    "id": "audit_1791326346152_kv574",
+    "timestamp": "2026-10-06T22:39:06.152Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 7",
+    "details": "Removed relief assignment for WEST PAV Room 7"
+  },
+  {
+    "id": "audit_1791326346031_zvekx",
+    "timestamp": "2026-10-06T22:39:06.031Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 7",
+    "details": "Removed relief assignment for WEST PAV Room 7"
+  },
+  {
+    "id": "audit_1791326341943_tnkx5",
+    "timestamp": "2026-10-06T22:39:01.943Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Yi (CRNA)",
+    "locationName": "WEST PAV Room 7",
+    "details": "Assigned relief: Yi (CRNA) relieving Jeffcoat (MD) in WEST PAV Room 7"
+  },
+  {
+    "id": "audit_1791326327551_f5u25",
+    "timestamp": "2026-10-06T22:38:47.551Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Relief Assignment",
+    "locationName": "ENDO Room 3",
+    "details": "Removed relief assignment for ENDO Room 3"
+  },
+  {
+    "id": "audit_1791326311670_k42mg",
+    "timestamp": "2026-10-06T22:38:31.670Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Relief Assignment",
+    "locationName": "MAIN OR Room 7",
+    "details": "Removed relief assignment for MAIN OR Room 7"
+  },
+  {
+    "id": "audit_1791326263569_kv77l",
+    "timestamp": "2026-10-06T22:37:43.569Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Relief Assignment",
+    "locationName": "MAIN OR Room 11",
+    "details": "Removed relief assignment for MAIN OR Room 11"
+  },
+  {
+    "id": "audit_1791326258752_9a5o8",
+    "timestamp": "2026-10-06T22:37:38.752Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Relief Assignment",
+    "locationName": "9th Floor Room CCL2",
+    "details": "Removed relief assignment for 9th Floor Room CCL2"
+  },
+  {
+    "id": "audit_1791326248822_42gop",
+    "timestamp": "2026-10-06T22:37:28.822Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Relief Assignment",
+    "locationName": "9th Floor Room EP2",
+    "details": "Removed relief assignment for 9th Floor Room EP2"
+  },
+  {
+    "id": "audit_1791326079954_qqt2x",
+    "timestamp": "2026-10-06T22:34:39.954Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Chen (MD)",
+    "locationName": "9th Floor Room CCL2",
+    "details": "Chen (MD) designated as relieving themselves in 9th Floor Room CCL2"
+  },
+  {
+    "id": "audit_1791325573674_n4afu",
+    "timestamp": "2026-10-06T22:26:13.674Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Relief Assignment",
+    "locationName": "9th Floor Room CCL1",
+    "details": "Removed relief assignment for 9th Floor Room CCL1"
+  },
+  {
+    "id": "audit_1791325568177_u3768",
+    "timestamp": "2026-10-06T22:26:08.177Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "9th Floor Room CCL1",
+    "details": "Marked 9th Floor Room CCL1 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
     "id": "audit_1791325399203_2cmc8",
     "timestamp": "2026-10-06T22:23:19.203Z",
     "actionType": "STAFF_MOVED",

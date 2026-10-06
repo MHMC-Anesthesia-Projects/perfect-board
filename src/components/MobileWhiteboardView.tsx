@@ -218,6 +218,103 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
     return list;
   }, [boardState.departments, staffMap]);
 
+  // Map of relief staffId -> string[] of locations they are assigned to relieve
+  const pendingReliefMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    (boardState.departments || []).forEach(dept => {
+      (dept.runnerSlots || []).forEach(runner => {
+        if (runner.relief?.staffId && runner.relief.staffId.trim() !== '') {
+          const loc = `${dept.name} (${runner.title || 'Runner'})`;
+          const existing = map.get(runner.relief.staffId) || [];
+          existing.push(loc);
+          map.set(runner.relief.staffId, existing);
+        }
+      });
+
+      (dept.rooms || []).forEach(room => {
+        (room.slots || []).forEach(slot => {
+          if (slot.relief?.staffId && slot.relief.staffId.trim() !== '') {
+            const loc = `${dept.name} Rm ${room.name}`;
+            const existing = map.get(slot.relief.staffId) || [];
+            existing.push(loc);
+            map.set(slot.relief.staffId, existing);
+          }
+        });
+      });
+    });
+
+    return map;
+  }, [boardState.departments]);
+
+  // Helper to match clinicians in Departure/Lates/Call Team to pending relief assignments
+  const getReliefLocations = (name: string, id?: string, qgendaAbbr?: string): string[] | null => {
+    if (pendingReliefMap.size === 0) return null;
+
+    // 1. Direct ID match
+    if (id && pendingReliefMap.has(id)) {
+      return pendingReliefMap.get(id) || null;
+    }
+
+    const cleanName = (name || '').trim().toUpperCase();
+    const normalizedClean = cleanName.replace(/^DR\.?\s*/i, '').trim();
+
+    // 2. Iterate pending relief map entries and match against staff
+    for (const [reliefStaffId, locations] of pendingReliefMap.entries()) {
+      if (id && reliefStaffId === id) return locations;
+
+      const s = (boardState.staff || []).find(st => st.id === reliefStaffId);
+      if (s) {
+        const sLast = (s.lastName || '').trim().toUpperCase();
+        const sFirst = (s.firstName || '').trim().toUpperCase();
+        const sDisplay = s.displayName ? s.displayName.trim().toUpperCase() : '';
+        const sQgenda = s.qgendaAbbr ? s.qgendaAbbr.trim().toUpperCase() : '';
+        const itemQgenda = qgendaAbbr ? qgendaAbbr.trim().toUpperCase() : '';
+
+        // Match by Qgenda abbreviation
+        if (itemQgenda && sQgenda && itemQgenda === sQgenda) {
+          return locations;
+        }
+
+        if (normalizedClean) {
+          // Exact match on last name or display name
+          if (sLast && normalizedClean === sLast) return locations;
+          if (sDisplay && (normalizedClean === sDisplay || normalizedClean === sDisplay.replace(/^DR\.?\s*/i, '').trim())) {
+            return locations;
+          }
+
+          // Match full name formats
+          if (sFirst && sLast) {
+            if (
+              normalizedClean === `${sFirst} ${sLast}` ||
+              normalizedClean === `${sLast}, ${sFirst}` ||
+              normalizedClean === `${sLast} ${sFirst}` ||
+              normalizedClean === `${sFirst[0]}. ${sLast}` ||
+              normalizedClean === `${sLast} ${sFirst[0]}.`
+            ) {
+              return locations;
+            }
+          }
+
+          // Well-known hospital aliases
+          if (normalizedClean === 'KD' && (sLast === 'DAVID' || sFirst === 'KAMILAH' || sQgenda === 'KD')) {
+            return locations;
+          }
+          if (normalizedClean === 'TALL' && (sLast === 'TALLACKSON' || sQgenda === 'TALL')) {
+            return locations;
+          }
+
+          // Split hyphenated or multi-part last names
+          const lastParts = sLast.split(/[-\s]+/);
+          if (lastParts.length > 1 && lastParts.includes(normalizedClean)) {
+            return locations;
+          }
+        }
+      }
+    }
+
+    return null;
+  };
+
   // Build the list of all navigation views
   const navViews = useMemo(() => {
     const views: { key: string; label: string; shortLabel: string; category: 'department' | 'roster' }[] = [];
@@ -1112,6 +1209,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                 <div className="mobile-empty-state">No post-call staff today</div>
               ) : (
                 postCallDepartures.map((item, idx) => {
+                  const reliefLocs = getReliefLocations(item.name, item.id, item.qgendaAbbr);
                   return (
                     <div
                       key={item.id}
@@ -1120,7 +1218,15 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                     >
                       <div className="mobile-order-badge">#{idx + 1}</div>
                       <div className="mobile-departure-info">
-                        <span className="mobile-departure-name">{item.name}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {reliefLocs && (
+                            <span
+                              className="pending-relief-indicator-dot"
+                              title={`Assigned as pending relief for: ${reliefLocs.join(', ')}`}
+                            />
+                          )}
+                          <span className="mobile-departure-name">{item.name}</span>
+                        </div>
                         {item.role && <span className="mobile-departure-role">{item.role}</span>}
                       </div>
                       <button
@@ -1144,6 +1250,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                 </div>
                 <div className="mobile-card mobile-list-card">
                   {specialDepartures.map((item, idx) => {
+                    const reliefLocs = getReliefLocations(item.name, item.id, item.qgendaAbbr);
                     return (
                       <div
                         key={item.id}
@@ -1152,10 +1259,18 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                       >
                         <div className="mobile-order-badge">#{idx + 1}</div>
                         <div className="mobile-departure-info">
-                          <span className="atypical-time-badge" style={{ marginRight: 6 }}>
-                            {item.timeEstimate || '2p'}
-                          </span>
-                          <span className="mobile-departure-name">{item.name}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span className="atypical-time-badge" style={{ marginRight: 2 }}>
+                              {item.timeEstimate || '2p'}
+                            </span>
+                            {reliefLocs && (
+                              <span
+                                className="pending-relief-indicator-dot"
+                                title={`Assigned as pending relief for: ${reliefLocs.join(', ')}`}
+                              />
+                            )}
+                            <span className="mobile-departure-name">{item.name}</span>
+                          </div>
                           {item.role && <span className="mobile-departure-role">{item.role}</span>}
                         </div>
                         <button
@@ -1181,6 +1296,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                 <div className="mobile-empty-state">No non-call staff listed</div>
               ) : (
                 nonCallDepartures.map((item, idx) => {
+                  const reliefLocs = getReliefLocations(item.name, item.id, item.qgendaAbbr);
                   return (
                     <div
                       key={item.id}
@@ -1189,7 +1305,15 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                     >
                       <div className="mobile-order-badge">#{idx + 1}</div>
                       <div className="mobile-departure-info">
-                        <span className="mobile-departure-name">{item.name}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {reliefLocs && (
+                            <span
+                              className="pending-relief-indicator-dot"
+                              title={`Assigned as pending relief for: ${reliefLocs.join(', ')}`}
+                            />
+                          )}
+                          <span className="mobile-departure-name">{item.name}</span>
+                        </div>
                         {item.role && <span className="mobile-departure-role">{item.role}</span>}
                       </div>
                       <button
@@ -1277,9 +1401,20 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                       </span>
                     </div>
                     <div className="mobile-call-details">
-                      <span className="mobile-call-doc-name">
-                        {item.doctorName ? item.doctorName.toUpperCase() : '(Unassigned)'}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {item.doctorName && (() => {
+                          const reliefLocs = getReliefLocations(item.doctorName, item.id, item.qgendaAbbr);
+                          return reliefLocs ? (
+                            <span
+                              className="pending-relief-indicator-dot"
+                              title={`Assigned as pending relief for: ${reliefLocs.join(', ')}`}
+                            />
+                          ) : null;
+                        })()}
+                        <span className="mobile-call-doc-name">
+                          {item.doctorName ? item.doctorName.toUpperCase() : '(Unassigned)'}
+                        </span>
+                      </div>
                       <span className="mobile-call-status-label">
                         {item.doctorName ? 'Assigned On-Call (Tap for details)' : 'Pending Assignment'}
                       </span>
@@ -1324,12 +1459,20 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                       {items.length === 0 ? (
                         <span className="mobile-lates-empty-note">None scheduled</span>
                       ) : (
-                        items.map(item => (
+                        items.map(item => {
+                          const reliefLocs = getReliefLocations(item.name, item.id, item.qgendaAbbr);
+                          return (
                           <div key={item.id} className="mobile-late-staff-chip">
                             {isSpecial && (
                               <span className="atypical-time-badge" style={{ marginRight: 4 }}>
                                 {item.timeEstimate || '2p'}
                               </span>
+                            )}
+                            {reliefLocs && (
+                              <span
+                                className="pending-relief-indicator-dot"
+                                title={`Assigned as pending relief for: ${reliefLocs.join(', ')}`}
+                              />
                             )}
                             <span className="mobile-late-chip-name">{item.name}</span>
                             {item.notes && (
@@ -1346,7 +1489,8 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                             )}
                             {item.role && <span className="mobile-late-chip-role">{item.role}</span>}
                           </div>
-                        ))
+                        );
+                      })
                       )}
                     </div>
                   </div>

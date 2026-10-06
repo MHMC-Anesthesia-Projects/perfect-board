@@ -2362,6 +2362,7 @@ export default function WhiteboardPage() {
             latesNotes={boardState.latesNotes}
             currentUserRole={currentUserRole}
             staff={boardState.staff}
+            departments={boardState.departments}
             onSelectStaff={handleSelectStaff}
             onUpdateDepartureNotes={notes => handleSaveNotes('departure', undefined, notes)}
             onUpdateLatesNotes={notes => handleSaveNotes('lates', undefined, notes)}

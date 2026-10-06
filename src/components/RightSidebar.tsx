@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { DepartureItem, LateShiftItem, CallTeamItem, UserRole, Staff } from '@/types/whiteboard';
+import { DepartureItem, LateShiftItem, CallTeamItem, UserRole, Staff, Department } from '@/types/whiteboard';
 import { Plus, Trash2, Mic, StickyNote, X, ChevronRight, Check } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
@@ -13,6 +13,7 @@ interface RightSidebarProps {
   latesNotes: string;
   currentUserRole: UserRole;
   staff?: Staff[];
+  departments?: Department[];
   onSelectStaff?: (staff: Staff) => void;
   onUpdateDepartureNotes?: (notes: string) => void;
   onUpdateLatesNotes: (notes: string) => void;
@@ -30,6 +31,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   latesNotes,
   currentUserRole,
   staff = [],
+  departments = [],
   onSelectStaff,
   onUpdateLatesNotes,
   onUpdateLists,
@@ -220,6 +222,105 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
       })
       .sort((a, b) => a.orderIndex - b.orderIndex);
   }, [departureList, staff]);
+
+  // Map of relief staffId -> string[] of locations they are assigned to relieve
+  const pendingReliefMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    if (!departments) return map;
+
+    departments.forEach(dept => {
+      (dept.runnerSlots || []).forEach(runner => {
+        if (runner.relief?.staffId && runner.relief.staffId.trim() !== '') {
+          const loc = `${dept.name} (${runner.title || 'Runner'})`;
+          const existing = map.get(runner.relief.staffId) || [];
+          existing.push(loc);
+          map.set(runner.relief.staffId, existing);
+        }
+      });
+
+      (dept.rooms || []).forEach(room => {
+        (room.slots || []).forEach(slot => {
+          if (slot.relief?.staffId && slot.relief.staffId.trim() !== '') {
+            const loc = `${dept.name} Rm ${room.name}`;
+            const existing = map.get(slot.relief.staffId) || [];
+            existing.push(loc);
+            map.set(slot.relief.staffId, existing);
+          }
+        });
+      });
+    });
+
+    return map;
+  }, [departments]);
+
+  // Helper to match clinicians in Departure/Lates/Call Team to pending relief assignments
+  const getReliefLocations = (name: string, id?: string, qgendaAbbr?: string): string[] | null => {
+    if (pendingReliefMap.size === 0) return null;
+
+    // 1. Direct ID match
+    if (id && pendingReliefMap.has(id)) {
+      return pendingReliefMap.get(id) || null;
+    }
+
+    const cleanName = (name || '').trim().toUpperCase();
+    const normalizedClean = cleanName.replace(/^DR\.?\s*/i, '').trim();
+
+    // 2. Iterate pending relief map entries and match against staff
+    for (const [reliefStaffId, locations] of pendingReliefMap.entries()) {
+      if (id && reliefStaffId === id) return locations;
+
+      const s = staff.find(st => st.id === reliefStaffId);
+      if (s) {
+        const sLast = (s.lastName || '').trim().toUpperCase();
+        const sFirst = (s.firstName || '').trim().toUpperCase();
+        const sDisplay = s.displayName ? s.displayName.trim().toUpperCase() : '';
+        const sQgenda = s.qgendaAbbr ? s.qgendaAbbr.trim().toUpperCase() : '';
+        const itemQgenda = qgendaAbbr ? qgendaAbbr.trim().toUpperCase() : '';
+
+        // Match by Qgenda abbreviation
+        if (itemQgenda && sQgenda && itemQgenda === sQgenda) {
+          return locations;
+        }
+
+        if (normalizedClean) {
+          // Exact match on last name or display name
+          if (sLast && normalizedClean === sLast) return locations;
+          if (sDisplay && (normalizedClean === sDisplay || normalizedClean === sDisplay.replace(/^DR\.?\s*/i, '').trim())) {
+            return locations;
+          }
+
+          // Match full name formats
+          if (sFirst && sLast) {
+            if (
+              normalizedClean === `${sFirst} ${sLast}` ||
+              normalizedClean === `${sLast}, ${sFirst}` ||
+              normalizedClean === `${sLast} ${sFirst}` ||
+              normalizedClean === `${sFirst[0]}. ${sLast}` ||
+              normalizedClean === `${sLast} ${sFirst[0]}.`
+            ) {
+              return locations;
+            }
+          }
+
+          // Well-known hospital aliases
+          if (normalizedClean === 'KD' && (sLast === 'DAVID' || sFirst === 'KAMILAH' || sQgenda === 'KD')) {
+            return locations;
+          }
+          if (normalizedClean === 'TALL' && (sLast === 'TALLACKSON' || sQgenda === 'TALL')) {
+            return locations;
+          }
+
+          // Split hyphenated or multi-part last names
+          const lastParts = sLast.split(/[-\s]+/);
+          if (lastParts.length > 1 && lastParts.includes(normalizedClean)) {
+            return locations;
+          }
+        }
+      }
+    }
+
+    return null;
+  };
 
   // State for adding late staff (supports specific category targeted by plus button)
   const [addingToCategory, setAddingToCategory] = useState<string | null>(null);
@@ -687,7 +788,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 setDragOverDepartureId(null);
               }}
             >
-              {postCallList.map((doc, idx) => (
+              {postCallList.map((doc, idx) => {
+                const reliefLocs = getReliefLocations(doc.name, doc.id, doc.qgendaAbbr);
+                return (
                 <div
                   key={doc.id}
                   className={`departure-item ${doc.departed ? 'struck' : ''} ${dragOverDepartureId === doc.id ? 'drag-over' : ''} ${draggedDepartureId === doc.id ? 'dragging' : ''}`}
@@ -721,6 +824,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   title={doc.departed ? 'Marked departed (Click name to view/edit details)' : 'Click to view/edit details (or use circle to mark departed)'}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                    {reliefLocs && (
+                      <span
+                        className="pending-relief-indicator-dot"
+                        title={`Assigned as pending relief for: ${reliefLocs.join(', ')}`}
+                      />
+                    )}
                     <span className="departure-name">{doc.name}</span>
                     {doc.timeEstimate && (
                       <span
@@ -765,7 +874,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     {doc.departed && <Check size={10} strokeWidth={3} />}
                   </button>
                 </div>
-              ))}
+              );
+            })}
 
               {postCallList.length === 0 && (
                 <div className="departure-empty-hint">
@@ -825,7 +935,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   setDragOverDepartureId(null);
                 }}
               >
-                {specialDepartureList.map((doc, idx) => (
+                {specialDepartureList.map((doc, idx) => {
+                  const reliefLocs = getReliefLocations(doc.name, doc.id, doc.qgendaAbbr);
+                  return (
                   <div
                     key={doc.id}
                     className={`departure-item ${doc.departed ? 'struck' : ''} ${dragOverDepartureId === doc.id ? 'drag-over' : ''} ${draggedDepartureId === doc.id ? 'dragging' : ''}`}
@@ -863,6 +975,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       <span className="atypical-time-badge">
                         {doc.timeEstimate || '2p'}
                       </span>
+                      {reliefLocs && (
+                        <span
+                          className="pending-relief-indicator-dot"
+                          title={`Assigned as pending relief for: ${reliefLocs.join(', ')}`}
+                        />
+                      )}
                       <span className="departure-name">{doc.name}</span>
                     </div>
 
@@ -892,7 +1010,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       {doc.departed && <Check size={10} strokeWidth={3} />}
                     </button>
                   </div>
-                ))}
+                );
+              })}
               </div>
             </div>
           )}
@@ -946,7 +1065,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 setDragOverDepartureId(null);
               }}
             >
-              {nonCallList.map((doc, idx) => (
+              {nonCallList.map((doc, idx) => {
+                const reliefLocs = getReliefLocations(doc.name, doc.id, doc.qgendaAbbr);
+                return (
                 <div
                   key={doc.id}
                   className={`departure-item ${doc.departed ? 'struck' : ''} ${dragOverDepartureId === doc.id ? 'drag-over' : ''} ${draggedDepartureId === doc.id ? 'dragging' : ''}`}
@@ -980,6 +1101,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   title={doc.departed ? 'Marked departed (Click name to view/edit details)' : 'Click to view/edit details (or use circle to mark departed)'}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                    {reliefLocs && (
+                      <span
+                        className="pending-relief-indicator-dot"
+                        title={`Assigned as pending relief for: ${reliefLocs.join(', ')}`}
+                      />
+                    )}
                     <span className="departure-name">{doc.name}</span>
                     {doc.timeEstimate && (
                       <span
@@ -1024,7 +1151,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     {doc.departed && <Check size={10} strokeWidth={3} />}
                   </button>
                 </div>
-              ))}
+              );
+            })}
 
               {nonCallList.length === 0 && (
                 <div className="departure-empty-hint">
@@ -1137,7 +1265,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
           {/* Call Team Members List */}
           <div className="call-team-list">
-            {callTeamList.map((item) => (
+            {callTeamList.map((item) => {
+              const reliefLocs = getReliefLocations(item.doctorName, item.id, item.qgendaAbbr);
+              return (
               <div
                 key={item.id}
                 className="call-team-item clickable"
@@ -1147,10 +1277,17 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span className="call-role-badge">{item.role}</span>
+                  {reliefLocs && (
+                    <span
+                      className="pending-relief-indicator-dot"
+                      title={`Assigned as pending relief for: ${reliefLocs.join(', ')}`}
+                    />
+                  )}
                   <span className="call-doc-name">{item.doctorName}</span>
                 </div>
               </div>
-            ))}
+            );
+            })}
 
             {callTeamList.length === 0 && (
               <div style={{ padding: 8, textAlign: 'center', color: 'var(--text-muted)', fontSize: 11, fontStyle: 'italic' }}>
@@ -1349,7 +1486,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   </form>
                 )}                  {/* Staff names under this time slot */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {items.map(item => (
+                  {items.map(item => {
+                    const reliefLocs = getReliefLocations(item.name, item.id, item.qgendaAbbr);
+                    return (
                     <div
                       key={item.id}
                       onClick={() => handleStaffClick(item.name, item.id, undefined, item.orderNumber, item.timeCategory, (item.role as any) || 'CRNA')}
@@ -1374,6 +1513,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                           <span className="atypical-time-badge">
                             {item.timeEstimate || category}
                           </span>
+                        )}
+                        {reliefLocs && (
+                          <span
+                            className="pending-relief-indicator-dot"
+                            title={`Assigned as pending relief for: ${reliefLocs.join(', ')}`}
+                          />
                         )}
                         <span>{item.name}</span>
                         {item.notes && (
@@ -1409,7 +1554,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                         )}
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
                   {items.length === 0 && (
                     <div style={{ fontSize: 11, fontStyle: 'italic', color: 'var(--text-muted)', padding: '2px 6px' }}>
                       No staff scheduled for {category}

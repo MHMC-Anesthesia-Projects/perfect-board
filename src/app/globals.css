@@ -3249,3 +3249,38 @@ body.dragging-staff .relief-slot-target {
     display: none !important;
   }
 }
+
+/* Large Red Dot indicating staff is assigned as pending relief */
+.pending-relief-indicator-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  min-width: 10px;
+  min-height: 10px;
+  border-radius: 50%;
+  background-color: var(--marker-red, #dc2626);
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1.5px rgba(220, 38, 38, 0.4), 0 0 6px rgba(220, 38, 38, 0.7);
+  cursor: help;
+  animation: pending-relief-pulse 2s infinite ease-in-out;
+  vertical-align: middle;
+}
+
+.pending-relief-indicator-dot:hover {
+  transform: scale(1.35);
+}
+
+@keyframes pending-relief-pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7), 0 0 4px rgba(220, 38, 38, 0.5);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 5px rgba(220, 38, 38, 0), 0 0 8px rgba(220, 38, 38, 0.8);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0), 0 0 4px rgba(220, 38, 38, 0.5);
+  }
+}
