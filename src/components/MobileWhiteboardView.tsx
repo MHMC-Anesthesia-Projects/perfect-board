@@ -180,7 +180,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
       dept.runnerSlots.forEach(r => {
         if (r.relief) {
           const current = staffMap.get(r.staffId || '') || null;
-          const relief = staffMap.get(r.relief.staffId) || null;
+          const relief = r.relief.staffId ? (staffMap.get(r.relief.staffId) || null) : null;
           list.push({
             departmentId: dept.id,
             departmentName: dept.name,
@@ -198,7 +198,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
         room.slots.forEach(slot => {
           if (slot.relief) {
             const current = staffMap.get(slot.staffId || '') || null;
-            const relief = staffMap.get(slot.relief.staffId) || null;
+            const relief = slot.relief.staffId ? (staffMap.get(slot.relief.staffId) || null) : null;
             list.push({
               departmentId: dept.id,
               departmentName: dept.name,
@@ -825,99 +825,119 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                           .filter((slot, idx) => idx === 0 || !!slot.staffId)
                           .map(slot => {
                             const assignedStaff = getStaffById(slot.staffId);
+                            const reliefStaff = getStaffById(slot.relief?.staffId || null);
+                            const hasAssignedRelief = Boolean(slot.relief && reliefStaff);
+                            const isOpenRedBox = Boolean(slot.relief && (!slot.relief.staffId || slot.relief.isRedBox) && !hasAssignedRelief);
+
                             return (
                               <div
                                 key={slot.id}
                                 className={`room-slot-target ${!assignedStaff ? 'empty' : ''}`}
-                                onClick={() => {
-                                  if (!assignedStaff) {
-                                    onSelectEmptySlot('room_slot', slot.id, `${activeDepartment.name} Room ${room.name}`, room.id, room.futureTime);
-                                  }
-                                }}
+                                style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 4 }}
                               >
                                 {assignedStaff ? (
-                                  (() => {
-                                    const reliefStaff = getStaffById(slot.relief?.staffId || null);
-                                    if (slot.relief && reliefStaff) {
-                                      return (
-                                        <div className="relief-container" style={{ width: '100%' }}>
-                                          <div style={{ flex: 1, minWidth: 0 }}>
-                                            <MagnetTile
-                                              staff={assignedStaff}
-                                              slotId={slot.id}
-                                              slotType="room_slot"
-                                              breakfastDone={slot.breakfastDone}
-                                              lunchDone={slot.lunchDone}
-                                              currentUserRole={currentUserRole}
-                                              unreadMessageCount={getStaffUnreadCount(assignedStaff)}
-                                              onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
-                                              onSelectStaff={onSelectStaff}
-                                              isDraggable={false}
-                                            />
-                                          </div>
-                                          <span className="relief-arrow" title="Relief assignment">➔</span>
-                                          <div
-                                            className="relief-box"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              if (onOpenReliefModal) {
-                                                onOpenReliefModal({
-                                                  type: 'room_slot',
-                                                  id: slot.id,
-                                                  roomName: `Room ${room.name}`,
-                                                  departmentName: activeDepartment.name,
-                                                  currentStaff: assignedStaff,
-                                                  currentRelief: slot.relief
-                                                });
-                                              }
-                                            }}
-                                          >
-                                            <div className="relief-identity">
-                                              <span className="relief-name">{reliefStaff.lastName.toUpperCase()}</span>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      );
-                                    }
-                                    return (
-                                      <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%' }}>
-                                        <div style={{ flex: 1, minWidth: 0, height: '100%' }}>
-                                          <MagnetTile
-                                            staff={assignedStaff}
-                                            slotId={slot.id}
-                                            slotType="room_slot"
-                                            breakfastDone={slot.breakfastDone}
-                                            lunchDone={slot.lunchDone}
-                                            currentUserRole={currentUserRole}
-                                            unreadMessageCount={getStaffUnreadCount(assignedStaff)}
-                                            onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
-                                            onSelectStaff={onSelectStaff}
-                                            isDraggable={false}
-                                          />
-                                        </div>
-                                        {isEditor && onOpenReliefModal && (
-                                          <button
-                                            type="button"
-                                            className="relief-add-trigger"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              onOpenReliefModal({
-                                                type: 'room_slot',
-                                                id: slot.id,
-                                                roomName: `Room ${room.name}`,
-                                                departmentName: activeDepartment.name,
-                                                currentStaff: assignedStaff,
-                                                currentRelief: null
-                                              });
-                                            }}
-                                          >
-                                            <Clock size={10} />
-                                            <span>Relief</span>
-                                          </button>
-                                        )}
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <MagnetTile
+                                      staff={assignedStaff}
+                                      slotId={slot.id}
+                                      slotType="room_slot"
+                                      breakfastDone={slot.breakfastDone}
+                                      lunchDone={slot.lunchDone}
+                                      currentUserRole={currentUserRole}
+                                      unreadMessageCount={getStaffUnreadCount(assignedStaff)}
+                                      onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
+                                      onSelectStaff={onSelectStaff}
+                                      isDraggable={false}
+                                    />
+                                  </div>
+                                ) : (
+                                  <div
+                                    style={{ flex: 1, minWidth: 0, height: '100%', cursor: 'pointer' }}
+                                    onClick={() => {
+                                      onSelectEmptySlot('room_slot', slot.id, `${activeDepartment.name} Room ${room.name}`, room.id, room.futureTime);
+                                    }}
+                                  />
+                                )}
+
+                                {/* Relief zone on mobile */}
+                                {hasAssignedRelief && reliefStaff ? (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+                                    <span className="relief-arrow" title="Relief assignment" style={{ fontSize: 11, color: 'var(--marker-red)' }}>➔</span>
+                                    <div
+                                      className="relief-box"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (onOpenReliefModal) {
+                                          onOpenReliefModal({
+                                            type: 'room_slot',
+                                            id: slot.id,
+                                            roomName: `Room ${room.name}`,
+                                            departmentName: activeDepartment.name,
+                                            currentStaff: assignedStaff || null,
+                                            currentRelief: slot.relief
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      <div className="relief-identity">
+                                        <span className="relief-name">{reliefStaff.lastName.toUpperCase()}</span>
                                       </div>
-                                    );
-                                  })()
+                                    </div>
+                                  </div>
+                                ) : isOpenRedBox ? (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (onOpenReliefModal) {
+                                        onOpenReliefModal({
+                                          type: 'room_slot',
+                                          id: slot.id,
+                                          roomName: `Room ${room.name}`,
+                                          departmentName: activeDepartment.name,
+                                          currentStaff: assignedStaff || null,
+                                          currentRelief: slot.relief
+                                        });
+                                      }
+                                    }}
+                                    style={{
+                                      padding: '2px 6px',
+                                      borderRadius: 4,
+                                      border: '1.5px dashed var(--marker-red, #dc2626)',
+                                      background: 'rgba(239, 68, 68, 0.12)',
+                                      color: 'var(--marker-red, #dc2626)',
+                                      fontSize: 10,
+                                      fontWeight: 800,
+                                      cursor: 'pointer',
+                                      flexShrink: 0,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 3
+                                    }}
+                                    title="3 PM Count: Tap to assign relief"
+                                  >
+                                    <Clock size={10} />
+                                    <span>+ Relief (3 PM)</span>
+                                  </button>
+                                ) : isEditor && onOpenReliefModal ? (
+                                  <button
+                                    type="button"
+                                    className="relief-add-trigger"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onOpenReliefModal({
+                                        type: 'room_slot',
+                                        id: slot.id,
+                                        roomName: `Room ${room.name}`,
+                                        departmentName: activeDepartment.name,
+                                        currentStaff: assignedStaff || null,
+                                        currentRelief: null
+                                      });
+                                    }}
+                                  >
+                                    <Clock size={10} />
+                                    <span>Relief</span>
+                                  </button>
                                 ) : null}
                               </div>
                             );
@@ -1045,11 +1065,11 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                           gap: 4,
                           padding: '2px 6px',
                           borderRadius: 4,
-                          border: '1.5px solid var(--marker-red, #dc2626)',
+                          border: item.reliefStaff ? '1.5px solid var(--marker-red, #dc2626)' : '1.5px dashed var(--marker-red, #dc2626)',
                           background: 'rgba(239, 68, 68, 0.08)'
                         }}>
-                          <span style={{ fontSize: 12.5, fontWeight: 900, color: 'var(--marker-red, #dc2626)' }}>
-                            {item.reliefStaff ? item.reliefStaff.lastName.toUpperCase() : 'Unknown'}
+                          <span style={{ fontSize: 12, fontWeight: 900, color: 'var(--marker-red, #dc2626)' }}>
+                            {item.reliefStaff ? item.reliefStaff.lastName.toUpperCase() : '3 PM COUNT (NEEDS COVERAGE)'}
                           </span>
                           {item.reliefStaff && (
                             <span className={`magnet-cred cred-${item.reliefStaff.credentials}`} style={{ fontSize: 8, padding: '0 3px' }}>

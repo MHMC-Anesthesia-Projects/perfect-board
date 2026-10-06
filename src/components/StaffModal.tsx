@@ -52,6 +52,9 @@ interface StaffModalProps {
   onSetRoomFutureTime?: (roomId: string, futureTime: string | null) => void;
   onChatRead?: (staffPhone: string) => void;
   onUpdateStudent?: (staffId: string, hasStudent: boolean, studentName?: string) => Promise<void> | void;
+  onToggleRedBox?: (targetType: 'room_slot' | 'runner_slot', targetId: string, enable: boolean) => void;
+  onRemoveRelief?: (targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
+  unreadCount?: number;
 }
 
 export const StaffModal: React.FC<StaffModalProps> = ({
@@ -74,7 +77,10 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   onOpenReliefModal,
   onSetRoomFutureTime,
   onChatRead,
-  onUpdateStudent
+  onUpdateStudent,
+  onToggleRedBox,
+  onRemoveRelief,
+  unreadCount = 0
 }) => {
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [isEditingShift, setIsEditingShift] = useState(false);
@@ -102,8 +108,16 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   const [studentNameInput, setStudentNameInput] = useState(staff?.studentName || '');
   const [isSavingStudent, setIsSavingStudent] = useState(false);
   const [studentSaveSuccess, setStudentSaveSuccess] = useState(false);
+  const [isPagingExpanded, setIsPagingExpanded] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  // Auto-expand paging section ONLY if there are active unread incoming messages
+  useEffect(() => {
+    if (unreadCount > 0) {
+      setIsPagingExpanded(true);
+    }
+  }, [unreadCount]);
 
   const fetchMessagingStatus = async (phone?: string) => {
     if (!phone) {
@@ -1052,306 +1066,6 @@ export const StaffModal: React.FC<StaffModalProps> = ({
           )}
         </div>
 
-        {/* ==========================================================================
-            PERFECT CALL INTERNAL CLINICIAN PAGING & MESSAGING
-            ========================================================================== */}
-        {messagingEnabled && (
-          <div style={{
-            background: 'var(--surface-card)',
-            borderRadius: 8,
-            padding: '12px 14px',
-            border: '1.5px solid rgba(16, 185, 129, 0.35)',
-            marginBottom: 16,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10
-          }}>
-            {/* Header & Status Indicator */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', paddingBottom: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <MessageSquare size={16} style={{ color: '#10b981' }} />
-                <span style={{
-                  fontSize: 12,
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  color: 'var(--text-primary)'
-                }}>
-                  Perfect Call Clinician Paging
-                </span>
-              </div>
-
-              {/* Status Pill */}
-              {recipientProfile ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {recipientProfile.isOnline ? (
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      padding: '2px 8px',
-                      borderRadius: 12,
-                      background: 'rgba(16, 185, 129, 0.15)',
-                      color: '#059669',
-                      border: '1px solid #10b981',
-                      fontSize: 10,
-                      fontWeight: 800,
-                      letterSpacing: 0.3
-                    }}>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-                      ONLINE ON APP
-                    </span>
-                  ) : (
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      padding: '2px 8px',
-                      borderRadius: 12,
-                      background: 'var(--surface-hover)',
-                      color: 'var(--text-muted)',
-                      border: '1px solid var(--border-light)',
-                      fontSize: 10,
-                      fontWeight: 700
-                    }}>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#94a3b8', display: 'inline-block' }} />
-                      OFFLINE (PUSH DELIVERED)
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <span style={{
-                  padding: '2px 8px',
-                  borderRadius: 12,
-                  background: 'rgba(245, 158, 11, 0.12)',
-                  color: '#d97706',
-                  border: '1px solid rgba(245, 158, 11, 0.3)',
-                  fontSize: 10,
-                  fontWeight: 700
-                }}>
-                  NOT ON PERFECT CALL
-                </span>
-              )}
-            </div>
-
-            {recipientProfile ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {/* Feedback notices */}
-                {quickSendSuccess && (
-                  <div style={{
-                    padding: '6px 10px',
-                    borderRadius: 5,
-                    background: 'rgba(16, 185, 129, 0.12)',
-                    border: '1px solid #10b981',
-                    color: '#047857',
-                    fontSize: 11.5,
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6
-                  }}>
-                    <Check size={14} />
-                    <span>{quickSendSuccess}</span>
-                  </div>
-                )}
-
-                {chatError && (
-                  <div style={{
-                    padding: '6px 10px',
-                    borderRadius: 5,
-                    background: 'rgba(239, 68, 68, 0.1)',
-                    border: '1px solid #ef4444',
-                    color: '#dc2626',
-                    fontSize: 11.5,
-                    fontWeight: 700
-                  }}>
-                    {chatError}
-                  </div>
-                )}
-
-                {/* Quick Presets Row */}
-                <div>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: 5 }}>
-                    Quick Preset Pages (Tap to instant-send):
-                  </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                    {[
-                      'Need a break?',
-                      'Relief coming in 15m',
-                      'Please call OR Board Runner',
-                      'Case delayed / Add-on pending',
-                      'What is your estimated finish time?'
-                    ].map(preset => (
-                      <button
-                        key={preset}
-                        type="button"
-                        onClick={() => handleSendMessage(preset)}
-                        disabled={isSendingMessage}
-                        style={{
-                          padding: '4px 8px',
-                          borderRadius: 5,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          background: 'rgba(16, 185, 129, 0.08)',
-                          border: '1px solid rgba(16, 185, 129, 0.25)',
-                          color: '#059669',
-                          cursor: isSendingMessage ? 'not-allowed' : 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4
-                        }}
-                      >
-                        <Send size={10} />
-                        <span>{preset}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Custom Message Field */}
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <input
-                    type="text"
-                    value={messageInput}
-                    onChange={e => setMessageInput(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    placeholder={`Message ${staff.displayName || staff.lastName}...`}
-                    disabled={isSendingMessage}
-                    style={{
-                      flex: 1,
-                      padding: '7px 10px',
-                      borderRadius: 6,
-                      border: '1px solid var(--border-light)',
-                      background: 'var(--bg-board)',
-                      color: 'var(--text-primary)',
-                      fontSize: 12,
-                      fontWeight: 600
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleSendMessage()}
-                    disabled={isSendingMessage || !messageInput.trim()}
-                    style={{
-                      padding: '7px 14px',
-                      borderRadius: 6,
-                      background: messageInput.trim() ? '#10b981' : 'var(--surface-hover)',
-                      border: 'none',
-                      color: messageInput.trim() ? '#fff' : 'var(--text-muted)',
-                      fontWeight: 800,
-                      fontSize: 12,
-                      cursor: isSendingMessage || !messageInput.trim() ? 'not-allowed' : 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 5
-                    }}
-                  >
-                    <Send size={12} />
-                    <span>{isSendingMessage ? 'Sending...' : 'Send'}</span>
-                  </button>
-                </div>
-
-                {/* Mini Chat Thread Stream */}
-                <div style={{
-                  background: 'var(--bg-board)',
-                  border: '1px solid var(--border-light)',
-                  borderRadius: 6,
-                  padding: '8px 10px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 6
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', paddingBottom: 4 }}>
-                    <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                      Recent Conversation Thread ({chatMessages.length})
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => recipientProfile && loadChatMessages(recipientProfile.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--text-muted)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 3,
-                        fontSize: 10,
-                        fontWeight: 700
-                      }}
-                    >
-                      <RefreshCw size={10} className={isLoadingChat ? 'animate-spin' : ''} />
-                      <span>Refresh</span>
-                    </button>
-                  </div>
-
-                  <div
-                    ref={chatScrollRef}
-                    style={{
-                      maxHeight: 140,
-                      overflowY: 'auto',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 6,
-                      paddingRight: 2
-                    }}
-                  >
-                    {chatMessages.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '10px 0', fontSize: 11, color: 'var(--text-muted)' }}>
-                        No messages yet. Send a page above to start communication.
-                      </div>
-                    ) : (
-                      chatMessages.map((msg: ChatMessage) => (
-                        <div
-                          key={msg.id}
-                          style={{
-                            alignSelf: msg.is_outgoing ? 'flex-end' : 'flex-start',
-                            maxWidth: '85%',
-                            background: msg.is_outgoing ? 'rgba(16, 185, 129, 0.15)' : 'var(--surface-hover)',
-                            border: `1px solid ${msg.is_outgoing ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-light)'}`,
-                            borderRadius: 6,
-                            padding: '5px 8px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 2
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 9.5, fontWeight: 800, color: msg.is_outgoing ? '#059669' : 'var(--text-secondary)' }}>
-                            <span>{msg.is_outgoing ? 'Board Runner' : (recipientProfile.fullName || staff.lastName)}</span>
-                            <span style={{ fontWeight: 500, color: 'var(--text-muted)' }}>
-                              {new Date(msg.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          <div style={{ fontSize: 11.5, color: 'var(--text-primary)', wordBreak: 'break-word', fontWeight: 600 }}>
-                            {msg.content}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                    <div ref={chatBottomRef} />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div style={{
-                background: 'var(--bg-board)',
-                padding: '10px 12px',
-                borderRadius: 6,
-                fontSize: 12,
-                color: 'var(--text-secondary)',
-                lineHeight: 1.5
-              }}>
-                No Perfect Call account found with phone: <strong>{staff.phone || 'None'}</strong>. 
-                Clinicians must register in <em>perfectcall.app</em> with their cell phone to receive internal pages directly from this whiteboard.
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Break Management Status (Accessible to ALL users, including Basic User!) */}
         {allPlacements.length > 0 && (
@@ -1458,59 +1172,113 @@ export const StaffModal: React.FC<StaffModalProps> = ({
         {/* Board Runner / Superuser Assignment Controls */}
         {isEditor ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {/* Scheduled Relief Section (Red Box) */}
+            {/* Scheduled Relief Section (Red Box & 3 PM Count) */}
             {roomPlacement && (
               <div style={{
-                background: roomPlacement.relief ? 'rgba(239, 68, 68, 0.08)' : 'var(--surface-hover)',
-                border: roomPlacement.relief ? '1.5px solid var(--marker-red)' : '1px solid var(--border-light)',
+                background: roomPlacement.relief
+                  ? (roomPlacement.relief.staffId ? 'rgba(239, 68, 68, 0.08)' : 'rgba(239, 68, 68, 0.14)')
+                  : 'var(--surface-hover)',
+                border: roomPlacement.relief
+                  ? (roomPlacement.relief.staffId ? '1.5px solid var(--marker-red)' : '1.5px dashed var(--marker-red)')
+                  : '1px solid var(--border-light)',
                 borderRadius: 8,
                 padding: '10px 12px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: 8
+                gap: 8,
+                flexWrap: 'wrap'
               }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: 'var(--marker-red)', textTransform: 'uppercase' }}>
                     <Clock size={12} />
-                    <span>{roomPlacement.relief ? 'Relief Assigned' : 'Relief Planning'}</span>
+                    <span>
+                      {roomPlacement.relief
+                        ? (roomPlacement.relief.staffId ? 'Relief Assigned' : '3 PM Count (Red Box Active)')
+                        : 'Relief Planning (3 PM Count)'}
+                    </span>
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 700, marginTop: 2 }}>
                     {roomPlacement.relief
-                      ? `Relief: ${allStaff.find(s => s.id === roomPlacement?.relief?.staffId)?.lastName || 'Assigned'}`
-                      : 'No relief scheduled for this assignment yet.'}
+                      ? (roomPlacement.relief.staffId
+                          ? `Relief: ${allStaff.find(s => s.id === roomPlacement?.relief?.staffId)?.lastName || 'Assigned'}`
+                          : 'Open Red Box on board • Awaiting coverage')
+                      : 'No 3 PM relief scheduled yet.'}
                   </div>
                 </div>
 
-                {onOpenReliefModal && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClose();
-                      onOpenReliefModal({
-                        type: 'room_slot',
-                        id: roomPlacement.id,
-                        roomName: roomPlacement.roomName || '',
-                        departmentName: roomPlacement.departmentName || '',
-                        currentStaff: staff,
-                        currentRelief: roomPlacement.relief
-                      });
-                    }}
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: 6,
-                      background: roomPlacement.relief ? 'var(--marker-red)' : 'var(--accent-primary)',
-                      color: '#fff',
-                      fontSize: 11,
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      border: 'none',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {roomPlacement.relief ? 'Manage Relief' : 'Set Relief (3 PM / Lates)'}
-                  </button>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  {onToggleRedBox && !roomPlacement.relief && (
+                    <button
+                      type="button"
+                      onClick={() => onToggleRedBox('room_slot', roomPlacement.id, true)}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        background: 'rgba(239, 68, 68, 0.12)',
+                        border: '1.5px dashed var(--marker-red)',
+                        color: 'var(--marker-red)',
+                        fontSize: 11,
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title="Add a dashed red box for this room to mark it for the 3 PM count"
+                    >
+                      🟥 Add Red Box (3 PM)
+                    </button>
+                  )}
+
+                  {onRemoveRelief && roomPlacement.relief && (
+                    <button
+                      type="button"
+                      onClick={() => onRemoveRelief('room_slot', roomPlacement.id)}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        background: 'none',
+                        border: '1px solid var(--border-light)',
+                        color: 'var(--text-muted)',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                      title="Remove relief or red box"
+                    >
+                      {roomPlacement.relief.staffId ? 'Remove Relief' : 'Remove Red Box'}
+                    </button>
+                  )}
+
+                  {onOpenReliefModal && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onOpenReliefModal({
+                          type: 'room_slot',
+                          id: roomPlacement.id,
+                          roomName: roomPlacement.roomName || '',
+                          departmentName: roomPlacement.departmentName || '',
+                          currentStaff: staff,
+                          currentRelief: roomPlacement.relief
+                        });
+                      }}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        background: roomPlacement.relief?.staffId ? 'var(--marker-red)' : 'var(--accent-primary)',
+                        color: '#fff',
+                        fontSize: 11,
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        border: 'none',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {roomPlacement.relief?.staffId ? 'Manage Relief' : 'Set Relief Clinician'}
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -1772,6 +1540,324 @@ export const StaffModal: React.FC<StaffModalProps> = ({
               >
                 Log In with PIN
               </button>
+            )}
+          </div>
+        )}
+
+        {/* ==========================================================================
+            PERFECT CALL INTERNAL CLINICIAN PAGING & MESSAGING (Collapsible Accordion)
+            ========================================================================== */}
+        {messagingEnabled && (
+          <div style={{
+            background: 'var(--surface-card)',
+            borderRadius: 8,
+            border: '1.5px solid rgba(16, 185, 129, 0.35)',
+            marginTop: 14,
+            marginBottom: 8,
+            overflow: 'hidden'
+          }}>
+            {/* Header Accordion Bar */}
+            <div
+              onClick={() => setIsPagingExpanded(prev => !prev)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 14px',
+                cursor: 'pointer',
+                background: isPagingExpanded ? 'rgba(16, 185, 129, 0.05)' : 'transparent',
+                userSelect: 'none',
+                transition: 'background 0.2s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <MessageSquare size={16} style={{ color: '#10b981' }} />
+                <span style={{
+                  fontSize: 12,
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                  color: 'var(--text-primary)'
+                }}>
+                  Perfect Call Clinician Paging
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {recipientProfile ? (
+                  recipientProfile.isOnline ? (
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      padding: '2px 8px',
+                      borderRadius: 12,
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      color: '#059669',
+                      border: '1px solid #10b981',
+                      fontSize: 10,
+                      fontWeight: 800
+                    }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                      ONLINE ON APP
+                    </span>
+                  ) : (
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      padding: '2px 8px',
+                      borderRadius: 12,
+                      background: 'var(--surface-hover)',
+                      color: 'var(--text-muted)',
+                      border: '1px solid var(--border-light)',
+                      fontSize: 10,
+                      fontWeight: 700
+                    }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#94a3b8', display: 'inline-block' }} />
+                      OFFLINE (PUSH DELIVERED)
+                    </span>
+                  )
+                ) : (
+                  <span style={{
+                    padding: '2px 8px',
+                    borderRadius: 12,
+                    background: 'rgba(245, 158, 11, 0.12)',
+                    color: '#d97706',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    fontSize: 10,
+                    fontWeight: 700
+                  }}>
+                    NOT REGISTERED
+                  </span>
+                )}
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>
+                  {isPagingExpanded ? '▲ Hide' : '▼ Expand'}
+                </span>
+              </div>
+            </div>
+
+            {/* Collapsible Content */}
+            {isPagingExpanded && (
+              <div style={{ padding: '0 14px 14px 14px', display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--border-light)' }}>
+                {recipientProfile ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 10 }}>
+                    {/* Feedback notices */}
+                    {quickSendSuccess && (
+                      <div style={{
+                        padding: '6px 10px',
+                        borderRadius: 5,
+                        background: 'rgba(16, 185, 129, 0.12)',
+                        border: '1px solid #10b981',
+                        color: '#047857',
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6
+                      }}>
+                        <Check size={14} />
+                        <span>{quickSendSuccess}</span>
+                      </div>
+                    )}
+
+                    {chatError && (
+                      <div style={{
+                        padding: '6px 10px',
+                        borderRadius: 5,
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid #ef4444',
+                        color: '#dc2626',
+                        fontSize: 11.5,
+                        fontWeight: 700
+                      }}>
+                        {chatError}
+                      </div>
+                    )}
+
+                    {/* Quick Presets Row */}
+                    <div>
+                      <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: 5 }}>
+                        Quick Preset Pages (Tap to instant-send):
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                        {[
+                          'Need a break?',
+                          'Relief coming in 15m',
+                          'Please call OR Board Runner',
+                          'Case delayed / Add-on pending',
+                          'What is your estimated finish time?'
+                        ].map(preset => (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => handleSendMessage(preset)}
+                            disabled={isSendingMessage}
+                            style={{
+                              padding: '4px 8px',
+                              borderRadius: 5,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              background: 'rgba(16, 185, 129, 0.08)',
+                              border: '1px solid rgba(16, 185, 129, 0.25)',
+                              color: '#059669',
+                              cursor: isSendingMessage ? 'not-allowed' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4
+                            }}
+                          >
+                            <Send size={10} />
+                            <span>{preset}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Custom Message Field */}
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <input
+                        type="text"
+                        value={messageInput}
+                        onChange={e => setMessageInput(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }
+                        }}
+                        placeholder={`Message ${staff.displayName || staff.lastName}...`}
+                        disabled={isSendingMessage}
+                        style={{
+                          flex: 1,
+                          padding: '7px 10px',
+                          borderRadius: 6,
+                          border: '1px solid var(--border-light)',
+                          background: 'var(--bg-board)',
+                          color: 'var(--text-primary)',
+                          fontSize: 12,
+                          fontWeight: 600
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleSendMessage()}
+                        disabled={isSendingMessage || !messageInput.trim()}
+                        style={{
+                          padding: '7px 14px',
+                          borderRadius: 6,
+                          background: messageInput.trim() ? '#10b981' : 'var(--surface-hover)',
+                          border: 'none',
+                          color: messageInput.trim() ? '#fff' : 'var(--text-muted)',
+                          fontWeight: 800,
+                          fontSize: 12,
+                          cursor: isSendingMessage || !messageInput.trim() ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 5
+                        }}
+                      >
+                        <Send size={12} />
+                        <span>{isSendingMessage ? 'Sending...' : 'Send'}</span>
+                      </button>
+                    </div>
+
+                    {/* Mini Chat Thread Stream */}
+                    <div style={{
+                      background: 'var(--bg-board)',
+                      border: '1px solid var(--border-light)',
+                      borderRadius: 6,
+                      padding: '8px 10px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 6
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', paddingBottom: 4 }}>
+                        <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                          Recent Conversation Thread ({chatMessages.length})
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => recipientProfile && loadChatMessages(recipientProfile.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--text-muted)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 3,
+                            fontSize: 10,
+                            fontWeight: 700
+                          }}
+                        >
+                          <RefreshCw size={10} className={isLoadingChat ? 'animate-spin' : ''} />
+                          <span>Refresh</span>
+                        </button>
+                      </div>
+
+                      <div
+                        ref={chatScrollRef}
+                        style={{
+                          maxHeight: 140,
+                          overflowY: 'auto',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 6,
+                          paddingRight: 2
+                        }}
+                      >
+                        {chatMessages.length === 0 ? (
+                          <div style={{ textAlign: 'center', padding: '10px 0', fontSize: 11, color: 'var(--text-muted)' }}>
+                            No messages yet. Send a page above to start communication.
+                          </div>
+                        ) : (
+                          chatMessages.map((msg: ChatMessage) => (
+                            <div
+                              key={msg.id}
+                              style={{
+                                alignSelf: msg.is_outgoing ? 'flex-end' : 'flex-start',
+                                maxWidth: '85%',
+                                background: msg.is_outgoing ? 'rgba(16, 185, 129, 0.15)' : 'var(--surface-hover)',
+                                border: `1px solid ${msg.is_outgoing ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-light)'}`,
+                                borderRadius: 6,
+                                padding: '5px 8px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 2
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 9.5, fontWeight: 800, color: msg.is_outgoing ? '#059669' : 'var(--text-secondary)' }}>
+                                <span>{msg.is_outgoing ? 'Board Runner' : (recipientProfile.fullName || staff.lastName)}</span>
+                                <span style={{ fontWeight: 500, color: 'var(--text-muted)' }}>
+                                  {new Date(msg.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              <div style={{ fontSize: 11.5, color: 'var(--text-primary)', wordBreak: 'break-word', fontWeight: 600 }}>
+                                {msg.content}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                        <div ref={chatBottomRef} />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{
+                    background: 'var(--bg-board)',
+                    padding: '10px 12px',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    color: 'var(--text-secondary)',
+                    lineHeight: 1.5,
+                    marginTop: 10
+                  }}>
+                    No Perfect Call account found with phone: <strong>{staff.phone || 'None'}</strong>. 
+                    Clinicians must register in <em>perfectcall.app</em> with their cell phone to receive internal pages directly from this whiteboard.
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}

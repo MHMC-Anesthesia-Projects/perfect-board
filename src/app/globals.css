@@ -3132,6 +3132,28 @@ button {
   }
 }
 
+.relief-slot-target.persistent-red-box {
+  display: flex !important;
+  opacity: 1 !important;
+  border: 1.5px dashed var(--marker-red, #dc2626) !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.25);
+}
+
+[data-theme='dark'] .relief-slot-target.persistent-red-box {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-color: #f87171 !important;
+}
+
+.relief-slot-target.persistent-red-box .relief-slot-label {
+  color: var(--marker-red, #dc2626);
+  font-weight: 900;
+}
+
+[data-theme='dark'] .relief-slot-target.persistent-red-box .relief-slot-label {
+  color: #fca5a5;
+}
+
 .relief-slot-target:hover {
   opacity: 1 !important;
   background: rgba(239, 68, 68, 0.22) !important;

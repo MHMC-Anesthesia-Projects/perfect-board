@@ -26,7 +26,7 @@ interface DepartmentGridProps {
     currentRelief?: ReliefAssignment | null;
   }) => void;
   onExecuteHandoff?: (targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
-  onSetRelief?: (targetType: 'room_slot' | 'runner_slot', targetId: string, reliefStaffId: string, reliefTime?: string, notes?: string) => void;
+  onSetRelief?: (targetType: 'room_slot' | 'runner_slot', targetId: string, reliefStaffId: string, reliefTime?: string, notes?: string, isRedBox?: boolean) => void;
   unreadCountsByPhone?: Record<string, number>;
 }
 
@@ -346,26 +346,28 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                     .filter((slot, idx) => idx === 0 || !!slot.staffId)
                     .map(slot => {
                     const assignedStaff = getStaffById(slot.staffId);
+                    const reliefStaff = getStaffById(slot.relief?.staffId || null);
+                    const hasAssignedRelief = Boolean(slot.relief && reliefStaff);
+                    const isOpenRedBox = Boolean(slot.relief && (!slot.relief.staffId || slot.relief.isRedBox) && !hasAssignedRelief);
 
-                    if (assignedStaff) {
-                      const reliefStaff = getStaffById(slot.relief?.staffId || null);
-                      return (
+                    return (
+                      <div
+                        key={slot.id}
+                        className="room-slot-row"
+                        style={{ flex: 1, display: 'flex', alignItems: 'center', width: '100%', height: '100%', gap: 3, minWidth: 0, position: 'relative' }}
+                      >
+                        {/* Primary Staff Drop Zone */}
                         <div
-                          key={slot.id}
-                          className="room-slot-row"
-                          style={{ flex: 1, display: 'flex', alignItems: 'center', width: '100%', height: '100%', gap: 3, minWidth: 0, position: 'relative' }}
+                          className="primary-slot-zone"
+                          style={{ flex: 1, minWidth: 0, height: '100%' }}
+                          onDragEnter={handleZoneDragEnter}
+                          onDragOver={handleZoneDragOver}
+                          onDragLeave={handleZoneDragLeave}
+                          onDrop={e => {
+                            handleDrop(e, 'room_slot', slot.id, assignedStaff?.id);
+                          }}
                         >
-                          {/* Primary Staff Drop Zone */}
-                          <div
-                            className="primary-slot-zone"
-                            style={{ flex: 1, minWidth: 0, height: '100%' }}
-                            onDragEnter={handleZoneDragEnter}
-                            onDragOver={handleZoneDragOver}
-                            onDragLeave={handleZoneDragLeave}
-                            onDrop={e => {
-                              handleDrop(e, 'room_slot', slot.id, assignedStaff.id);
-                            }}
-                          >
+                          {assignedStaff ? (
                             <MagnetTile
                               staff={assignedStaff}
                               slotId={slot.id}
@@ -379,42 +381,24 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                               onDragStart={handleTileDragStart}
                               onDragEnd={handleTileDragEnd}
                             />
-                          </div>
-
-                          {/* Relief Zone (either assigned relief-box or empty + Relief drop target) */}
-                          {slot.relief && reliefStaff ? (
-                            <>
-                              <span className="relief-arrow" title="Relief assignment">➔</span>
-                              <div
-                                className="relief-box"
-                                onDragEnter={handleZoneDragEnter}
-                                onDragOver={handleZoneDragOver}
-                                onDragLeave={handleZoneDragLeave}
-                                onDrop={(e) => handleReliefDrop(e, 'room_slot', slot.id)}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (justDroppedRef.current) return;
-                                  if (onOpenReliefModal) {
-                                    onOpenReliefModal({
-                                      type: 'room_slot',
-                                      id: slot.id,
-                                      roomName: `Room ${room.name}`,
-                                      departmentName: dept.name,
-                                      currentStaff: assignedStaff,
-                                      currentRelief: slot.relief
-                                    });
-                                  }
-                                }}
-                                title={`Relief: ${reliefStaff.lastName} (${reliefStaff.credentials}). Tap to edit/handoff or drop staff here to change relief.`}
-                              >
-                                <div className="relief-identity">
-                                  <span className="relief-name">{reliefStaff.lastName.toUpperCase()}</span>
-                                </div>
-                              </div>
-                            </>
-                          ) : isEditor ? (
+                          ) : (
                             <div
-                              className="relief-slot-target"
+                              className="room-slot-target empty"
+                              style={{ width: '100%', height: '100%' }}
+                              onClick={() => {
+                                onSelectEmptySlot('room_slot', slot.id, `${dept.name} Room ${room.name}`, room.id, room.futureTime);
+                              }}
+                              title={`Click or drop staff to assign to Room ${room.name}`}
+                            />
+                          )}
+                        </div>
+
+                        {/* Relief Zone (assigned relief-box, open 3 PM red box, or hoverable + Relief) */}
+                        {hasAssignedRelief && reliefStaff ? (
+                          <>
+                            <span className="relief-arrow" title="Relief assignment">➔</span>
+                            <div
+                              className="relief-box"
                               onDragEnter={handleZoneDragEnter}
                               onDragOver={handleZoneDragOver}
                               onDragLeave={handleZoneDragLeave}
@@ -428,34 +412,70 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                                     id: slot.id,
                                     roomName: `Room ${room.name}`,
                                     departmentName: dept.name,
-                                    currentStaff: assignedStaff,
-                                    currentRelief: null
+                                    currentStaff: assignedStaff || null,
+                                    currentRelief: slot.relief
                                   });
                                 }
                               }}
-                              title="Drop staff here to designate as relief, or click to choose"
+                              title={`Relief: ${reliefStaff.lastName} (${reliefStaff.credentials}). Tap to edit/handoff or drop staff here to change relief.`}
                             >
-                              <span className="relief-slot-label">+ Relief</span>
+                              <div className="relief-identity">
+                                <span className="relief-name">{reliefStaff.lastName.toUpperCase()}</span>
+                              </div>
                             </div>
-                          ) : null}
-                        </div>
-                      );
-                    }
-
-                    // Empty slot
-                    return (
-                      <div
-                        key={slot.id}
-                        className="room-slot-target empty"
-                        onDragEnter={handleZoneDragEnter}
-                        onDragOver={handleZoneDragOver}
-                        onDragLeave={handleZoneDragLeave}
-                        onDrop={e => handleDrop(e, 'room_slot', slot.id)}
-                        onClick={() => {
-                          onSelectEmptySlot('room_slot', slot.id, `${dept.name} Room ${room.name}`, room.id, room.futureTime);
-                        }}
-                        title={`Click or drop staff to assign to Room ${room.name}`}
-                      />
+                          </>
+                        ) : isOpenRedBox ? (
+                          <div
+                            className="relief-slot-target persistent-red-box"
+                            onDragEnter={handleZoneDragEnter}
+                            onDragOver={handleZoneDragOver}
+                            onDragLeave={handleZoneDragLeave}
+                            onDrop={(e) => handleReliefDrop(e, 'room_slot', slot.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (justDroppedRef.current) return;
+                              if (onOpenReliefModal) {
+                                onOpenReliefModal({
+                                  type: 'room_slot',
+                                  id: slot.id,
+                                  roomName: `Room ${room.name}`,
+                                  departmentName: dept.name,
+                                  currentStaff: assignedStaff || null,
+                                  currentRelief: slot.relief
+                                });
+                              }
+                            }}
+                            title="3 PM Count: Red Box active. Tap to assign relief staff or drop staff here."
+                          >
+                            <span className="relief-slot-label">+ Relief (3 PM)</span>
+                          </div>
+                        ) : isEditor ? (
+                          <div
+                            className="relief-slot-target"
+                            onDragEnter={handleZoneDragEnter}
+                            onDragOver={handleZoneDragOver}
+                            onDragLeave={handleZoneDragLeave}
+                            onDrop={(e) => handleReliefDrop(e, 'room_slot', slot.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (justDroppedRef.current) return;
+                              if (onOpenReliefModal) {
+                                onOpenReliefModal({
+                                  type: 'room_slot',
+                                  id: slot.id,
+                                  roomName: `Room ${room.name}`,
+                                  departmentName: dept.name,
+                                  currentStaff: assignedStaff || null,
+                                  currentRelief: null
+                                });
+                              }
+                            }}
+                            title="Drop staff here to designate as relief, or click to choose"
+                          >
+                            <span className="relief-slot-label">+ Relief</span>
+                          </div>
+                        ) : null}
+                      </div>
                     );
                   })}
                 </div>

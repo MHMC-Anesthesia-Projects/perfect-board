@@ -4,7 +4,7 @@ import { apiUrl } from '@/lib/api';
 import { getBrowserSupabase, getPublicBrowserSupabase } from '@/lib/supabase';
 import { getHoustonDateString } from '@/lib/dateUtils';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { BoardState, Staff, Department, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential, ReliefAssignment, AuditLogEntry } from '@/types/whiteboard';
+import { BoardState, Staff, Department, RoomSlot, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential, ReliefAssignment, AuditLogEntry } from '@/types/whiteboard';
 import { HeaderNav } from '@/components/HeaderNav';
 import { DepartmentGrid } from '@/components/DepartmentGrid';
 import { RightSidebar } from '@/components/RightSidebar';
@@ -15,6 +15,7 @@ import { PinPadModal } from '@/components/PinPadModal';
 import { StaffModal } from '@/components/StaffModal';
 import { SlotAssignModal } from '@/components/SlotAssignModal';
 import { ReliefModal } from '@/components/ReliefModal';
+import { ReliefConflictModal } from '@/components/ReliefConflictModal';
 import { ReliefTextModal } from '@/components/ReliefTextModal';
 import { VoiceNoteModal } from '@/components/VoiceNoteModal';
 import { VirtualKeyboard } from '@/components/VirtualKeyboard';
@@ -77,6 +78,18 @@ export default function WhiteboardPage() {
     label: string;
     roomId?: string;
     currentFutureTime?: string | null;
+    currentRelief?: ReliefAssignment | null;
+  } | null>(null);
+  const [pendingReliefMovePrompt, setPendingReliefMovePrompt] = useState<{
+    fromData: { staffId: string; type: string; id?: string };
+    toType: 'room_slot' | 'runner_slot' | 'runner_dept' | 'bullpen' | 'unassigned';
+    toId?: string;
+    targetGroup?: 'MD' | 'CRNA' | 'Infrequent';
+    staffName: string;
+    sourceRoomName: string;
+    reliefStaffName: string;
+    reliefTime?: string;
+    isRedBox?: boolean;
   } | null>(null);
   const [reliefTarget, setReliefTarget] = useState<{
     type: 'room_slot' | 'runner_slot';
@@ -760,11 +773,55 @@ export default function WhiteboardPage() {
     }
   };
 
+  // Find current relief assignment for any slot
+  const findSlotRelief = (targetId: string, targetType: 'room_slot' | 'runner_slot' = 'room_slot'): ReliefAssignment | null => {
+    if (!boardState) return null;
+    if (targetType === 'runner_slot') {
+      for (const d of boardState.departments) {
+        const r = d.runnerSlots?.find(s => s.id === targetId);
+        if (r && r.relief) return r.relief;
+      }
+    } else {
+      for (const d of boardState.departments) {
+        for (const rm of d.rooms) {
+          const s = rm.slots.find(slot => slot.id === targetId);
+          if (s && s.relief) return s.relief;
+        }
+      }
+    }
+    return null;
+  };
+
+  // Find if a staff member currently occupies a room slot that has relief / 3 PM count attached
+  const findStaffRoomWithRelief = (
+    staffId: string,
+    fromSlotId?: string
+  ): { slot: RoomSlot; roomName: string; departmentName: string } | null => {
+    if (!boardState || !staffId) return null;
+    for (const dept of boardState.departments) {
+      for (const rm of dept.rooms) {
+        for (const slot of rm.slots) {
+          const isSlotMatch = fromSlotId ? slot.id === fromSlotId : slot.staffId === staffId;
+          if (isSlotMatch && slot.relief) {
+            return {
+              slot,
+              roomName: `Room ${rm.name}`,
+              departmentName: dept.name
+            };
+          }
+        }
+      }
+    }
+    return null;
+  };
+
   // 3. Move staff via drag & drop
-  const handleDropStaff = async (
+  const executeDropStaff = async (
     fromData: { staffId: string; type: string; id?: string },
-    toType: 'room_slot' | 'runner_slot' | 'runner_dept',
-    toId: string
+    toType: 'room_slot' | 'runner_slot' | 'runner_dept' | 'bullpen' | 'unassigned',
+    toId?: string,
+    reliefHandling: 'keep_in_room' | 'move_with_staff' | 'remove' = 'keep_in_room',
+    targetGroup?: 'MD' | 'CRNA' | 'Infrequent'
   ) => {
     if (!isEditor) {
       setIsLoginModalOpen(true);
@@ -779,7 +836,7 @@ export default function WhiteboardPage() {
 
     let destName = 'Slot';
     let previousOccupantId: string | null = null;
-    if (toType === 'room_slot') {
+    if (toType === 'room_slot' && toId) {
       for (const dept of boardState?.departments || []) {
         for (const rm of dept.rooms || []) {
           const s = rm.slots.find(slot => slot.id === toId);
@@ -790,7 +847,7 @@ export default function WhiteboardPage() {
           }
         }
       }
-    } else if (toType === 'runner_slot') {
+    } else if (toType === 'runner_slot' && toId) {
       for (const dept of boardState?.departments || []) {
         const r = dept.runnerSlots?.find(s => s.id === toId);
         if (r) {
@@ -798,9 +855,13 @@ export default function WhiteboardPage() {
           break;
         }
       }
-    } else if (toType === 'runner_dept') {
+    } else if (toType === 'runner_dept' && toId) {
       const dept = boardState?.departments.find(d => d.id === toId);
       destName = `${dept?.name || ''} Runner`;
+    } else if (toType === 'bullpen') {
+      destName = 'Bullpen';
+    } else if (toType === 'unassigned') {
+      destName = targetGroup ? `${targetGroup} Holding Bin` : 'Unassigned';
     }
 
     try {
@@ -814,7 +875,9 @@ export default function WhiteboardPage() {
             fromId: fromData.id,
             toTargetType: toType,
             toId: toId,
-            staffId: fromData.staffId
+            staffId: fromData.staffId,
+            reliefHandling,
+            targetGroup
           },
           user: currentUser
         })
@@ -845,7 +908,7 @@ export default function WhiteboardPage() {
             const d = await undoRes.json();
             if (d.state) {
               setBoardState(d.state);
-              if (previousOccupantId && toType === 'room_slot') {
+              if (previousOccupantId && toType === 'room_slot' && toId) {
                 const res2 = await fetch(apiUrl('/api/board'), {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -861,7 +924,7 @@ export default function WhiteboardPage() {
             }
           },
           (currentState: BoardState) => {
-            if (toType === 'room_slot') {
+            if (toType === 'room_slot' && toId) {
               let stillThere = false;
               for (const d of currentState.departments) {
                 for (const rm of d.rooms) {
@@ -880,13 +943,51 @@ export default function WhiteboardPage() {
     }
   };
 
+  const handleDropStaff = async (
+    fromData: { staffId: string; type: string; id?: string },
+    toType: 'room_slot' | 'runner_slot' | 'runner_dept',
+    toId: string
+  ) => {
+    if (!isEditor) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    // Check if moving from a room_slot that has relief attached
+    const reliefRoom = findStaffRoomWithRelief(fromData.staffId, fromData.id);
+    if (reliefRoom && reliefRoom.slot.id !== toId) {
+      const staff = boardState?.staff.find(s => s.id === fromData.staffId);
+      const staffName = staff ? (staff.displayName || `${staff.firstName} ${staff.lastName}`).trim() : 'Staff';
+      let reliefStaffName = 'Open 3 PM Count (Red Box)';
+      if (reliefRoom.slot.relief?.staffId) {
+        const rStaff = boardState?.staff.find(s => s.id === reliefRoom.slot.relief!.staffId);
+        if (rStaff) reliefStaffName = `${rStaff.firstName} ${rStaff.lastName}`;
+      }
+
+      setPendingReliefMovePrompt({
+        fromData: { ...fromData, type: 'room_slot', id: reliefRoom.slot.id },
+        toType,
+        toId,
+        staffName,
+        sourceRoomName: `${reliefRoom.departmentName} ${reliefRoom.roomName}`,
+        reliefStaffName,
+        reliefTime: reliefRoom.slot.relief?.time,
+        isRedBox: Boolean(reliefRoom.slot.relief?.isRedBox || !reliefRoom.slot.relief?.staffId)
+      });
+      return;
+    }
+
+    await executeDropStaff(fromData, toType, toId, 'keep_in_room');
+  };
+
   // Relief Actions
   const handleSetRelief = async (
     targetType: 'room_slot' | 'runner_slot',
     targetId: string,
     reliefStaffId: string,
     reliefTime?: string,
-    notes?: string
+    notes?: string,
+    isRedBox?: boolean
   ) => {
     if (!isEditor) {
       setIsLoginModalOpen(true);
@@ -914,6 +1015,7 @@ export default function WhiteboardPage() {
               previousRelief = slot.relief || null;
               const st = boardState.staff.find(s => s.id === slot.staffId);
               if (st) targetStaffName = st.lastName;
+              else targetStaffName = rm.name ? `Room ${rm.name}` : 'Room';
               break;
             }
           }
@@ -927,7 +1029,7 @@ export default function WhiteboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'SET_RELIEF',
-          payload: { targetType, targetId, reliefStaffId, reliefTime: reliefTime || '', notes },
+          payload: { targetType, targetId, reliefStaffId, reliefTime: reliefTime || '', notes, isRedBox },
           user: currentUser
         })
       });
@@ -935,15 +1037,23 @@ export default function WhiteboardPage() {
       if (data.state) {
         setBoardState(data.state);
         const assignedStaff = data.state.staff?.find((s: Staff) => s.id === reliefStaffId);
-        setToastMessage(assignedStaff ? `Relief assigned: ${assignedStaff.lastName}` : 'Relief assigned');
+        if (assignedStaff) {
+          setToastMessage(`Relief assigned: ${assignedStaff.lastName}`);
+        } else if (isRedBox) {
+          setToastMessage('3 PM Count: Red Box activated');
+        } else {
+          setToastMessage('Relief assigned');
+        }
         setTimeout(() => setToastMessage(null), 3000);
 
         const savedPrevRelief = previousRelief;
         pushUndoAction(
-          assignedStaff ? `Assigned relief ${assignedStaff.lastName} to ${targetStaffName}` : `Relief assigned for ${targetStaffName}`,
+          assignedStaff
+            ? `Assigned relief ${assignedStaff.lastName} to ${targetStaffName}`
+            : (isRedBox ? `Designated 3 PM Red Box for ${targetStaffName}` : `Relief assigned for ${targetStaffName}`),
           async () => {
             if (savedPrevRelief) {
-              await handleSetRelief(targetType, targetId, savedPrevRelief.staffId, savedPrevRelief.time, savedPrevRelief.notes);
+              await handleSetRelief(targetType, targetId, savedPrevRelief.staffId || '', savedPrevRelief.time, savedPrevRelief.notes, savedPrevRelief.isRedBox);
             } else {
               await handleRemoveRelief(targetType, targetId);
             }
@@ -952,6 +1062,18 @@ export default function WhiteboardPage() {
       }
     } catch (err) {
       console.error('Error setting relief:', err);
+    }
+  };
+
+  const handleToggleRedBox = async (
+    targetType: 'room_slot' | 'runner_slot',
+    targetId: string,
+    enable: boolean
+  ) => {
+    if (enable) {
+      await handleSetRelief(targetType, targetId, '', '3:00 PM', '', true);
+    } else {
+      await handleRemoveRelief(targetType, targetId);
     }
   };
 
@@ -985,6 +1107,7 @@ export default function WhiteboardPage() {
               previousRelief = slot.relief || null;
               const st = boardState.staff.find(s => s.id === slot.staffId);
               if (st) targetStaffName = st.lastName;
+              else targetStaffName = rm.name ? `Room ${rm.name}` : 'Room';
               break;
             }
           }
@@ -1013,7 +1136,7 @@ export default function WhiteboardPage() {
           pushUndoAction(
             `Removed relief for ${targetStaffName}`,
             async () => {
-              await handleSetRelief(targetType, targetId, savedRelief.staffId, savedRelief.time, savedRelief.notes);
+              await handleSetRelief(targetType, targetId, savedRelief.staffId || '', savedRelief.time, savedRelief.notes, savedRelief.isRedBox);
             }
           );
         }
@@ -1460,6 +1583,28 @@ export default function WhiteboardPage() {
       return;
     }
 
+    const reliefRoom = findStaffRoomWithRelief(fromData.staffId, fromData.id);
+    if (reliefRoom) {
+      const staff = boardState?.staff.find(s => s.id === fromData.staffId);
+      const staffName = staff ? (staff.displayName || `${staff.firstName} ${staff.lastName}`).trim() : 'Staff';
+      let reliefStaffName = 'Open 3 PM Count (Red Box)';
+      if (reliefRoom.slot.relief?.staffId) {
+        const rStaff = boardState?.staff.find(s => s.id === reliefRoom.slot.relief!.staffId);
+        if (rStaff) reliefStaffName = `${rStaff.firstName} ${rStaff.lastName}`;
+      }
+
+      setPendingReliefMovePrompt({
+        fromData: { ...fromData, type: 'room_slot', id: reliefRoom.slot.id },
+        toType: 'bullpen',
+        staffName,
+        sourceRoomName: `${reliefRoom.departmentName} ${reliefRoom.roomName}`,
+        reliefStaffName,
+        reliefTime: reliefRoom.slot.relief?.time,
+        isRedBox: Boolean(reliefRoom.slot.relief?.isRedBox || !reliefRoom.slot.relief?.staffId)
+      });
+      return;
+    }
+
     const staff = boardState?.staff.find(s => s.id === fromData.staffId);
     const staffName = staff ? (staff.displayName || `${staff.firstName} ${staff.lastName}`).trim() : 'Staff';
     const prevType = fromData.type;
@@ -1610,6 +1755,30 @@ export default function WhiteboardPage() {
   const handleDropToUnassignedDrawer = (fromData: { staffId: string; type: string; id?: string; targetGroup?: 'MD' | 'CRNA' | 'Infrequent' }) => {
     if (!isEditor) {
       setIsLoginModalOpen(true);
+      return;
+    }
+
+    // Check if moving from a room with relief
+    const reliefRoom = findStaffRoomWithRelief(fromData.staffId, fromData.id);
+    if (reliefRoom) {
+      const staff = boardState?.staff.find(s => s.id === fromData.staffId);
+      const staffName = staff ? (staff.displayName || `${staff.firstName} ${staff.lastName}`).trim() : 'Staff';
+      let reliefStaffName = 'Open 3 PM Count (Red Box)';
+      if (reliefRoom.slot.relief?.staffId) {
+        const rStaff = boardState?.staff.find(s => s.id === reliefRoom.slot.relief!.staffId);
+        if (rStaff) reliefStaffName = `${rStaff.firstName} ${rStaff.lastName}`;
+      }
+
+      setPendingReliefMovePrompt({
+        fromData: { ...fromData, type: 'room_slot', id: reliefRoom.slot.id },
+        toType: 'unassigned',
+        targetGroup: fromData.targetGroup,
+        staffName,
+        sourceRoomName: `${reliefRoom.departmentName} ${reliefRoom.roomName}`,
+        reliefStaffName,
+        reliefTime: reliefRoom.slot.relief?.time,
+        isRedBox: Boolean(reliefRoom.slot.relief?.isRedBox || !reliefRoom.slot.relief?.staffId)
+      });
       return;
     }
 
@@ -2053,7 +2222,7 @@ export default function WhiteboardPage() {
               setIsLoginModalOpen(true);
               return;
             }
-            setSlotAssignTarget({ type, id, label, roomId, currentFutureTime });
+            setSlotAssignTarget({ type, id, label, roomId, currentFutureTime, currentRelief: findSlotRelief(id, type) });
           }}
           onSetRoomFutureTime={handleSetRoomFutureTime}
           onToggleDepartureStruck={handleToggleDepartureStruck}
@@ -2164,7 +2333,7 @@ export default function WhiteboardPage() {
               setIsLoginModalOpen(true);
               return;
             }
-            setSlotAssignTarget({ type, id, label, roomId, currentFutureTime });
+            setSlotAssignTarget({ type, id, label, roomId, currentFutureTime, currentRelief: findSlotRelief(id, type) });
           }}
           onSetRoomFutureTime={handleSetRoomFutureTime}
           onDropStaff={handleDropStaff}
@@ -2266,11 +2435,17 @@ export default function WhiteboardPage() {
         onOpenReliefModal={target => setReliefTarget(target)}
         onSetRoomFutureTime={handleSetRoomFutureTime}
         onChatRead={handleChatRead}
+        onToggleRedBox={handleToggleRedBox}
+        onRemoveRelief={handleRemoveRelief}
+        unreadCount={selectedStaff?.phone ? (unreadCountsByPhone[selectedStaff.phone.replace(/\D/g, '').slice(-10)] || 0) : 0}
       />
 
       <SlotAssignModal
         isOpen={!!slotAssignTarget}
-        targetSlot={slotAssignTarget}
+        targetSlot={slotAssignTarget ? {
+          ...slotAssignTarget,
+          currentRelief: findSlotRelief(slotAssignTarget.id, slotAssignTarget.type)
+        } : null}
         staff={boardState.staff}
         assignedStaffIds={assignedStaffIds}
         currentUserRole={currentUserRole}
@@ -2278,7 +2453,34 @@ export default function WhiteboardPage() {
         onAssign={handleAssignStaff}
         onOpenLogin={() => setIsLoginModalOpen(true)}
         onSetFutureTime={handleSetRoomFutureTime}
+        onToggleRedBox={handleToggleRedBox}
+        onOpenReliefModal={target => {
+          if (currentUserRole === 'view_only') {
+            setIsLoginModalOpen(true);
+            return;
+          }
+          setReliefTarget(target);
+        }}
       />
+
+      {/* Smart Relief Movement Resolution Dialog */}
+      {pendingReliefMovePrompt && (
+        <ReliefConflictModal
+          isOpen={!!pendingReliefMovePrompt}
+          onClose={() => setPendingReliefMovePrompt(null)}
+          staffName={pendingReliefMovePrompt.staffName}
+          sourceRoomName={pendingReliefMovePrompt.sourceRoomName}
+          reliefStaffName={pendingReliefMovePrompt.reliefStaffName}
+          reliefTime={pendingReliefMovePrompt.reliefTime}
+          isRedBox={pendingReliefMovePrompt.isRedBox}
+          canMoveReliefWithStaff={pendingReliefMovePrompt.toType === 'room_slot' || pendingReliefMovePrompt.toType === 'runner_slot'}
+          onResolve={action => {
+            const prompt = pendingReliefMovePrompt;
+            setPendingReliefMovePrompt(null);
+            executeDropStaff(prompt.fromData, prompt.toType, prompt.toId, action, prompt.targetGroup);
+          }}
+        />
+      )}
 
       <ReliefModal
         isOpen={!!reliefTarget}

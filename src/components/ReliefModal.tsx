@@ -17,7 +17,7 @@ interface ReliefModalProps {
   } | null;
   staff: Staff[];
   currentUserRole: UserRole;
-  onSetRelief: (targetType: 'room_slot' | 'runner_slot', targetId: string, reliefStaffId: string, reliefTime?: string, notes?: string) => void;
+  onSetRelief: (targetType: 'room_slot' | 'runner_slot', targetId: string, reliefStaffId: string, reliefTime?: string, notes?: string, isRedBox?: boolean) => void;
   onRemoveRelief: (targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
   onExecuteHandoff: (targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
 }
@@ -39,7 +39,7 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
   // Sync state when modal opens
   React.useEffect(() => {
     if (target?.currentRelief) {
-      setSelectedStaffId(target.currentRelief.staffId);
+      setSelectedStaffId(target.currentRelief.staffId || '');
       setNotes(target.currentRelief.notes || '');
     } else {
       setSelectedStaffId('');
@@ -92,13 +92,18 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
 
   if (!isOpen || !target) return null;
 
-  const currentReliefStaff = target.currentRelief
+  const currentReliefStaff = target.currentRelief?.staffId
     ? staff.find(s => s.id === target.currentRelief?.staffId)
     : null;
 
   const handleSave = () => {
     if (!selectedStaffId) return;
     onSetRelief(target.type, target.id, selectedStaffId, '', notes.trim());
+    onClose();
+  };
+
+  const handleMarkOpenRedBox = () => {
+    onSetRelief(target.type, target.id, '', '3:00 PM', notes.trim(), true);
     onClose();
   };
 
@@ -583,6 +588,29 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
               </button>
             )}
 
+            {!selectedStaffId && (
+              <button
+                type="button"
+                onClick={handleMarkOpenRedBox}
+                style={{
+                  padding: '7px 14px',
+                  borderRadius: 6,
+                  border: '1.5px dashed var(--marker-red, #dc2626)',
+                  background: 'rgba(239, 68, 68, 0.12)',
+                  color: 'var(--marker-red, #dc2626)',
+                  fontSize: 12.5,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5
+                }}
+                title="Mark this room for 3 PM Count with a dashed red box awaiting coverage"
+              >
+                <span>🟥 Open 3 PM Count</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={handleSave}
@@ -602,7 +630,7 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
                 boxShadow: selectedStaffId ? '0 2px 6px rgba(220, 38, 38, 0.3)' : 'none'
               }}
             >
-              <span>Set Relief</span>
+              <span>Assign Clinician</span>
             </button>
           </div>
         </div>

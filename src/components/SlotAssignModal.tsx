@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Staff, UserRole } from '@/types/whiteboard';
 import { Search, X, UserCheck, ShieldAlert, LogIn, Clock, Check } from 'lucide-react';
+import { ReliefAssignment } from '@/types/whiteboard';
 
 interface SlotAssignModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface SlotAssignModalProps {
     label: string;
     roomId?: string;
     currentFutureTime?: string | null;
+    currentRelief?: ReliefAssignment | null;
   } | null;
   staff: Staff[];
   assignedStaffIds: Set<string>;
@@ -20,6 +22,15 @@ interface SlotAssignModalProps {
   onAssign: (targetType: 'room_slot' | 'runner_slot', targetId: string, staffId: string) => void;
   onOpenLogin: () => void;
   onSetFutureTime?: (roomId: string, time: string | null) => void;
+  onToggleRedBox?: (targetType: 'room_slot' | 'runner_slot', targetId: string, enable: boolean) => void;
+  onOpenReliefModal?: (target: {
+    type: 'room_slot' | 'runner_slot';
+    id: string;
+    roomName: string;
+    departmentName: string;
+    currentStaff: Staff | null;
+    currentRelief?: ReliefAssignment | null;
+  }) => void;
 }
 
 export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
@@ -31,7 +42,9 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
   onClose,
   onAssign,
   onOpenLogin,
-  onSetFutureTime
+  onSetFutureTime,
+  onToggleRedBox,
+  onOpenReliefModal
 }) => {
   const [search, setSearch] = useState('');
   const [futureTimeInput, setFutureTimeInput] = useState('');
@@ -201,6 +214,115 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
           </div>
         ) : (
           <>
+            {/* 3 PM Count (Red Box) Section for Empty Room */}
+            {targetSlot.type === 'room_slot' && onToggleRedBox && (
+              <div
+                style={{
+                  background: targetSlot.currentRelief
+                    ? (targetSlot.currentRelief.staffId ? 'rgba(239, 68, 68, 0.08)' : 'rgba(239, 68, 68, 0.14)')
+                    : 'var(--surface-hover)',
+                  border: targetSlot.currentRelief
+                    ? (targetSlot.currentRelief.staffId ? '1.5px solid var(--marker-red)' : '1.5px dashed var(--marker-red)')
+                    : '1px solid var(--border-light)',
+                  borderRadius: 8,
+                  padding: '10px 12px',
+                  marginBottom: 14,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 8,
+                  flexWrap: 'wrap'
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: 'var(--marker-red)', textTransform: 'uppercase' }}>
+                    <Clock size={13} />
+                    <span>
+                      {targetSlot.currentRelief
+                        ? (targetSlot.currentRelief.staffId ? '3 PM Relief Assigned' : '3 PM Count (Red Box Active)')
+                        : '3 PM Count Relief Planning'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, marginTop: 2, color: 'var(--text-primary)' }}>
+                    {targetSlot.currentRelief
+                      ? (targetSlot.currentRelief.staffId
+                          ? `Relief: ${staff.find(s => s.id === targetSlot.currentRelief?.staffId)?.lastName || 'Assigned'}`
+                          : 'Open Red Box on board • Needs coverage')
+                      : 'Mark this room as in the 3 PM count (adds dashed red box)'}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {targetSlot.currentRelief ? (
+                    <button
+                      type="button"
+                      onClick={() => onToggleRedBox('room_slot', targetSlot.id, false)}
+                      style={{
+                        padding: '5px 10px',
+                        borderRadius: 6,
+                        background: 'none',
+                        border: '1px solid var(--border-light)',
+                        color: 'var(--text-muted)',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Remove Red Box
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onToggleRedBox('room_slot', targetSlot.id, true)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        background: 'rgba(239, 68, 68, 0.12)',
+                        border: '1.5px dashed var(--marker-red)',
+                        color: 'var(--marker-red)',
+                        fontSize: 11,
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}
+                    >
+                      <span>🟥 Mark 3 PM Count</span>
+                    </button>
+                  )}
+                  {onOpenReliefModal && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onOpenReliefModal({
+                          type: 'room_slot',
+                          id: targetSlot.id,
+                          roomName: targetSlot.label,
+                          departmentName: '',
+                          currentStaff: null,
+                          currentRelief: targetSlot.currentRelief
+                        });
+                      }}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        background: 'var(--accent-primary)',
+                        color: '#fff',
+                        fontSize: 11,
+                        fontWeight: 800,
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {targetSlot.currentRelief?.staffId ? 'Change Relief' : 'Assign Relief Staff'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Future Case Time Section (Option A: Estimated start time in red box) */}
             {targetSlot.type === 'room_slot' && targetSlot.roomId && onSetFutureTime && (
               <div

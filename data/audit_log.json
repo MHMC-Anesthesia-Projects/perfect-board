@@ -1,5 +1,451 @@
 [
   {
+    "id": "audit_1791325399203_2cmc8",
+    "timestamp": "2026-10-06T22:23:19.203Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Tom Carvajal",
+    "locationName": "9th Floor Room EP1",
+    "details": "Moved from 9th Floor Room EP2 -> 9th Floor Room EP1",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_9th_floor_room_EP2_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_9th_floor_room_EP1_slot_0",
+      "staffId": "staff_oneusap_doc_carvajaltom",
+      "fromLocation": "9th Floor Room EP2",
+      "toLocation": "9th Floor Room EP1"
+    }
+  },
+  {
+    "id": "audit_1791325376650_qwn3b",
+    "timestamp": "2026-10-06T22:22:56.651Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Tom Carvajal",
+    "locationName": "9th Floor Room EP2",
+    "details": "Moved from 9th Floor Room EP1 -> 9th Floor Room EP2",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_9th_floor_room_EP1_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_9th_floor_room_EP2_slot_0",
+      "staffId": "staff_oneusap_doc_carvajaltom",
+      "fromLocation": "9th Floor Room EP1",
+      "toLocation": "9th Floor Room EP2"
+    }
+  },
+  {
+    "id": "audit_1791325368213_3nlyb",
+    "timestamp": "2026-10-06T22:22:48.213Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Tom Carvajal",
+    "locationName": "9th Floor Room EP1",
+    "details": "Moved from 9th Floor Room EP2 -> 9th Floor Room EP1",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_9th_floor_room_EP2_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_9th_floor_room_EP1_slot_0",
+      "staffId": "staff_oneusap_doc_carvajaltom",
+      "fromLocation": "9th Floor Room EP2",
+      "toLocation": "9th Floor Room EP1"
+    }
+  },
+  {
+    "id": "audit_1791325351177_ovy3d",
+    "timestamp": "2026-10-06T22:22:31.177Z",
+    "actionType": "ROOM_FUTURE_TIME_SET",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "MAIN OR Room 8",
+    "details": "Set estimated future case time to 1600 in MAIN OR Room 8",
+    "metadata": {
+      "roomId": "dept_main_or_room_8",
+      "futureTime": "1600",
+      "previousTime": null
+    }
+  },
+  {
+    "id": "audit_1791324972064_39br9",
+    "timestamp": "2026-10-06T22:16:12.064Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Dwarakanath (MD)",
+    "locationName": "9th Floor Room EP2",
+    "details": "Assigned relief: Dwarakanath (MD) relieving Carvajal (MD) in 9th Floor Room EP2"
+  },
+  {
+    "id": "audit_1791324903977_3h3ek",
+    "timestamp": "2026-10-06T22:15:03.977Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "MAIN OR Room 8",
+    "details": "Marked MAIN OR Room 8 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791324889642_sadyf",
+    "timestamp": "2026-10-06T22:14:49.642Z",
+    "actionType": "ROOM_FUTURE_TIME_CLEARED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "9th Floor Room EP2",
+    "details": "Cleared estimated future case time in 9th Floor Room EP2",
+    "metadata": {
+      "roomId": "dept_9th_floor_room_EP2",
+      "futureTime": null,
+      "previousTime": "1100"
+    }
+  },
+  {
+    "id": "audit_1791324884215_9fzrf",
+    "timestamp": "2026-10-06T22:14:44.216Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Relief Assignment",
+    "locationName": "9th Floor Room EP2",
+    "details": "Removed relief assignment for 9th Floor Room EP2"
+  },
+  {
+    "id": "audit_1791324871767_m69hr",
+    "timestamp": "2026-10-06T22:14:31.767Z",
+    "actionType": "ROOM_FUTURE_TIME_SET",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "9th Floor Room EP2",
+    "details": "Set estimated future case time to 1100 in 9th Floor Room EP2",
+    "metadata": {
+      "roomId": "dept_9th_floor_room_EP2",
+      "futureTime": "1100"
+    }
+  },
+  {
+    "id": "audit_1791324811131_ljv8c",
+    "timestamp": "2026-10-06T22:13:31.131Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Kev Chen",
+    "locationName": "9th Floor Room CCL2",
+    "details": "Moved from 9th Floor Room CCL1 -> 9th Floor Room CCL2",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_9th_floor_room_CCL1_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_9th_floor_room_CCL2_slot_0",
+      "staffId": "staff_oneusap_doc_chenkev",
+      "fromLocation": "9th Floor Room CCL1",
+      "toLocation": "9th Floor Room CCL2"
+    }
+  },
+  {
+    "id": "audit_1791324769680_kf69f",
+    "timestamp": "2026-10-06T22:12:49.680Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "9th Floor Room EP2",
+    "details": "Marked 9th Floor Room EP2 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791324731227_5kwob",
+    "timestamp": "2026-10-06T22:12:11.227Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ahmmed (CRNA)",
+    "locationName": "MAIN OR Room 11",
+    "details": "Assigned relief: Ahmmed (CRNA) relieving Li (CRNA) in MAIN OR Room 11"
+  },
+  {
+    "id": "audit_1791324718828_b4ift",
+    "timestamp": "2026-10-06T22:11:58.828Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "MAIN OR Room 9",
+    "details": "Marked MAIN OR Room 9 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791324709888_cp086",
+    "timestamp": "2026-10-06T22:11:49.888Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Relief Assignment",
+    "locationName": "MAIN OR Room 9",
+    "details": "Removed relief assignment for MAIN OR Room 9"
+  },
+  {
+    "id": "audit_1791324698113_t6saa",
+    "timestamp": "2026-10-06T22:11:38.113Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "MAIN OR Room 11",
+    "details": "Marked MAIN OR Room 11 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791324639260_b98o4",
+    "timestamp": "2026-10-06T22:10:39.260Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "MAIN OR Room 1",
+    "details": "Removed relief assignment for MAIN OR Room 1"
+  },
+  {
+    "id": "audit_1791324638952_0ssky",
+    "timestamp": "2026-10-06T22:10:38.952Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Kyl Gashler",
+    "locationName": "MAIN OR Room 1",
+    "details": "Moved from MAIN OR Room 3 -> MAIN OR Room 1",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_main_or_room_3_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_main_or_room_1_slot_0",
+      "staffId": "staff_oneusap_doc_gashlerkyl",
+      "fromLocation": "MAIN OR Room 3",
+      "toLocation": "MAIN OR Room 1"
+    }
+  },
+  {
+    "id": "audit_1791324634617_ptxfp",
+    "timestamp": "2026-10-06T22:10:34.617Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Kyl Gashler",
+    "locationName": "MAIN OR Room 3",
+    "details": "Moved from MAIN OR Room 1 -> MAIN OR Room 3",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_main_or_room_1_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_main_or_room_3_slot_0",
+      "staffId": "staff_oneusap_doc_gashlerkyl",
+      "fromLocation": "MAIN OR Room 1",
+      "toLocation": "MAIN OR Room 3"
+    }
+  },
+  {
+    "id": "audit_1791324634324_z3nnl",
+    "timestamp": "2026-10-06T22:10:34.324Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "MAIN OR Room 1",
+    "details": "Marked MAIN OR Room 1 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791324630181_p7cia",
+    "timestamp": "2026-10-06T22:10:30.181Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "MAIN OR Room 3",
+    "details": "Removed relief assignment for MAIN OR Room 3"
+  },
+  {
+    "id": "audit_1791324622856_yg77i",
+    "timestamp": "2026-10-06T22:10:22.856Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "MAIN OR Room 3",
+    "details": "Marked MAIN OR Room 3 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791323890961_m7g3v",
+    "timestamp": "2026-10-06T21:58:10.961Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Hughes (CRNA)",
+    "locationName": "ENDO Room 3",
+    "details": "Assigned relief: Hughes (CRNA) relieving Moody (CRNA) in ENDO Room 3"
+  },
+  {
+    "id": "audit_1791323873811_6tocm",
+    "timestamp": "2026-10-06T21:57:53.811Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Relief Assignment",
+    "locationName": "ENDO Room 3",
+    "details": "Removed relief assignment for ENDO Room 3"
+  },
+  {
+    "id": "audit_1791323873785_v3yie",
+    "timestamp": "2026-10-06T21:57:53.785Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Relief Assignment",
+    "locationName": "ENDO Room 3",
+    "details": "Removed relief assignment for ENDO Room 3"
+  },
+  {
+    "id": "audit_1791323863890_hyq14",
+    "timestamp": "2026-10-06T21:57:43.890Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Hughes (CRNA)",
+    "locationName": "ENDO Room 3",
+    "details": "Assigned relief: Hughes (CRNA) relieving Moody (CRNA) in ENDO Room 3"
+  },
+  {
+    "id": "audit_1791322925660_86zh5",
+    "timestamp": "2026-10-06T21:42:05.660Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Baerensteche (MD)",
+    "locationName": "MAIN OR Room 9",
+    "details": "Assigned relief: Baerensteche (MD) relieving Walker (CRNA) in MAIN OR Room 9"
+  },
+  {
+    "id": "audit_1791322177228_probc",
+    "timestamp": "2026-10-06T21:29:37.228Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Tina Li",
+    "locationName": "MAIN OR Room 11",
+    "details": "Moved from 9th Floor Room EP1 -> MAIN OR Room 11",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_9th_floor_room_EP1_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_main_or_room_11_slot_0",
+      "staffId": "staff_oneusap_anes_litin",
+      "fromLocation": "9th Floor Room EP1",
+      "toLocation": "MAIN OR Room 11"
+    }
+  },
+  {
+    "id": "audit_1791322040351_f9fl4",
+    "timestamp": "2026-10-06T21:27:20.351Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Alex Chang",
+    "details": "Moved Alex Chang to regular MD staff group"
+  },
+  {
+    "id": "audit_1791322040336_hr27u",
+    "timestamp": "2026-10-06T21:27:20.336Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Alex Chang",
+    "locationName": "MD Staff Group",
+    "details": "Moved from Staff Pool -> MD Staff Group",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "md",
+      "staffId": "staff_oneusap_doc_changale",
+      "fromLocation": "",
+      "toLocation": "MD Staff Group"
+    }
+  },
+  {
+    "id": "audit_1791321676729_xi1wg",
+    "timestamp": "2026-10-06T21:21:16.729Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ludwig Zemrau",
+    "locationName": "MAIN OR Room 7",
+    "details": "Moved from MAIN OR Room 8 -> MAIN OR Room 7",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_main_or_room_8_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_main_or_room_7_slot_0",
+      "staffId": "staff_oneusap_anes_zemraulud",
+      "fromLocation": "MAIN OR Room 8",
+      "toLocation": "MAIN OR Room 7"
+    }
+  },
+  {
+    "id": "audit_1791321664303_2ua0d",
+    "timestamp": "2026-10-06T21:21:04.303Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ludwig Zemrau",
+    "locationName": "MAIN OR Room 8",
+    "details": "Moved from MAIN OR Room 7 -> MAIN OR Room 8",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_main_or_room_7_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_main_or_room_8_slot_0",
+      "staffId": "staff_oneusap_anes_zemraulud",
+      "fromLocation": "MAIN OR Room 7",
+      "toLocation": "MAIN OR Room 8"
+    }
+  },
+  {
+    "id": "audit_1791321658792_alv5q",
+    "timestamp": "2026-10-06T21:20:58.793Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ludwig Zemrau",
+    "locationName": "MAIN OR Room 7",
+    "details": "Moved from MAIN OR Room 8 -> MAIN OR Room 7",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_main_or_room_8_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_main_or_room_7_slot_0",
+      "staffId": "staff_oneusap_anes_zemraulud",
+      "fromLocation": "MAIN OR Room 8",
+      "toLocation": "MAIN OR Room 7"
+    }
+  },
+  {
+    "id": "audit_1791321654686_04lj2",
+    "timestamp": "2026-10-06T21:20:54.686Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ludwig Zemrau",
+    "locationName": "MAIN OR Room 8",
+    "details": "Moved from MAIN OR Room 7 -> MAIN OR Room 8",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_main_or_room_7_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_main_or_room_8_slot_0",
+      "staffId": "staff_oneusap_anes_zemraulud",
+      "fromLocation": "MAIN OR Room 7",
+      "toLocation": "MAIN OR Room 8"
+    }
+  },
+  {
     "id": "audit_1791321047147_jojon",
     "timestamp": "2026-10-06T21:10:47.147Z",
     "actionType": "STAFF_MOVED",

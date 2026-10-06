@@ -35,9 +35,10 @@ export interface Staff {
 }
 
 export interface ReliefAssignment {
-  staffId: string;
+  staffId?: string | null; // null or empty string = Open 3 PM count Red Box awaiting coverage
   time?: string; // Optional (e.g. "3:00 PM")
   notes?: string;
+  isRedBox?: boolean;
 }
 
 export interface RoomSlot {
@@ -149,6 +150,7 @@ export interface AuditLogEntry {
     | 'UNIQUE_SCHEDULE_UPDATED'
     | 'ROOM_FUTURE_TIME_SET'
     | 'ROOM_FUTURE_TIME_CLEARED'
+    | 'ROOM_UPDATED'
     | 'ACTION_REVERTED';
   performedBy: string;
   userRole: UserRole;

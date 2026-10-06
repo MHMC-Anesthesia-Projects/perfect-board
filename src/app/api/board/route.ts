@@ -297,10 +297,11 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
         }
 
-        const { fromTargetType, fromId, toTargetType, toId, staffId } = payload;
+        const { fromTargetType, fromId, toTargetType, toId, staffId, reliefHandling } = payload;
         let staffName = 'Staff';
         let fromLocation = '';
         let toLocation = '';
+        let transferredRelief: any = null;
 
         state.bullpenStaffIds = state.bullpenStaffIds || [];
 
@@ -350,6 +351,15 @@ export async function POST(req: NextRequest) {
                     breakfastTime: slot.breakfastTime,
                     lunchTime: slot.lunchTime
                   };
+                }
+                if (slot.relief) {
+                  if (reliefHandling === 'move_with_staff') {
+                    transferredRelief = { ...slot.relief };
+                    slot.relief = null;
+                  } else if (reliefHandling === 'remove') {
+                    slot.relief = null;
+                  }
+                  // Note: if reliefHandling === 'keep_in_room' (default), slot.relief stays intact on the slot even when slot.staffId = null!
                 }
                 if (!isTargetRunner) {
                   slot.staffId = null;
@@ -545,6 +555,9 @@ export async function POST(req: NextRequest) {
               const slot = room.slots.find(s => s.id === toId);
               if (slot) {
                 slot.staffId = staffId;
+                if (transferredRelief) {
+                  slot.relief = transferredRelief;
+                }
                 if (staffId && state.bullpenBreaks?.[staffId]) {
                   slot.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
                   slot.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
@@ -1119,12 +1132,12 @@ export async function POST(req: NextRequest) {
         if (currentUserRole === 'basic_user') {
           return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
         }
-        const { targetType, targetId, reliefStaffId, reliefTime, notes } = payload;
+        const { targetType, targetId, reliefStaffId, reliefTime, notes, isRedBox } = payload;
         let targetLocation = '';
         let outgoingStaffName = '';
         let incomingStaffName = '';
 
-        const incomingStaff = state.staff.find(s => s.id === reliefStaffId);
+        const incomingStaff = reliefStaffId ? state.staff.find(s => s.id === reliefStaffId) : null;
         if (incomingStaff) incomingStaffName = `${incomingStaff.lastName} (${incomingStaff.credentials})`;
 
         if (targetType === 'runner_slot') {
@@ -1133,33 +1146,37 @@ export async function POST(req: NextRequest) {
 
         // room_slot
         for (const dept of state.departments) {
-            for (const room of dept.rooms) {
-              const slot = room.slots.find(s => s.id === targetId);
-              if (slot) {
-                slot.relief = {
-                  staffId: reliefStaffId,
-                  time: reliefTime || '',
-                  notes: notes || ''
-                };
-                const outgoing = state.staff.find(s => s.id === slot.staffId);
-                if (outgoing) outgoingStaffName = `${outgoing.lastName} (${outgoing.credentials})`;
-                targetLocation = `${dept.name} Room ${room.name}`;
-                break;
-              }
+          for (const room of dept.rooms) {
+            const slot = room.slots.find(s => s.id === targetId);
+            if (slot) {
+              slot.relief = {
+                staffId: reliefStaffId || null,
+                time: reliefTime || '3:00 PM',
+                notes: notes || '',
+                isRedBox: Boolean(isRedBox || !reliefStaffId)
+              };
+              const outgoing = state.staff.find(s => s.id === slot.staffId);
+              if (outgoing) outgoingStaffName = `${outgoing.lastName} (${outgoing.credentials})`;
+              targetLocation = `${dept.name} Room ${room.name}`;
+              break;
             }
           }
+        }
 
         await saveBoardState(state);
+        const isOpenRedBox = !reliefStaffId;
         const isSelfRelief = outgoingStaffName && incomingStaffName && outgoingStaffName === incomingStaffName;
         await recordAuditLog({
-          actionType: 'STAFF_ASSIGNED',
+          actionType: isOpenRedBox ? 'ROOM_UPDATED' : 'STAFF_ASSIGNED',
           performedBy: currentUserName,
           userRole: currentUserRole,
-          targetName: incomingStaffName,
+          targetName: isOpenRedBox ? '3 PM Count (Red Box)' : incomingStaffName,
           locationName: targetLocation,
-          details: isSelfRelief
-            ? `${incomingStaffName} designated as relieving themselves in ${targetLocation}`
-            : `Assigned relief: ${incomingStaffName} relieving ${outgoingStaffName || 'current staff'} in ${targetLocation}`
+          details: isOpenRedBox
+            ? `Marked ${targetLocation} for 3 PM Count (Open Red Box awaiting coverage)`
+            : isSelfRelief
+              ? `${incomingStaffName} designated as relieving themselves in ${targetLocation}`
+              : `Assigned relief: ${incomingStaffName} relieving ${outgoingStaffName || 'Room'} in ${targetLocation}`
         });
 
         return NextResponse.json({ success: true, state });
@@ -1344,7 +1361,7 @@ export async function POST(req: NextRequest) {
               }
 
               // Takeover
-              runner.staffId = incomingId;
+              runner.staffId = incomingId || null;
               runner.relief = null;
               targetLocation = `${dept.name} Runner (${runner.title})`;
               break;
@@ -1378,7 +1395,7 @@ export async function POST(req: NextRequest) {
                 }
 
                 // Takeover
-                slot.staffId = incomingId;
+                slot.staffId = incomingId || null;
                 slot.relief = null;
                 targetLocation = `${dept.name} Room ${room.name}`;
                 break;
