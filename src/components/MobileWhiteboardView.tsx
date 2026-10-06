@@ -26,7 +26,6 @@ import {
   Clock, 
   Sparkles, 
   Phone, 
-  Maximize2,
   CheckCircle2,
   UserCheck,
   Strikethrough,
@@ -677,18 +676,6 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
           >
             {theme === 'whiteboard' ? <Moon size={16} /> : <Sun size={16} />}
           </button>
-
-          {/* Desktop Board View Toggle */}
-          {onSwitchToDesktop && (
-            <button
-              type="button"
-              className="mobile-header-btn"
-              onClick={onSwitchToDesktop}
-              title="Switch to Full Board Desktop View"
-            >
-              <Maximize2 size={16} />
-            </button>
-          )}
 
           {/* Auth Button */}
           {currentUser && currentUser.role !== 'view_only' ? (
