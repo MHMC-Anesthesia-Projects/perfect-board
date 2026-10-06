@@ -3,8 +3,8 @@
 import { apiUrl } from '@/lib/api';
 import { getBrowserSupabase, getPublicBrowserSupabase } from '@/lib/supabase';
 import { getHoustonDateString } from '@/lib/dateUtils';
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { BoardState, Staff, Department, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential, ReliefAssignment } from '@/types/whiteboard';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { BoardState, Staff, Department, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential, ReliefAssignment, AuditLogEntry } from '@/types/whiteboard';
 import { HeaderNav } from '@/components/HeaderNav';
 import { DepartmentGrid } from '@/components/DepartmentGrid';
 import { RightSidebar } from '@/components/RightSidebar';
@@ -22,7 +22,15 @@ import { AdminModal } from '@/components/AdminModal';
 import { AuditDrawer } from '@/components/AuditDrawer';
 import { ConfirmDeleteModal } from '@/components/ConfirmDeleteModal';
 import { MobileWhiteboardView } from '@/components/MobileWhiteboardView';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Undo2 } from 'lucide-react';
+
+interface UndoItem {
+  id: string;
+  timestamp: number;
+  description: string;
+  collisionCheck?: (state: BoardState) => string | null;
+  executeUndo: () => Promise<void>;
+}
 
 export default function WhiteboardPage() {
   const [boardState, setBoardState] = useState<BoardState | null>(null);
@@ -95,6 +103,10 @@ export default function WhiteboardPage() {
   const [isCleanBoardModalOpen, setIsCleanBoardModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Undo / Mistake Resolution System (Layers 1 & 2)
+  const [undoStack, setUndoStack] = useState<UndoItem[]>([]);
+  const [activeUndoToast, setActiveUndoToast] = useState<{ id: string; description: string } | null>(null);
+
   // Auto-dismiss floating toast notifications after 3.5 seconds
   useEffect(() => {
     if (!toastMessage) return;
@@ -103,6 +115,149 @@ export default function WhiteboardPage() {
     }, 3500);
     return () => clearTimeout(timer);
   }, [toastMessage]);
+
+  // Layer 1: Auto-dismiss quick undo toast banner after 8 seconds
+  useEffect(() => {
+    if (!activeUndoToast) return;
+    const timer = setTimeout(() => {
+      setActiveUndoToast(null);
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, [activeUndoToast]);
+
+  // Guard to prevent undo operations from recording their inverse action as a new step
+  const isExecutingUndoRef = useRef(false);
+
+  // Push an undoable action to the in-session stack
+  const pushUndoAction = useCallback((
+    description: string,
+    executeUndo: () => Promise<void>,
+    collisionCheck?: (state: BoardState) => string | null
+  ) => {
+    // If an undo operation is currently executing, do NOT push this onto the undo stack!
+    if (isExecutingUndoRef.current) {
+      return;
+    }
+
+    const id = `undo_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const newItem: UndoItem = {
+      id,
+      timestamp: Date.now(),
+      description,
+      collisionCheck,
+      executeUndo
+    };
+
+    setUndoStack(prev => [newItem, ...prev.slice(0, 9)]); // Max 10 in-session stack
+    setActiveUndoToast({ id, description });
+  }, []);
+
+  // Execute undo action with collision detection
+  const handleExecuteUndo = useCallback(async (targetId?: string | unknown) => {
+    if (isExecutingUndoRef.current) {
+      return;
+    }
+
+    // If called directly as an event listener or from a button click, targetId might be a React SyntheticEvent
+    const validTargetId = typeof targetId === 'string' ? targetId : undefined;
+
+    setUndoStack(prevStack => {
+      if (prevStack.length === 0) {
+        setToastMessage('Nothing to undo');
+        return prevStack;
+      }
+
+      const itemToUndo = validTargetId ? prevStack.find(item => item.id === validTargetId) : prevStack[0];
+      if (!itemToUndo) {
+        setToastMessage('Nothing to undo');
+        return prevStack;
+      }
+
+      // Collision check against latest boardState
+      if (boardState && itemToUndo.collisionCheck) {
+        const collisionError = itemToUndo.collisionCheck(boardState);
+        if (collisionError) {
+          setToastMessage(`⚠️ Cannot undo: ${collisionError}`);
+          setActiveUndoToast(null);
+          return prevStack.filter(item => item.id !== itemToUndo.id);
+        }
+      }
+
+      // Lock pushUndoAction so this undo operation does NOT add a new item back onto the undo stack!
+      isExecutingUndoRef.current = true;
+
+      // Execute inverse operation asynchronously
+      itemToUndo.executeUndo()
+        .then(() => {
+          setToastMessage(`✓ Undone: ${itemToUndo.description}`);
+        })
+        .catch(err => {
+          console.error('Failed to execute undo:', err);
+          setToastMessage(`Failed to undo: ${itemToUndo.description}`);
+        })
+        .finally(() => {
+          setTimeout(() => {
+            isExecutingUndoRef.current = false;
+          }, 300);
+        });
+
+      const remainingStack = prevStack.filter(item => item.id !== itemToUndo.id);
+
+      // If there are still items on the undo stack, update the quick undo toast to show the next item!
+      if (remainingStack.length > 0) {
+        setActiveUndoToast({
+          id: remainingStack[0].id,
+          description: remainingStack[0].description
+        });
+      } else {
+        setActiveUndoToast(null);
+      }
+
+      return remainingStack;
+    });
+  }, [boardState]);
+
+  // Layer 2: Keyboard shortcut for Undo (Cmd+Z / Ctrl+Z)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        const target = e.target as HTMLElement | null;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+          return; // Allow native text undo inside inputs
+        }
+        e.preventDefault();
+        handleExecuteUndo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleExecuteUndo]);
+
+  // Layer 3: Audit Ledger Revert Handler
+  const handleRevertAuditLog = async (log: AuditLogEntry) => {
+    try {
+      const res = await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'REVERT_ACTION',
+          payload: { logId: log.id, logEntry: log },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+        setToastMessage(`✓ Reverted: ${log.actionType.replace(/_/g, ' ')}`);
+      } else if (data.error) {
+        setToastMessage(`Cannot revert: ${data.error}`);
+      }
+    } catch (err) {
+      console.error('Error reverting audit log entry:', err);
+      setToastMessage('Error reverting action.');
+    }
+  };
 
   // Perfect Call Messaging & Unread Counts
   const [unreadCountsByPhone, setUnreadCountsByPhone] = useState<Record<string, number>>({});
@@ -515,6 +670,40 @@ export default function WhiteboardPage() {
           user: actingUser || { role: 'basic_user', displayName: 'Staff (Basic User)' }
         })
       });
+
+      // Find staff name for undo description
+      let targetStaffName = 'Staff';
+      if (boardState) {
+        if (targetType === 'bullpen') {
+          const st = boardState.staff.find(s => s.id === targetId);
+          if (st) targetStaffName = st.lastName;
+        } else if (targetType === 'runner_slot') {
+          for (const dept of boardState.departments) {
+            const r = dept.runnerSlots?.find(slot => slot.id === targetId);
+            if (r?.staffId) {
+              const st = boardState.staff.find(s => s.id === r.staffId);
+              if (st) { targetStaffName = st.lastName; break; }
+            }
+          }
+        } else {
+          for (const dept of boardState.departments) {
+            for (const room of dept.rooms) {
+              const s = room.slots.find(slot => slot.id === targetId);
+              if (s?.staffId) {
+                const st = boardState.staff.find(staff => staff.id === s.staffId);
+                if (st) { targetStaffName = st.lastName; break; }
+              }
+            }
+          }
+        }
+      }
+
+      pushUndoAction(
+        `Marked ${breakType} break as ${value ? 'Done' : 'Not Done'} for ${targetStaffName}`,
+        async () => {
+          await executeToggleBreak(targetType, targetId, breakType, !value, actingUser);
+        }
+      );
     } catch (err) {
       console.error('Error toggling break:', err);
       fetchBoardState(false);
@@ -582,6 +771,38 @@ export default function WhiteboardPage() {
       return;
     }
 
+    const staff = boardState?.staff.find(s => s.id === fromData.staffId);
+    const staffName = staff ? (staff.displayName || `${staff.firstName} ${staff.lastName}`).trim() : 'Staff';
+    const previousFromType = fromData.type;
+    const previousFromId = fromData.id;
+    const targetStaffId = fromData.staffId;
+
+    let destName = 'Slot';
+    let previousOccupantId: string | null = null;
+    if (toType === 'room_slot') {
+      for (const dept of boardState?.departments || []) {
+        for (const rm of dept.rooms || []) {
+          const s = rm.slots.find(slot => slot.id === toId);
+          if (s) {
+            destName = `${dept.name} Rm ${rm.name}`;
+            previousOccupantId = s.staffId;
+            break;
+          }
+        }
+      }
+    } else if (toType === 'runner_slot') {
+      for (const dept of boardState?.departments || []) {
+        const r = dept.runnerSlots?.find(s => s.id === toId);
+        if (r) {
+          destName = `${dept.name} ${r.title}`;
+          break;
+        }
+      }
+    } else if (toType === 'runner_dept') {
+      const dept = boardState?.departments.find(d => d.id === toId);
+      destName = `${dept?.name || ''} Runner`;
+    }
+
     try {
       const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
@@ -601,6 +822,58 @@ export default function WhiteboardPage() {
       const data = await res.json();
       if (data.state) {
         setBoardState(data.state);
+
+        // Register Quick Undo action
+        pushUndoAction(
+          `Moved ${staffName} to ${destName}`,
+          async () => {
+            const undoRes = await fetch(apiUrl('/api/board'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'MOVE_STAFF',
+                payload: {
+                  fromTargetType: toType,
+                  fromId: toId,
+                  toTargetType: previousFromType === 'bullpen' ? 'bullpen' : (previousFromType === 'room_slot' ? 'room_slot' : (previousFromType === 'runner_slot' ? 'runner_slot' : 'unassigned')),
+                  toId: previousFromId,
+                  staffId: targetStaffId
+                },
+                user: currentUser
+              })
+            });
+            const d = await undoRes.json();
+            if (d.state) {
+              setBoardState(d.state);
+              if (previousOccupantId && toType === 'room_slot') {
+                const res2 = await fetch(apiUrl('/api/board'), {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    action: 'ASSIGN_STAFF',
+                    payload: { targetType: 'room_slot', targetId: toId, staffId: previousOccupantId },
+                    user: currentUser
+                  })
+                });
+                const d2 = await res2.json();
+                if (d2.state) setBoardState(d2.state);
+              }
+            }
+          },
+          (currentState: BoardState) => {
+            if (toType === 'room_slot') {
+              let stillThere = false;
+              for (const d of currentState.departments) {
+                for (const rm of d.rooms) {
+                  const s = rm.slots.find(slot => slot.id === toId);
+                  if (s && s.staffId === targetStaffId) stillThere = true;
+                }
+              }
+              if (!stillThere) return `${staffName} was already moved from ${destName} by someone else.`;
+            }
+            return null;
+          }
+        );
       }
     } catch (err) {
       console.error('Error moving staff:', err);
@@ -619,6 +892,35 @@ export default function WhiteboardPage() {
       setIsLoginModalOpen(true);
       return;
     }
+
+    let previousRelief: ReliefAssignment | null = null;
+    let targetStaffName = 'Staff';
+    if (boardState) {
+      if (targetType === 'runner_slot') {
+        for (const d of boardState.departments) {
+          const r = d.runnerSlots?.find(s => s.id === targetId);
+          if (r) {
+            previousRelief = r.relief || null;
+            const st = boardState.staff.find(s => s.id === r.staffId);
+            if (st) targetStaffName = st.lastName;
+            break;
+          }
+        }
+      } else {
+        for (const d of boardState.departments) {
+          for (const rm of d.rooms) {
+            const slot = rm.slots.find(s => s.id === targetId);
+            if (slot) {
+              previousRelief = slot.relief || null;
+              const st = boardState.staff.find(s => s.id === slot.staffId);
+              if (st) targetStaffName = st.lastName;
+              break;
+            }
+          }
+        }
+      }
+    }
+
     try {
       const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
@@ -635,6 +937,18 @@ export default function WhiteboardPage() {
         const assignedStaff = data.state.staff?.find((s: Staff) => s.id === reliefStaffId);
         setToastMessage(assignedStaff ? `Relief assigned: ${assignedStaff.lastName}` : 'Relief assigned');
         setTimeout(() => setToastMessage(null), 3000);
+
+        const savedPrevRelief = previousRelief;
+        pushUndoAction(
+          assignedStaff ? `Assigned relief ${assignedStaff.lastName} to ${targetStaffName}` : `Relief assigned for ${targetStaffName}`,
+          async () => {
+            if (savedPrevRelief) {
+              await handleSetRelief(targetType, targetId, savedPrevRelief.staffId, savedPrevRelief.time, savedPrevRelief.notes);
+            } else {
+              await handleRemoveRelief(targetType, targetId);
+            }
+          }
+        );
       }
     } catch (err) {
       console.error('Error setting relief:', err);
@@ -649,6 +963,35 @@ export default function WhiteboardPage() {
       setIsLoginModalOpen(true);
       return;
     }
+
+    let previousRelief: ReliefAssignment | null = null;
+    let targetStaffName = 'Staff';
+    if (boardState) {
+      if (targetType === 'runner_slot') {
+        for (const d of boardState.departments) {
+          const r = d.runnerSlots?.find(s => s.id === targetId);
+          if (r) {
+            previousRelief = r.relief || null;
+            const st = boardState.staff.find(s => s.id === r.staffId);
+            if (st) targetStaffName = st.lastName;
+            break;
+          }
+        }
+      } else {
+        for (const d of boardState.departments) {
+          for (const rm of d.rooms) {
+            const slot = rm.slots.find(s => s.id === targetId);
+            if (slot) {
+              previousRelief = slot.relief || null;
+              const st = boardState.staff.find(s => s.id === slot.staffId);
+              if (st) targetStaffName = st.lastName;
+              break;
+            }
+          }
+        }
+      }
+    }
+
     try {
       const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
@@ -664,6 +1007,16 @@ export default function WhiteboardPage() {
         setBoardState(data.state);
         setToastMessage('Relief assignment removed');
         setTimeout(() => setToastMessage(null), 2500);
+
+        if (previousRelief) {
+          const savedRelief = previousRelief;
+          pushUndoAction(
+            `Removed relief for ${targetStaffName}`,
+            async () => {
+              await handleSetRelief(targetType, targetId, savedRelief.staffId, savedRelief.time, savedRelief.notes);
+            }
+          );
+        }
       }
     } catch (err) {
       console.error('Error removing relief:', err);
@@ -842,6 +1195,20 @@ export default function WhiteboardPage() {
       setIsLoginModalOpen(true);
       return;
     }
+
+    let prevTime: string | null = null;
+    let roomName = 'Room';
+    if (boardState) {
+      for (const dept of boardState.departments) {
+        const rm = dept.rooms.find(r => r.id === roomId);
+        if (rm) {
+          prevTime = rm.futureTime || null;
+          roomName = `${dept.name} Rm ${rm.name}`;
+          break;
+        }
+      }
+    }
+
     // Optimistic UI update
     setBoardState(prev => {
       if (!prev) return prev;
@@ -867,6 +1234,14 @@ export default function WhiteboardPage() {
       const data = await res.json();
       if (data.state) {
         setBoardState(data.state);
+
+        const savedPrevTime = prevTime;
+        pushUndoAction(
+          futureTime ? `Set future time for ${roomName} to ${futureTime}` : `Cleared future time for ${roomName}`,
+          async () => {
+            await handleSetRoomFutureTime(roomId, savedPrevTime);
+          }
+        );
       }
     } catch (err) {
       console.error('Error setting room future time:', err);
@@ -875,6 +1250,10 @@ export default function WhiteboardPage() {
 
   // Toggle Departure Strikethrough
   const handleToggleDepartureStruck = async (id: string) => {
+    const item = boardState?.departureList.find(d => d.id === id);
+    const itemName = item?.name || 'Staff';
+    const isDeparted = item?.departed;
+
     // Optimistic UI update
     setBoardState(prev => {
       if (!prev) return prev;
@@ -897,6 +1276,13 @@ export default function WhiteboardPage() {
       const data = await res.json();
       if (data.state) {
         setBoardState(data.state);
+
+        pushUndoAction(
+          isDeparted ? `Restored ${itemName} to departure list` : `Marked ${itemName} as departed`,
+          async () => {
+            await handleToggleDepartureStruck(id);
+          }
+        );
       }
     } catch (err) {
       console.error('Error toggling departure status:', err);
@@ -915,6 +1301,9 @@ export default function WhiteboardPage() {
       setIsLoginModalOpen(true);
       return;
     }
+
+    const staff = boardState?.staff.find(s => s.id === staffId);
+    const prevShift = staff?.shift || '';
 
     try {
       const res = await fetch(apiUrl('/api/board'), {
@@ -938,6 +1327,14 @@ export default function WhiteboardPage() {
         });
         setToastMessage(`✓ Updated shift for ${lastName || 'Staff'} to ${newShift}`);
         setTimeout(() => setToastMessage(null), 3000);
+
+        const savedPrevShift = prevShift;
+        pushUndoAction(
+          `Updated shift for ${lastName || 'Staff'} to ${newShift}`,
+          async () => {
+            await handleUpdateStaffShift(staffId, savedPrevShift, lastName, credentials);
+          }
+        );
       }
     } catch (err) {
       console.error('Error updating staff shift:', err);
@@ -953,6 +1350,9 @@ export default function WhiteboardPage() {
       setIsLoginModalOpen(true);
       return;
     }
+
+    const staff = boardState?.staff.find(s => s.id === staffId);
+    const prevDisplayName = staff?.displayName || '';
 
     try {
       const res = await fetch(apiUrl('/api/board'), {
@@ -976,6 +1376,14 @@ export default function WhiteboardPage() {
         });
         setToastMessage(`✓ Updated magnet name to "${displayName || 'Default'}"`);
         setTimeout(() => setToastMessage(null), 3000);
+
+        const savedPrevName = prevDisplayName;
+        pushUndoAction(
+          `Updated magnet name to "${displayName || 'Default'}"`,
+          async () => {
+            await handleUpdateStaffDisplayName(staffId, savedPrevName);
+          }
+        );
       }
     } catch (err) {
       console.error('Error updating staff display name:', err);
@@ -994,6 +1402,11 @@ export default function WhiteboardPage() {
       setIsLoginModalOpen(true);
       return;
     }
+
+    const staff = boardState?.staff.find(s => s.id === staffId);
+    const staffName = staff ? staff.lastName : 'Staff';
+    const prevHasStudent = staff?.hasStudent ?? false;
+    const prevStudentName = staff?.studentName;
 
     try {
       const res = await fetch(apiUrl('/api/board'), {
@@ -1024,6 +1437,15 @@ export default function WhiteboardPage() {
             ? `✓ Assigned student "${studentName || 'Student'}"`
             : '✓ Removed student assignment'
         );
+
+        const savedHasStudent = prevHasStudent;
+        const savedStudentName = prevStudentName;
+        pushUndoAction(
+          hasStudent ? `Assigned student "${studentName}" to ${staffName}` : `Removed student from ${staffName}`,
+          async () => {
+            await handleUpdateStaffStudent(staffId, savedHasStudent, savedStudentName);
+          }
+        );
       }
     } catch (err) {
       console.error('Error updating staff student info:', err);
@@ -1037,6 +1459,12 @@ export default function WhiteboardPage() {
       setIsLoginModalOpen(true);
       return;
     }
+
+    const staff = boardState?.staff.find(s => s.id === fromData.staffId);
+    const staffName = staff ? (staff.displayName || `${staff.firstName} ${staff.lastName}`).trim() : 'Staff';
+    const prevType = fromData.type;
+    const prevId = fromData.id;
+    const targetStaffId = fromData.staffId;
 
     try {
       const res = await fetch(apiUrl('/api/board'), {
@@ -1056,6 +1484,34 @@ export default function WhiteboardPage() {
       const data = await res.json();
       if (data.state) {
         setBoardState(data.state);
+
+        pushUndoAction(
+          `Moved ${staffName} to Bullpen`,
+          async () => {
+            const undoRes = await fetch(apiUrl('/api/board'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'MOVE_STAFF',
+                payload: {
+                  fromTargetType: 'bullpen',
+                  toTargetType: prevType === 'room_slot' ? 'room_slot' : (prevType === 'runner_slot' ? 'runner_slot' : 'unassigned'),
+                  toId: prevId,
+                  staffId: targetStaffId
+                },
+                user: currentUser
+              })
+            });
+            const d = await undoRes.json();
+            if (d.state) setBoardState(d.state);
+          },
+          (currentState: BoardState) => {
+            if (!currentState.bullpenStaffIds?.includes(targetStaffId)) {
+              return `${staffName} is no longer in the Bullpen.`;
+            }
+            return null;
+          }
+        );
       }
     } catch (err) {
       console.error('Error placing staff in bullpen:', err);
@@ -1071,6 +1527,11 @@ export default function WhiteboardPage() {
       setIsLoginModalOpen(true);
       return;
     }
+
+    const staff = boardState?.staff.find(s => s.id === staffId);
+    const staffName = staff ? (staff.displayName || `${staff.firstName} ${staff.lastName}`).trim() : 'Staff';
+    const prevType = fromData?.type || 'bullpen';
+    const prevId = fromData?.id;
 
     try {
       const res = await fetch(apiUrl('/api/board'), {
@@ -1091,6 +1552,28 @@ export default function WhiteboardPage() {
       const data = await res.json();
       if (data.state) {
         setBoardState(data.state);
+
+        pushUndoAction(
+          `Moved ${staffName} to Unassigned Staff`,
+          async () => {
+            const undoRes = await fetch(apiUrl('/api/board'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'MOVE_STAFF',
+                payload: {
+                  fromTargetType: 'unassigned',
+                  toTargetType: prevType === 'room_slot' ? 'room_slot' : (prevType === 'runner_slot' ? 'runner_slot' : 'bullpen'),
+                  toId: prevId,
+                  staffId: staffId
+                },
+                user: currentUser
+              })
+            });
+            const d = await undoRes.json();
+            if (d.state) setBoardState(d.state);
+          }
+        );
       }
     } catch (err) {
       console.error('Error moving staff to unassigned:', err);
@@ -1597,6 +2080,10 @@ export default function WhiteboardPage() {
           reliefCount={totalScheduledReliefsCount}
           isCompletingRelief={isCompletingAllReliefs}
           unreadCountsByPhone={unreadCountsByPhone}
+          onUndo={handleExecuteUndo}
+          canUndo={undoStack.length > 0}
+          undoCount={undoStack.length}
+          lastUndoDescription={undoStack[0]?.description}
         />
       ) : (
         <div className="whiteboard-container">
@@ -1616,6 +2103,10 @@ export default function WhiteboardPage() {
             onAutoAssign={handleAutoAssign}
             isAutoAssigning={isAutoAssigning}
             onCleanWhiteboard={() => setIsCleanBoardModalOpen(true)}
+            onUndo={handleExecuteUndo}
+            canUndo={undoStack.length > 0}
+            undoCount={undoStack.length}
+            lastUndoDescription={undoStack[0]?.description}
             isSyncing={isSyncing}
             lastSyncTime={boardState.scraperConfig.lastSyncTime}
             isRightSidebarOpen={isRightSidebarOpen}
@@ -1845,6 +2336,8 @@ export default function WhiteboardPage() {
       <AuditDrawer
         isOpen={isAuditDrawerOpen}
         onClose={() => setIsAuditDrawerOpen(false)}
+        currentUser={currentUser}
+        onRevertAuditLog={handleRevertAuditLog}
       />
 
       {/* Portal Sync Overwrite Warning Modal */}
@@ -1901,8 +2394,8 @@ export default function WhiteboardPage() {
         onClose={() => setUnassignPromptTarget(null)}
       />
 
-      {/* Floating Toast Notification */}
-      {toastMessage && (
+      {/* Floating Toast Notification & Layer 1 Quick Undo Banner */}
+      {(activeUndoToast || toastMessage) && (
         <div
           style={{
             position: 'fixed',
@@ -1912,9 +2405,9 @@ export default function WhiteboardPage() {
             zIndex: 99999,
             background: 'var(--surface-card)',
             color: 'var(--text-primary)',
-            padding: '10px 20px',
+            padding: '8px 18px',
             borderRadius: 8,
-            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.28)',
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.32)',
             border: '1.5px solid var(--accent-primary)',
             fontWeight: 700,
             fontSize: 13,
@@ -1923,9 +2416,39 @@ export default function WhiteboardPage() {
             gap: 12
           }}
         >
-          <span>{toastMessage}</span>
+          <span>{activeUndoToast ? activeUndoToast.description : toastMessage}</span>
+
+          {activeUndoToast && (
+            <button
+              type="button"
+              onClick={() => handleExecuteUndo(activeUndoToast.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                background: 'var(--accent-primary)',
+                color: '#ffffff',
+                border: 'none',
+                padding: '4px 10px',
+                borderRadius: 6,
+                fontWeight: 800,
+                fontSize: 12,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)'
+              }}
+              title="Quick Undo: Revert this action immediately"
+            >
+              <Undo2 size={13} />
+              <span>Undo</span>
+            </button>
+          )}
+
           <button
-            onClick={() => setToastMessage(null)}
+            type="button"
+            onClick={() => {
+              setActiveUndoToast(null);
+              setToastMessage(null);
+            }}
             style={{
               background: 'transparent',
               border: 'none',

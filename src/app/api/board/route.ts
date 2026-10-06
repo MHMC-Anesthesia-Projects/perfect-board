@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadBoardState, saveBoardState, recordAuditLog, getInitialBoardState, resetDailyBreaks, broadcastStateChange } from '@/lib/storage';
+import { loadBoardState, saveBoardState, recordAuditLog, loadAuditLog, getInitialBoardState, resetDailyBreaks, broadcastStateChange } from '@/lib/storage';
 import { UserRole, RunnerSlot } from '@/types/whiteboard';
 import { autoAssignBoardState } from '@/lib/autoAssign';
 import { getHoustonDateString } from '@/lib/dateUtils';
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'View only access. Please log in to make changes.' }, { status: 403 });
     }
 
-    if (currentUserRole === 'basic_user' && action !== 'TOGGLE_BREAK' && action !== 'SET_STAFF_STUDENT') {
+    if (currentUserRole === 'basic_user' && action !== 'TOGGLE_BREAK' && action !== 'SET_STAFF_STUDENT' && action !== 'REVERT_ACTION') {
       return NextResponse.json({ error: 'Permission denied. Board runner or superuser access required.' }, { status: 403 });
     }
 
@@ -156,7 +156,14 @@ export async function POST(req: NextRequest) {
           userRole: currentUserRole,
           targetName: staffName,
           locationName,
-          details: `Marked ${breakType} break as ${value ? 'DONE [✓]' : 'NOT DONE [ ]'}`
+          details: `Marked ${breakType} break as ${value ? 'DONE [✓]' : 'NOT DONE [ ]'}`,
+          metadata: {
+            targetType,
+            targetId,
+            breakType,
+            breakValue: value,
+            staffName
+          }
         });
 
         return NextResponse.json({ success: true, state });
@@ -557,7 +564,16 @@ export async function POST(req: NextRequest) {
           userRole: currentUserRole,
           targetName: staffName,
           locationName: toLocation,
-          details: `Moved from ${fromLocation || 'Staff Pool'} -> ${toLocation}`
+          details: `Moved from ${fromLocation || 'Staff Pool'} -> ${toLocation}`,
+          metadata: {
+            fromTargetType,
+            fromId,
+            toTargetType,
+            toId,
+            staffId,
+            fromLocation,
+            toLocation
+          }
         });
 
         return NextResponse.json({ success: true, state });
@@ -1070,6 +1086,9 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
         }
 
+        const prevHasStudent = s.hasStudent;
+        const prevStudentName = s.studentName;
+
         s.hasStudent = Boolean(hasStudent);
         s.studentName = hasStudent && studentName ? String(studentName).trim() : undefined;
 
@@ -1081,7 +1100,14 @@ export async function POST(req: NextRequest) {
           targetName: `${s.firstName} ${s.lastName}`.trim(),
           details: s.hasStudent
             ? `Assigned student "${s.studentName || 'Student'}" to ${s.lastName}`
-            : `Removed student assignment from ${s.lastName}`
+            : `Removed student assignment from ${s.lastName}`,
+          metadata: {
+            staffId,
+            hasStudent: s.hasStudent,
+            studentName: s.studentName,
+            previousHasStudent: prevHasStudent,
+            previousStudentName: prevStudentName
+          }
         });
 
         broadcastStateChange();
@@ -1466,6 +1492,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (foundRoom) {
+          const prevTime = foundRoom.futureTime;
           const cleanTime = futureTime ? String(futureTime).trim().replace(/[^0-9]/g, '').slice(0, 4) : null;
           foundRoom.futureTime = cleanTime || null;
           await saveBoardState(state);
@@ -1476,7 +1503,12 @@ export async function POST(req: NextRequest) {
             locationName: `${foundDeptName} Room ${foundRoom.name}`,
             details: cleanTime
               ? `Set estimated future case time to ${cleanTime} in ${foundDeptName} Room ${foundRoom.name}`
-              : `Cleared estimated future case time in ${foundDeptName} Room ${foundRoom.name}`
+              : `Cleared estimated future case time in ${foundDeptName} Room ${foundRoom.name}`,
+            metadata: {
+              roomId,
+              futureTime: cleanTime,
+              previousTime: prevTime
+            }
           });
           return NextResponse.json({ success: true, state });
         }
@@ -1553,7 +1585,221 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, state });
       }
 
+      // 9. Revert / Undo a past action
+      case 'REVERT_ACTION': {
+        const { logId, logEntry: providedLogEntry } = payload || {};
+        let logEntry = providedLogEntry;
+        if (!logEntry && logId) {
+          const allLogs = await loadAuditLog();
+          logEntry = allLogs.find(l => l.id === logId);
+        }
 
+        if (!logEntry) {
+          return NextResponse.json({ error: 'Audit log entry not found to revert' }, { status: 404 });
+        }
+
+        // Role check
+        if (currentUserRole === 'basic_user') {
+          const isAllowedForBasic = 
+            logEntry.actionType === 'BREAKFAST_TOGGLED' || 
+            logEntry.actionType === 'LUNCH_TOGGLED' || 
+            (logEntry.actionType === 'STAFF_UPDATED' && logEntry.details.toLowerCase().includes('student'));
+          if (!isAllowedForBasic) {
+            return NextResponse.json({ error: 'Permission denied. Board runner or superuser access required.' }, { status: 403 });
+          }
+        }
+
+        let revertedDescription = '';
+        const meta = logEntry.metadata || {};
+
+        switch (logEntry.actionType) {
+          case 'BREAKFAST_TOGGLED':
+          case 'LUNCH_TOGGLED': {
+            const breakType = logEntry.actionType === 'BREAKFAST_TOGGLED' ? 'breakfast' : 'lunch';
+            const wasDone = logEntry.details.includes('DONE [✓]') || meta.breakValue === true;
+            const newRevertedValue = !wasDone;
+
+            let applied = false;
+            if (meta.targetType === 'runner_slot' && meta.targetId) {
+              for (const dept of state.departments) {
+                const r = dept.runnerSlots?.find(s => s.id === meta.targetId);
+                if (r) {
+                  if (breakType === 'breakfast') { r.breakfastDone = newRevertedValue; r.breakfastTime = newRevertedValue ? new Date().toISOString() : null; }
+                  else { r.lunchDone = newRevertedValue; r.lunchTime = newRevertedValue ? new Date().toISOString() : null; }
+                  applied = true;
+                  break;
+                }
+              }
+            } else if (meta.targetType === 'room_slot' && meta.targetId) {
+              for (const dept of state.departments) {
+                for (const rm of dept.rooms) {
+                  const s = rm.slots.find(slot => slot.id === meta.targetId);
+                  if (s) {
+                    if (breakType === 'breakfast') { s.breakfastDone = newRevertedValue; s.breakfastTime = newRevertedValue ? new Date().toISOString() : null; }
+                    else { s.lunchDone = newRevertedValue; s.lunchTime = newRevertedValue ? new Date().toISOString() : null; }
+                    applied = true;
+                    break;
+                  }
+                }
+              }
+            }
+
+            if (!applied && logEntry.targetName) {
+              const staff = state.staff.find(s => 
+                `${s.firstName} ${s.lastName}`.trim().toLowerCase() === logEntry.targetName.trim().toLowerCase() || 
+                (s.displayName && s.displayName.trim().toLowerCase() === logEntry.targetName.trim().toLowerCase())
+              );
+              if (staff) {
+                state.bullpenBreaks = state.bullpenBreaks || {};
+                const existing = state.bullpenBreaks[staff.id] || { breakfastDone: false, lunchDone: false };
+                state.bullpenBreaks[staff.id] = {
+                  ...existing,
+                  ...(breakType === 'breakfast'
+                    ? { breakfastDone: newRevertedValue, breakfastTime: newRevertedValue ? new Date().toISOString() : null }
+                    : { lunchDone: newRevertedValue, lunchTime: newRevertedValue ? new Date().toISOString() : null })
+                };
+
+                for (const dept of state.departments) {
+                  for (const r of dept.runnerSlots || []) {
+                    if (r.staffId === staff.id) {
+                      if (breakType === 'breakfast') { r.breakfastDone = newRevertedValue; r.breakfastTime = newRevertedValue ? new Date().toISOString() : null; }
+                      else { r.lunchDone = newRevertedValue; r.lunchTime = newRevertedValue ? new Date().toISOString() : null; }
+                    }
+                  }
+                  for (const rm of dept.rooms || []) {
+                    for (const s of rm.slots || []) {
+                      if (s.staffId === staff.id) {
+                        if (breakType === 'breakfast') { s.breakfastDone = newRevertedValue; s.breakfastTime = newRevertedValue ? new Date().toISOString() : null; }
+                        else { s.lunchDone = newRevertedValue; s.lunchTime = newRevertedValue ? new Date().toISOString() : null; }
+                      }
+                    }
+                  }
+                }
+                applied = true;
+              }
+            }
+            revertedDescription = `Toggled ${breakType} break to ${newRevertedValue ? 'DONE' : 'NOT DONE'} for ${logEntry.targetName || 'staff'}`;
+            break;
+          }
+
+          case 'ROOM_FUTURE_TIME_SET':
+          case 'ROOM_FUTURE_TIME_CLEARED': {
+            const restoreTime = logEntry.actionType === 'ROOM_FUTURE_TIME_SET' ? null : (meta.previousTime || null);
+            for (const dept of state.departments) {
+              for (const rm of dept.rooms) {
+                if (rm.id === meta.roomId || (logEntry.locationName && logEntry.locationName.includes(rm.name))) {
+                  rm.futureTime = restoreTime;
+                  revertedDescription = `Set Room ${rm.name} future time to ${restoreTime || 'none'}`;
+                  break;
+                }
+              }
+            }
+            break;
+          }
+
+          case 'DEPARTURE_STRUCK_TOGGLED': {
+            const item = state.departureList?.find(d => d.id === meta.id || d.name === logEntry.targetName);
+            if (item) {
+              item.departed = !item.departed;
+              revertedDescription = `Toggled departure strikethrough for ${item.name}`;
+            }
+            break;
+          }
+
+          case 'STAFF_MOVED':
+          case 'BULLPEN_UPDATED':
+          case 'STAFF_UNASSIGNED':
+          case 'STAFF_ASSIGNED': {
+            const staffId = meta.staffId || state.staff.find(s => 
+              `${s.firstName} ${s.lastName}`.trim().toLowerCase() === logEntry.targetName?.trim().toLowerCase() ||
+              (s.displayName && s.displayName.trim().toLowerCase() === logEntry.targetName?.trim().toLowerCase())
+            )?.id;
+
+            if (staffId) {
+              const originalFromType = meta.fromTargetType;
+              const originalFromId = meta.fromId;
+
+              // Clear from all current room and runner slots
+              for (const dept of state.departments) {
+                dept.runnerSlots = (dept.runnerSlots || []).filter(r => r.staffId !== staffId);
+                for (const rm of dept.rooms) {
+                  for (const s of rm.slots) {
+                    if (s.staffId === staffId) s.staffId = null;
+                  }
+                }
+              }
+              state.bullpenStaffIds = (state.bullpenStaffIds || []).filter(id => id !== staffId);
+
+              if (originalFromType === 'bullpen') {
+                state.bullpenStaffIds.push(staffId);
+                revertedDescription = `Returned ${logEntry.targetName || 'staff'} back to Bullpen`;
+              } else if (originalFromType === 'room_slot' && originalFromId) {
+                for (const dept of state.departments) {
+                  for (const rm of dept.rooms) {
+                    const slot = rm.slots.find(s => s.id === originalFromId);
+                    if (slot) {
+                      slot.staffId = staffId;
+                      revertedDescription = `Returned ${logEntry.targetName || 'staff'} back to Room ${rm.name}`;
+                      break;
+                    }
+                  }
+                }
+              } else if (originalFromType === 'runner_slot' && originalFromId) {
+                for (const dept of state.departments) {
+                  const r = dept.runnerSlots?.find(slot => slot.id === originalFromId);
+                  if (r) {
+                    r.staffId = staffId;
+                    revertedDescription = `Returned ${logEntry.targetName || 'staff'} back to Runner`;
+                    break;
+                  }
+                }
+              } else {
+                revertedDescription = `Returned ${logEntry.targetName || 'staff'} back to Unassigned Staff`;
+              }
+            }
+            break;
+          }
+
+          case 'STAFF_UPDATED': {
+            if (logEntry.details.toLowerCase().includes('student')) {
+              const staffId = meta.staffId || state.staff.find(s => 
+                `${s.firstName} ${s.lastName}`.trim().toLowerCase() === logEntry.targetName?.trim().toLowerCase() ||
+                (s.displayName && s.displayName.trim().toLowerCase() === logEntry.targetName?.trim().toLowerCase())
+              )?.id;
+              const staff = state.staff.find(s => s.id === staffId);
+              if (staff) {
+                const wasAssigned = logEntry.details.includes('Assigned student');
+                staff.hasStudent = !wasAssigned;
+                staff.studentName = wasAssigned ? undefined : (meta.previousStudentName || 'Student');
+                revertedDescription = wasAssigned
+                  ? `Removed student assignment from ${staff.lastName}`
+                  : `Restored student assignment for ${staff.lastName}`;
+              }
+            }
+            break;
+          }
+
+          default:
+            return NextResponse.json({ error: `Cannot automatically revert action type: ${logEntry.actionType}` }, { status: 400 });
+        }
+
+        await saveBoardState(state);
+        broadcastStateChange();
+        await recordAuditLog({
+          actionType: 'ACTION_REVERTED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          targetName: logEntry.targetName || '',
+          locationName: logEntry.locationName || '',
+          details: `Reverted past action [${logEntry.actionType.replace(/_/g, ' ')}] from ${new Date(logEntry.timestamp).toLocaleTimeString()}: ${revertedDescription || logEntry.details}`,
+          metadata: {
+            revertedLogId: logEntry.id,
+            originalActionType: logEntry.actionType
+          }
+        });
+
+        return NextResponse.json({ success: true, state, message: revertedDescription || 'Action reverted successfully.' });
+      }
 
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

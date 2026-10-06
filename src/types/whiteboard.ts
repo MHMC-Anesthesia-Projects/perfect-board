@@ -148,12 +148,14 @@ export interface AuditLogEntry {
     | 'AUTO_ASSIGNED_ROOMS'
     | 'UNIQUE_SCHEDULE_UPDATED'
     | 'ROOM_FUTURE_TIME_SET'
-    | 'ROOM_FUTURE_TIME_CLEARED';
+    | 'ROOM_FUTURE_TIME_CLEARED'
+    | 'ACTION_REVERTED';
   performedBy: string;
   userRole: UserRole;
   targetName?: string;
   locationName?: string;
   details: string;
+  metadata?: Record<string, any>;
 }
 
 export interface CallTeamItem {

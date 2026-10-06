@@ -1,5 +1,1023 @@
 [
   {
+    "id": "audit_1791321047147_jojon",
+    "timestamp": "2026-10-06T21:10:47.147Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 1",
+    "details": "Moved from OB Room 2 -> OB Room 1",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_ob_room_2_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_ob_room_1_slot_0",
+      "staffId": "staff_oneusap_anes_nguyenkat",
+      "fromLocation": "OB Room 2",
+      "toLocation": "OB Room 1"
+    }
+  },
+  {
+    "id": "audit_1791321047107_98kat",
+    "timestamp": "2026-10-06T21:10:47.107Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 1",
+    "details": "Moved from OB Room 2 -> OB Room 1",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_ob_room_2_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_ob_room_1_slot_0",
+      "staffId": "staff_oneusap_anes_nguyenkat",
+      "fromLocation": "OB Room 2",
+      "toLocation": "OB Room 1"
+    }
+  },
+  {
+    "id": "audit_1791321043601_0td4q",
+    "timestamp": "2026-10-06T21:10:43.601Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 2",
+    "details": "Moved from OB Room 3 -> OB Room 2",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_ob_room_3_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_ob_room_2_slot_0",
+      "staffId": "staff_oneusap_anes_nguyenkat",
+      "fromLocation": "OB Room 3",
+      "toLocation": "OB Room 2"
+    }
+  },
+  {
+    "id": "audit_1791321043546_rbel1",
+    "timestamp": "2026-10-06T21:10:43.546Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 2",
+    "details": "Moved from OB Room 3 -> OB Room 2",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_ob_room_3_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_ob_room_2_slot_0",
+      "staffId": "staff_oneusap_anes_nguyenkat",
+      "fromLocation": "OB Room 3",
+      "toLocation": "OB Room 2"
+    }
+  },
+  {
+    "id": "audit_1791321036677_7ztcw",
+    "timestamp": "2026-10-06T21:10:36.677Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 3",
+    "details": "Moved from OB Room 2 -> OB Room 3",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_ob_room_2_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_ob_room_3_slot_0",
+      "staffId": "staff_oneusap_anes_nguyenkat",
+      "fromLocation": "OB Room 2",
+      "toLocation": "OB Room 3"
+    }
+  },
+  {
+    "id": "audit_1791321033656_54wn4",
+    "timestamp": "2026-10-06T21:10:33.656Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 2",
+    "details": "Moved from OB Room 1 -> OB Room 2",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_ob_room_1_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_ob_room_2_slot_0",
+      "staffId": "staff_oneusap_anes_nguyenkat",
+      "fromLocation": "OB Room 1",
+      "toLocation": "OB Room 2"
+    }
+  },
+  {
+    "id": "audit_1791321025123_44dkg",
+    "timestamp": "2026-10-06T21:10:25.123Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 1",
+    "details": "Moved from OB Room 2 -> OB Room 1",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_ob_room_2_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_ob_room_1_slot_0",
+      "staffId": "staff_oneusap_anes_nguyenkat",
+      "fromLocation": "OB Room 2",
+      "toLocation": "OB Room 1"
+    }
+  },
+  {
+    "id": "audit_1791321025117_1rl3s",
+    "timestamp": "2026-10-06T21:10:25.117Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 1",
+    "details": "Moved from OB Room 2 -> OB Room 1",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_ob_room_2_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_ob_room_1_slot_0",
+      "staffId": "staff_oneusap_anes_nguyenkat",
+      "fromLocation": "OB Room 2",
+      "toLocation": "OB Room 1"
+    }
+  },
+  {
+    "id": "audit_1791321008557_y2s66",
+    "timestamp": "2026-10-06T21:10:08.557Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 2",
+    "details": "Moved from OB Room 1 -> OB Room 2",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_ob_room_1_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_ob_room_2_slot_0",
+      "staffId": "staff_oneusap_anes_nguyenkat",
+      "fromLocation": "OB Room 1",
+      "toLocation": "OB Room 2"
+    }
+  },
+  {
+    "id": "audit_1791320998704_pj690",
+    "timestamp": "2026-10-06T21:09:58.704Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 1",
+    "details": "Moved from OB Room 2 -> OB Room 1",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_ob_room_2_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_ob_room_1_slot_0",
+      "staffId": "staff_oneusap_anes_nguyenkat",
+      "fromLocation": "OB Room 2",
+      "toLocation": "OB Room 1"
+    }
+  },
+  {
+    "id": "audit_1791320998684_kvtpu",
+    "timestamp": "2026-10-06T21:09:58.684Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 1",
+    "details": "Moved from OB Room 2 -> OB Room 1",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_ob_room_2_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_ob_room_1_slot_0",
+      "staffId": "staff_oneusap_anes_nguyenkat",
+      "fromLocation": "OB Room 2",
+      "toLocation": "OB Room 1"
+    }
+  },
+  {
+    "id": "audit_1791320994473_2m5n7",
+    "timestamp": "2026-10-06T21:09:54.473Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 2",
+    "details": "Moved from OB Room 1 -> OB Room 2",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_ob_room_1_slot_0",
+      "toTargetType": "room_slot",
+      "toId": "dept_ob_room_2_slot_0",
+      "staffId": "staff_oneusap_anes_nguyenkat",
+      "fromLocation": "OB Room 1",
+      "toLocation": "OB Room 2"
+    }
+  },
+  {
+    "id": "audit_1791320768733_vakwj",
+    "timestamp": "2026-10-06T21:06:08.733Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320768587_2qr8s",
+    "timestamp": "2026-10-06T21:06:08.587Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320763682_4um1l",
+    "timestamp": "2026-10-06T21:06:03.682Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320763599_1j5ep",
+    "timestamp": "2026-10-06T21:06:03.599Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320758468_yc3ul",
+    "timestamp": "2026-10-06T21:05:58.468Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320758459_he1gr",
+    "timestamp": "2026-10-06T21:05:58.459Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320753883_4zohy",
+    "timestamp": "2026-10-06T21:05:53.883Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320753799_0q7ib",
+    "timestamp": "2026-10-06T21:05:53.799Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320753031_qu57r",
+    "timestamp": "2026-10-06T21:05:53.031Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320752931_nwvff",
+    "timestamp": "2026-10-06T21:05:52.931Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320750264_j0lvt",
+    "timestamp": "2026-10-06T21:05:50.264Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320750256_b8m3c",
+    "timestamp": "2026-10-06T21:05:50.256Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320743741_9ng4s",
+    "timestamp": "2026-10-06T21:05:43.741Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320743690_lfjw2",
+    "timestamp": "2026-10-06T21:05:43.690Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320742376_a4nhl",
+    "timestamp": "2026-10-06T21:05:42.376Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320742371_jmo4r",
+    "timestamp": "2026-10-06T21:05:42.371Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320741680_3ijo7",
+    "timestamp": "2026-10-06T21:05:41.680Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320741673_mff6a",
+    "timestamp": "2026-10-06T21:05:41.673Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320739829_nz03c",
+    "timestamp": "2026-10-06T21:05:39.829Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320739808_g5nyr",
+    "timestamp": "2026-10-06T21:05:39.808Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320738409_j63j5",
+    "timestamp": "2026-10-06T21:05:38.409Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320738402_cf9g4",
+    "timestamp": "2026-10-06T21:05:38.402Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320728462_sudqo",
+    "timestamp": "2026-10-06T21:05:28.462Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320728455_ddses",
+    "timestamp": "2026-10-06T21:05:28.455Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320725575_ux43p",
+    "timestamp": "2026-10-06T21:05:25.575Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320725567_7e50t",
+    "timestamp": "2026-10-06T21:05:25.567Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320723126_r3ini",
+    "timestamp": "2026-10-06T21:05:23.126Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320723112_4h3ax",
+    "timestamp": "2026-10-06T21:05:23.112Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320720225_16m57",
+    "timestamp": "2026-10-06T21:05:20.225Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320720194_5rtk3",
+    "timestamp": "2026-10-06T21:05:20.194Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320709470_ipuee",
+    "timestamp": "2026-10-06T21:05:09.470Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320709453_5995s",
+    "timestamp": "2026-10-06T21:05:09.453Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320704850_igs0n",
+    "timestamp": "2026-10-06T21:05:04.850Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320699965_ffwyh",
+    "timestamp": "2026-10-06T21:04:59.965Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320699942_hd9w3",
+    "timestamp": "2026-10-06T21:04:59.942Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320694820_kv1or",
+    "timestamp": "2026-10-06T21:04:54.820Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320348106_gazku",
+    "timestamp": "2026-10-06T20:59:08.106Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 1",
+    "details": "Marked breakfast break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ob_room_1_slot_0",
+      "breakType": "breakfast",
+      "breakValue": false,
+      "staffName": "Kat Nguyen"
+    }
+  },
+  {
+    "id": "audit_1791320334553_9fcg2",
+    "timestamp": "2026-10-06T20:58:54.553Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "Kat Nguyen",
+    "locationName": "OB Room 1",
+    "details": "Marked breakfast break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ob_room_1_slot_0",
+      "breakType": "breakfast",
+      "breakValue": true,
+      "staffName": "Kat Nguyen"
+    }
+  },
+  {
+    "id": "audit_1791320276435_6gc2o",
+    "timestamp": "2026-10-06T20:57:56.435Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Jacqueline Holton",
+    "locationName": "VILLAGE Room 7",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_village_room_7_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Jacqueline Holton"
+    }
+  },
+  {
+    "id": "audit_1791320276410_pbt66",
+    "timestamp": "2026-10-06T20:57:56.410Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Jacqueline Holton",
+    "locationName": "VILLAGE Room 7",
+    "details": "Marked lunch break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_village_room_7_slot_0",
+      "breakType": "lunch",
+      "breakValue": false,
+      "staffName": "Jacqueline Holton"
+    }
+  },
+  {
+    "id": "audit_1791320271319_y5ejy",
+    "timestamp": "2026-10-06T20:57:51.319Z",
+    "actionType": "LUNCH_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Jacqueline Holton",
+    "locationName": "VILLAGE Room 7",
+    "details": "Marked lunch break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_village_room_7_slot_0",
+      "breakType": "lunch",
+      "breakValue": true,
+      "staffName": "Jacqueline Holton"
+    }
+  },
+  {
+    "id": "audit_1791320246659_jslhe",
+    "timestamp": "2026-10-06T20:57:26.659Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Jacqueline Holton",
+    "locationName": "VILLAGE Room 7",
+    "details": "Marked breakfast break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_village_room_7_slot_0",
+      "breakType": "breakfast",
+      "breakValue": true,
+      "staffName": "Jacqueline Holton"
+    }
+  },
+  {
+    "id": "audit_1791320220668_wzzfh",
+    "timestamp": "2026-10-06T20:57:00.668Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked breakfast break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "breakfast",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320220571_qokk6",
+    "timestamp": "2026-10-06T20:57:00.571Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked breakfast break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "breakfast",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320216532_ozg44",
+    "timestamp": "2026-10-06T20:56:56.532Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked breakfast break as NOT DONE [ ]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "breakfast",
+      "breakValue": false,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791320187605_eh4q0",
+    "timestamp": "2026-10-06T20:56:27.605Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "Ver Hudzik",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked breakfast break as DONE [✓]",
+    "metadata": {
+      "targetType": "room_slot",
+      "targetId": "dept_ortho_room_8_slot_0",
+      "breakType": "breakfast",
+      "breakValue": true,
+      "staffName": "Ver Hudzik"
+    }
+  },
+  {
+    "id": "audit_1791248525005_p1vlt",
+    "timestamp": "2026-10-06T01:02:05.005Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "System Scheduler (1:00 AM Auto-Reset)",
+    "userRole": "superuser",
+    "details": "Daily 1:00 AM reset: Cleared breakfast and lunch break completion for all rooms, runners, and bullpen staff"
+  },
+  {
     "id": "audit_1791246372851_xgtgc",
     "timestamp": "2026-10-06T00:26:12.851Z",
     "actionType": "STAFF_UPDATED",

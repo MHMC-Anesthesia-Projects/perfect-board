@@ -33,7 +33,8 @@ import {
   AlertCircle,
   ArrowRight,
   MessageSquare,
-  CheckCheck
+  CheckCheck,
+  Undo2
 } from 'lucide-react';
 import { MagnetTile } from './MagnetTile';
 
@@ -74,6 +75,10 @@ interface MobileWhiteboardViewProps {
   reliefCount?: number;
   isCompletingRelief?: boolean;
   unreadCountsByPhone?: Record<string, number>;
+  onUndo?: () => void;
+  canUndo?: boolean;
+  undoCount?: number;
+  lastUndoDescription?: string;
 }
 
 export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
@@ -105,7 +110,11 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   onCompleteAllReliefs,
   reliefCount = 0,
   isCompletingRelief = false,
-  unreadCountsByPhone
+  unreadCountsByPhone,
+  onUndo,
+  canUndo = false,
+  undoCount = 0,
+  lastUndoDescription
 }) => {
   const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
 
@@ -535,6 +544,33 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
         </div>
 
         <div className="mobile-header-actions">
+          {/* Undo Button */}
+          {onUndo && (
+            <button
+              type="button"
+              className="mobile-header-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onUndo();
+              }}
+              style={{
+                opacity: canUndo ? 1 : 0.45,
+                color: canUndo ? 'var(--text-primary)' : 'var(--text-muted)',
+                cursor: canUndo ? 'pointer' : 'default',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 2
+              }}
+              title={canUndo ? `Undo: ${lastUndoDescription || 'last action'}` : 'Nothing to undo'}
+            >
+              <Undo2 size={16} />
+              {undoCount && undoCount > 0 ? (
+                <span style={{ fontSize: 10, fontWeight: 800 }}>{undoCount}</span>
+              ) : null}
+            </button>
+          )}
+
           {/* Theme Toggle */}
           <button
             type="button"

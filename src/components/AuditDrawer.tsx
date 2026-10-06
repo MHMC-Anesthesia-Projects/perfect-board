@@ -2,19 +2,56 @@
 
 import { apiUrl } from '@/lib/api';
 import React, { useState, useEffect, useCallback } from 'react';
-import { AuditLogEntry } from '@/types/whiteboard';
-import { FileSpreadsheet, Download, Search, Calendar, X, RefreshCw } from 'lucide-react';
+import { AuditLogEntry, UserRole } from '@/types/whiteboard';
+import { FileSpreadsheet, Download, Search, Calendar, X, RefreshCw, Undo2 } from 'lucide-react';
 
 interface AuditDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  currentUser?: { id: string; username: string; displayName: string; role: UserRole } | null;
+  onRevertAuditLog?: (log: AuditLogEntry) => Promise<boolean | void>;
 }
 
-export const AuditDrawer: React.FC<AuditDrawerProps> = ({ isOpen, onClose }) => {
+export const AuditDrawer: React.FC<AuditDrawerProps> = ({ isOpen, onClose, currentUser, onRevertAuditLog }) => {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [search, setSearch] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   const [loading, setLoading] = useState(false);
+  const [revertingId, setRevertingId] = useState<string | null>(null);
+
+  const isEditor = currentUser && (currentUser.role === 'board_runner' || currentUser.role === 'superuser');
+
+  const isRevertible = (log: AuditLogEntry) => {
+    const reversibleTypes = [
+      'BREAKFAST_TOGGLED',
+      'LUNCH_TOGGLED',
+      'ROOM_FUTURE_TIME_SET',
+      'ROOM_FUTURE_TIME_CLEARED',
+      'DEPARTURE_STRUCK_TOGGLED',
+      'STAFF_MOVED',
+      'STAFF_ASSIGNED',
+      'STAFF_UNASSIGNED',
+      'BULLPEN_UPDATED',
+      'STAFF_UPDATED'
+    ];
+    return reversibleTypes.includes(log.actionType);
+  };
+
+  const handleRevert = async (log: AuditLogEntry) => {
+    if (!onRevertAuditLog) return;
+    const confirmMsg = `Revert this action: "${log.actionType.replace(/_/g, ' ')}" for ${log.targetName || log.locationName || 'item'}?\n\nDetails: ${log.details}`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setRevertingId(log.id);
+    try {
+      await onRevertAuditLog(log);
+      await fetchLogs();
+    } catch (err) {
+      console.error('Failed to revert audit log entry:', err);
+    } finally {
+      setRevertingId(null);
+    }
+  };
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -178,6 +215,9 @@ export const AuditDrawer: React.FC<AuditDrawerProps> = ({ isOpen, onClose }) => 
                 <th style={{ padding: '8px 10px', width: 140 }}>Location</th>
                 <th style={{ padding: '8px 10px' }}>Details</th>
                 <th style={{ padding: '8px 10px', width: 120 }}>Operator</th>
+                {isEditor && onRevertAuditLog && (
+                  <th style={{ padding: '8px 10px', width: 85, textAlign: 'center' }}>Revert</th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -194,8 +234,8 @@ export const AuditDrawer: React.FC<AuditDrawerProps> = ({ isOpen, onClose }) => 
                         borderRadius: 4,
                         fontSize: 10,
                         fontWeight: 800,
-                        background: log.actionType.includes('BREAK') ? 'rgba(46,160,67,0.12)' : 'var(--surface-hover)',
-                        color: log.actionType.includes('BREAK') ? 'var(--marker-green)' : 'var(--accent-primary)'
+                        background: log.actionType.includes('BREAK') ? 'rgba(46,160,67,0.12)' : (log.actionType === 'ACTION_REVERTED' ? 'rgba(234,179,8,0.15)' : 'var(--surface-hover)'),
+                        color: log.actionType.includes('BREAK') ? 'var(--marker-green)' : (log.actionType === 'ACTION_REVERTED' ? '#ca8a04' : 'var(--accent-primary)')
                       }}>
                         {log.actionType.replace(/_/g, ' ')}
                       </span>
@@ -212,12 +252,44 @@ export const AuditDrawer: React.FC<AuditDrawerProps> = ({ isOpen, onClose }) => 
                     <td style={{ padding: '6px 10px', color: 'var(--text-muted)', fontSize: 11 }}>
                       {log.performedBy}
                     </td>
+                    {isEditor && onRevertAuditLog && (
+                      <td style={{ padding: '6px 10px', textAlign: 'center' }}>
+                        {isRevertible(log) ? (
+                          <button
+                            type="button"
+                            onClick={() => handleRevert(log)}
+                            disabled={revertingId === log.id}
+                            title={`Revert action: ${log.actionType.replace(/_/g, ' ')}`}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              padding: '3px 8px',
+                              borderRadius: 4,
+                              border: '1px solid var(--border-light)',
+                              background: 'var(--surface-hover)',
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: 'var(--text-primary)',
+                              cursor: revertingId === log.id ? 'not-allowed' : 'pointer',
+                              opacity: revertingId === log.id ? 0.5 : 1,
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <Undo2 size={12} className={revertingId === log.id ? 'spin-animation' : ''} />
+                            <span>{revertingId === log.id ? '...' : 'Revert'}</span>
+                          </button>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>—</span>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 );
               })}
               {logs.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={6} style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <td colSpan={isEditor && onRevertAuditLog ? 7 : 6} style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)' }}>
                     No audit records found.
                   </td>
                 </tr>

@@ -6,7 +6,7 @@ import {
   Sun, Moon, Shield, Lock, LogIn, LogOut, 
   RotateCw, FileSpreadsheet, Settings, 
   Keyboard, Clock, CheckCircle2, Mic, Sparkles,
-  Smartphone, Eraser, MessageSquare, CheckCheck 
+  Smartphone, Eraser, MessageSquare, CheckCheck, Undo2 
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -24,6 +24,10 @@ interface HeaderNavProps {
   onAutoAssign?: () => void;
   isAutoAssigning?: boolean;
   onCleanWhiteboard?: () => void;
+  onUndo?: () => void;
+  canUndo?: boolean;
+  undoCount?: number;
+  lastUndoDescription?: string;
   isSyncing: boolean;
   lastSyncTime?: string | null;
   isRightSidebarOpen?: boolean;
@@ -53,6 +57,10 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onAutoAssign,
   isAutoAssigning = false,
   onCleanWhiteboard,
+  onUndo,
+  canUndo = false,
+  undoCount = 0,
+  lastUndoDescription,
   isSyncing,
   lastSyncTime,
   isRightSidebarOpen = true,
@@ -289,6 +297,38 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           >
             <Eraser size={14} />
             <span>Clean Board</span>
+          </button>
+        )}
+
+        {/* In-Session Undo Button */}
+        {onUndo && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onUndo();
+            }}
+            title={canUndo ? `Undo: ${lastUndoDescription || 'last action'} (Ctrl+Z / ⌘Z)` : 'Nothing to undo (Ctrl+Z / ⌘Z)'}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 6,
+              background: canUndo ? 'var(--surface-hover)' : 'transparent',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 700,
+              color: canUndo ? 'var(--text-primary)' : 'var(--text-muted)',
+              cursor: canUndo ? 'pointer' : 'default',
+              opacity: canUndo ? 1 : 0.45,
+              transition: 'all 0.15s ease',
+              userSelect: 'none'
+            }}
+          >
+            <Undo2 size={14} />
+            <span>Undo{undoCount && undoCount > 0 ? ` (${undoCount})` : ''}</span>
           </button>
         )}
 
