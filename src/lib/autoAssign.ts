@@ -242,7 +242,7 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
     assignedStaffIds.add(mdId);
   };
 
-  // 2a. Rule: If a Doc is assigned to OB, assign them as a runner in OB
+  // 2a. Rule: If a Doc is assigned to OB during the day, assign them as a runner in OB
   const obDept = findDepartment(departments, 'dept_ob');
   if (obDept) {
     mdStaff.forEach(md => {
@@ -252,14 +252,29 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
         const mapped = mapScrapedRoomToDeptAndRoom(r);
         return mapped?.deptKey === 'dept_ob' || r.toUpperCase().includes('OB');
       });
+
+      // If MD has room assignments in another department (e.g. Ortho, West Pav),
+      // they MUST NOT be placed into OB!
+      if (rawRooms.length > 0 && !hasObRoom) {
+        return;
+      }
+
       const upperShift = (md.shift || '').toUpperCase();
       const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
-      const isActiveObShift = (upperShift.includes('C1,OB') && !upperShift.includes('POST') && !upperShift.includes('PRE')) ||
-        shiftParts.some(p => (p === 'OB' || p === 'OBCALL') && !p.startsWith('POST') && !p.startsWith('PRE'));
 
-      if (hasObRoom || isActiveObShift) {
-        assignAsRunner(obDept, md.id);
+      // Doctors who do NOT have an OB room assignment at MHMC:
+      // An overnight call doctor (e.g. C1,OB or Call 1/2/3/CV) or doctor on call at an outside facility (e.g. DrOBPM_HMWST)
+      // or doctor with no daytime rooms at MHMC does NOT have a daytime runner shift at MHMC!
+      if (!hasObRoom) {
+        const isCallDoc = upperShift.includes('C1') || upperShift.includes('CALL') ||
+                          upperShift.includes('NIGHT') || upperShift.includes('PM') ||
+                          shiftParts.some(p => p === 'OB' || p === 'OBCALL');
+        if (rawRooms.length === 0 || isCallDoc) {
+          return;
+        }
       }
+
+      assignAsRunner(obDept, md.id);
     });
   }
 
