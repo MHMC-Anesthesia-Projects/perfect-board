@@ -27,6 +27,8 @@ interface DepartmentGridProps {
   }) => void;
   onExecuteHandoff?: (targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
   onSetRelief?: (targetType: 'room_slot' | 'runner_slot', targetId: string, reliefStaffId: string, reliefTime?: string, notes?: string, isRedBox?: boolean) => void;
+  onRemoveRelief?: (targetType: 'room_slot' | 'runner_slot', targetId: string, forceDelete?: boolean) => void;
+  activeReliefStaffIds?: Set<string>;
   unreadCountsByPhone?: Record<string, number>;
 }
 
@@ -43,9 +45,41 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
   onOpenReliefModal,
   onExecuteHandoff,
   onSetRelief,
+  onRemoveRelief,
   onSetRoomFutureTime,
+  activeReliefStaffIds,
   unreadCountsByPhone
 }) => {
+  const [dragOverRoomSlotId, setDragOverRoomSlotId] = useState<string | null>(null);
+  const dragLeaveTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const cancelDragLeaveTimer = () => {
+    if (dragLeaveTimerRef.current) {
+      clearTimeout(dragLeaveTimerRef.current);
+      dragLeaveTimerRef.current = null;
+    }
+  };
+
+  const activateRoomDragNear = (slotId: string, hasStaff: boolean) => {
+    cancelDragLeaveTimer();
+    if (hasStaff) {
+      setDragOverRoomSlotId(slotId);
+    }
+  };
+
+  const scheduleRoomDragLeave = (slotId: string) => {
+    cancelDragLeaveTimer();
+    dragLeaveTimerRef.current = setTimeout(() => {
+      setDragOverRoomSlotId(prev => (prev === slotId ? null : prev));
+    }, 150);
+  };
+
+  React.useEffect(() => {
+    return () => {
+      cancelDragLeaveTimer();
+    };
+  }, []);
+
   const getStaffUnreadCount = (staffMember: Staff | null): number => {
     if (!staffMember?.phone || !unreadCountsByPhone) return 0;
     const clean = staffMember.phone.replace(/\D/g, '').slice(-10);
@@ -61,14 +95,12 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
 
   const handleZoneDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
     e.currentTarget.classList.add('drag-over');
   };
 
   const handleZoneDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
     if (!e.currentTarget.classList.contains('drag-over')) {
       e.currentTarget.classList.add('drag-over');
@@ -76,8 +108,6 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
   };
 
   const handleZoneDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
     e.currentTarget.classList.remove('drag-over');
   };
 
@@ -92,6 +122,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
     justDroppedRef.current = true;
     setTimeout(() => { justDroppedRef.current = false; }, 400);
 
+    cancelDragLeaveTimer();
+    setDragOverRoomSlotId(null);
     if (typeof document !== 'undefined') {
       document.body.classList.remove('dragging-staff');
       document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
@@ -118,8 +150,17 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
         staffId = (window as any).__activeDraggedStaff.staffId || '';
       }
 
-      if (staffId && onSetRelief) {
-        onSetRelief(targetType, targetId, staffId);
+      if (staffId) {
+        if (activeReliefStaffIds?.has(staffId)) {
+          const st = getStaffById(staffId);
+          const name = st ? `${st.lastName} (${st.credentials})` : 'This clinician';
+          alert(`${name} is already assigned as relief in another room! A person cannot appear in 2 relief boxes at the same time.`);
+          return;
+        }
+
+        if (onSetRelief) {
+          onSetRelief(targetType, targetId, staffId);
+        }
       }
     } catch (err) {
       console.error('Error handling relief drop:', err);
@@ -138,6 +179,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
     justDroppedRef.current = true;
     setTimeout(() => { justDroppedRef.current = false; }, 400);
 
+    cancelDragLeaveTimer();
+    setDragOverRoomSlotId(null);
     if (typeof document !== 'undefined') {
       document.body.classList.remove('dragging-staff');
       document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
@@ -207,6 +250,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
   };
 
   const handleTileDragEnd = () => {
+    cancelDragLeaveTimer();
+    setDragOverRoomSlotId(null);
     if (typeof window !== 'undefined') {
       (window as any).__activeDraggedStaff = null;
       document.body.classList.remove('dragging-staff');
@@ -353,17 +398,38 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                     return (
                       <div
                         key={slot.id}
-                        className="room-slot-row"
+                        className={`room-slot-row ${dragOverRoomSlotId === slot.id ? 'drag-near' : ''}`}
+                        onDragEnter={(e) => {
+                          e.preventDefault();
+                          activateRoomDragNear(slot.id, Boolean(assignedStaff));
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          activateRoomDragNear(slot.id, Boolean(assignedStaff));
+                        }}
+                        onDragLeave={() => {
+                          scheduleRoomDragLeave(slot.id);
+                        }}
                         style={{ flex: 1, display: 'flex', alignItems: 'center', width: '100%', height: '100%', gap: 3, minWidth: 0, position: 'relative' }}
                       >
                         {/* Primary Staff Drop Zone */}
                         <div
                           className="primary-slot-zone"
                           style={{ flex: 1, minWidth: 0, height: '100%' }}
-                          onDragEnter={handleZoneDragEnter}
-                          onDragOver={handleZoneDragOver}
-                          onDragLeave={handleZoneDragLeave}
+                          onDragEnter={(e) => {
+                            handleZoneDragEnter(e);
+                            activateRoomDragNear(slot.id, Boolean(assignedStaff));
+                          }}
+                          onDragOver={(e) => {
+                            handleZoneDragOver(e);
+                            activateRoomDragNear(slot.id, Boolean(assignedStaff));
+                          }}
+                          onDragLeave={(e) => {
+                            handleZoneDragLeave(e);
+                            scheduleRoomDragLeave(slot.id);
+                          }}
                           onDrop={e => {
+                            cancelDragLeaveTimer();
                             handleDrop(e, 'room_slot', slot.id, assignedStaff?.id);
                           }}
                         >
@@ -399,10 +465,44 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                             <span className="relief-arrow" title="Relief assignment">➔</span>
                             <div
                               className="relief-box"
-                              onDragEnter={handleZoneDragEnter}
-                              onDragOver={handleZoneDragOver}
-                              onDragLeave={handleZoneDragLeave}
-                              onDrop={(e) => handleReliefDrop(e, 'room_slot', slot.id)}
+                              draggable={isEditor}
+                              onDragStart={(e) => {
+                                if (!isEditor) return;
+                                const payloadObj = {
+                                  staffId: reliefStaff.id,
+                                  type: 'relief_slot',
+                                  id: slot.id,
+                                  sourceSlotId: slot.id,
+                                  sourceSlotType: 'room_slot'
+                                };
+                                const payload = JSON.stringify(payloadObj);
+                                e.dataTransfer.setData('application/json', payload);
+                                e.dataTransfer.setData('text/plain', payload);
+                                e.dataTransfer.setData('text', payload);
+                                e.dataTransfer.effectAllowed = 'all';
+
+                                if (typeof window !== 'undefined') {
+                                  (window as any).__activeDraggedStaff = payloadObj;
+                                  document.body.classList.add('dragging-staff');
+                                }
+                              }}
+                              onDragEnd={handleTileDragEnd}
+                              onDragEnter={(e) => {
+                                handleZoneDragEnter(e);
+                                activateRoomDragNear(slot.id, Boolean(assignedStaff));
+                              }}
+                              onDragOver={(e) => {
+                                handleZoneDragOver(e);
+                                activateRoomDragNear(slot.id, Boolean(assignedStaff));
+                              }}
+                              onDragLeave={(e) => {
+                                handleZoneDragLeave(e);
+                                scheduleRoomDragLeave(slot.id);
+                              }}
+                              onDrop={(e) => {
+                                cancelDragLeaveTimer();
+                                handleReliefDrop(e, 'room_slot', slot.id);
+                              }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (justDroppedRef.current) return;
@@ -417,7 +517,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                                   });
                                 }
                               }}
-                              title={`Relief: ${reliefStaff.lastName} (${reliefStaff.credentials}). Tap to edit/handoff or drop staff here to change relief.`}
+                              title={`Relief: ${reliefStaff.lastName} (${reliefStaff.credentials}). Drag back to Bullpen to remove, or tap to edit/handoff.`}
                             >
                               <div className="relief-identity">
                                 <span className="relief-name">{reliefStaff.lastName.toUpperCase()}</span>
@@ -427,13 +527,26 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                         ) : isOpenRedBox ? (
                           <div
                             className="relief-slot-target persistent-red-box"
-                            onDragEnter={handleZoneDragEnter}
-                            onDragOver={handleZoneDragOver}
-                            onDragLeave={handleZoneDragLeave}
-                            onDrop={(e) => handleReliefDrop(e, 'room_slot', slot.id)}
+                            onDragEnter={(e) => {
+                              handleZoneDragEnter(e);
+                              activateRoomDragNear(slot.id, Boolean(assignedStaff));
+                            }}
+                            onDragOver={(e) => {
+                              handleZoneDragOver(e);
+                              activateRoomDragNear(slot.id, Boolean(assignedStaff));
+                            }}
+                            onDragLeave={(e) => {
+                              handleZoneDragLeave(e);
+                              scheduleRoomDragLeave(slot.id);
+                            }}
+                            onDrop={(e) => {
+                              cancelDragLeaveTimer();
+                              handleReliefDrop(e, 'room_slot', slot.id);
+                            }}
                             onClick={(e) => {
                               e.stopPropagation();
                               if (justDroppedRef.current) return;
+                              // PHASE 2: Open modal to assign a clinician
                               if (onOpenReliefModal) {
                                 onOpenReliefModal({
                                   type: 'room_slot',
@@ -445,32 +558,52 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                                 });
                               }
                             }}
-                            title="3 PM Count: Red Box active. Tap to assign relief staff or drop staff here."
+                            title="Red Box active. Tap to assign relief clinician, or drop staff here."
                           >
-                            <span className="relief-slot-label">+ Relief (3 PM)</span>
+                            <span className="relief-slot-label">+ Relief</span>
+                            {isEditor && onRemoveRelief && (
+                              <button
+                                type="button"
+                                className="relief-quick-clear-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onRemoveRelief('room_slot', slot.id, true);
+                                }}
+                                title="Clear red box"
+                                aria-label="Clear red box"
+                              >
+                                ×
+                              </button>
+                            )}
                           </div>
-                        ) : isEditor ? (
+                        ) : (isEditor && assignedStaff) ? (
                           <div
-                            className="relief-slot-target"
-                            onDragEnter={handleZoneDragEnter}
-                            onDragOver={handleZoneDragOver}
-                            onDragLeave={handleZoneDragLeave}
-                            onDrop={(e) => handleReliefDrop(e, 'room_slot', slot.id)}
+                            className={`relief-slot-target ${dragOverRoomSlotId === slot.id ? 'drag-near-active' : ''}`}
+                            onDragEnter={(e) => {
+                              handleZoneDragEnter(e);
+                              activateRoomDragNear(slot.id, Boolean(assignedStaff));
+                            }}
+                            onDragOver={(e) => {
+                              handleZoneDragOver(e);
+                              activateRoomDragNear(slot.id, Boolean(assignedStaff));
+                            }}
+                            onDragLeave={(e) => {
+                              handleZoneDragLeave(e);
+                              scheduleRoomDragLeave(slot.id);
+                            }}
+                            onDrop={(e) => {
+                              cancelDragLeaveTimer();
+                              handleReliefDrop(e, 'room_slot', slot.id);
+                            }}
                             onClick={(e) => {
                               e.stopPropagation();
                               if (justDroppedRef.current) return;
-                              if (onOpenReliefModal) {
-                                onOpenReliefModal({
-                                  type: 'room_slot',
-                                  id: slot.id,
-                                  roomName: `Room ${room.name}`,
-                                  departmentName: dept.name,
-                                  currentStaff: assignedStaff || null,
-                                  currentRelief: null
-                                });
+                              // PHASE 1: DIRECT SINGLE CLICK TO DESIGNATE RED BOX!
+                              if (onSetRelief) {
+                                onSetRelief('room_slot', slot.id, '', '', '', true);
                               }
                             }}
-                            title="Drop staff here to designate as relief, or click to choose"
+                            title="Single click / tap to designate relief (Red Box), or drop staff here"
                           >
                             <span className="relief-slot-label">+ Relief</span>
                           </div>

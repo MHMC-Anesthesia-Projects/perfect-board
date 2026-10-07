@@ -1,5 +1,712 @@
 [
   {
+    "id": "audit_1791409407889_z8ley",
+    "timestamp": "2026-10-07T21:43:27.889Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "bullpen",
+      "staffId": "staff_oneusap_doc_choiseu",
+      "fromLocation": "",
+      "toLocation": "Bullpen (Available Staff)"
+    }
+  },
+  {
+    "id": "audit_1791409407426_h46ig",
+    "timestamp": "2026-10-07T21:43:27.426Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 5 (Restored Planned Red Box)",
+    "details": "Removed relief assignment for WEST PAV Room 5 (Restored Planned Red Box)"
+  },
+  {
+    "id": "audit_1791409405050_l3xzd",
+    "timestamp": "2026-10-07T21:43:25.050Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Choi (MD)",
+    "locationName": "WEST PAV Room 5",
+    "details": "Assigned relief: Choi (MD) relieving Bernell (MD) in WEST PAV Room 5"
+  },
+  {
+    "id": "audit_1791409402180_51ib4",
+    "timestamp": "2026-10-07T21:43:22.180Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "WEST PAV Room 5",
+    "details": "Marked WEST PAV Room 5 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791409400903_17094",
+    "timestamp": "2026-10-07T21:43:20.903Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "bullpen",
+      "staffId": "staff_oneusap_doc_choiseu",
+      "fromLocation": "",
+      "toLocation": "Bullpen (Available Staff)"
+    }
+  },
+  {
+    "id": "audit_1791409400309_6cq1s",
+    "timestamp": "2026-10-07T21:43:20.309Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 5",
+    "details": "Removed relief assignment for WEST PAV Room 5"
+  },
+  {
+    "id": "audit_1791409396237_e6aot",
+    "timestamp": "2026-10-07T21:43:16.237Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Choi (MD)",
+    "locationName": "WEST PAV Room 5",
+    "details": "Assigned relief: Choi (MD) relieving Bernell (MD) in WEST PAV Room 5"
+  },
+  {
+    "id": "audit_1791409392075_2k59d",
+    "timestamp": "2026-10-07T21:43:12.075Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "bullpen",
+      "staffId": "staff_oneusap_doc_choiseu",
+      "fromLocation": "",
+      "toLocation": "Bullpen (Available Staff)"
+    }
+  },
+  {
+    "id": "audit_1791409391498_xworf",
+    "timestamp": "2026-10-07T21:43:11.498Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 5",
+    "details": "Removed relief assignment for WEST PAV Room 5"
+  },
+  {
+    "id": "audit_1791409234287_kiqfk",
+    "timestamp": "2026-10-07T21:40:34.287Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "MAIN OR Room 4",
+    "details": "Marked MAIN OR Room 4 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791408689956_ry833",
+    "timestamp": "2026-10-07T21:31:29.956Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "bullpen",
+      "staffId": "staff_oneusap_doc_choiseu",
+      "fromLocation": "",
+      "toLocation": "Bullpen (Available Staff)"
+    }
+  },
+  {
+    "id": "audit_1791408689542_x4sc1",
+    "timestamp": "2026-10-07T21:31:29.542Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 2 (Restored Planned Red Box)",
+    "details": "Removed relief assignment for WEST PAV Room 2 (Restored Planned Red Box)"
+  },
+  {
+    "id": "audit_1791408686473_h4mge",
+    "timestamp": "2026-10-07T21:31:26.473Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Choi (MD)",
+    "locationName": "WEST PAV Room 2",
+    "details": "Assigned relief: Choi (MD) relieving Lam (CRNA) in WEST PAV Room 2"
+  },
+  {
+    "id": "audit_1791408683315_1yn3i",
+    "timestamp": "2026-10-07T21:31:23.315Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "WEST PAV Room 2",
+    "details": "Marked WEST PAV Room 2 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791408675512_4t789",
+    "timestamp": "2026-10-07T21:31:15.512Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from WEST PAV Room 4 -> Bullpen (Available Staff)",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_west_pav_room_4_slot_0",
+      "toTargetType": "bullpen",
+      "staffId": "staff_oneusap_doc_choiseu",
+      "fromLocation": "WEST PAV Room 4",
+      "toLocation": "Bullpen (Available Staff)"
+    }
+  },
+  {
+    "id": "audit_1791408668779_h9urv",
+    "timestamp": "2026-10-07T21:31:08.779Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "WEST PAV Room 4",
+    "details": "Moved from Bullpen -> WEST PAV Room 4",
+    "metadata": {
+      "fromTargetType": "bullpen",
+      "fromId": "staff_oneusap_doc_choiseu",
+      "toTargetType": "room_slot",
+      "toId": "dept_west_pav_room_4_slot_0",
+      "staffId": "staff_oneusap_doc_choiseu",
+      "fromLocation": "Bullpen",
+      "toLocation": "WEST PAV Room 4"
+    }
+  },
+  {
+    "id": "audit_1791408663025_uydza",
+    "timestamp": "2026-10-07T21:31:03.025Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "bullpen",
+      "staffId": "staff_oneusap_doc_choiseu",
+      "fromLocation": "",
+      "toLocation": "Bullpen (Available Staff)"
+    }
+  },
+  {
+    "id": "audit_1791408662329_u9rzu",
+    "timestamp": "2026-10-07T21:31:02.329Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "MAIN OR Room 7",
+    "details": "Removed relief assignment for MAIN OR Room 7"
+  },
+  {
+    "id": "audit_1791404858006_p225k",
+    "timestamp": "2026-10-07T20:27:38.006Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 9 (Restored Planned Red Box)",
+    "details": "Removed relief assignment for WEST PAV Room 9 (Restored Planned Red Box)"
+  },
+  {
+    "id": "audit_1791404706163_1he6z",
+    "timestamp": "2026-10-07T20:25:06.164Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "WEST PAV Room 3",
+    "details": "Marked WEST PAV Room 3 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791404509495_arrn3",
+    "timestamp": "2026-10-07T20:21:49.495Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Carvajal (MD)",
+    "locationName": "WEST PAV Room 9",
+    "details": "Assigned relief: Carvajal (MD) relieving Shevchenko (MD) in WEST PAV Room 9"
+  },
+  {
+    "id": "audit_1791402293506_vnron",
+    "timestamp": "2026-10-07T19:44:53.506Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "MAIN OR Room 11",
+    "details": "Removed relief assignment for MAIN OR Room 11"
+  },
+  {
+    "id": "audit_1791402181899_tilw2",
+    "timestamp": "2026-10-07T19:43:01.899Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Jeffcoat (MD)",
+    "locationName": "9th Floor Room NIR",
+    "details": "Assigned relief: Jeffcoat (MD) relieving Daumerie (MD) in 9th Floor Room NIR"
+  },
+  {
+    "id": "audit_1791402073596_3fqi2",
+    "timestamp": "2026-10-07T19:41:13.596Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "MAIN OR Room 4",
+    "details": "Removed relief assignment for MAIN OR Room 4"
+  },
+  {
+    "id": "audit_1791402063088_vas2z",
+    "timestamp": "2026-10-07T19:41:03.088Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Choi (MD)",
+    "locationName": "MAIN OR Room 4",
+    "details": "Assigned relief: Choi (MD) relieving Hughes (CRNA) in MAIN OR Room 4"
+  },
+  {
+    "id": "audit_1791402023085_89u34",
+    "timestamp": "2026-10-07T19:40:23.085Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Bullpen -> Bullpen (Available Staff)",
+    "metadata": {
+      "fromTargetType": "bullpen",
+      "fromId": "staff_oneusap_doc_choiseu",
+      "toTargetType": "bullpen",
+      "staffId": "staff_oneusap_doc_choiseu",
+      "fromLocation": "Bullpen",
+      "toLocation": "Bullpen (Available Staff)"
+    }
+  },
+  {
+    "id": "audit_1791401903438_99mpr",
+    "timestamp": "2026-10-07T19:38:23.438Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "VILLAGE Room 8",
+    "details": "Removed relief assignment for VILLAGE Room 8"
+  },
+  {
+    "id": "audit_1791401882486_nxper",
+    "timestamp": "2026-10-07T19:38:02.486Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Choi (MD)",
+    "locationName": "VILLAGE Room 8",
+    "details": "Assigned relief: Choi (MD) relieving Adams (CRNA) in VILLAGE Room 8"
+  },
+  {
+    "id": "audit_1791401822268_ii8zu",
+    "timestamp": "2026-10-07T19:37:02.268Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Choi (MD)",
+    "locationName": "MAIN OR Room 7",
+    "details": "Assigned relief: Choi (MD) relieving Ataga (CRNA) in MAIN OR Room 7"
+  },
+  {
+    "id": "audit_1791401819015_ythmc",
+    "timestamp": "2026-10-07T19:36:59.015Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "bullpen",
+      "staffId": "staff_oneusap_doc_choiseu",
+      "fromLocation": "",
+      "toLocation": "Bullpen (Available Staff)"
+    }
+  },
+  {
+    "id": "audit_1791401757072_kjdjn",
+    "timestamp": "2026-10-07T19:35:57.072Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "MAIN OR Room 4",
+    "details": "Marked MAIN OR Room 4 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401653622_tr8zh",
+    "timestamp": "2026-10-07T19:34:13.622Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Ataga (CRNA)",
+    "locationName": "WEST PAV Room 6",
+    "details": "Assigned relief: Ataga (CRNA) relieving Tran (CRNA) in WEST PAV Room 6"
+  },
+  {
+    "id": "audit_1791401645468_vgkd3",
+    "timestamp": "2026-10-07T19:34:05.468Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "WEST PAV Room 9",
+    "details": "Marked WEST PAV Room 9 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401642537_0diqn",
+    "timestamp": "2026-10-07T19:34:02.537Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "WEST PAV Room 6",
+    "details": "Marked WEST PAV Room 6 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401631912_6v12b",
+    "timestamp": "2026-10-07T19:33:51.912Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "MAIN OR Room 10",
+    "details": "Removed relief assignment for MAIN OR Room 10"
+  },
+  {
+    "id": "audit_1791401629312_p1jxl",
+    "timestamp": "2026-10-07T19:33:49.312Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "MAIN OR Room 10",
+    "details": "Marked MAIN OR Room 10 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401621334_m5ffc",
+    "timestamp": "2026-10-07T19:33:41.334Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "ENDO Room 3",
+    "details": "Removed relief assignment for ENDO Room 3"
+  },
+  {
+    "id": "audit_1791401619885_ylgi7",
+    "timestamp": "2026-10-07T19:33:39.885Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "ENDO Room 1",
+    "details": "Removed relief assignment for ENDO Room 1"
+  },
+  {
+    "id": "audit_1791401618524_siv16",
+    "timestamp": "2026-10-07T19:33:38.524Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "9th Floor Room IR",
+    "details": "Removed relief assignment for 9th Floor Room IR"
+  },
+  {
+    "id": "audit_1791401617346_99v66",
+    "timestamp": "2026-10-07T19:33:37.346Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "9th Floor Room EP2",
+    "details": "Removed relief assignment for 9th Floor Room EP2"
+  },
+  {
+    "id": "audit_1791401498015_eygml",
+    "timestamp": "2026-10-07T19:31:38.015Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "9th Floor Room IR",
+    "details": "Marked 9th Floor Room IR for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401485898_iiz9u",
+    "timestamp": "2026-10-07T19:31:25.898Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "9th Floor Room EP2",
+    "details": "Marked 9th Floor Room EP2 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401443324_g42jf",
+    "timestamp": "2026-10-07T19:30:43.324Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "ENDO Room 1",
+    "details": "Marked ENDO Room 1 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401438878_e2ytp",
+    "timestamp": "2026-10-07T19:30:38.878Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "ENDO Room 3",
+    "details": "Marked ENDO Room 3 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401438708_i6oac",
+    "timestamp": "2026-10-07T19:30:38.708Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "ENDO Room 3",
+    "details": "Marked ENDO Room 3 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401433834_nu07g",
+    "timestamp": "2026-10-07T19:30:33.834Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "ENDO Room 3",
+    "details": "Removed relief assignment for ENDO Room 3"
+  },
+  {
+    "id": "audit_1791401420432_sxg4l",
+    "timestamp": "2026-10-07T19:30:20.432Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "ENDO Room 3",
+    "details": "Marked ENDO Room 3 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401418711_0csxv",
+    "timestamp": "2026-10-07T19:30:18.711Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "ENDO Room 1",
+    "details": "Removed relief assignment for ENDO Room 1"
+  },
+  {
+    "id": "audit_1791401416625_njm0q",
+    "timestamp": "2026-10-07T19:30:16.625Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 7",
+    "details": "Removed relief assignment for WEST PAV Room 7"
+  },
+  {
+    "id": "audit_1791401414946_e742m",
+    "timestamp": "2026-10-07T19:30:14.946Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "ENDO Room 1",
+    "details": "Marked ENDO Room 1 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401266705_0fg5g",
+    "timestamp": "2026-10-07T19:27:46.705Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "WEST PAV Room 7",
+    "details": "Marked WEST PAV Room 7 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401264268_r71in",
+    "timestamp": "2026-10-07T19:27:44.268Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 7",
+    "details": "Removed relief assignment for WEST PAV Room 7"
+  },
+  {
+    "id": "audit_1791401262834_pa0bx",
+    "timestamp": "2026-10-07T19:27:42.834Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "ORTHO Room 8",
+    "details": "Removed relief assignment for ORTHO Room 8"
+  },
+  {
+    "id": "audit_1791401262013_nw2ab",
+    "timestamp": "2026-10-07T19:27:42.013Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "ORTHO Room 6",
+    "details": "Removed relief assignment for ORTHO Room 6"
+  },
+  {
+    "id": "audit_1791401260475_muiex",
+    "timestamp": "2026-10-07T19:27:40.475Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "WEST PAV Room 7",
+    "details": "Marked WEST PAV Room 7 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401259499_q9vbd",
+    "timestamp": "2026-10-07T19:27:39.499Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 7",
+    "details": "Removed relief assignment for WEST PAV Room 7"
+  },
+  {
+    "id": "audit_1791401258808_686pv",
+    "timestamp": "2026-10-07T19:27:38.808Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 6",
+    "details": "Removed relief assignment for WEST PAV Room 6"
+  },
+  {
+    "id": "audit_1791401021392_b8nve",
+    "timestamp": "2026-10-07T19:23:41.392Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "WEST PAV Room 7",
+    "details": "Marked WEST PAV Room 7 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401019462_p6dpm",
+    "timestamp": "2026-10-07T19:23:39.462Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "WEST PAV Room 6",
+    "details": "Marked WEST PAV Room 6 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401016676_j0twm",
+    "timestamp": "2026-10-07T19:23:36.676Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "ORTHO Room 6",
+    "details": "Marked ORTHO Room 6 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791401014842_ib77z",
+    "timestamp": "2026-10-07T19:23:34.842Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "ORTHO Room 8",
+    "details": "Marked ORTHO Room 8 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791398676267_w0zm2",
+    "timestamp": "2026-10-07T18:44:36.267Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "ORTHO Room 6",
+    "details": "Removed relief assignment for ORTHO Room 6"
+  },
+  {
+    "id": "audit_1791398672973_fado1",
+    "timestamp": "2026-10-07T18:44:32.973Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "ORTHO Room 6",
+    "details": "Marked ORTHO Room 6 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791398668820_2cw7y",
+    "timestamp": "2026-10-07T18:44:28.820Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "ORTHO Room 5",
+    "details": "Removed relief assignment for ORTHO Room 5"
+  },
+  {
     "id": "audit_1791329249701_r5fql",
     "timestamp": "2026-10-06T23:27:29.701Z",
     "actionType": "STAFF_UPDATED",

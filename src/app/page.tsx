@@ -576,6 +576,23 @@ export default function WhiteboardPage() {
     return set;
   }, [boardState?.departments]);
 
+  // Active relief clinicians assigned to any room or runner slot
+  const activeReliefStaffIds = useMemo(() => {
+    const set = new Set<string>();
+    if (!boardState?.departments) return set;
+    for (const dept of boardState.departments) {
+      for (const room of dept.rooms) {
+        for (const slot of room.slots) {
+          if (slot.relief?.staffId) set.add(slot.relief.staffId);
+        }
+      }
+      for (const r of dept.runnerSlots || []) {
+        if (r.relief?.staffId) set.add(r.relief.staffId);
+      }
+    }
+    return set;
+  }, [boardState?.departments]);
+
   // Bullpen staff strictly excluding any active runners
   const effectiveBullpenStaffIds = useMemo(() => {
     return (boardState?.bullpenStaffIds || []).filter(id => !activeRunnerStaffIds.has(id));
@@ -953,6 +970,13 @@ export default function WhiteboardPage() {
       return;
     }
 
+    if (fromData.type === 'relief_slot') {
+      const sourceSlotId = fromData.id || (fromData as any).sourceSlotId;
+      await handleRemoveRelief('room_slot', sourceSlotId);
+      await executeDropStaff({ staffId: fromData.staffId, type: 'unassigned' }, toType, toId);
+      return;
+    }
+
     // Check if moving from a room_slot that has relief attached
     const reliefRoom = findStaffRoomWithRelief(fromData.staffId, fromData.id);
     if (reliefRoom && reliefRoom.slot.id !== toId) {
@@ -1040,7 +1064,7 @@ export default function WhiteboardPage() {
         if (assignedStaff) {
           setToastMessage(`Relief assigned: ${assignedStaff.lastName}`);
         } else if (isRedBox) {
-          setToastMessage('3 PM Count: Red Box activated');
+          setToastMessage(`Planned relief for ${targetStaffName}`);
         } else {
           setToastMessage('Relief assigned');
         }
@@ -1050,7 +1074,7 @@ export default function WhiteboardPage() {
         pushUndoAction(
           assignedStaff
             ? `Assigned relief ${assignedStaff.lastName} to ${targetStaffName}`
-            : (isRedBox ? `Designated 3 PM Red Box for ${targetStaffName}` : `Relief assigned for ${targetStaffName}`),
+            : (isRedBox ? `Planned relief for ${targetStaffName}` : `Relief assigned for ${targetStaffName}`),
           async () => {
             if (savedPrevRelief) {
               await handleSetRelief(targetType, targetId, savedPrevRelief.staffId || '', savedPrevRelief.time, savedPrevRelief.notes, savedPrevRelief.isRedBox);
@@ -1071,7 +1095,7 @@ export default function WhiteboardPage() {
     enable: boolean
   ) => {
     if (enable) {
-      await handleSetRelief(targetType, targetId, '', '3:00 PM', '', true);
+      await handleSetRelief(targetType, targetId, '', '', '', true);
     } else {
       await handleRemoveRelief(targetType, targetId);
     }
@@ -1079,7 +1103,8 @@ export default function WhiteboardPage() {
 
   const handleRemoveRelief = async (
     targetType: 'room_slot' | 'runner_slot',
-    targetId: string
+    targetId: string,
+    forceDelete = false
   ) => {
     if (!isEditor) {
       setIsLoginModalOpen(true);
@@ -1121,15 +1146,19 @@ export default function WhiteboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'REMOVE_RELIEF',
-          payload: { targetType, targetId },
+          payload: { targetType, targetId, forceDelete },
           user: currentUser
         })
       });
       const data = await res.json();
       if (data.state) {
         setBoardState(data.state);
-        setToastMessage('Relief assignment removed');
-        setTimeout(() => setToastMessage(null), 2500);
+        if (previousRelief?.isRedBox && previousRelief?.staffId && !forceDelete) {
+          setToastMessage(`Relief removed • Planned Red Box restored for ${targetStaffName}`);
+        } else {
+          setToastMessage('Relief assignment removed');
+        }
+        setTimeout(() => setToastMessage(null), 3000);
 
         if (previousRelief) {
           const savedRelief = previousRelief;
@@ -1601,6 +1630,32 @@ export default function WhiteboardPage() {
       return;
     }
 
+    if (fromData.type === 'relief_slot') {
+      const sourceSlotId = fromData.id || (fromData as any).sourceSlotId;
+      await handleRemoveRelief('room_slot', sourceSlotId);
+      const res = await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'MOVE_STAFF',
+          payload: {
+            fromTargetType: 'unassigned',
+            toTargetType: 'bullpen',
+            staffId: fromData.staffId
+          },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+        const st = boardState?.staff.find(s => s.id === fromData.staffId);
+        setToastMessage(`${st ? st.lastName : 'Relief clinician'} returned to Bullpen`);
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+      return;
+    }
+
     const reliefRoom = findStaffRoomWithRelief(fromData.staffId, fromData.id);
     if (reliefRoom) {
       const staff = boardState?.staff.find(s => s.id === fromData.staffId);
@@ -1773,6 +1828,19 @@ export default function WhiteboardPage() {
   const handleDropToUnassignedDrawer = (fromData: { staffId: string; type: string; id?: string; targetGroup?: 'MD' | 'CRNA' | 'Infrequent' }) => {
     if (!isEditor) {
       setIsLoginModalOpen(true);
+      return;
+    }
+
+    if (fromData.type === 'relief_slot') {
+      const sourceSlotId = fromData.id || (fromData as any).sourceSlotId;
+      handleRemoveRelief('room_slot', sourceSlotId).then(async () => {
+        if (fromData.targetGroup) {
+          await handleSetStaffInfrequent(fromData.staffId, fromData.targetGroup === 'Infrequent');
+        }
+        const st = boardState?.staff.find(s => s.id === fromData.staffId);
+        setToastMessage(`${st ? st.lastName : 'Relief clinician'} returned to Available Staff`);
+        setTimeout(() => setToastMessage(null), 3000);
+      });
       return;
     }
 
@@ -2286,6 +2354,7 @@ export default function WhiteboardPage() {
           }}
           onExecuteHandoff={handleExecuteHandoff}
           onRemoveRelief={handleRemoveRelief}
+          onSetRelief={handleSetRelief}
           onOpenReliefTextModal={() => setIsReliefTextModalOpen(true)}
           onCompleteAllReliefs={handleTriggerCompleteAllReliefs}
           reliefCount={totalScheduledReliefsCount}
@@ -2341,6 +2410,7 @@ export default function WhiteboardPage() {
             bullpenBreaks={boardState.bullpenBreaks || {}}
             staff={boardState.staff}
             currentUserRole={currentUserRole}
+            activeReliefStaffIds={activeReliefStaffIds}
             onSelectStaff={handleSelectStaff}
             onDropToBullpen={handleDropToBullpen}
             onMoveStaffToUnassigned={handleMoveStaffToUnassigned}
@@ -2368,6 +2438,7 @@ export default function WhiteboardPage() {
           departments={boardState.departments}
           staff={boardState.staff}
           currentUserRole={currentUserRole}
+          activeReliefStaffIds={activeReliefStaffIds}
           onToggleBreak={handleToggleBreak}
           onSelectStaff={handleSelectStaff}
           onSelectEmptySlot={(type, id, label, roomId, currentFutureTime) => {
@@ -2391,6 +2462,7 @@ export default function WhiteboardPage() {
           }}
           onExecuteHandoff={handleExecuteHandoff}
           onSetRelief={handleSetRelief}
+          onRemoveRelief={handleRemoveRelief}
           unreadCountsByPhone={unreadCountsByPhone}
         />
 
@@ -2435,6 +2507,7 @@ export default function WhiteboardPage() {
         bullpenStaffIds={effectiveBullpenStaffIds}
         bullpenBreaks={boardState.bullpenBreaks || {}}
         currentUserRole={currentUserRole}
+        activeReliefStaffIds={activeReliefStaffIds}
         onSelectStaff={handleSelectStaff}
         onOpenAddStaff={() => setIsAdminModalOpen(true)}
         onDropToBullpen={handleDropToUnassignedDrawer}
@@ -2530,6 +2603,7 @@ export default function WhiteboardPage() {
         target={reliefTarget}
         staff={boardState.staff}
         currentUserRole={currentUserRole}
+        activeReliefStaffIds={activeReliefStaffIds}
         onClose={() => setReliefTarget(null)}
         onSetRelief={handleSetRelief}
         onRemoveRelief={handleRemoveRelief}

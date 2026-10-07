@@ -15,6 +15,7 @@ interface BullpenSidebarProps {
   onMoveStaffToUnassigned: (staffId: string) => void;
   onToggleCollapse: () => void;
   onToggleBreak?: (breakType: 'breakfast' | 'lunch', staffId: string, currentValue: boolean) => void;
+  activeReliefStaffIds?: Set<string>;
   unreadCountsByPhone?: Record<string, number>;
 }
 
@@ -49,6 +50,7 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
   onMoveStaffToUnassigned,
   onToggleCollapse,
   onToggleBreak,
+  activeReliefStaffIds,
   unreadCountsByPhone
 }) => {
   const getStaffUnreadCount = (staffMember: Staff | null): number => {
@@ -184,6 +186,7 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
           <div className="bullpen-tiles-container">
             {bullpenStaff.map((s, idx) => {
               const b = bullpenBreaks?.[s.id];
+              const isRelief = Boolean(activeReliefStaffIds?.has(s.id));
               return (
                 <div key={s.id} className="bullpen-magnet-row" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <span
@@ -212,6 +215,8 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
                       lunchDone={b?.lunchDone ?? false}
                       currentUserRole={currentUserRole}
                       unreadMessageCount={getStaffUnreadCount(s)}
+                      isAssignedRelief={isRelief}
+                      isDraggable={isEditor && !isRelief}
                       onToggleBreak={(breakType, currentValue) => {
                         if (onToggleBreak) {
                           onToggleBreak(breakType, s.id, currentValue);

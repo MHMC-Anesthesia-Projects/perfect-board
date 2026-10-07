@@ -69,6 +69,7 @@ interface MobileWhiteboardViewProps {
   }) => void;
   onExecuteHandoff?: (targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
   onRemoveRelief?: (targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
+  onSetRelief?: (targetType: 'room_slot' | 'runner_slot', targetId: string, reliefStaffId: string, reliefTime?: string, notes?: string, isRedBox?: boolean) => void;
   onOpenReliefTextModal?: () => void;
   onCompleteAllReliefs?: () => void;
   reliefCount?: number;
@@ -105,6 +106,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   onOpenReliefModal,
   onExecuteHandoff,
   onRemoveRelief,
+  onSetRelief,
   onOpenReliefTextModal,
   onCompleteAllReliefs,
   reliefCount = 0,
@@ -969,55 +971,77 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                     </div>
                                   </div>
                                 ) : isOpenRedBox ? (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (onOpenReliefModal) {
-                                        onOpenReliefModal({
-                                          type: 'room_slot',
-                                          id: slot.id,
-                                          roomName: `Room ${room.name}`,
-                                          departmentName: activeDepartment.name,
-                                          currentStaff: assignedStaff || null,
-                                          currentRelief: slot.relief
-                                        });
-                                      }
-                                    }}
-                                    style={{
-                                      padding: '2px 6px',
-                                      borderRadius: 4,
-                                      border: '1.5px dashed var(--marker-red, #dc2626)',
-                                      background: 'rgba(239, 68, 68, 0.12)',
-                                      color: 'var(--marker-red, #dc2626)',
-                                      fontSize: 10,
-                                      fontWeight: 800,
-                                      cursor: 'pointer',
-                                      flexShrink: 0,
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 3
-                                    }}
-                                    title="3 PM Count: Tap to assign relief"
-                                  >
-                                    <Clock size={10} />
-                                    <span>+ Relief (3 PM)</span>
-                                  </button>
-                                ) : isEditor && onOpenReliefModal ? (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (onOpenReliefModal) {
+                                          onOpenReliefModal({
+                                            type: 'room_slot',
+                                            id: slot.id,
+                                            roomName: `Room ${room.name}`,
+                                            departmentName: activeDepartment.name,
+                                            currentStaff: assignedStaff || null,
+                                            currentRelief: slot.relief
+                                          });
+                                        }
+                                      }}
+                                      style={{
+                                        padding: '2px 6px',
+                                        borderRadius: 4,
+                                        border: '1.5px dashed var(--marker-red, #dc2626)',
+                                        background: 'rgba(239, 68, 68, 0.12)',
+                                        color: 'var(--marker-red, #dc2626)',
+                                        fontSize: 10,
+                                        fontWeight: 800,
+                                        cursor: 'pointer',
+                                        flexShrink: 0,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 3
+                                      }}
+                                      title="Red Box: Tap to assign relief clinician"
+                                    >
+                                      <Clock size={10} />
+                                      <span>+ Relief</span>
+                                    </button>
+                                    {isEditor && onRemoveRelief && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          onRemoveRelief('room_slot', slot.id);
+                                        }}
+                                        style={{
+                                          padding: '2px 5px',
+                                          borderRadius: 4,
+                                          border: 'none',
+                                          background: 'rgba(239, 68, 68, 0.15)',
+                                          color: 'var(--marker-red, #dc2626)',
+                                          fontSize: 11,
+                                          fontWeight: 900,
+                                          cursor: 'pointer',
+                                          lineHeight: 1
+                                        }}
+                                        title="Clear red box"
+                                        aria-label="Clear red box"
+                                      >
+                                        ×
+                                      </button>
+                                    )}
+                                  </div>
+                                ) : isEditor ? (
                                   <button
                                     type="button"
                                     className="relief-add-trigger"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      onOpenReliefModal({
-                                        type: 'room_slot',
-                                        id: slot.id,
-                                        roomName: `Room ${room.name}`,
-                                        departmentName: activeDepartment.name,
-                                        currentStaff: assignedStaff || null,
-                                        currentRelief: null
-                                      });
+                                      if (onSetRelief) {
+                                        onSetRelief('room_slot', slot.id, '', '', '', true);
+                                      }
                                     }}
+                                    title="Single tap to designate relief (Red Box)"
                                   >
                                     <Clock size={10} />
                                     <span>Relief</span>

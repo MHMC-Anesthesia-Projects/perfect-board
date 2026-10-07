@@ -18,6 +18,7 @@ interface BullpenProps {
   onSetStaffInfrequent?: (staffId: string, isInfrequent: boolean) => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  activeReliefStaffIds?: Set<string>;
   unreadCountsByPhone?: Record<string, number>;
 }
 
@@ -47,6 +48,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
   onSetStaffInfrequent,
   isCollapsed: propIsCollapsed,
   onToggleCollapse,
+  activeReliefStaffIds,
   unreadCountsByPhone
 }) => {
   const getStaffUnreadCount = (staffMember: Staff | null): number => {
@@ -493,20 +495,25 @@ export const Bullpen: React.FC<BullpenProps> = ({
                   )}
                 </div>
                 <div className="bullpen-bin-content">
-                  {bin.items.map(s => (
-                    <MagnetTile
-                      key={s.id}
-                      staff={s}
-                      slotId={s.id}
-                      slotType="unassigned"
-                      showBreaks={false}
-                      currentUserRole={currentUserRole}
-                      unreadMessageCount={getStaffUnreadCount(s)}
-                      onSelectStaff={onSelectStaff}
-                      onDragStart={(e) => handleTileDragStart(e, s)}
-                      onDragEnd={handleTileDragEnd}
-                    />
-                  ))}
+                  {bin.items.map(s => {
+                    const isRelief = Boolean(activeReliefStaffIds?.has(s.id));
+                    return (
+                      <MagnetTile
+                        key={s.id}
+                        staff={s}
+                        slotId={s.id}
+                        slotType="unassigned"
+                        showBreaks={false}
+                        currentUserRole={currentUserRole}
+                        unreadMessageCount={getStaffUnreadCount(s)}
+                        isAssignedRelief={isRelief}
+                        isDraggable={!isRelief && (currentUserRole === 'board_runner' || currentUserRole === 'superuser')}
+                        onSelectStaff={onSelectStaff}
+                        onDragStart={(e) => handleTileDragStart(e, s)}
+                        onDragEnd={handleTileDragEnd}
+                      />
+                    );
+                  })}
                   {bin.items.length === 0 && (
                     <div style={{
                       width: '100%',

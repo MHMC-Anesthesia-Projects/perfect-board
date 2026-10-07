@@ -1223,9 +1223,9 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                         cursor: 'pointer',
                         whiteSpace: 'nowrap'
                       }}
-                      title="Add a dashed red box for this room to mark it for the 3 PM count"
+                      title="Add an open red box to plan relief for this room"
                     >
-                      🟥 Add Red Box (3 PM)
+                      🟥 Add Relief Box
                     </button>
                   )}
 

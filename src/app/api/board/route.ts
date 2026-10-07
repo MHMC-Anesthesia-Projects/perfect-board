@@ -1183,11 +1183,13 @@ export async function POST(req: NextRequest) {
           for (const room of dept.rooms) {
             const slot = room.slots.find(s => s.id === targetId);
             if (slot) {
+              const wasPreviouslyRedBox = Boolean(slot.relief?.isRedBox);
+              const isPlannedRedBox = isRedBox !== undefined ? Boolean(isRedBox) : wasPreviouslyRedBox;
               slot.relief = {
                 staffId: reliefStaffId || null,
-                time: reliefTime || '3:00 PM',
-                notes: notes || '',
-                isRedBox: Boolean(isRedBox || !reliefStaffId)
+                time: reliefTime || slot.relief?.time || '3:00 PM',
+                notes: notes !== undefined ? notes : (slot.relief?.notes || ''),
+                isRedBox: Boolean(isPlannedRedBox || !reliefStaffId)
               };
               const outgoing = state.staff.find(s => s.id === slot.staffId);
               if (outgoing) outgoingStaffName = `${outgoing.lastName} (${outgoing.credentials})`;
@@ -1221,7 +1223,7 @@ export async function POST(req: NextRequest) {
         if (currentUserRole === 'basic_user') {
           return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
         }
-        const { targetType, targetId } = payload;
+        const { targetType, targetId, forceDelete } = payload;
         let targetLocation = '';
 
         if (targetType === 'runner_slot') {
@@ -1237,9 +1239,21 @@ export async function POST(req: NextRequest) {
           for (const dept of state.departments) {
             for (const room of dept.rooms) {
               const slot = room.slots.find(s => s.id === targetId);
-              if (slot) {
-                slot.relief = null;
-                targetLocation = `${dept.name} Room ${room.name}`;
+              if (slot && slot.relief) {
+                // If this room had a planned relief box (isRedBox), and had a clinician assigned,
+                // removing that clinician returns the planned red box reminder!
+                if (!forceDelete && slot.relief.isRedBox && slot.relief.staffId) {
+                  slot.relief = {
+                    staffId: null,
+                    time: slot.relief.time || '3:00 PM',
+                    notes: slot.relief.notes || '',
+                    isRedBox: true
+                  };
+                  targetLocation = `${dept.name} Room ${room.name} (Restored Planned Red Box)`;
+                } else {
+                  slot.relief = null;
+                  targetLocation = `${dept.name} Room ${room.name}`;
+                }
                 break;
               }
             }

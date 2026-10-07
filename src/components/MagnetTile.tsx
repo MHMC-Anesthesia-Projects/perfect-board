@@ -19,6 +19,7 @@ interface MagnetTileProps {
   onUnassign?: () => void;
   isCompact?: boolean;
   isDraggable?: boolean;
+  isAssignedRelief?: boolean;
   unreadMessageCount?: number;
 }
 
@@ -37,11 +38,12 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   onUnassign,
   isCompact = false,
   isDraggable: propIsDraggable,
+  isAssignedRelief = false,
   unreadMessageCount = 0
 }) => {
-  const isDraggable = propIsDraggable !== undefined 
+  const isDraggable = !isAssignedRelief && (propIsDraggable !== undefined 
     ? propIsDraggable 
-    : (currentUserRole === 'board_runner' || currentUserRole === 'superuser');
+    : (currentUserRole === 'board_runner' || currentUserRole === 'superuser'));
 
   const canShowBreaks = showBreaks !== undefined
     ? showBreaks
@@ -79,16 +81,18 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
 
   return (
     <div
-      className={`magnet-tile ${isCompact ? 'compact' : ''} cred-tile-${staff.credentials} ${unreadMessageCount > 0 ? 'has-unread-message' : ''}`}
+      className={`magnet-tile ${isCompact ? 'compact' : ''} cred-tile-${staff.credentials} ${unreadMessageCount > 0 ? 'has-unread-message' : ''} ${isAssignedRelief ? 'is-relief-assigned' : ''}`}
       draggable={isDraggable}
       onDragStart={handleDrag}
       onDragEnd={handleDragEnd}
       onClick={handleTileClick}
-      title={currentUserRole === 'view_only'
-        ? `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials})${staff.hasStudent ? ` • 🎓 Student: ${staff.studentName || 'Assigned'}` : ''} • Tap to login`
-        : `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials})${staff.hasStudent ? ` • 🎓 Student: ${staff.studentName || 'Assigned'}` : ''} • Phone: ${staff.phone}${unreadMessageCount > 0 ? ` • ${unreadMessageCount} NEW MESSAGE(S)` : ''}`}
+      title={isAssignedRelief
+        ? `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials}) • Currently assigned as relief. Cannot be assigned to another relief box.`
+        : (currentUserRole === 'view_only'
+          ? `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials})${staff.hasStudent ? ` • 🎓 Student: ${staff.studentName || 'Assigned'}` : ''} • Tap to login`
+          : `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials})${staff.hasStudent ? ` • 🎓 Student: ${staff.studentName || 'Assigned'}` : ''} • Phone: ${staff.phone}${unreadMessageCount > 0 ? ` • ${unreadMessageCount} NEW MESSAGE(S)` : ''}`)}
       style={{
-        cursor: isDraggable ? 'grab' : 'pointer'
+        cursor: isDraggable ? 'grab' : (isAssignedRelief ? 'not-allowed' : 'pointer')
       }}
     >
       {/* Staff Name (credentials color-coded via left accent stripe) */}
@@ -98,6 +102,11 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
             ? staff.displayName.toUpperCase() 
             : `${staff.lastName.toUpperCase()}${staff.firstName ? ` ${staff.firstName[0]}.` : ''}`}
         </span>
+        {isAssignedRelief && (
+          <span className="magnet-tile-relief-tag" title="Assigned as relief">
+            RELIEF
+          </span>
+        )}
         {staff.hasStudent && (
           <span
             className="magnet-student-badge"

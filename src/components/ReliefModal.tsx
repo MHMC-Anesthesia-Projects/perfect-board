@@ -18,8 +18,9 @@ interface ReliefModalProps {
   staff: Staff[];
   currentUserRole: UserRole;
   onSetRelief: (targetType: 'room_slot' | 'runner_slot', targetId: string, reliefStaffId: string, reliefTime?: string, notes?: string, isRedBox?: boolean) => void;
-  onRemoveRelief: (targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
+  onRemoveRelief: (targetType: 'room_slot' | 'runner_slot', targetId: string, forceDelete?: boolean) => void;
   onExecuteHandoff: (targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
+  activeReliefStaffIds?: Set<string>;
 }
 
 export const ReliefModal: React.FC<ReliefModalProps> = ({
@@ -30,7 +31,8 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
   currentUserRole,
   onSetRelief,
   onRemoveRelief,
-  onExecuteHandoff
+  onExecuteHandoff,
+  activeReliefStaffIds
 }) => {
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
   const [search, setSearch] = useState<string>('');
@@ -103,7 +105,7 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
   };
 
   const handleMarkOpenRedBox = () => {
-    onSetRelief(target.type, target.id, '', '3:00 PM', notes.trim(), true);
+    onSetRelief(target.type, target.id, '', target.currentRelief?.time || '', notes.trim(), true);
     onClose();
   };
 
@@ -113,8 +115,8 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
     onClose();
   };
 
-  const handleRemove = () => {
-    onRemoveRelief(target.type, target.id);
+  const handleRemove = (forceDelete = false) => {
+    onRemoveRelief(target.type, target.id, forceDelete);
     onClose();
   };
 
@@ -397,17 +399,22 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
                   </div>
                   {lateStaff.map(s => {
                     const isSelected = selectedStaffId === s.id;
+                    const isAlreadyRelief = Boolean(activeReliefStaffIds?.has(s.id) && s.id !== target.currentRelief?.staffId);
                     return (
                       <div
                         key={s.id}
-                        onClick={() => setSelectedStaffId(s.id)}
+                        onClick={() => {
+                          if (isAlreadyRelief) return;
+                          setSelectedStaffId(s.id);
+                        }}
                         style={{
                           padding: '7px 12px',
                           borderBottom: '1px solid var(--border-light, #f1f5f9)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          cursor: 'pointer',
+                          cursor: isAlreadyRelief ? 'not-allowed' : 'pointer',
+                          opacity: isAlreadyRelief ? 0.48 : 1,
                           background: isSelected ? 'rgba(239, 68, 68, 0.12)' : 'transparent'
                         }}
                       >
@@ -420,7 +427,8 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            background: isSelected ? 'var(--marker-red)' : 'transparent'
+                            background: isSelected ? 'var(--marker-red)' : 'transparent',
+                            opacity: isAlreadyRelief ? 0.4 : 1
                           }}>
                             {isSelected && <Check size={10} color="#ffffff" />}
                           </div>
@@ -432,6 +440,11 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
                               <span className={`magnet-cred cred-${s.credentials}`} style={{ fontSize: 8.5, padding: '0 4px' }}>
                                 {s.credentials}
                               </span>
+                              {isAlreadyRelief && (
+                                <span style={{ fontSize: 8.5, fontWeight: 800, color: '#dc2626', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0 4px', borderRadius: 3 }}>
+                                  ALREADY RELIEF
+                                </span>
+                              )}
                             </div>
                             <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                               Shift: {s.shift || 'Late'} • Phone: {s.phone || 'N/A'}
@@ -460,17 +473,22 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
                   </div>
                   {otherStaff.map(s => {
                     const isSelected = selectedStaffId === s.id;
+                    const isAlreadyRelief = Boolean(activeReliefStaffIds?.has(s.id) && s.id !== target.currentRelief?.staffId);
                     return (
                       <div
                         key={s.id}
-                        onClick={() => setSelectedStaffId(s.id)}
+                        onClick={() => {
+                          if (isAlreadyRelief) return;
+                          setSelectedStaffId(s.id);
+                        }}
                         style={{
                           padding: '7px 12px',
                           borderBottom: '1px solid var(--border-light, #f1f5f9)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          cursor: 'pointer',
+                          cursor: isAlreadyRelief ? 'not-allowed' : 'pointer',
+                          opacity: isAlreadyRelief ? 0.48 : 1,
                           background: isSelected ? 'rgba(239, 68, 68, 0.12)' : 'transparent'
                         }}
                       >
@@ -483,7 +501,8 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            background: isSelected ? 'var(--marker-red)' : 'transparent'
+                            background: isSelected ? 'var(--marker-red)' : 'transparent',
+                            opacity: isAlreadyRelief ? 0.4 : 1
                           }}>
                             {isSelected && <Check size={10} color="#ffffff" />}
                           </div>
@@ -495,6 +514,11 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
                               <span className={`magnet-cred cred-${s.credentials}`} style={{ fontSize: 8.5, padding: '0 4px' }}>
                                 {s.credentials}
                               </span>
+                              {isAlreadyRelief && (
+                                <span style={{ fontSize: 8.5, fontWeight: 800, color: '#dc2626', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0 4px', borderRadius: 3 }}>
+                                  ALREADY RELIEF
+                                </span>
+                              )}
                             </div>
                             <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                               Phone: {s.phone || 'N/A'}
@@ -522,26 +546,99 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
         }}>
           <div>
             {target.currentRelief && isEditor && (
-              <button
-                type="button"
-                onClick={handleRemove}
-                style={{
-                  background: 'transparent',
-                  border: '1px solid #ef4444',
-                  color: '#ef4444',
-                  borderRadius: 6,
-                  padding: '6px 12px',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 5
-                }}
-              >
-                <Trash2 size={13} />
-                <span>Remove Relief</span>
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {target.currentRelief.staffId ? (
+                  <>
+                    {target.currentRelief.isRedBox ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleRemove(false)}
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.08)',
+                            border: '1px solid #ef4444',
+                            color: '#dc2626',
+                            borderRadius: 6,
+                            padding: '6px 10px',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4
+                          }}
+                          title="Remove clinician and restore the planned Red Box"
+                        >
+                          <Trash2 size={12} />
+                          <span>Remove Clinician (Keep Red Box)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemove(true)}
+                          style={{
+                            background: 'transparent',
+                            border: '1px solid var(--border-light, #cbd5e1)',
+                            color: 'var(--text-muted, #64748b)',
+                            borderRadius: 6,
+                            padding: '6px 10px',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4
+                          }}
+                          title="Delete the Red Box entirely"
+                        >
+                          <span>Clear Entirely</span>
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleRemove(true)}
+                        style={{
+                          background: 'transparent',
+                          border: '1px solid #ef4444',
+                          color: '#ef4444',
+                          borderRadius: 6,
+                          padding: '6px 12px',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 5
+                        }}
+                      >
+                        <Trash2 size={13} />
+                        <span>Remove Relief</span>
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(true)}
+                    style={{
+                      background: 'transparent',
+                      border: '1px solid #ef4444',
+                      color: '#ef4444',
+                      borderRadius: 6,
+                      padding: '6px 12px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5
+                    }}
+                  >
+                    <Trash2 size={13} />
+                    <span>Remove Red Box</span>
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
@@ -588,7 +685,7 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
               </button>
             )}
 
-            {!selectedStaffId && (
+            {!selectedStaffId && !target.currentRelief && (
               <button
                 type="button"
                 onClick={handleMarkOpenRedBox}
@@ -605,9 +702,9 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
                   alignItems: 'center',
                   gap: 5
                 }}
-                title="Mark this room for 3 PM Count with a dashed red box awaiting coverage"
+                title="Mark this room with an open red box awaiting relief coverage"
               >
-                <span>🟥 Open 3 PM Count</span>
+                <span>🟥 Open Relief Box</span>
               </button>
             )}
 

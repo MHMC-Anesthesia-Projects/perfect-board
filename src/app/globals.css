@@ -3007,9 +3007,14 @@ button {
   font-size: 11px;
   font-weight: 700;
   color: var(--text-primary);
-  cursor: pointer;
+  cursor: grab;
+  user-select: none;
   transition: all var(--transition-fast);
   box-sizing: border-box;
+}
+
+.relief-box:active {
+  cursor: grabbing;
 }
 
 [data-theme='dark'] .relief-box {
@@ -3132,6 +3137,21 @@ button {
   }
 }
 
+/* Touchscreen & TV Support: Keep empty relief targets subtly visible and touch-responsive */
+@media (pointer: coarse), (hover: none) {
+  .relief-slot-target {
+    display: flex !important;
+    opacity: 0.68;
+    min-width: 52px;
+  }
+}
+
+.relief-slot-target:active {
+  opacity: 1 !important;
+  transform: scale(0.96);
+  background: rgba(239, 68, 68, 0.28) !important;
+}
+
 .relief-slot-target.persistent-red-box {
   display: flex !important;
   opacity: 1 !important;
@@ -3161,7 +3181,13 @@ button {
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
-body.dragging-staff .relief-slot-target {
+body.dragging-staff .relief-slot-target:not(.persistent-red-box) {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+body.dragging-staff .room-slot-row.drag-near .relief-slot-target,
+body.dragging-staff .relief-slot-target.drag-near-active {
   display: flex !important;
   opacity: 1 !important;
   border: 2px dashed var(--marker-red) !important;
@@ -3169,6 +3195,36 @@ body.dragging-staff .relief-slot-target {
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.5) !important;
   min-width: 68px !important;
   animation: pulseRelief 1.4s infinite ease-in-out;
+}
+
+body.dragging-staff .magnet-tile * {
+  pointer-events: none !important;
+}
+
+.magnet-tile.is-relief-assigned {
+  opacity: 0.52 !important;
+  filter: grayscale(1) !important;
+  cursor: not-allowed !important;
+  border-color: rgba(148, 163, 184, 0.5) !important;
+  box-shadow: none !important;
+}
+
+.magnet-tile.is-relief-assigned:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.magnet-tile-relief-tag {
+  font-size: 8px;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--marker-red, #dc2626);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  letter-spacing: 0.3px;
+  margin-left: 3px;
+  flex-shrink: 0;
 }
 
 @keyframes pulseRelief {
@@ -3209,6 +3265,47 @@ body.dragging-staff .relief-slot-target {
 
 .relief-slot-target * {
   pointer-events: none !important;
+}
+
+.relief-slot-target .relief-quick-clear-btn {
+  pointer-events: auto !important;
+}
+
+.relief-quick-clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--marker-red, #dc2626);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  margin-left: 3px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.relief-quick-clear-btn:hover,
+.relief-quick-clear-btn:active {
+  opacity: 1;
+  background: rgba(239, 68, 68, 0.22);
+  color: #991b1b;
+  transform: scale(1.2);
+}
+
+[data-theme='dark'] .relief-quick-clear-btn {
+  color: #f87171;
+}
+
+[data-theme='dark'] .relief-quick-clear-btn:hover,
+[data-theme='dark'] .relief-quick-clear-btn:active {
+  background: rgba(239, 68, 68, 0.35);
+  color: #fecaca;
 }
 
 .relief-box * {
