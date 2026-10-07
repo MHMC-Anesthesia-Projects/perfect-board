@@ -721,6 +721,7 @@ export async function POST(req: NextRequest) {
               lunchDone: false,
               notes: ''
             }];
+            room.futureTime = null;
           });
         });
 

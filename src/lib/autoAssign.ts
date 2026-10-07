@@ -201,6 +201,7 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
         lunchDone: false,
         notes: ''
       }];
+      room.futureTime = null;
     });
   });
 
