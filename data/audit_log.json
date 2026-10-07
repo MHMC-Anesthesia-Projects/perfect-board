@@ -1,5 +1,64 @@
 [
   {
+    "id": "audit_1791329249701_r5fql",
+    "timestamp": "2026-10-06T23:27:29.701Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Carmen Mateo",
+    "details": "Updated scheduled shift from \"WF\" to \"3p\""
+  },
+  {
+    "id": "audit_1791329209390_mry34",
+    "timestamp": "2026-10-06T23:26:49.390Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Carmen Mateo",
+    "details": "Updated scheduled shift from \"3p\" to \"WF\""
+  },
+  {
+    "id": "audit_1791329140186_bow2t",
+    "timestamp": "2026-10-06T23:25:40.186Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Carmen Mateo",
+    "details": "Updated scheduled shift from \"3:30p\" to \"3p\""
+  },
+  {
+    "id": "audit_1791329119356_2mpls",
+    "timestamp": "2026-10-06T23:25:19.356Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Carmen Mateo",
+    "details": "Updated scheduled shift from \"4p\" to \"3:30p\""
+  },
+  {
+    "id": "audit_1791329041008_nw87o",
+    "timestamp": "2026-10-06T23:24:01.008Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "targetName": "Carmen Mateo",
+    "details": "Updated scheduled shift from \"3p\" to \"4p\""
+  },
+  {
+    "id": "audit_1791328818385_26gyt",
+    "timestamp": "2026-10-06T23:20:18.385Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Staff",
+    "userRole": "basic_user",
+    "targetName": "Tina Li",
+    "details": "Removed student assignment from Li",
+    "metadata": {
+      "staffId": "staff_oneusap_anes_litin",
+      "hasStudent": false,
+      "previousHasStudent": false
+    }
+  },
+  {
     "id": "audit_1791327954609_vxgj2",
     "timestamp": "2026-10-06T23:05:54.610Z",
     "actionType": "STAFF_ASSIGNED",

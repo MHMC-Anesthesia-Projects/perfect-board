@@ -161,14 +161,37 @@ export function is13hShift(s: string): boolean {
 /**
  * Detects if a shift, role, facility, or provider tag represents the L1_MHMC role.
  * A L1_MHMC role strictly designates a CRNA working until 7p at MHMC (Memorial Hermann Medical Center).
+ * The trailing facility designation (e.g. MHKTY vs MHMC) is critical in determining where that late shift is worked.
  */
 export function isL1MhmcRole(shiftOrRole?: string, facilityStr?: string, rawName?: string): boolean {
-  const combined = `${shiftOrRole || ''} ${facilityStr || ''} ${rawName || ''}`.toUpperCase();
+  const s = (shiftOrRole || '').toUpperCase();
+  const f = (facilityStr || '').toUpperCase();
+  const n = (rawName || '').toUpperCase();
+  const combined = `${s} ${f} ${n}`;
+
+  // If the role or task explicitly specifies a non-MHMC hospital for L1 (e.g. L1_MHKTY, L1_HMWST, L1_MHTW, etc.)
+  // then this late shift is worked at that other hospital, NEVER at MHMC!
+  if (/L1[-_](?!MHMC\b)[A-Z0-9]+/i.test(combined) || combined.includes('L1_MHKTY') || combined.includes('L1-MHKTY')) {
+    return false;
+  }
+
+  // Explicit L1_MHMC
   if (combined.includes('L1_MHMC') || combined.includes('L1-MHMC') || /\bL1_MHMC\b/i.test(combined)) {
     return true;
   }
-  // Check standalone L1 when associated with MHMC or general schedule
-  if (/\bL1\b/i.test(shiftOrRole || '') || (rawName && /\bL1\b/i.test(rawName))) {
+
+  // If the shift is a compound "3p, L1" (starting the day with an 8h/3p shift at MHMC e.g. 8h_MHMC),
+  // their L1 is an outside hospital late shift (e.g. L1_MHKTY) unless explicitly designated as L1_MHMC.
+  if (s.includes('3P') && /\bL1\b/i.test(s)) {
+    return false;
+  }
+
+  // Check standalone L1 when associated strictly with MHMC
+  if (/\bL1\b/i.test(s) || (rawName && /\bL1\b/i.test(rawName))) {
+    // If associated with another hospital in the facility string or shift, not MHMC
+    if (/MHKTY|HMWST|MHTW|HMH|MHGH|MHSE|MHSL|MHCH/i.test(combined)) {
+      return false;
+    }
     if (combined.includes('MHMC') || !facilityStr || facilityStr.toUpperCase().includes('W: MHMC')) {
       return true;
     }
@@ -181,11 +204,46 @@ export function isL1MhmcRole(shiftOrRole?: string, facilityStr?: string, rawName
  * By default, this role assigns a CRNA to work at MHMC with a standard 3p departure (7:00 AM - 3:00 PM).
  */
 export function is8hMhmcRole(shiftOrRole?: string, facilityStr?: string, rawName?: string): boolean {
-  const combined = `${shiftOrRole || ''} ${facilityStr || ''} ${rawName || ''}`.toUpperCase();
+  const s = (shiftOrRole || '').toUpperCase();
+  const f = (facilityStr || '').toUpperCase();
+  const n = (rawName || '').toUpperCase();
+  const combined = `${s} ${f} ${n}`;
+
+  // If another hospital is specified (e.g. 8h_MHKTY), return false
+  if (/8H[-_](?!MHMC\b)[A-Z0-9]+/i.test(combined)) {
+    return false;
+  }
+
   if (combined.includes('8H_MHMC') || combined.includes('8H-MHMC') || /\b8H_MHMC\b/i.test(combined)) {
     return true;
   }
-  if (/\b8H\b/i.test(shiftOrRole || '') || (rawName && /\b8H\b/i.test(rawName))) {
+  if (/\b8H\b/i.test(s) || (rawName && /\b8H\b/i.test(rawName))) {
+    if (combined.includes('MHMC') || !facilityStr || facilityStr.toUpperCase().includes('W: MHMC')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Detects if a shift, role, facility, or task represents the DrWrk_MHMC role.
+ * Any doctor with a DrWrk_MHMC role is slotted to work at MHMC today.
+ */
+export function isDrWrkMhmcRole(shiftOrRole?: string, facilityStr?: string, rawName?: string): boolean {
+  const s = (shiftOrRole || '').toUpperCase();
+  const f = (facilityStr || '').toUpperCase();
+  const n = (rawName || '').toUpperCase();
+  const combined = `${s} ${f} ${n}`;
+
+  // If another hospital is specified (e.g. DrWrk_MHKTY), return false
+  if (/DRWRK[-_](?!MHMC\b)[A-Z0-9]+/i.test(combined)) {
+    return false;
+  }
+
+  if (combined.includes('DRWRK_MHMC') || combined.includes('DRWRK-MHMC') || /\bDRWRK_MHMC\b/i.test(combined)) {
+    return true;
+  }
+  if (/\bDRWRK\b/i.test(s) || (rawName && /\bDRWRK\b/i.test(rawName))) {
     if (combined.includes('MHMC') || !facilityStr || facilityStr.toUpperCase().includes('W: MHMC')) {
       return true;
     }
@@ -208,7 +266,7 @@ export function isTargetFacility(facilityStr: string, allowedFacilities: string[
   if (!facilityStr || allowedFacilities.length === 0) return false;
   const activeWorkingFacility = getActiveFacilityCode(facilityStr);
   const upper = activeWorkingFacility.toUpperCase();
-  if (upper.includes('L1_MHMC') || upper.includes('8H_MHMC')) {
+  if (upper.includes('L1_MHMC') || upper.includes('8H_MHMC') || upper.includes('DRWRK_MHMC')) {
     return allowedFacilities.some(fac => fac.toUpperCase().includes('MHMC'));
   }
   return allowedFacilities.some(fac => upper.includes(fac.toUpperCase()));
@@ -358,6 +416,11 @@ function resolveEffectiveShift(
     return hasPrecall ? '3p, preCall' : '3p';
   }
 
+  // 2. If someone has DrWrk_MHMC, they are slotted to work as daytime doctor at MHMC today
+  const isDrWrk = isDrWrkMhmcRole(dShift, facilityStr, qgendaAbbr) ||
+    isDrWrkMhmcRole(rTag, facilityStr, qgendaAbbr) ||
+    isDrWrkMhmcRole(tasks, facilityStr, qgendaAbbr);
+
   // If known scheduled late providers are working (not PTO / RDO / Off / Vacation):
   // Active hospital call doctors (C1, C2, C3, CV, OB) must retain their call shift and NEVER be overridden with a default late shift!
   const hasActiveCall = /(?:^|[,/ ])(?:C[123]|CV|OB)(?:[,/ ]|$)/i.test(dShift) &&
@@ -410,7 +473,8 @@ function resolveEffectiveShift(
 // Known MHMC CV anesthesiologists for USAP Houston region
 const KNOWN_MHMC_CV_ABBRS = [
   'shirakmic', 'dwarakanathkis', 'ruizjua', 'chenkev',
-  'farias kovacmar', 'baerenstechejoh', 'loubserpau', 'jamesika'
+  'farias kovacmar', 'baerenstechejoh', 'loubserpau', 'jamesika',
+  'gashlerkyl', 'chenrod', 'daumerieger'
 ];
 
 export function parseOneUsapHtml(
@@ -525,7 +589,10 @@ export function parseOneUsapHtml(
   [...anesEntries, ...docEntries].forEach(entry => {
     const cleanId = entry.rawName.replace(/\[.*?\]/g, '').toLowerCase().trim();
     const s = entry.shift || '';
-    if (s.includes('8h_') || s.includes('L1_') || s.includes('8H_') || s.includes('L1-') || s.includes('8H-')) {
+    if (
+      s.includes('8h_') || s.includes('L1_') || s.includes('8H_') || s.includes('L1-') || s.includes('8H-') ||
+      s.includes('DrWrk_') || s.includes('DRWRK_') || s.includes('DrWrk-') || s.includes('DRWRK-')
+    ) {
       const existing = providerTasksMap.get(cleanId);
       providerTasksMap.set(cleanId, existing ? `${existing}, ${s}` : s);
     }
@@ -642,7 +709,7 @@ export function parseOneUsapHtml(
     const cleanShift = `${shiftStr || ''} ${taskStr}`.toUpperCase();
     const cleanRaw = rawName.toUpperCase();
 
-    // Explicit facility suffixes in name, shift, or tasks (e.g. HDrC1AM_MHMC, CIHAM_MHMC) or L1_MHMC / 8h_MHMC role
+    // Explicit facility suffixes in name, shift, or tasks (e.g. HDrC1AM_MHMC, CIHAM_MHMC) or L1_MHMC / 8h_MHMC / DrWrk_MHMC role
     if (
       cleanRaw.includes('_MHMC') ||
       cleanShift.includes('_MHMC') ||
@@ -650,7 +717,9 @@ export function parseOneUsapHtml(
       isL1MhmcRole(shiftStr, facilityStr, rawName) ||
       isL1MhmcRole(taskStr, facilityStr, rawName) ||
       is8hMhmcRole(shiftStr, facilityStr, rawName) ||
-      is8hMhmcRole(taskStr, facilityStr, rawName)
+      is8hMhmcRole(taskStr, facilityStr, rawName) ||
+      isDrWrkMhmcRole(shiftStr, facilityStr, rawName) ||
+      isDrWrkMhmcRole(taskStr, facilityStr, rawName)
     ) {
       return activeFacilities.some(fac => fac.toUpperCase().includes('MHMC'));
     }
@@ -742,9 +811,9 @@ export function parseOneUsapHtml(
       return;
     }
 
-    // Outside CV doctors (from Methodist, Woodlands, etc.) who are not on call for MHMC and have no rooms at MHMC
-    const isMhmcCvDoc = qgendaAbbr.toLowerCase().includes('shirak') || qgendaAbbr.toLowerCase().includes('dwarakanath') || effectiveShift.toUpperCase().includes('_MHMC');
-    if (isCvFacility && !isMhmcCvDoc && (!roomInfo.rooms || roomInfo.rooms.length === 0)) {
+    // Outside CV doctors (from Methodist, Woodlands, etc.) who are not affiliated with MHMC and not on call for MHMC and have no rooms at MHMC
+    const isMhmcAffiliated = facility.toUpperCase().includes('MHMC') || KNOWN_MHMC_CV_ABBRS.includes(cleanId) || effectiveShift.toUpperCase().includes('_MHMC');
+    if (isCvFacility && !isMhmcAffiliated && (!roomInfo.rooms || roomInfo.rooms.length === 0)) {
       return;
     }
 
@@ -1086,9 +1155,10 @@ export function parseOneUsapHtml(
       return;
     }
 
-    // Outside CV doctors (from Methodist, Woodlands, etc.) who are not the MHMC CV call doctor
+    // Outside CV doctors (from other facilities without MHMC affiliation) who are not the MHMC CV call doctor
+    const isMhmcAffiliated = facility.toUpperCase().includes('MHMC') || KNOWN_MHMC_CV_ABBRS.includes(qgendaAbbr.toLowerCase());
     const isCvFacility = facility.trim().toUpperCase() === 'CV' || facility.toUpperCase().includes('CV');
-    if (isCvFacility && !isCallDoctor) {
+    if (isCvFacility && !isMhmcAffiliated && !isCallDoctor) {
       return;
     }
 
@@ -1131,6 +1201,21 @@ export function parseOneUsapHtml(
       roomAssignment: roomInfo.roomString || undefined,
       orderNumber
     });
+  });
+
+  // Disambiguate duplicate last names on departure list (e.g. CHEN K. and CHEN R.)
+  const depLastNameCounts = new Map<string, number>();
+  rawDepartureCandidates.forEach(d => {
+    const lName = d.name.toUpperCase();
+    depLastNameCounts.set(lName, (depLastNameCounts.get(lName) || 0) + 1);
+  });
+  rawDepartureCandidates.forEach(d => {
+    if ((depLastNameCounts.get(d.name.toUpperCase()) || 0) > 1) {
+      const formatted = formatProviderName(d.qgendaAbbr);
+      if (formatted.firstName) {
+        d.name = `${formatted.lastName.toUpperCase()} ${formatted.firstName[0].toUpperCase()}.`;
+      }
+    }
   });
 
   // Sort Departure Candidates: Post-Call -> Special (atypical times) -> Non-Call
@@ -1187,7 +1272,7 @@ export function parseOneUsapHtml(
       is8hMhmcRole(roomTag, facility, rawName) ||
       is8hMhmcRole(taskStr, facility, rawName);
 
-    if (isL1 || is8h) {
+    if ((isL1 || is8h) && role !== 'MD') {
       role = 'CRNA';
     }
 
@@ -1354,6 +1439,21 @@ export function parseOneUsapHtml(
 
   targetDocs.forEach(d => checkLate(d.rawName, d.facility, d.shift, 'MD', d.orderNumber));
   targetAnes.forEach(a => checkLate(a.rawName, a.facility, a.shift, 'CRNA', a.orderNumber));
+
+  // Disambiguate duplicate last names on late list (e.g. SONG Y. and SONG B.)
+  const lateLastNameCounts = new Map<string, number>();
+  lateCandidates.forEach(l => {
+    const lName = l.name.toUpperCase();
+    lateLastNameCounts.set(lName, (lateLastNameCounts.get(lName) || 0) + 1);
+  });
+  lateCandidates.forEach(l => {
+    if ((lateLastNameCounts.get(l.name.toUpperCase()) || 0) > 1) {
+      const formatted = formatProviderName(l.qgendaAbbr);
+      if (formatted.firstName) {
+        l.name = `${formatted.lastName.toUpperCase()} ${formatted.firstName[0].toUpperCase()}.`;
+      }
+    }
+  });
 
   // Helper to parse late category or time into sortable minutes
   function getLateCategorySortMinutes(category: string, timeEstimate?: string): number {
