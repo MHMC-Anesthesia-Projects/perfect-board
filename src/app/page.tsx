@@ -1418,7 +1418,12 @@ export default function WhiteboardPage() {
     staffId: string,
     newShift: string,
     lastName?: string,
-    credentials?: StaffCredential
+    credentials?: StaffCredential,
+    restoreLists?: {
+      departureList?: DepartureItem[];
+      latesList?: LateShiftItem[];
+      callTeamList?: CallTeamItem[];
+    }
   ) => {
     if (!isEditor) {
       setIsLoginModalOpen(true);
@@ -1427,6 +1432,9 @@ export default function WhiteboardPage() {
 
     const staff = boardState?.staff.find(s => s.id === staffId);
     const prevShift = staff?.shift || '';
+    const prevDeparture = boardState?.departureList ? [...boardState.departureList] : [];
+    const prevLates = boardState?.latesList ? [...boardState.latesList] : [];
+    const prevCall = boardState?.callTeamList ? [...boardState.callTeamList] : [];
 
     try {
       const res = await fetch(apiUrl('/api/board'), {
@@ -1434,7 +1442,7 @@ export default function WhiteboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'UPDATE_STAFF_SHIFT',
-          payload: { staffId, shift: newShift, lastName, credentials },
+          payload: { staffId, shift: newShift, lastName, credentials, restoreLists },
           user: currentUser
         })
       });
@@ -1451,13 +1459,23 @@ export default function WhiteboardPage() {
         setToastMessage(`✓ Updated shift for ${lastName || 'Staff'} to ${newShift}`);
         setTimeout(() => setToastMessage(null), 3000);
 
-        const savedPrevShift = prevShift;
-        pushUndoAction(
-          `Updated shift for ${lastName || 'Staff'} to ${newShift}`,
-          async () => {
-            await handleUpdateStaffShift(staffId, savedPrevShift, lastName, credentials);
-          }
-        );
+        if (!restoreLists) {
+          const savedPrevShift = prevShift;
+          const savedDeparture = prevDeparture;
+          const savedLates = prevLates;
+          const savedCall = prevCall;
+          const staffLabel = lastName ? `Dr. ${lastName}` : (staff ? `Dr. ${staff.lastName}` : 'Staff');
+          pushUndoAction(
+            `Update shift for ${staffLabel} to ${newShift || 'None'}`,
+            async () => {
+              await handleUpdateStaffShift(staffId, savedPrevShift, lastName, credentials, {
+                departureList: savedDeparture,
+                latesList: savedLates,
+                callTeamList: savedCall
+              });
+            }
+          );
+        }
       }
     } catch (err) {
       console.error('Error updating staff shift:', err);
@@ -1927,19 +1945,43 @@ export default function WhiteboardPage() {
       return;
     }
 
+    const prevDeparture = boardState?.departureList ? [...boardState.departureList] : [];
+    const prevLates = boardState?.latesList ? [...boardState.latesList] : [];
+    let reorderDesc: string | undefined;
+
+    if (isReorder && prevDeparture.length > 0) {
+      const moved = departureList.find(d => {
+        const old = prevDeparture.find(p => p.id === d.id);
+        return old && (old.orderIndex !== d.orderIndex || old.category !== d.category);
+      });
+      const doctorName = moved ? `Dr. ${moved.name}` : 'provider';
+      reorderDesc = `Reorder ${doctorName} in departure list`;
+    }
+
     try {
       const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'UPDATE_LISTS',
-          payload: { departureList, latesList, isReorder },
+          payload: { departureList, latesList, isReorder, details: reorderDesc },
           user: currentUser
         })
       });
       const data = await res.json();
       if (data.state) {
         setBoardState(data.state);
+
+        if (isReorder && prevDeparture.length > 0) {
+          const savedPrevDeparture = prevDeparture;
+          const savedPrevLates = prevLates;
+          pushUndoAction(
+            reorderDesc || 'Reorder departure list',
+            async () => {
+              await handleUpdateLists(savedPrevDeparture, savedPrevLates, true);
+            }
+          );
+        }
       }
     } catch (err) {
       console.error('Error updating lists:', err);

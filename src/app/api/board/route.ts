@@ -635,6 +635,10 @@ export async function POST(req: NextRequest) {
         if (currentUserRole === 'basic_user') {
           return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
         }
+        const prevDepartureList = state.departureList ? JSON.parse(JSON.stringify(state.departureList)) : [];
+        const prevLatesList = state.latesList ? JSON.parse(JSON.stringify(state.latesList)) : [];
+        const prevCallTeamList = state.callTeamList ? JSON.parse(JSON.stringify(state.callTeamList)) : [];
+
         if (payload.departureList) state.departureList = payload.departureList;
         if (payload.latesList) state.latesList = payload.latesList;
         if (payload.callTeamList) state.callTeamList = payload.callTeamList;
@@ -644,9 +648,15 @@ export async function POST(req: NextRequest) {
           actionType: payload.isReorder ? 'DEPARTURE_REORDERED' : payload.callTeamList ? 'CALL_TEAM_UPDATED' : 'DEPARTURE_UPDATED',
           performedBy: currentUserName,
           userRole: currentUserRole,
-          details: payload.details || 'Updated departure, call team, or late staff ordering'
+          details: payload.details || (payload.isReorder ? 'Reordered departure list' : 'Updated departure, call team, or late staff ordering'),
+          metadata: {
+            previousDepartureList: prevDepartureList,
+            previousLatesList: prevLatesList,
+            previousCallTeamList: prevCallTeamList
+          }
         });
 
+        broadcastStateChange();
         return NextResponse.json({ success: true, state });
       }
 
@@ -803,7 +813,7 @@ export async function POST(req: NextRequest) {
         if (currentUserRole === 'basic_user') {
           return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
         }
-        const { staffId, shift, lastName, credentials } = payload;
+        const { staffId, shift, lastName, credentials, restoreLists } = payload;
         let s = state.staff.find(st => st.id === staffId);
         if (!s && lastName) {
           s = state.staff.find(st => st.lastName.toUpperCase() === lastName.toUpperCase());
@@ -812,6 +822,10 @@ export async function POST(req: NextRequest) {
         const oldShift = s?.shift || '';
         const targetLastName = s ? s.lastName : (lastName || 'Staff');
         const targetCreds = s ? s.credentials : (credentials || 'MD');
+
+        const oldDepartureList = state.departureList ? JSON.parse(JSON.stringify(state.departureList)) : [];
+        const oldLatesList = state.latesList ? JSON.parse(JSON.stringify(state.latesList)) : [];
+        const oldCallTeamList = state.callTeamList ? JSON.parse(JSON.stringify(state.callTeamList)) : [];
 
         if (s) {
           s.shift = shift;
@@ -829,6 +843,11 @@ export async function POST(req: NextRequest) {
           state.staff.push(s);
         }
 
+        if (restoreLists) {
+          if (restoreLists.departureList) state.departureList = restoreLists.departureList;
+          if (restoreLists.latesList) state.latesList = restoreLists.latesList;
+          if (restoreLists.callTeamList) state.callTeamList = restoreLists.callTeamList;
+        } else {
         // Classify shift: standard late (>= 3p) vs atypical/special (e.g. 2p, 1p, Special) vs call shift
         const upperShift = (shift || '').toUpperCase().trim();
         const isL1 = upperShift.includes('L1_MHMC') || upperShift.includes('L1-MHMC') || /\bL1\b/i.test(upperShift);
@@ -999,6 +1018,7 @@ export async function POST(req: NextRequest) {
             notes: lateNote
           });
         }
+        }
 
         await saveBoardState(state);
         await recordAuditLog({
@@ -1006,9 +1026,22 @@ export async function POST(req: NextRequest) {
           performedBy: currentUserName,
           userRole: currentUserRole,
           targetName: `${s.firstName} ${s.lastName}`.trim(),
-          details: `Updated scheduled shift from "${oldShift}" to "${shift}"`
+          details: restoreLists
+            ? `Restored scheduled shift from "${oldShift}" to "${shift}"`
+            : `Updated scheduled shift from "${oldShift}" to "${shift}"`,
+          metadata: {
+            staffId: s.id,
+            oldShift,
+            newShift: shift,
+            lastName: targetLastName,
+            credentials: targetCreds,
+            previousDepartureList: oldDepartureList,
+            previousLatesList: oldLatesList,
+            previousCallTeamList: oldCallTeamList
+          }
         });
 
+        broadcastStateChange();
         return NextResponse.json({ success: true, state });
       }
 
@@ -1778,6 +1811,17 @@ export async function POST(req: NextRequest) {
             break;
           }
 
+          case 'DEPARTURE_REORDERED': {
+            if (meta.previousDepartureList) {
+              state.departureList = meta.previousDepartureList;
+              if (meta.previousLatesList) state.latesList = meta.previousLatesList;
+              revertedDescription = 'Reverted departure list reordering';
+            } else {
+              return NextResponse.json({ error: 'Previous departure ordering metadata not found' }, { status: 400 });
+            }
+            break;
+          }
+
           case 'STAFF_UPDATED': {
             if (logEntry.details.toLowerCase().includes('student')) {
               const staffId = meta.staffId || state.staff.find(s => 
@@ -1792,6 +1836,19 @@ export async function POST(req: NextRequest) {
                 revertedDescription = wasAssigned
                   ? `Removed student assignment from ${staff.lastName}`
                   : `Restored student assignment for ${staff.lastName}`;
+              }
+            } else if (logEntry.details.toLowerCase().includes('shift')) {
+              const staffId = meta.staffId || state.staff.find(s => 
+                `${s.firstName} ${s.lastName}`.trim().toLowerCase() === logEntry.targetName?.trim().toLowerCase() ||
+                (s.displayName && s.displayName.trim().toLowerCase() === logEntry.targetName?.trim().toLowerCase())
+              )?.id;
+              const staff = state.staff.find(s => s.id === staffId);
+              if (staff) {
+                staff.shift = meta.oldShift || '';
+                if (meta.previousDepartureList) state.departureList = meta.previousDepartureList;
+                if (meta.previousLatesList) state.latesList = meta.previousLatesList;
+                if (meta.previousCallTeamList) state.callTeamList = meta.previousCallTeamList;
+                revertedDescription = `Reverted scheduled shift for ${staff.lastName} back to "${meta.oldShift || 'Default'}"`;
               }
             }
             break;
