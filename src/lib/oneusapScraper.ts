@@ -1224,30 +1224,24 @@ export function parseOneUsapHtml(
     const isMhmcC1CallDoc = callTeamMap.get('Call 1')?.qgendaAbbr.toLowerCase() === qgendaAbbr.toLowerCase() ||
                             callTeamMap.get('Call 1 PM')?.qgendaAbbr.toLowerCase() === qgendaAbbr.toLowerCase();
 
-    // 1. If assigned to an OB room at MHMC (e.g. Dr. Chang in MHMC OB1), their daytime role is OB!
-    if (hasObRoom) {
-      if (!effectiveShift || effectiveShift === 'C1' || effectiveShift === 'Day' || effectiveShift.toUpperCase() === '1ST') {
-        effectiveShift = 'OB';
-      }
+    const upperCandidateShift = (effectiveShift || '').toUpperCase().trim();
+
+    // 1. Outside OB call: if doctor has an OB call tag but is NOT the displayed site's (MHMC) OB call doctor
+    // (e.g. Dr. Patel with DrOBPM_HMWST at West Hospital), designate as "OBcall" to visually separate from MHMC OB call.
+    if ((upperCandidateShift === 'OB' || upperCandidateShift === 'OBCALL' || upperCandidateShift.includes('DROB')) && !isMhmcObCallDoc) {
+      effectiveShift = 'OBcall';
     }
 
-    // 2. If assigned to non-OB rooms (e.g. Dr. Patel with 5 Ortho rooms) and NOT the MHMC OB call doctor:
-    // Any "OB" shift tag is from call at another hospital (e.g. DrOBPM_HMWST).
-    // Do not show misleading "(OB)" tag on departure list.
-    if (hasTargetRooms && !hasObRoom && !isMhmcObCallDoc) {
-      const upper = (effectiveShift || '').toUpperCase();
-      if (upper === 'OB' || upper === 'OBCALL') {
-        effectiveShift = undefined;
-      }
+    // 2. Office tracking roles: pure 'CV' (from DrWrk_CV) tracks CV doctor location by day, not a call role.
+    // Suppress standalone 'CV' so doctors like Dr. Chen R. do not show a misleading 'CV' call badge.
+    // (Note: real call roles like 'CVcall', 'preCV', and 'postCV' are preserved).
+    if (upperCandidateShift === 'CV') {
+      effectiveShift = undefined;
     }
 
-    // 3. If assigned to rooms in MHMC and NOT the Call 1 call doctor tonight:
-    // (e.g. Dr. Tallackson in West Pav with "C1" tag): do not show misleading "(C1)" tag on departure list.
-    if (hasTargetRooms && !isMhmcC1CallDoc) {
-      const upper = (effectiveShift || '').toUpperCase();
-      if (upper === 'C1' || upper === '1ST') {
-        effectiveShift = undefined;
-      }
+    // 3. Generic daytime tags: '1st', 'Day', or empty tags are default daytime list tags, not call roles.
+    if (upperCandidateShift === '1ST' || upperCandidateShift === 'DAY') {
+      effectiveShift = undefined;
     }
 
     const upperShift = (effectiveShift || '').toUpperCase();
