@@ -1452,7 +1452,8 @@ export default function WhiteboardPage() {
       departureList?: DepartureItem[];
       latesList?: LateShiftItem[];
       callTeamList?: CallTeamItem[];
-    }
+    },
+    isCallTeamAssignment?: boolean
   ) => {
     if (!isEditor) {
       setIsLoginModalOpen(true);
@@ -1471,7 +1472,7 @@ export default function WhiteboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'UPDATE_STAFF_SHIFT',
-          payload: { staffId, shift: newShift, lastName, credentials, restoreLists },
+          payload: { staffId, shift: newShift, lastName, credentials, restoreLists, isCallTeamAssignment },
           user: currentUser
         })
       });
@@ -2543,7 +2544,9 @@ export default function WhiteboardPage() {
         onMoveToBullpen={staffId => handleDropToBullpen({ staffId, type: 'bullpen_transfer' })}
         onUnassign={staffId => handleMoveStaffToUnassigned(staffId)}
         onToggleBreak={handleToggleBreak}
-        onUpdateShift={handleUpdateStaffShift}
+        onUpdateShift={(staffId, newShift, lastName, credentials, isCallTeam) => {
+          handleUpdateStaffShift(staffId, newShift, lastName, credentials, undefined, isCallTeam);
+        }}
         onUpdateDisplayName={handleUpdateStaffDisplayName}
         onUpdateStudent={handleUpdateStaffStudent}
         onSetStaffInfrequent={handleSetStaffInfrequent}

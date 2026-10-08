@@ -813,7 +813,7 @@ export async function POST(req: NextRequest) {
         if (currentUserRole === 'basic_user') {
           return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
         }
-        const { staffId, shift, lastName, credentials, restoreLists } = payload;
+        const { staffId, shift, lastName, credentials, restoreLists, isCallTeamAssignment } = payload;
         let s = state.staff.find(st => st.id === staffId);
         if (!s && lastName) {
           s = state.staff.find(st => st.lastName.toUpperCase() === lastName.toUpperCase());
@@ -848,17 +848,37 @@ export async function POST(req: NextRequest) {
           if (restoreLists.latesList) state.latesList = restoreLists.latesList;
           if (restoreLists.callTeamList) state.callTeamList = restoreLists.callTeamList;
         } else {
-        // Classify shift: standard late (>= 3p) vs atypical/special (e.g. 2p, 1p, Special) vs call shift
+        // Classify shift: standard late (>= 3p) vs atypical/special (e.g. 2p, 1p, Special) vs post-call vs call team
         const upperShift = (shift || '').toUpperCase().trim();
         const isL1 = upperShift.includes('L1_MHMC') || upperShift.includes('L1-MHMC') || /\bL1\b/i.test(upperShift);
         const is8h = upperShift.includes('8H_MHMC') || upperShift.includes('8H-MHMC') || /\b8H\b/i.test(upperShift);
-        const isCallShift = !isL1 && /CALL|C1|C2|C3|CV|OB/i.test(upperShift);
+
+        // Departure badge classifications:
+        // 1. Post-call badges (e.g. postCV, postC1, postC2, postOB, post1st, Post-Call)
+        const isPostCall = upperShift.startsWith('POST') || upperShift.includes(',POST') || upperShift.includes(' POST');
+        // 2. Pre-call badges (e.g. pre1st, preCV, preC3, preC1, preC2, preOB)
+        const isPreCall = upperShift.startsWith('PRE') || upperShift.includes(',PRE') || upperShift.includes(' PRE');
+        // 3. Outside/backup call badges that belong on departure list (e.g. OBcall, CVcall, C1 from HDRC1PM_HMWST)
+        const isOutsideCallBadge = upperShift === 'OBCALL' || upperShift === 'CVCALL' || upperShift === 'C1';
+
+        // Active in-house Call Team assignment for tonight (kept OFF departure list)
+        // ONLY true if explicitly assigned to in-house Call Team and NOT a departure badge like postCV, pre1st, OBcall, etc.
+        const isCallShift = !isL1 && !is8h && !isPostCall && !isPreCall && !isOutsideCallBadge && (
+          isCallTeamAssignment === true ||
+          upperShift === 'CALL 1' || upperShift === 'CALL 2' || upperShift === 'CALL 3' ||
+          upperShift === 'C1,OB' || upperShift === 'OB,C1' ||
+          upperShift === 'CALL CV' || upperShift === 'CV CALL' || upperShift === 'CALL OB' || upperShift === 'OB CALL' ||
+          upperShift === 'CALL' || upperShift === 'CALL TEAM'
+        );
+
         const standardLateKeys = ['3P', '4P', '5P', '7P', '8P', '7P-7A', '11A-11P'];
-        const isStandardLate = !isCallShift && (isL1 || is8h || standardLateKeys.some(k => upperShift === k || upperShift.startsWith(k)));
-        const isAtypicalTime = !isCallShift && (
+        const isStandardLate = !isCallShift && !isPostCall && (isL1 || is8h || standardLateKeys.some(k => upperShift === k || upperShift.startsWith(k)));
+
+        const isAtypicalTime = !isCallShift && !isPostCall && (
           upperShift === 'SPECIAL' ||
           /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)?$/i.test(upperShift)
         ) && !isStandardLate;
+
         const effectiveTimeEstimate = isAtypicalTime ? (upperShift === 'SPECIAL' ? '2p' : shift) : undefined;
 
         // Synchronize Departure List & Call Team
@@ -916,7 +936,7 @@ export async function POST(req: NextRequest) {
               state.departureList = state.departureList.filter(d => d.id !== depItem!.id);
             }
           } else {
-            // If moved away from Call shift to regular Day or Late, clear their name from callTeamList
+            // If moved away from Call shift to regular Day, Post-Call, or Late, clear their name from callTeamList
             state.callTeamList.forEach(c => {
               if (c.doctorName?.toUpperCase() === targetLastName.toUpperCase()) {
                 c.doctorName = '';
@@ -927,6 +947,25 @@ export async function POST(req: NextRequest) {
               // Standard late doctors (3p, 4p, 5p, etc.) must not exist in departure list
               if (depItem) {
                 state.departureList = state.departureList.filter(d => d.id !== depItem!.id);
+              }
+            } else if (isPostCall) {
+              // MD is post-call -> belongs in POST-CALL section!
+              const postBadge = (upperShift === 'POST' || upperShift === 'POST-CALL' || upperShift === 'POST CALL')
+                ? (depItem?.timeEstimate && depItem.timeEstimate.toLowerCase().startsWith('post') ? depItem.timeEstimate : 'Post-Call')
+                : shift;
+
+              if (depItem) {
+                depItem.category = 'post_call';
+                depItem.timeEstimate = postBadge;
+              } else {
+                state.departureList.push({
+                  id: `dep_${Date.now()}`,
+                  name: targetLastName.toUpperCase(),
+                  orderIndex: 0,
+                  category: 'post_call',
+                  timeEstimate: postBadge,
+                  qgendaAbbr: s?.qgendaAbbr
+                });
               }
             } else if (isAtypicalTime) {
               // MD with atypical departure time (e.g. 2p) goes to "Special" section between post-call and non-call
@@ -944,17 +983,22 @@ export async function POST(req: NextRequest) {
                 });
               }
             } else {
-              // Regular non-call or post-call doctor
+              // Regular departure doctor: Non-Call (including pre-call like pre1st, outside call like OBcall/C1, or generic day)
+              const isGenericDay = upperShift === 'DAY' || upperShift === '1ST' || upperShift === 'NONE' || upperShift === 'CLEAR' || upperShift === '';
+              const departureBadge = isGenericDay ? undefined : shift;
+
               if (depItem) {
-                if (depItem.category === 'special') depItem.category = 'non_call';
-                depItem.timeEstimate = shift;
+                if (depItem.category === 'special' || isGenericDay || isPreCall || isOutsideCallBadge) {
+                  depItem.category = 'non_call';
+                }
+                depItem.timeEstimate = departureBadge;
               } else {
                 state.departureList.push({
                   id: `dep_${Date.now()}`,
                   name: targetLastName.toUpperCase(),
                   orderIndex: state.departureList.length,
                   category: 'non_call',
-                  timeEstimate: shift,
+                  timeEstimate: departureBadge,
                   qgendaAbbr: s?.qgendaAbbr
                 });
               }

@@ -37,7 +37,7 @@ interface StaffModalProps {
   ) => Promise<void> | void;
   onMoveToBullpen?: (staffId: string) => void;
   onToggleBreak: (targetType: 'room_slot' | 'runner_slot' | 'bullpen', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
-  onUpdateShift?: (staffId: string, newShift: string, lastName?: string, credentials?: Staff['credentials']) => void;
+  onUpdateShift?: (staffId: string, newShift: string, lastName?: string, credentials?: Staff['credentials'], isCallTeam?: boolean) => void;
   onUpdateDisplayName?: (staffId: string, displayName: string) => void;
   onSetStaffInfrequent?: (staffId: string, isInfrequent: boolean) => void;
   onOpenLogin?: () => void;
@@ -85,6 +85,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [isEditingShift, setIsEditingShift] = useState(false);
   const [customShift, setCustomShift] = useState(staff?.shift || 'Day');
+  const [isCallTeamSelected, setIsCallTeamSelected] = useState(false);
   const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
   const [displayNameInput, setDisplayNameInput] = useState(staff?.displayName || '');
 
@@ -610,6 +611,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                     type="button"
                     onClick={() => {
                       setCustomShift(staff.shift || 'Day');
+                      setIsCallTeamSelected(false);
                       setIsEditingShift(true);
                     }}
                     style={{
@@ -622,14 +624,15 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                       color: 'var(--accent-primary)',
                       cursor: 'pointer'
                     }}
-                    title="Change scheduled shift or late time (e.g. 4p instead of 3p)"
+                    title="Change scheduled shift or departure badge (e.g. postCV, pre1st, OBcall, 2p)"
                   >
-                    Edit Shift
+                    Edit Shift / Badge
                   </button>
                   <button
                     type="button"
                     onClick={() => {
                       setCustomShift('Call 1');
+                      setIsCallTeamSelected(true);
                       setIsEditingShift(true);
                     }}
                     style={{
@@ -642,7 +645,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                       color: 'var(--marker-red)',
                       cursor: 'pointer'
                     }}
-                    title="Change doctor to a Call shift (Call 1, Call 2, Call 3, CV, OB)"
+                    title="Assign doctor to in-house Call Team (Call 1, Call 2, Call 3, CV, OB)"
                   >
                     Change to Call
                   </button>
@@ -650,64 +653,176 @@ export const StaffModal: React.FC<StaffModalProps> = ({
               )}
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px', background: 'var(--surface-card)', borderRadius: 6, border: '1px solid var(--border-light)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7, padding: '10px', background: 'var(--surface-card)', borderRadius: 8, border: '1px solid var(--border-light)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>Change Shift / Departure Time:</span>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Quick select or type below</span>
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                {['Day', '2p (Special)', '3p', '4p', '5p', '7p', '8p', '7p-7a', 'Post-Call'].map(preset => {
-                  const presetValue = preset === '2p (Special)' ? '2p' : preset;
-                  const isSelected = customShift.toLowerCase() === presetValue.toLowerCase();
-                  return (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setCustomShift(presetValue)}
-                      style={{
-                        padding: '2px 7px',
-                        borderRadius: 4,
-                        fontSize: 11,
-                        fontWeight: 700,
-                        border: isSelected ? '1.5px solid #2563eb' : '1px solid var(--border-light)',
-                        background: isSelected ? 'rgba(37, 99, 235, 0.15)' : 'var(--surface-hover)',
-                        color: isSelected ? '#2563eb' : 'var(--text-primary)',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {preset}
-                    </button>
-                  );
-                })}
+                <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)' }}>Scheduled Shift & Departure Badge:</span>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Tap a preset or type below</span>
               </div>
 
-              {/* Call Shift Presets */}
-              <div style={{ marginTop: 4, paddingTop: 4, borderTop: '1px dashed var(--border-light)' }}>
+              {/* 1. Post-Call Badges */}
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: '#059669', marginBottom: 3 }}>
+                  🟢 POST-CALL BADGES (Kept in Post-Call Section):
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {['postCV', 'postC1', 'postC2', 'postOB', 'post1st', 'Post-Call'].map(preset => {
+                    const isSelected = !isCallTeamSelected && customShift.toLowerCase() === preset.toLowerCase();
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          setCustomShift(preset);
+                          setIsCallTeamSelected(false);
+                        }}
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          border: isSelected ? '1.5px solid #059669' : '1px solid rgba(5, 150, 105, 0.3)',
+                          background: isSelected ? 'rgba(5, 150, 105, 0.22)' : 'rgba(5, 150, 105, 0.08)',
+                          color: '#059669',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {preset}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 2. Pre-Call Badges */}
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: '#0d9488', marginBottom: 3 }}>
+                  🔵 PRE-CALL BADGES (Kept in Non-Call Section):
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {['pre1st', 'preCV', 'preC3', 'preC1', 'preC2', 'preOB'].map(preset => {
+                    const isSelected = !isCallTeamSelected && customShift.toLowerCase() === preset.toLowerCase();
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          setCustomShift(preset);
+                          setIsCallTeamSelected(false);
+                        }}
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          border: isSelected ? '1.5px solid #0d9488' : '1px solid rgba(13, 148, 136, 0.3)',
+                          background: isSelected ? 'rgba(13, 148, 136, 0.22)' : 'rgba(13, 148, 136, 0.08)',
+                          color: '#0d9488',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {preset}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 3. Outside / Backup Call Badges */}
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: '#d97706', marginBottom: 3 }}>
+                  🟠 BACKUP / OUTSIDE CALL (Kept in Non-Call Section):
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {['C1', 'OBcall', 'CVcall'].map(preset => {
+                    const isSelected = !isCallTeamSelected && customShift.toLowerCase() === preset.toLowerCase();
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          setCustomShift(preset);
+                          setIsCallTeamSelected(false);
+                        }}
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          border: isSelected ? '1.5px solid #d97706' : '1px solid rgba(217, 119, 6, 0.3)',
+                          background: isSelected ? 'rgba(217, 119, 6, 0.22)' : 'rgba(217, 119, 6, 0.08)',
+                          color: '#d97706',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {preset}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 4. Departure Times & Day */}
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: '#2563eb', marginBottom: 3 }}>
+                  ⏱️ DEPARTURE TIMES & DAY:
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {['Day (No Badge)', '2p (Special)', '1p', '3p', '4p', '5p', '7p', '8p'].map(preset => {
+                    const presetValue = preset === '2p (Special)' ? '2p' : preset === 'Day (No Badge)' ? 'Day' : preset;
+                    const isSelected = !isCallTeamSelected && customShift.toLowerCase() === presetValue.toLowerCase();
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          setCustomShift(presetValue);
+                          setIsCallTeamSelected(false);
+                        }}
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          border: isSelected ? '1.5px solid #2563eb' : '1px solid var(--border-light)',
+                          background: isSelected ? 'rgba(37, 99, 235, 0.18)' : 'var(--surface-hover)',
+                          color: isSelected ? '#2563eb' : 'var(--text-primary)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {preset}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 5. In-House Call Shift Presets */}
+              <div style={{ marginTop: 2, paddingTop: 6, borderTop: '1px dashed var(--border-light)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                   <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--marker-red)', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <ShieldCheck size={12} />
-                    <span>On-Call Shifts (Assigns to Tonight&apos;s Call Team):</span>
+                    <span>In-House Call Team (Assigns to Tonight&apos;s Call Team, removes from Departure):</span>
                   </span>
-                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Kept off departure list</span>
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {['Call 1', 'Call 2', 'Call 3', 'CV', 'OB', 'C1,OB', 'Call'].map(callPreset => {
-                    const isSelected = customShift.toLowerCase() === callPreset.toLowerCase();
-                    const isOB = callPreset.includes('OB');
-                    const isCV = callPreset === 'CV';
+                  {['Call 1', 'Call 2', 'Call 3', 'Call CV', 'Call OB', 'C1,OB'].map(callPreset => {
+                    const isSelected = isCallTeamSelected && customShift.toLowerCase() === callPreset.toLowerCase();
                     return (
                       <button
                         key={callPreset}
                         type="button"
-                        onClick={() => setCustomShift(callPreset)}
+                        onClick={() => {
+                          setCustomShift(callPreset);
+                          setIsCallTeamSelected(true);
+                        }}
                         style={{
                           padding: '3px 8px',
                           borderRadius: 4,
                           fontSize: 11,
                           fontWeight: 800,
                           border: isSelected ? '1.5px solid var(--marker-red)' : '1px solid var(--border-light)',
-                          background: isSelected ? 'rgba(211, 47, 47, 0.18)' : isOB ? 'rgba(236, 72, 153, 0.08)' : isCV ? 'rgba(234, 88, 12, 0.08)' : 'rgba(211, 47, 47, 0.06)',
-                          color: isSelected ? 'var(--marker-red)' : isOB ? '#db2777' : isCV ? '#ea580c' : 'var(--marker-red)',
+                          background: isSelected ? 'rgba(211, 47, 47, 0.22)' : 'rgba(211, 47, 47, 0.08)',
+                          color: 'var(--marker-red)',
                           cursor: 'pointer'
                         }}
                       >
@@ -717,15 +832,19 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   })}
                 </div>
               </div>
+
               <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
                 <input
                   type="text"
                   value={customShift}
-                  onChange={e => setCustomShift(e.target.value)}
-                  placeholder="e.g. 2p, 4p, or 13:30"
+                  onChange={e => {
+                    setCustomShift(e.target.value);
+                    setIsCallTeamSelected(false);
+                  }}
+                  placeholder="e.g. postCV, pre1st, OBcall, 2p, or 4p"
                   style={{
                     flex: 1,
-                    padding: '4px 8px',
+                    padding: '5px 8px',
                     fontSize: 12,
                     borderRadius: 4,
                     border: '1px solid var(--border-light)',
@@ -737,12 +856,12 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   type="button"
                   onClick={() => {
                     if (onUpdateShift && customShift.trim()) {
-                      onUpdateShift(staff.id, customShift.trim(), staff.lastName, staff.credentials);
+                      onUpdateShift(staff.id, customShift.trim(), staff.lastName, staff.credentials, isCallTeamSelected);
                       setIsEditingShift(false);
                     }
                   }}
                   style={{
-                    padding: '4px 10px',
+                    padding: '5px 12px',
                     background: 'var(--accent-primary)',
                     color: '#fff',
                     borderRadius: 4,
