@@ -3357,6 +3357,8 @@ body.dragging-staff .magnet-tile * {
   border-radius: 50%;
   background-color: var(--marker-red, #dc2626);
   flex-shrink: 0;
+  margin-left: 6px;
+  margin-right: 2px;
   box-shadow: 0 0 0 1.5px rgba(220, 38, 38, 0.4), 0 0 6px rgba(220, 38, 38, 0.7);
   cursor: help;
   animation: pending-relief-pulse 2s infinite ease-in-out;
