@@ -221,35 +221,48 @@ export async function POST(req: NextRequest) {
           const wsQ = (ws.qgendaAbbr || '').trim().toLowerCase();
           const wsLast = (ws.lastName || '').trim().toLowerCase();
           const wsFirst = (ws.firstName || '').trim().toLowerCase();
+          const wsCred = ws.credentials; // 'MD' | 'CRNA'
+
+          // Helper to check credentials compatibility (e.g. MD can never match CRNA)
+          const credsCompatible = (sCred?: string) => {
+            if (!wsCred || !sCred) return true;
+            if (wsCred === 'MD') return sCred === 'MD';
+            if (wsCred === 'CRNA') return sCred === 'CRNA' || sCred === 'SRNA' || sCred === 'Resident' || sCred === 'Fellow' || sCred === 'RN' || sCred === 'PA';
+            return true;
+          };
 
           // 1. Exact ID match
           if (ws.id) {
             const byId = existingStaffList.find(s => s.id === ws.id);
-            if (byId) return byId;
+            if (byId && credsCompatible(byId.credentials)) return byId;
           }
 
           // 2. QGenda abbreviation match
           if (wsQ) {
             const byQ = existingStaffList.find(s => s.qgendaAbbr && s.qgendaAbbr.trim().toLowerCase() === wsQ);
-            if (byQ) return byQ;
+            if (byQ && credsCompatible(byQ.credentials)) return byQ;
           }
 
-          // 3. Last name + First name / First initial match
+          // 3. Last name + First name / First initial match (with matching credentials)
           if (wsLast) {
             const byLastFirst = existingStaffList.find(s => {
+              if (!credsCompatible(s.credentials)) return false;
               const sLast = (s.lastName || '').trim().toLowerCase();
               const sFirst = (s.firstName || '').trim().toLowerCase();
               if (sLast === wsLast) {
-                if (!wsFirst || !sFirst) return true;
-                if (sFirst === wsFirst) return true;
-                if (sFirst[0] === wsFirst[0]) return true;
+                if (wsFirst && sFirst) {
+                  return sFirst === wsFirst || sFirst[0] === wsFirst[0];
+                }
+                return false;
               }
               return false;
             });
             if (byLastFirst) return byLastFirst;
 
-            // 4. Unique last name match in site roster
-            const byLastOnly = existingStaffList.filter(s => (s.lastName || '').trim().toLowerCase() === wsLast);
+            // 4. Unique last name match in site roster (ONLY when credentials match!)
+            const byLastOnly = existingStaffList.filter(s =>
+              (s.lastName || '').trim().toLowerCase() === wsLast && credsCompatible(s.credentials)
+            );
             if (byLastOnly.length === 1) {
               return byLastOnly[0];
             }
