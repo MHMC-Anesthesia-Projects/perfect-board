@@ -95,36 +95,6 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
         cursor: isDraggable ? 'grab' : (isAssignedRelief ? 'not-allowed' : 'pointer')
       }}
     >
-      {/* Staff Name (credentials color-coded via left accent stripe) */}
-      <div className="magnet-identity">
-        <span className="magnet-name">
-          {staff.displayName 
-            ? staff.displayName.toUpperCase() 
-            : `${staff.lastName.toUpperCase()}${staff.firstName ? ` ${staff.firstName[0]}.` : ''}`}
-        </span>
-        {isAssignedRelief && (
-          <span className="magnet-tile-relief-tag" title="Assigned as relief">
-            RELIEF
-          </span>
-        )}
-        {staff.hasStudent && (
-          <span
-            className="magnet-student-badge"
-            title={staff.studentName ? `🎓 Student: ${staff.studentName}` : '🎓 Student with clinician'}
-          >
-            🎓 STU
-          </span>
-        )}
-        {unreadMessageCount > 0 && (
-          <span
-            className="magnet-unread-badge"
-            title={`${unreadMessageCount} new message(s) from ${staff.lastName}`}
-          >
-            💬{unreadMessageCount > 1 ? unreadMessageCount : ''}
-          </span>
-        )}
-      </div>
-
       {/* Breakfast & Lunch Checkboxes */}
       {canShowBreaks && (
         <div className="break-controls">
@@ -155,6 +125,36 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
           </button>
         </div>
       )}
+
+      {/* Staff Name (credentials color-coded via left accent stripe) */}
+      <div className="magnet-identity">
+        <span className="magnet-name">
+          {staff.displayName 
+            ? staff.displayName.toUpperCase() 
+            : `${staff.lastName.toUpperCase()}${staff.firstName ? ` ${staff.firstName[0]}.` : ''}`}
+        </span>
+        {isAssignedRelief && (
+          <span className="magnet-tile-relief-tag" title="Assigned as relief">
+            RELIEF
+          </span>
+        )}
+        {staff.hasStudent && (
+          <span
+            className="magnet-student-badge"
+            title={staff.studentName ? `🎓 Student: ${staff.studentName}` : '🎓 Student with clinician'}
+          >
+            🎓 STU
+          </span>
+        )}
+        {unreadMessageCount > 0 && (
+          <span
+            className="magnet-unread-badge"
+            title={`${unreadMessageCount} new message(s) from ${staff.lastName}`}
+          >
+            💬{unreadMessageCount > 1 ? unreadMessageCount : ''}
+          </span>
+        )}
+      </div>
 
       {/* Quick Unassign Button for Bullpen Magnets */}
       {slotType === 'bullpen' && onUnassign && isDraggable && (
