@@ -17,7 +17,7 @@ interface ReliefModalProps {
   } | null;
   staff: Staff[];
   currentUserRole: UserRole;
-  onSetRelief: (targetType: 'room_slot' | 'runner_slot', targetId: string, reliefStaffId: string, reliefTime?: string, notes?: string, isRedBox?: boolean) => void;
+  onSetRelief: (targetType: 'room_slot' | 'runner_slot', targetId: string, reliefStaffId: string, reliefTime?: string, notes?: string, isRedBox?: boolean, fromSource?: { type?: string; id?: string }) => void;
   onRemoveRelief: (targetType: 'room_slot' | 'runner_slot', targetId: string, forceDelete?: boolean) => void;
   onExecuteHandoff: (targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
   activeReliefStaffIds?: Set<string>;

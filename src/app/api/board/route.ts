@@ -630,6 +630,39 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, state });
       }
 
+      // 4b. Update free-text note on a staff magnet (max 15 chars, travels with magnet)
+      case 'UPDATE_MAGNET_NOTE': {
+        const { staffId, note } = payload;
+        const cleanNote = typeof note === 'string' ? note.trim().slice(0, 15) : '';
+        state.magnetNotes = state.magnetNotes || {};
+        if (cleanNote) {
+          state.magnetNotes[staffId] = cleanNote;
+        } else {
+          delete state.magnetNotes[staffId];
+        }
+
+        if (state.staff && Array.isArray(state.staff)) {
+          state.staff.forEach(s => {
+            if (s.id === staffId) {
+              s.magnetNote = cleanNote;
+            }
+          });
+        }
+
+        await saveBoardState(state);
+        const staffMember = state.staff?.find(s => s.id === staffId);
+        await recordAuditLog({
+          actionType: 'NOTE_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          targetName: staffMember ? `${staffMember.lastName} ${staffMember.firstName}` : staffId,
+          details: cleanNote ? `Updated magnet red note: "${cleanNote}"` : 'Cleared magnet red note'
+        });
+
+        broadcastStateChange();
+        return NextResponse.json({ success: true, state });
+      }
+
       // 5. Update Departure, Call Team, or Lates lists directly
       case 'UPDATE_LISTS': {
         if (currentUserRole === 'basic_user') {
@@ -1223,10 +1256,11 @@ export async function POST(req: NextRequest) {
         if (currentUserRole === 'basic_user') {
           return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
         }
-        const { targetType, targetId, reliefStaffId, reliefTime, notes, isRedBox } = payload;
+        const { targetType, targetId, reliefStaffId, reliefTime, notes, isRedBox, fromSource } = payload;
         let targetLocation = '';
         let outgoingStaffName = '';
         let incomingStaffName = '';
+        let fromLocation = '';
 
         const incomingStaff = reliefStaffId ? state.staff.find(s => s.id === reliefStaffId) : null;
         if (incomingStaff) incomingStaffName = `${incomingStaff.lastName} (${incomingStaff.credentials})`;
@@ -1235,11 +1269,13 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Runners do not support relief assignments.' }, { status: 400 });
         }
 
-        // room_slot
+        // room_slot target
+        let targetSlot: any = null;
         for (const dept of state.departments) {
           for (const room of dept.rooms) {
             const slot = room.slots.find(s => s.id === targetId);
             if (slot) {
+              targetSlot = slot;
               const wasPreviouslyRedBox = Boolean(slot.relief?.isRedBox);
               const isPlannedRedBox = isRedBox !== undefined ? Boolean(isRedBox) : wasPreviouslyRedBox;
               slot.relief = {
@@ -1254,11 +1290,60 @@ export async function POST(req: NextRequest) {
               break;
             }
           }
+          if (targetSlot) break;
+        }
+
+        const isSelfRelief = Boolean(targetSlot && targetSlot.staffId && targetSlot.staffId === reliefStaffId);
+
+        // If a magnet in a room is dragged/assigned to be relief (and not self-relieving):
+        // Remove the magnet from the room it came from and show it in the bullpen!
+        if (reliefStaffId && !isSelfRelief) {
+          state.bullpenStaffIds = state.bullpenStaffIds || [];
+          state.bullpenBreaks = state.bullpenBreaks || {};
+
+          for (const dept of state.departments) {
+            for (const room of dept.rooms) {
+              for (const slot of room.slots) {
+                const isSource = fromSource?.id ? slot.id === fromSource.id : (slot.staffId === reliefStaffId && slot.id !== targetId);
+                if (isSource && slot.staffId === reliefStaffId) {
+                  slot.staffId = null;
+                  fromLocation = `${dept.name} Room ${room.name}`;
+                  state.bullpenBreaks[reliefStaffId] = {
+                    breakfastDone: slot.breakfastDone,
+                    lunchDone: slot.lunchDone,
+                    breakfastTime: slot.breakfastTime,
+                    lunchTime: slot.lunchTime
+                  };
+                }
+              }
+            }
+
+            // Also check runnerSlots if they came from a runner
+            const isRunnerSource = fromSource?.type === 'runner_slot' || (!fromSource && dept.runnerSlots.some(r => r.staffId === reliefStaffId));
+            if (isRunnerSource) {
+              const rIdx = dept.runnerSlots.findIndex(r => fromSource?.id ? r.id === fromSource.id : r.staffId === reliefStaffId);
+              if (rIdx !== -1) {
+                const r = dept.runnerSlots[rIdx];
+                state.bullpenBreaks[reliefStaffId] = {
+                  breakfastDone: r.breakfastDone,
+                  lunchDone: r.lunchDone,
+                  breakfastTime: r.breakfastTime,
+                  lunchTime: r.lunchTime
+                };
+                fromLocation = `${dept.name} Runner (${r.title})`;
+                dept.runnerSlots.splice(rIdx, 1);
+              }
+            }
+          }
+
+          // Show in the bullpen!
+          if (!state.bullpenStaffIds.includes(reliefStaffId)) {
+            state.bullpenStaffIds.push(reliefStaffId);
+          }
         }
 
         await saveBoardState(state);
         const isOpenRedBox = !reliefStaffId;
-        const isSelfRelief = outgoingStaffName && incomingStaffName && outgoingStaffName === incomingStaffName;
         await recordAuditLog({
           actionType: isOpenRedBox ? 'ROOM_UPDATED' : 'STAFF_ASSIGNED',
           performedBy: currentUserName,
@@ -1269,9 +1354,12 @@ export async function POST(req: NextRequest) {
             ? `Marked ${targetLocation} for 3 PM Count (Open Red Box awaiting coverage)`
             : isSelfRelief
               ? `${incomingStaffName} designated as relieving themselves in ${targetLocation}`
-              : `Assigned relief: ${incomingStaffName} relieving ${outgoingStaffName || 'Room'} in ${targetLocation}`
+              : fromLocation
+                ? `Assigned relief: ${incomingStaffName} relieving ${outgoingStaffName || 'Room'} in ${targetLocation} (moved from ${fromLocation} to bullpen)`
+                : `Assigned relief: ${incomingStaffName} relieving ${outgoingStaffName || 'Room'} in ${targetLocation}`
         });
 
+        broadcastStateChange();
         return NextResponse.json({ success: true, state });
       }
 

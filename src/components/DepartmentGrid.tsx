@@ -26,10 +26,11 @@ interface DepartmentGridProps {
     currentRelief?: ReliefAssignment | null;
   }) => void;
   onExecuteHandoff?: (targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
-  onSetRelief?: (targetType: 'room_slot' | 'runner_slot', targetId: string, reliefStaffId: string, reliefTime?: string, notes?: string, isRedBox?: boolean) => void;
+  onSetRelief?: (targetType: 'room_slot' | 'runner_slot', targetId: string, reliefStaffId: string, reliefTime?: string, notes?: string, isRedBox?: boolean, fromSource?: { type?: string; id?: string }) => void;
   onRemoveRelief?: (targetType: 'room_slot' | 'runner_slot', targetId: string, forceDelete?: boolean) => void;
   activeReliefStaffIds?: Set<string>;
   unreadCountsByPhone?: Record<string, number>;
+  onUpdateMagnetNote?: (staffId: string, note: string) => void;
 }
 
 export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
@@ -48,7 +49,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
   onRemoveRelief,
   onSetRoomFutureTime,
   activeReliefStaffIds,
-  unreadCountsByPhone
+  unreadCountsByPhone,
+  onUpdateMagnetNote
 }) => {
   const [dragOverRoomSlotId, setDragOverRoomSlotId] = useState<string | null>(null);
   const dragLeaveTimerRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -136,10 +138,14 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
         e.dataTransfer.getData('text');
 
       let staffId = '';
+      let fromSource: { type?: string; id?: string } | undefined = undefined;
       if (dataStr) {
         try {
           const parsed = JSON.parse(dataStr);
           staffId = parsed.staffId || parsed.id || '';
+          if (parsed.type) {
+            fromSource = { type: parsed.type, id: parsed.id };
+          }
         } catch {
           staffId = dataStr.trim();
         }
@@ -148,6 +154,12 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
       // Resilient fallback to window.__activeDraggedStaff
       if (!staffId && typeof window !== 'undefined' && (window as any).__activeDraggedStaff) {
         staffId = (window as any).__activeDraggedStaff.staffId || '';
+        if ((window as any).__activeDraggedStaff.type) {
+          fromSource = {
+            type: (window as any).__activeDraggedStaff.type,
+            id: (window as any).__activeDraggedStaff.id
+          };
+        }
       }
 
       if (staffId) {
@@ -159,7 +171,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
         }
 
         if (onSetRelief) {
-          onSetRelief(targetType, targetId, staffId);
+          onSetRelief(targetType, targetId, staffId, undefined, undefined, undefined, fromSource);
         }
       }
     } catch (err) {
@@ -345,6 +357,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                           lunchDone={runner.lunchDone}
                           currentUserRole={currentUserRole}
                           unreadMessageCount={getStaffUnreadCount(assignedStaff)}
+                          magnetNote={assignedStaff.magnetNote || ''}
+                          onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(assignedStaff.id, note) : undefined}
                           onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
                           onSelectStaff={onSelectStaff}
                           onDragStart={handleTileDragStart}
@@ -442,6 +456,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                               lunchDone={slot.lunchDone}
                               currentUserRole={currentUserRole}
                               unreadMessageCount={getStaffUnreadCount(assignedStaff)}
+                              magnetNote={assignedStaff.magnetNote || ''}
+                              onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(assignedStaff.id, note) : undefined}
                               onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
                               onSelectStaff={onSelectStaff}
                               onDragStart={handleTileDragStart}

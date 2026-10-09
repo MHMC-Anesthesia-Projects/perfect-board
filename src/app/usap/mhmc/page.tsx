@@ -791,6 +791,47 @@ export default function WhiteboardPage() {
     await executeToggleBreak(targetType, targetId, breakType, value, currentUser);
   };
 
+  const handleUpdateMagnetNote = async (staffId: string, note: string) => {
+    const cleanNote = (note || '').trim().slice(0, 15);
+
+    // Optimistic UI update
+    setBoardState(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev };
+      const nextNotes = { ...(updated.magnetNotes || {}) };
+      if (cleanNote) {
+        nextNotes[staffId] = cleanNote;
+      } else {
+        delete nextNotes[staffId];
+      }
+      updated.magnetNotes = nextNotes;
+      if (updated.staff) {
+        updated.staff = updated.staff.map(st =>
+          st.id === staffId ? { ...st, magnetNote: cleanNote } : st
+        );
+      }
+      return updated;
+    });
+
+    try {
+      const res = await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_MAGNET_NOTE',
+          payload: { staffId, note: cleanNote },
+          user: currentUser || { role: 'basic_user', displayName: 'Staff (Basic User)' }
+        })
+      });
+      const data = await res.json();
+      if (data?.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error updating magnet note:', err);
+    }
+  };
+
   // 2. Assign staff to slot
   const handleAssignStaff = async (
     targetType: 'room_slot' | 'runner_slot',
@@ -1042,7 +1083,8 @@ export default function WhiteboardPage() {
     reliefStaffId: string,
     reliefTime?: string,
     notes?: string,
-    isRedBox?: boolean
+    isRedBox?: boolean,
+    fromSource?: { type?: string; id?: string }
   ) => {
     if (!isEditor) {
       setIsLoginModalOpen(true);
@@ -1051,6 +1093,9 @@ export default function WhiteboardPage() {
 
     let previousRelief: ReliefAssignment | null = null;
     let targetStaffName = 'Staff';
+    let isSelfRelief = false;
+    let previousSourceSlot: { type: 'room_slot' | 'runner_slot'; id: string } | null = null;
+
     if (boardState) {
       if (targetType === 'runner_slot') {
         for (const d of boardState.departments) {
@@ -1068,6 +1113,9 @@ export default function WhiteboardPage() {
             const slot = rm.slots.find(s => s.id === targetId);
             if (slot) {
               previousRelief = slot.relief || null;
+              if (slot.staffId === reliefStaffId) {
+                isSelfRelief = true;
+              }
               const st = boardState.staff.find(s => s.id === slot.staffId);
               if (st) targetStaffName = st.lastName;
               else targetStaffName = rm.name ? `Room ${rm.name}` : 'Room';
@@ -1076,7 +1124,70 @@ export default function WhiteboardPage() {
           }
         }
       }
+
+      // Check if clinician is currently in a room slot or runner slot
+      if (reliefStaffId && !isSelfRelief) {
+        for (const d of boardState.departments) {
+          for (const rm of d.rooms) {
+            const slot = rm.slots.find(s => fromSource?.id ? s.id === fromSource.id : (s.staffId === reliefStaffId && s.id !== targetId));
+            if (slot && slot.staffId === reliefStaffId) {
+              previousSourceSlot = { type: 'room_slot', id: slot.id };
+              break;
+            }
+          }
+          if (previousSourceSlot) break;
+        }
+      }
     }
+
+    // Optimistic UI update: Remove from source room and show in bullpen
+    setBoardState(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev };
+
+      updated.departments = updated.departments.map(dept => {
+        const d = { ...dept };
+        d.rooms = d.rooms.map(rm => {
+          const r = { ...rm };
+          r.slots = r.slots.map(sl => {
+            const s = { ...sl };
+            if (s.id === targetId) {
+              s.relief = {
+                staffId: reliefStaffId || null,
+                time: reliefTime || s.relief?.time || '3:00 PM',
+                notes: notes !== undefined ? notes : (s.relief?.notes || ''),
+                isRedBox: Boolean(isRedBox || !reliefStaffId)
+              };
+            }
+            if (reliefStaffId && !isSelfRelief) {
+              const isSource = fromSource?.id ? s.id === fromSource.id : (s.staffId === reliefStaffId && s.id !== targetId);
+              if (isSource && s.staffId === reliefStaffId) {
+                s.staffId = null;
+              }
+            }
+            return s;
+          });
+          return r;
+        });
+
+        if (reliefStaffId && !isSelfRelief) {
+          const isRunnerSource = fromSource?.type === 'runner_slot' || (!fromSource && d.runnerSlots.some(r => r.staffId === reliefStaffId));
+          if (isRunnerSource) {
+            d.runnerSlots = d.runnerSlots.filter(r => fromSource?.id ? r.id !== fromSource.id : r.staffId !== reliefStaffId);
+          }
+        }
+        return d;
+      });
+
+      if (reliefStaffId && !isSelfRelief) {
+        const nextBullpen = [...(updated.bullpenStaffIds || [])];
+        if (!nextBullpen.includes(reliefStaffId)) {
+          nextBullpen.push(reliefStaffId);
+        }
+        updated.bullpenStaffIds = nextBullpen;
+      }
+      return updated;
+    });
 
     try {
       const res = await fetch(apiUrl('/api/board'), {
@@ -1084,7 +1195,7 @@ export default function WhiteboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'SET_RELIEF',
-          payload: { targetType, targetId, reliefStaffId, reliefTime: reliefTime || '', notes, isRedBox },
+          payload: { targetType, targetId, reliefStaffId, reliefTime: reliefTime || '', notes, isRedBox, fromSource },
           user: currentUser
         })
       });
@@ -2392,6 +2503,7 @@ export default function WhiteboardPage() {
           reliefCount={totalScheduledReliefsCount}
           isCompletingRelief={isCompletingAllReliefs}
           unreadCountsByPhone={unreadCountsByPhone}
+          onUpdateMagnetNote={handleUpdateMagnetNote}
           onUndo={handleExecuteUndo}
           canUndo={undoStack.length > 0}
           undoCount={undoStack.length}
@@ -2450,6 +2562,7 @@ export default function WhiteboardPage() {
             onToggleCollapse={() => setIsBullpenOpen(false)}
             onToggleBreak={(breakType, staffId, currentValue) => handleToggleBreak('bullpen', staffId, breakType, currentValue)}
             unreadCountsByPhone={unreadCountsByPhone}
+            onUpdateMagnetNote={handleUpdateMagnetNote}
           />
         ) : (
           /* Expand Tab on Left Edge to slide Bullpen back open */
@@ -2497,6 +2610,7 @@ export default function WhiteboardPage() {
           onSetRelief={handleSetRelief}
           onRemoveRelief={handleRemoveRelief}
           unreadCountsByPhone={unreadCountsByPhone}
+          onUpdateMagnetNote={handleUpdateMagnetNote}
         />
 
         {/* Right 2 Columns: DEPARTURE & LATES (Can be hidden to the right) */}
@@ -2554,6 +2668,7 @@ export default function WhiteboardPage() {
         isCollapsed={isBullpenCollapsed}
         onToggleCollapse={() => setIsBullpenCollapsed(prev => !prev)}
         unreadCountsByPhone={unreadCountsByPhone}
+        onUpdateMagnetNote={handleUpdateMagnetNote}
       />
       )}
         </div>
@@ -2595,6 +2710,8 @@ export default function WhiteboardPage() {
         onToggleRedBox={handleToggleRedBox}
         onRemoveRelief={handleRemoveRelief}
         unreadCount={selectedStaff?.phone ? (unreadCountsByPhone[selectedStaff.phone.replace(/\D/g, '').slice(-10)] || 0) : 0}
+        magnetNotes={boardState?.magnetNotes}
+        onUpdateMagnetNote={handleUpdateMagnetNote}
       />
 
       <SlotAssignModal
