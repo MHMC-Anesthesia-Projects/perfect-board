@@ -1,5 +1,109 @@
 [
   {
+    "id": "audit_1791572812281_ug89v",
+    "timestamp": "2026-10-09T19:06:52.281Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mat Moody",
+    "locationName": "Available Unassigned Staff",
+    "details": "Moved from MAIN OR Room 8 -> Available Unassigned Staff",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_main_or_room_8_slot_0",
+      "toTargetType": "unassigned",
+      "staffId": "staff_oneusap_anes_moodymat",
+      "fromLocation": "MAIN OR Room 8",
+      "toLocation": "Available Unassigned Staff"
+    }
+  },
+  {
+    "id": "audit_1791572812060_2aoxu",
+    "timestamp": "2026-10-09T19:06:52.060Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mat Moody",
+    "locationName": "Available Unassigned Staff",
+    "details": "Moved from MAIN OR Room 8 -> Available Unassigned Staff",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_main_or_room_8_slot_0",
+      "toTargetType": "unassigned",
+      "staffId": "staff_oneusap_anes_moodymat",
+      "fromLocation": "MAIN OR Room 8",
+      "toLocation": "Available Unassigned Staff"
+    }
+  },
+  {
+    "id": "audit_1791572807573_oci9n",
+    "timestamp": "2026-10-09T19:06:47.573Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Mat Moody",
+    "locationName": "MAIN OR Room 8",
+    "details": "Moved from Staff Pool -> MAIN OR Room 8",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "room_slot",
+      "toId": "dept_main_or_room_8_slot_0",
+      "staffId": "staff_oneusap_anes_moodymat",
+      "fromLocation": "",
+      "toLocation": "MAIN OR Room 8"
+    }
+  },
+  {
+    "id": "audit_1791572806881_eigzk",
+    "timestamp": "2026-10-09T19:06:46.881Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Relief Assignment",
+    "locationName": "MAIN OR Room 10",
+    "details": "Removed relief assignment for MAIN OR Room 10"
+  },
+  {
+    "id": "audit_1791572802897_wwi6u",
+    "timestamp": "2026-10-09T19:06:42.897Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Moody (CRNA)",
+    "locationName": "MAIN OR Room 10",
+    "details": "Assigned relief: Moody (CRNA) relieving Walker (CRNA) in MAIN OR Room 10 (moved from MAIN OR Room 8 to bullpen)"
+  },
+  {
+    "id": "audit_1791572045287_oxcot",
+    "timestamp": "2026-10-09T18:54:05.287Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Admin",
+    "userRole": "admin",
+    "targetName": "Mic Shirak",
+    "locationName": "MAIN OR Room 3",
+    "details": "Assigned to MAIN OR Room 3"
+  },
+  {
+    "id": "audit_1791572044829_g1uua",
+    "timestamp": "2026-10-09T18:54:04.830Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Admin",
+    "userRole": "admin",
+    "targetName": "Relief Assignment",
+    "locationName": "MAIN OR Room 1",
+    "details": "Removed relief assignment for MAIN OR Room 1"
+  },
+  {
+    "id": "audit_1791572044328_hwr4b",
+    "timestamp": "2026-10-09T18:54:04.328Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Admin",
+    "userRole": "admin",
+    "targetName": "Shirak (MD)",
+    "locationName": "MAIN OR Room 1",
+    "details": "Assigned relief: Shirak (MD) relieving Room in MAIN OR Room 1 (moved from MAIN OR Room 3 to bullpen)"
+  },
+  {
     "id": "audit_1791561512857_0acne",
     "timestamp": "2026-10-09T15:58:32.857Z",
     "actionType": "NOTE_UPDATED",

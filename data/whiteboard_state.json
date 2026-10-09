@@ -1672,6 +1672,7 @@
             {
               "id": "dept_main_or_room_1_slot_0",
               "notes": "",
+              "relief": null,
               "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
@@ -1709,7 +1710,9 @@
               "staffId": "staff_oneusap_doc_shirakmic",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "lunchTime": null,
+              "breakfastDone": false,
+              "breakfastTime": null
             }
           ],
           "futureTime": null,
@@ -1791,7 +1794,7 @@
             {
               "id": "dept_main_or_room_8_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_moodymat",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "lunchTime": null,
@@ -1827,6 +1830,7 @@
             {
               "id": "dept_main_or_room_10_slot_0",
               "notes": "",
+              "relief": null,
               "staffId": "staff_oneusap_anes_walkernes",
               "roleType": "primary",
               "lunchDone": false,
@@ -1844,13 +1848,10 @@
             {
               "id": "dept_main_or_room_11_slot_0",
               "notes": "",
-              "relief": null,
-              "staffId": null,
+              "staffId": "staff_oneusap_doc_choiseu",
               "roleType": "primary",
               "lunchDone": false,
-              "lunchTime": null,
-              "breakfastDone": false,
-              "breakfastTime": null
+              "breakfastDone": false
             }
           ],
           "futureTime": null,
@@ -1860,7 +1861,7 @@
       "orderIndex": 0,
       "runnerSlots": [
         {
-          "id": "runner_dept_main_or_1791550830559_1",
+          "id": "runner_dept_main_or_1791571445127_1",
           "title": "Runner 1",
           "staffId": "staff_oneusap_doc_shenoyvik",
           "lunchDone": false,
@@ -2126,7 +2127,7 @@
             {
               "id": "dept_ortho_room_3_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_anes_pateljin",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2160,12 +2161,10 @@
             {
               "id": "dept_ortho_room_5_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_pateljin",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
-              "lunchTime": null,
-              "breakfastDone": false,
-              "breakfastTime": null
+              "breakfastDone": false
             }
           ],
           "futureTime": null,
@@ -2226,7 +2225,7 @@
       "orderIndex": 2,
       "runnerSlots": [
         {
-          "id": "runner_dept_ortho_1791550830559_1",
+          "id": "runner_dept_ortho_1791571445127_1",
           "title": "Runner 1",
           "staffId": "staff_oneusap_doc_cavanaughmar",
           "lunchDone": false,
@@ -2412,14 +2411,14 @@
       "orderIndex": 3,
       "runnerSlots": [
         {
-          "id": "runner_dept_village_1791550830559_1",
+          "id": "runner_dept_village_1791571445127_1",
           "title": "Runner 1",
           "staffId": "staff_oneusap_doc_jeffcoatshe",
           "lunchDone": false,
           "breakfastDone": false
         },
         {
-          "id": "runner_dept_village_1791557463259_2",
+          "id": "runner_dept_village_1791571445127_2",
           "title": "Runner 2",
           "staffId": "staff_oneusap_doc_hirschdou",
           "lunchDone": false,
@@ -2571,7 +2570,7 @@
       "orderIndex": 4,
       "runnerSlots": [
         {
-          "id": "runner_dept_9th_floor_1791557463259_1",
+          "id": "runner_dept_9th_floor_1791571445127_1",
           "title": "Runner 1",
           "staffId": "staff_oneusap_doc_chenkev",
           "lunchDone": false,
@@ -2672,7 +2671,7 @@
       "orderIndex": 5,
       "runnerSlots": [
         {
-          "id": "runner_dept_endo_1791550830559_1",
+          "id": "runner_dept_endo_1791571445127_1",
           "title": "Runner 1",
           "staffId": "staff_oneusap_doc_chuanjos",
           "lunchDone": false,
@@ -2756,7 +2755,7 @@
       "orderIndex": 6,
       "runnerSlots": [
         {
-          "id": "runner_dept_ob_1791550830559_1",
+          "id": "runner_dept_ob_1791571445127_1",
           "title": "Runner 1",
           "staffId": "staff_oneusap_doc_baerenstechejoh",
           "lunchDone": false,
@@ -2790,7 +2789,7 @@
       "runnerSlots": []
     }
   ],
-  "lastUpdated": "2026-10-09T15:58:32.714Z",
+  "lastUpdated": "2026-10-09T19:06:51.937Z",
   "magnetNotes": {},
   "callTeamList": [
     {
@@ -2835,26 +2834,15 @@
     }
   ],
   "bullpenBreaks": {
-    "staff_oneusap_anes_tranton": {
-      "lunchDone": false,
-      "breakfastDone": false,
-      "breakfastTime": null
-    },
     "staff_oneusap_anes_moodymat": {
-      "lunchDone": false,
-      "lunchTime": null,
       "breakfastDone": false,
-      "breakfastTime": null
+      "lunchDone": false,
+      "breakfastTime": null,
+      "lunchTime": null
     },
-    "staff_oneusap_anes_pateljin": {
+    "staff_oneusap_doc_shirakmic": {
       "lunchDone": false,
       "breakfastDone": false
-    },
-    "staff_oneusap_anes_spearsall": {
-      "lunchDone": false,
-      "lunchTime": null,
-      "breakfastDone": false,
-      "breakfastTime": null
     }
   },
   "departureList": [
@@ -2862,6 +2850,7 @@
       "id": "dep_post_0_1791554108797",
       "name": "CHANG",
       "category": "post_call",
+      "departed": false,
       "orderIndex": 0,
       "qgendaAbbr": "ChangAle",
       "orderNumber": 104,
@@ -2872,6 +2861,7 @@
       "id": "dep_post_1_1791554108797",
       "name": "LU",
       "category": "post_call",
+      "departed": false,
       "orderIndex": 1,
       "qgendaAbbr": "LuKey",
       "orderNumber": 107,
@@ -2882,6 +2872,7 @@
       "id": "dep_post_2_1791554108797",
       "name": "SHIRAK",
       "category": "post_call",
+      "departed": false,
       "orderIndex": 2,
       "qgendaAbbr": "ShirakMic",
       "orderNumber": 110,
@@ -2892,6 +2883,7 @@
       "id": "dep_post_3_1791554108797",
       "name": "CHEN",
       "category": "post_call",
+      "departed": false,
       "orderIndex": 3,
       "qgendaAbbr": "ChenKev",
       "orderNumber": 112,
@@ -2902,6 +2894,7 @@
       "id": "dep_non_0_1791554108798",
       "name": "ALANIZ",
       "category": "non_call",
+      "departed": false,
       "orderIndex": 4,
       "qgendaAbbr": "AlanizPed",
       "orderNumber": 115,
@@ -2911,6 +2904,7 @@
       "id": "dep_non_1_1791554108798",
       "name": "CAVANAUGH",
       "category": "non_call",
+      "departed": false,
       "orderIndex": 5,
       "qgendaAbbr": "CavanaughMar",
       "orderNumber": 117,
@@ -2921,6 +2915,7 @@
       "id": "dep_non_2_1791554108798",
       "name": "GASHLER",
       "category": "non_call",
+      "departed": false,
       "orderIndex": 6,
       "qgendaAbbr": "GashlerKyl",
       "orderNumber": 185,
@@ -2930,6 +2925,7 @@
       "id": "dep_non_3_1791554108798",
       "name": "CHOI",
       "category": "non_call",
+      "departed": false,
       "orderIndex": 7,
       "qgendaAbbr": "ChoiSeu",
       "orderNumber": 204,
@@ -2939,6 +2935,7 @@
       "id": "dep_non_4_1791554108798",
       "name": "TALLACKSON",
       "category": "non_call",
+      "departed": false,
       "orderIndex": 8,
       "qgendaAbbr": "TallacksonDon",
       "orderNumber": 212,
@@ -2962,9 +2959,7 @@
     "autoSyncIntervalMinutes": 15
   },
   "departureNotes": "",
-  "bullpenStaffIds": [
-    "staff_oneusap_doc_carvajaltom"
-  ],
+  "bullpenStaffIds": [],
   "messagingConfig": {
     "enabled": true,
     "pushEndpoint": "https://pinecone-backend-7m1p.onrender.com/api/send-chat-push",
