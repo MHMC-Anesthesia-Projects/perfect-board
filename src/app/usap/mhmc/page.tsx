@@ -2752,24 +2752,39 @@ export default function WhiteboardPage() {
         <div
           style={{
             position: 'fixed',
-            bottom: 50,
+            bottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 99999,
             background: 'var(--surface-card)',
             color: 'var(--text-primary)',
-            padding: '8px 18px',
-            borderRadius: 8,
-            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.32)',
+            padding: '7px 12px 7px 16px',
+            borderRadius: 10,
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.08)',
             border: '1.5px solid var(--accent-primary)',
-            fontWeight: 700,
-            fontSize: 13,
+            width: 'calc(100% - 24px)',
+            maxWidth: 480,
             display: 'flex',
             alignItems: 'center',
-            gap: 12
+            justifyContent: 'space-between',
+            gap: 10,
+            boxSizing: 'border-box'
           }}
         >
-          <span>{activeUndoToast ? activeUndoToast.description : toastMessage}</span>
+          <span
+            style={{
+              fontSize: 12.5,
+              fontWeight: 700,
+              lineHeight: 1.3,
+              flex: 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+            title={activeUndoToast ? activeUndoToast.description : (toastMessage || '')}
+          >
+            {activeUndoToast ? activeUndoToast.description : toastMessage}
+          </span>
 
           {activeUndoToast && (
             <button
@@ -2782,11 +2797,12 @@ export default function WhiteboardPage() {
                 background: 'var(--accent-primary)',
                 color: '#ffffff',
                 border: 'none',
-                padding: '4px 10px',
-                borderRadius: 6,
+                padding: '5px 12px',
+                borderRadius: 7,
                 fontWeight: 800,
                 fontSize: 12,
                 cursor: 'pointer',
+                flexShrink: 0,
                 boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)'
               }}
               title="Quick Undo: Revert this action immediately"
@@ -2807,9 +2823,13 @@ export default function WhiteboardPage() {
               border: 'none',
               color: 'var(--text-muted)',
               cursor: 'pointer',
-              padding: 2,
-              fontWeight: 800
+              padding: '4px 6px',
+              fontWeight: 800,
+              fontSize: 14,
+              flexShrink: 0,
+              lineHeight: 1
             }}
+            title="Dismiss notification"
           >
             ✕
           </button>
