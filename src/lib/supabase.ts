@@ -1,7 +1,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// The dedicated schema for Whiteboard tables in PostgreSQL
-export const WHITEBOARD_SCHEMA = 'whiteboard';
+// The dedicated schema for Perfect Board tables in PostgreSQL
+export const PERFECT_BOARD_SCHEMA = 'perfect_board';
+export const WHITEBOARD_SCHEMA = PERFECT_BOARD_SCHEMA; // backward compatibility alias
 
 // Default Perfect Call Supabase Project Credentials
 export const DEFAULT_SUPABASE_URL = 'https://bxdrwumlkyltiygohjia.supabase.co';
@@ -19,7 +20,7 @@ export const isSupabaseConfigured = Boolean(
 let serverClient: SupabaseClient<any, any, any> | null = null;
 
 /**
- * Returns a server-side Supabase client targeting the 'whiteboard' schema.
+ * Returns a server-side Supabase client targeting the 'perfect_board' schema.
  * Uses service role key if available, otherwise falls back to anon key.
  */
 export function getSupabaseServerClient(): SupabaseClient<any, any, any> | null {
@@ -29,7 +30,7 @@ export function getSupabaseServerClient(): SupabaseClient<any, any, any> | null 
     const key = supabaseServiceKey || supabaseAnonKey;
     serverClient = createClient(supabaseUrl, key, {
       db: {
-        schema: WHITEBOARD_SCHEMA,
+        schema: PERFECT_BOARD_SCHEMA,
       },
       auth: {
         persistSession: false,
@@ -57,7 +58,7 @@ export function getBrowserSupabase(): SupabaseClient<any, any, any> | null {
   if (!browserClient) {
     browserClient = createClient(url, key, {
       db: {
-        schema: WHITEBOARD_SCHEMA,
+        schema: PERFECT_BOARD_SCHEMA,
       },
       realtime: {
         params: {

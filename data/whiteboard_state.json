@@ -140,7 +140,7 @@
     {
       "id": "staff_oneusap_doc_dwarakanathkis",
       "phone": "(612) 432-2094",
-      "shift": "CVcall",
+      "shift": "postCV",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Dwarakanath",
@@ -1793,12 +1793,7 @@
             {
               "id": "dept_main_or_room_4_slot_0",
               "notes": "",
-              "relief": {
-                "time": "3:00 PM",
-                "notes": "",
-                "staffId": null,
-                "isRedBox": true
-              },
+              "relief": null,
               "staffId": "staff_oneusap_anes_hughesabi",
               "roleType": "primary",
               "lunchDone": false,
@@ -1833,6 +1828,12 @@
             {
               "id": "dept_main_or_room_6_slot_0",
               "notes": "",
+              "relief": {
+                "time": "3:00 PM",
+                "notes": "",
+                "staffId": null,
+                "isRedBox": true
+              },
               "staffId": "staff_oneusap_anes_moodymat",
               "roleType": "primary",
               "lunchDone": false,
@@ -2912,7 +2913,7 @@
       "runnerSlots": []
     }
   ],
-  "lastUpdated": "2026-10-07T21:43:27.721Z",
+  "lastUpdated": "2026-10-08T05:58:07.397Z",
   "callTeamList": [
     {
       "id": "call_0_1791399556943",
@@ -2955,12 +2956,7 @@
       "orderNumber": 231
     }
   ],
-  "bullpenBreaks": {
-    "staff_oneusap_doc_choiseu": {
-      "lunchDone": false,
-      "breakfastDone": false
-    }
-  },
+  "bullpenBreaks": {},
   "departureList": [
     {
       "id": "dep_post_0_1791399556943",
@@ -2990,7 +2986,7 @@
       "qgendaAbbr": "DwarakanathKis",
       "orderNumber": 99,
       "assignedRoom": "MHMC OR1",
-      "timeEstimate": "CVcall"
+      "timeEstimate": "postCV"
     },
     {
       "id": "dep_non_0_1791399556943",
@@ -3173,7 +3169,7 @@
   "infrequentStaffIds": [
     "staff_oneusap_anes_patagocsun"
   ],
-  "lastBreakResetDate": "2026-10-07",
+  "lastBreakResetDate": "2026-10-08",
   "infrequentStaffKeys": [
     "patagocsun",
     "patagoc"
