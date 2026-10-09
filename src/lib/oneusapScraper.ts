@@ -284,10 +284,35 @@ export function isLateShift(s: string): boolean {
 
 export function isPreCallShift(s: string): boolean {
   if (!s) return false;
-  return /\bpre-?call\b/i.test(s) || /\bpre\s*c[1-4]\b/i.test(s) || /\bpre\s*ob\b/i.test(s);
+  return /\bpre-?call\b/i.test(s) || /\bpre\s*c[1-4]\b/i.test(s) || /\bpre\s*ob\b/i.test(s) || /\bpre\s*cv\b/i.test(s) || /\bpre\s*[1-4](?:st|nd|rd|th)?\b/i.test(s);
 }
 
-// Facility filter check matching any selected facility code against the compound or active working facility
+/**
+ * Detects if a clinician is on an active in-house call shift tonight (e.g. C1, C2, C3, CV, OB).
+ * Explicitly excludes pre-call (e.g. preOB, preC1), post-call (e.g. postC1, postCV), and off shifts (PTO, RDO).
+ */
+export function isActiveCallShift(shiftStr?: string, taskStr?: string): boolean {
+  const combined = `${shiftStr || ''} ${taskStr || ''}`.trim();
+  if (!combined) return false;
+  if (isOffShift(combined)) return false;
+
+  const parts = combined.split(/[,/]+/).map(p => p.trim()).filter(Boolean);
+  return parts.some(p => {
+    const upper = p.toUpperCase();
+    if (upper.startsWith('PRE') || upper.startsWith('POST')) return false;
+    if (isPreCallShift(upper)) return false;
+
+    if (/^(?:HDR|IDR)?(?:C[123]|CV|OB)(?:AM|PM)?(?:_MHMC)?$/i.test(upper)) return true;
+    if (/^CALL\s*(?:[123]|CV|OB)$/i.test(upper)) return true;
+    if (/^C[123]$/i.test(upper)) return true;
+    if (upper === 'CV' || upper === 'OB') return true;
+    if (/^CIH(?:OB)?(?:AM|PM)?(?:_MHMC)?$/i.test(upper)) return true;
+
+    return false;
+  });
+}
+
+// Facility filter check matching any selected facility code against the active working facility
 export function isTargetFacility(facilityStr: string, allowedFacilities: string[] = DEFAULT_FACILITIES): boolean {
   if (!facilityStr || allowedFacilities.length === 0) return false;
   const upper = facilityStr.toUpperCase();
@@ -307,11 +332,11 @@ export function isTargetFacility(facilityStr: string, allowedFacilities: string[
     return allowedFacilities.some(fac => fac.toUpperCase().includes('MHMC'));
   }
 
-  // Check compound facility segments (e.g. "W: MHMC,W: MHKTY")
-  const segments = facilityStr.split(',').map(s => s.trim().toUpperCase());
+  // Check the active working facility (last comma-delimited segment, e.g. "W: MHMC,W: MHKTY" -> "W: MHKTY")
+  const activeCode = getActiveFacilityCode(facilityStr).toUpperCase();
   return allowedFacilities.some(fac => {
     const facUpper = fac.toUpperCase();
-    return segments.some(seg => seg.includes(facUpper)) || upper.includes(facUpper);
+    return activeCode.includes(facUpper);
   });
 }
 
@@ -517,7 +542,7 @@ function resolveEffectiveShift(
 const KNOWN_MHMC_CV_ABBRS = [
   'shirakmic', 'dwarakanathkis', 'ruizjua', 'chenkev',
   'farias kovacmar', 'baerenstechejoh', 'loubserpau', 'jamesika',
-  'gashlerkyl', 'chenrod', 'daumerieger'
+  'gashlerkyl', 'chenrod', 'daumerieger', 'choiseu'
 ];
 
 function buildCallTeamMap(
@@ -959,16 +984,18 @@ export function parseOneUsapHtml(
     const assignedSites = providerSiteMap.get(cleanId);
     // If provider has room assignments in the HTML:
     if (assignedSites && assignedSites.size > 0) {
-      // If ALL their rooms are at outside facilities (e.g. MHKTY, SE: MHSE),
-      // keep them IF they are on call tonight for the target facility or their facility matches target!
+      // If ALL their rooms are at outside facilities (e.g. MHKTY, SE: MHSE, HMWST):
+      // Only keep them IF they are on an active in-house call shift tonight for MHMC!
       const hasTargetRoom = Array.from(assignedSites).some(s => isTargetFacility(s, activeFacilities));
       if (!hasTargetRoom) {
-        const hasTargetFacility = isTargetFacility(facilityStr, activeFacilities);
-        const isCallShift = /^(?:HDR|IDR)?(?:C[123]|CV|OB)(?:AM|PM)?(?:_MHMC)?$/i.test(shiftStr?.trim() || '') ||
-                            /\b(?:C[123]|CV|OB)\b/i.test(shiftStr || '') ||
-                            cleanShift.includes('C3') || cleanShift.includes('C2') || cleanShift.includes('C1') || cleanShift.includes('OB') || cleanShift.includes('CV');
+        const isCallShift = isActiveCallShift(shiftStr, taskStr) &&
+          (/^(?:HDR|IDR)?(?:C[123]|OB)(?:AM|PM)?(?:_MHMC)?$/i.test(shiftStr?.trim() || '') ||
+           /^C[123]$/i.test(shiftStr?.trim() || '') ||
+           shiftStr?.toUpperCase() === 'OB' ||
+           cleanShift.includes('_MHMC'));
         const isOutsideCall = isOutsideHospitalCallRole(shiftStr, facilityStr);
-        if (hasTargetFacility && isCallShift && !isOutsideCall) {
+        const isMhmcAffiliated = facilityStr.toUpperCase().includes('MHMC') || activeFacilities.some(fac => isTargetFacility(facilityStr, [fac]));
+        if (isMhmcAffiliated && isCallShift && !isOutsideCall) {
           return true;
         }
         return false;
@@ -1309,6 +1336,9 @@ export function parseOneUsapHtml(
     const upperShift = (effectiveShift || '').toUpperCase();
 
     const activeFac = getActiveFacilityCode(facility);
+    if (!isTargetFacility(activeFac, activeFacilities)) {
+      return;
+    }
     let facilityLabel = 'MHMC';
     if (activeFac.includes('HIVF')) facilityLabel = 'HIVF';
     else if (activeFac.includes('MHVIL')) facilityLabel = 'Village';
