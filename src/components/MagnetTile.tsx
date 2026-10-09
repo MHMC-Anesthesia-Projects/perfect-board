@@ -43,7 +43,7 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
 }) => {
   const isDraggable = !isAssignedRelief && (propIsDraggable !== undefined 
     ? propIsDraggable 
-    : (currentUserRole === 'board_runner' || currentUserRole === 'superuser'));
+    : (currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser'));
 
   const canShowBreaks = showBreaks !== undefined
     ? showBreaks

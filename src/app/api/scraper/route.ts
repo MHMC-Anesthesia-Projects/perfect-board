@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadBoardState, saveBoardState, recordAuditLog } from '@/lib/storage';
 import { fetchAndScrapeOneUsap, getHoustonDateString } from '@/lib/oneusapScraper';
-import { DepartureItem, LateShiftItem, CallTeamItem, Staff } from '@/types/whiteboard';
+import { DepartureItem, LateShiftItem, CallTeamItem, Staff, UserRole } from '@/types/whiteboard';
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,8 +12,8 @@ export async function POST(req: NextRequest) {
 
     // 1. UPDATE SCRAPER CONFIGURATION
     if (action === 'UPDATE_CONFIG') {
-      if (currentUser?.role !== 'superuser') {
-        return NextResponse.json({ error: 'Superuser permission required to configure portal integration.' }, { status: 403 });
+      if (currentUser?.role !== 'admin' && currentUser?.role !== 'superuser') {
+        return NextResponse.json({ error: 'Admin permission required to configure portal integration.' }, { status: 403 });
       }
       state.scraperConfig = {
         ...state.scraperConfig,
@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
       await saveBoardState(state);
       await recordAuditLog({
         actionType: 'SCRAPER_SYNCED',
-        performedBy: currentUser?.displayName || 'Superuser',
-        userRole: 'superuser',
+        performedBy: currentUser?.displayName || (currentUser?.role === 'superuser' ? 'Superuser' : 'Admin'),
+        userRole: (currentUser?.role || 'admin') as UserRole,
         details: `Updated scraper configuration for portal: ${config.portalType} (${config.portalUrl})`
       });
       return NextResponse.json({ success: true, config: state.scraperConfig });

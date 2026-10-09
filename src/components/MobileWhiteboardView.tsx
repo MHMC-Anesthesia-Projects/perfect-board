@@ -117,7 +117,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   undoCount = 0,
   lastUndoDescription
 }) => {
-  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
+  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser';
 
   const getStaffUnreadCount = (staffMember: Staff | null): number => {
     if (!staffMember?.phone || !unreadCountsByPhone) return 0;

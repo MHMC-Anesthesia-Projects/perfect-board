@@ -3,7 +3,7 @@
     "id": "user_superuser_1",
     "username": "admin",
     "displayName": "Admin",
-    "role": "superuser",
+    "role": "admin",
     "pin": "9999",
     "password": "admin",
     "active": true,

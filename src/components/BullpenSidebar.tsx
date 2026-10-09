@@ -58,7 +58,7 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
     const clean = staffMember.phone.replace(/\D/g, '').slice(-10);
     return unreadCountsByPhone[clean] || 0;
   };
-  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
+  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser';
   const [isDragOver, setIsDragOver] = useState(false);
 
   // Active staff currently in the Bullpen ordered strictly by queue (first in = top is up next for work)

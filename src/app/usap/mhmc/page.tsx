@@ -544,7 +544,7 @@ export default function WhiteboardPage() {
 
   // User role helper - defaults to view_only access
   const currentUserRole: UserRole = currentUser?.role || 'view_only';
-  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
+  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser';
 
   const handleSelectStaff = (staff: Staff) => {
     if (currentUserRole === 'view_only') {

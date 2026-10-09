@@ -961,10 +961,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
             </div>
             <div>
               <h2 style={{ fontSize: 18, fontWeight: 900, textTransform: 'uppercase' }}>
-                Superuser Admin Command Center
+                Admin Command Center
               </h2>
               <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                System configuration, user roles, layout customization & scheduling portal
+                Facility configuration, user roles, layout customization & scheduling portal
               </p>
             </div>
           </div>
@@ -1103,7 +1103,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 <div>
                   <h3 style={{ fontSize: 15, fontWeight: 800 }}>Manage System Users & Permissions</h3>
                   <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                    Control access tiers: Superuser, Board Runner, or view-only Basic User
+                    Control access tiers: Admin, Board Runner, or view-only Basic User
                   </p>
                 </div>
                 <button
@@ -1190,8 +1190,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)', background: 'var(--surface-card)' }}
                       >
                         <option value="board_runner">Board Runner (Move magnets & staff)</option>
-                        <option value="superuser">Superuser (Full admin control)</option>
+                        <option value="admin">Admin (Full facility admin control)</option>
                         <option value="basic_user">Basic User (View & breaks only)</option>
+                        <option value="superuser">Superuser (Perfect Board Platform Developer)</option>
                       </select>
                     </div>
                     <div>
@@ -1294,8 +1295,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         style={{ width: '100%', padding: '6px 8px', borderRadius: 4, border: '1px solid var(--border-light)', background: 'var(--surface-card)' }}
                       >
                         <option value="board_runner">Board Runner (Move magnets & staff)</option>
-                        <option value="superuser">Superuser (Full admin control)</option>
+                        <option value="admin">Admin (Full facility admin control)</option>
                         <option value="basic_user">Basic User (View & breaks only)</option>
+                        <option value="superuser">Superuser (Perfect Board Platform Developer)</option>
                       </select>
                     </div>
                     <div>
@@ -1374,10 +1376,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           borderRadius: 12,
                           fontSize: 11,
                           fontWeight: 800,
-                          background: u.role === 'superuser' ? 'rgba(211,47,47,0.1)' : u.role === 'board_runner' ? 'rgba(9,105,218,0.1)' : 'var(--surface-hover)',
-                          color: u.role === 'superuser' ? 'var(--marker-red)' : u.role === 'board_runner' ? 'var(--accent-primary)' : 'var(--text-secondary)'
+                          background: (u.role === 'admin' || u.role === 'superuser') ? 'rgba(211,47,47,0.1)' : u.role === 'board_runner' ? 'rgba(9,105,218,0.1)' : 'var(--surface-hover)',
+                          color: (u.role === 'admin' || u.role === 'superuser') ? 'var(--marker-red)' : u.role === 'board_runner' ? 'var(--accent-primary)' : 'var(--text-secondary)'
                         }}>
-                          {u.role === 'superuser' ? 'Superuser' : u.role === 'board_runner' ? 'Board Runner' : 'Basic User'}
+                          {u.role === 'superuser' ? 'Superuser' : u.role === 'admin' ? 'Admin' : u.role === 'board_runner' ? 'Board Runner' : 'Basic User'}
                         </span>
                       </td>
                       <td style={{ padding: '8px 10px', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>

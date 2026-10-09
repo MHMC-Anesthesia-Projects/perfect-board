@@ -61,7 +61,7 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
 
   if (!isOpen || !targetSlot) return null;
 
-  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
+  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser';
 
   // Get available unassigned staff
   const availableStaff = staff.filter(s => s.active && !assignedStaffIds.has(s.id));
@@ -188,7 +188,7 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
             <div>
               <div style={{ fontWeight: 800, fontSize: 14 }}>Authentication Required</div>
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-                Basic users can view the board and toggle breaks. To assign or move staff, please log in as a Board Runner or Superuser.
+                Basic users can view the board and toggle breaks. To assign or move staff, please log in as a Board Runner or Admin.
               </p>
             </div>
             <button

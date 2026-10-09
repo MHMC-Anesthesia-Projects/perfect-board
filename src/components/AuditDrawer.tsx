@@ -19,7 +19,7 @@ export const AuditDrawer: React.FC<AuditDrawerProps> = ({ isOpen, onClose, curre
   const [loading, setLoading] = useState(false);
   const [revertingId, setRevertingId] = useState<string | null>(null);
 
-  const isEditor = currentUser && (currentUser.role === 'board_runner' || currentUser.role === 'superuser');
+  const isEditor = currentUser && (currentUser.role === 'board_runner' || currentUser.role === 'admin' || currentUser.role === 'superuser');
 
   const isRevertible = (log: AuditLogEntry) => {
     const reversibleTypes = [

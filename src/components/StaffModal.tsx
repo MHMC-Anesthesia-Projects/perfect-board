@@ -243,7 +243,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
 
   if (!staff) return null;
 
-  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'superuser';
+  const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser';
   const canEditStudent = currentUserRole !== 'view_only';
 
   // Find where this staff is currently assigned (supports multiple runner slots across departments)

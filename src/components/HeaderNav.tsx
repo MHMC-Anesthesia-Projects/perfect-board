@@ -88,7 +88,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  const isEditor = currentUser && (currentUser.role === 'board_runner' || currentUser.role === 'superuser');
+  const isEditor = currentUser && (currentUser.role === 'board_runner' || currentUser.role === 'admin' || currentUser.role === 'superuser');
 
   const getRoleBadge = () => {
     if (!currentUser || currentUser.role === 'view_only') {
@@ -154,18 +154,37 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         </div>
       );
     }
+    if (currentUser.role === 'admin') {
+      return (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '4px 10px',
+          background: 'rgba(211, 47, 47, 0.12)',
+          border: '1px solid var(--marker-red)',
+          borderRadius: 20,
+          fontSize: 12,
+          fontWeight: 800,
+          color: 'var(--marker-red)'
+        }}>
+          <CheckCircle2 size={14} />
+          <span>Admin: {currentUser.displayName}</span>
+        </div>
+      );
+    }
     return (
       <div style={{
         display: 'flex',
         alignItems: 'center',
         gap: 6,
         padding: '4px 10px',
-        background: 'rgba(211, 47, 47, 0.12)',
-        border: '1px solid var(--marker-red)',
+        background: 'rgba(147, 51, 234, 0.12)',
+        border: '1px solid #a855f7',
         borderRadius: 20,
         fontSize: 12,
         fontWeight: 800,
-        color: 'var(--marker-red)'
+        color: '#9333ea'
       }}>
         <CheckCircle2 size={14} />
         <span>Superuser: {currentUser.displayName}</span>
@@ -407,11 +426,11 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           </button>
         )}
 
-        {/* Admin Dashboard (Visible to Superuser - Gear icon only to save space) */}
-        {currentUser?.role === 'superuser' && (
+        {/* Admin Dashboard (Visible to Admin & Superuser - Gear icon only to save space) */}
+        {(currentUser?.role === 'admin' || currentUser?.role === 'superuser') && (
           <button
             onClick={onOpenAdmin}
-            title="Superuser Admin Settings & Command Center"
+            title="Facility Admin Settings & Command Center"
             style={{
               padding: '6px 10px',
               borderRadius: 6,

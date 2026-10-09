@@ -415,7 +415,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
                 )}
               </div>
 
-              {(currentUserRole === 'board_runner' || currentUserRole === 'superuser') && (
+              {(currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser') && (
                 <button
                   onClick={onOpenAddStaff}
                   style={{
@@ -507,7 +507,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
                         currentUserRole={currentUserRole}
                         unreadMessageCount={getStaffUnreadCount(s)}
                         isAssignedRelief={isRelief}
-                        isDraggable={!isRelief && (currentUserRole === 'board_runner' || currentUserRole === 'superuser')}
+                        isDraggable={!isRelief && (currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser')}
                         onSelectStaff={onSelectStaff}
                         onDragStart={(e) => handleTileDragStart(e, s)}
                         onDragEnd={handleTileDragEnd}

@@ -57,7 +57,7 @@ export default function LandingPage() {
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoginMessage('Superuser authentication is currently restricted to active pilot facilities. Please contact your organization administrator for access credentials.');
+    setLoginMessage('Administrator authentication is currently restricted to active pilot facilities. Please contact your organization administrator for access credentials.');
   };
 
   return (

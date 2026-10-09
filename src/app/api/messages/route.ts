@@ -315,11 +315,11 @@ export async function POST(req: NextRequest) {
     };
     const supabase = getPublicSupabaseServerClient(config.supabaseUrl, config.supabaseAnonKey);
 
-    // 1. UPDATE CONFIG (Superuser Admin)
+    // 1. UPDATE CONFIG (Admin or Superuser)
     if (action === 'UPDATE_CONFIG') {
       const { newConfig, currentUser } = body;
-      if (currentUser?.role !== 'superuser') {
-        return NextResponse.json({ error: 'Superuser permission required' }, { status: 403 });
+      if (currentUser?.role !== 'admin' && currentUser?.role !== 'superuser') {
+        return NextResponse.json({ error: 'Admin permission required' }, { status: 403 });
       }
 
       board.messagingConfig = {
@@ -390,7 +390,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (!config.enabled) {
-        return NextResponse.json({ error: 'Messaging is currently disabled in Superuser settings' }, { status: 400 });
+        return NextResponse.json({ error: 'Messaging is currently disabled in Admin settings' }, { status: 400 });
       }
 
       const supabase = getPublicSupabaseServerClient(config.supabaseUrl, config.supabaseAnonKey);

@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (currentUserRole === 'basic_user' && action !== 'TOGGLE_BREAK' && action !== 'SET_STAFF_STUDENT' && action !== 'REVERT_ACTION') {
-      return NextResponse.json({ error: 'Permission denied. Board runner or superuser access required.' }, { status: 403 });
+      return NextResponse.json({ error: 'Permission denied. Board runner or admin access required.' }, { status: 403 });
     }
 
     switch (action) {
@@ -772,8 +772,8 @@ export async function POST(req: NextRequest) {
 
       // 5d. Save Unique Schedules (Configurable Departure & Late Rules)
       case 'SAVE_UNIQUE_SCHEDULES': {
-        if (currentUserRole !== 'superuser' && currentUserRole !== 'board_runner') {
-          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        if (currentUserRole !== 'admin' && currentUserRole !== 'superuser' && currentUserRole !== 'board_runner') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Admin login required.' }, { status: 403 });
         }
         const rules = payload.uniqueSchedules || [];
         state.uniqueSchedules = rules;
@@ -1624,10 +1624,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Room not found' }, { status: 404 });
       }
 
-      // 9. Save full state (Superuser only, e.g. after layout editor)
+      // 9. Save full state (Admin & Superuser only, e.g. after layout editor)
       case 'SAVE_LAYOUT': {
-        if (currentUserRole !== 'superuser') {
-          return NextResponse.json({ error: 'Superuser permission required to alter board layout.' }, { status: 403 });
+        if (currentUserRole !== 'admin' && currentUserRole !== 'superuser') {
+          return NextResponse.json({ error: 'Admin permission required to alter board layout.' }, { status: 403 });
         }
         if (payload.departments) {
           state.departments = payload.departments;
@@ -1642,10 +1642,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, state });
       }
 
-      // 7. Reset to default photo whiteboard state (Superuser only)
+      // 7. Reset to default photo whiteboard state (Admin & Superuser only)
       case 'RESET_TO_PHOTO_DEFAULT': {
-        if (currentUserRole !== 'superuser') {
-          return NextResponse.json({ error: 'Superuser permission required.' }, { status: 403 });
+        if (currentUserRole !== 'admin' && currentUserRole !== 'superuser') {
+          return NextResponse.json({ error: 'Admin permission required.' }, { status: 403 });
         }
         const initialStaff = state.staff.length > 0 ? state.staff : [];
         const freshBoard = getInitialBoardState(initialStaff);
@@ -1714,7 +1714,7 @@ export async function POST(req: NextRequest) {
             logEntry.actionType === 'LUNCH_TOGGLED' || 
             (logEntry.actionType === 'STAFF_UPDATED' && logEntry.details.toLowerCase().includes('student'));
           if (!isAllowedForBasic) {
-            return NextResponse.json({ error: 'Permission denied. Board runner or superuser access required.' }, { status: 403 });
+            return NextResponse.json({ error: 'Permission denied. Board runner or admin access required.' }, { status: 403 });
           }
         }
 
