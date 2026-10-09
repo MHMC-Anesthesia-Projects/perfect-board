@@ -906,7 +906,10 @@ export async function POST(req: NextRequest) {
 
         const standardLateKeys = ['3P', '4P', '5P', '7P', '8P', '7P-7A', '11A-11P', '24H'];
         const is24h = /24\s*-?\s*h/i.test(upperShift) || upperShift === '24H' ||
-          (upperShift.includes('L1') && (upperShift.includes('8H') || upperShift.includes('10H') || upperShift.includes('3P') || upperShift.includes('OBPM') || upperShift.includes('CIHOBPM')));
+          (upperShift.includes('L1') && (
+            upperShift.includes('8H') || upperShift.includes('10H') || upperShift.includes('3P') ||
+            upperShift.includes('OB') || upperShift.includes('CIHOB')
+          ));
         const isStandardLate = !isCallShift && !isPostCall && (is24h || isL1 || is8h || standardLateKeys.some(k => upperShift === k || upperShift.startsWith(k)));
 
         const isAtypicalTime = !isCallShift && !isPostCall && (
@@ -1059,7 +1062,11 @@ export async function POST(req: NextRequest) {
         // Synchronize Late List
         const lateIdx = state.latesList.findIndex(l =>
           l.id === staffId ||
-          l.name.toUpperCase() === targetLastName.toUpperCase()
+          (l.qgendaAbbr && s?.qgendaAbbr && l.qgendaAbbr.toUpperCase() === s.qgendaAbbr.toUpperCase()) ||
+          (l.name.toUpperCase() === targetLastName.toUpperCase() && (
+            l.role === (targetCreds === 'MD' ? 'MD' : 'CRNA') ||
+            !l.role
+          ))
         );
 
         const shouldBeInLates = !isCallShift && (isStandardLate || isAtypicalTime);
@@ -1074,8 +1081,8 @@ export async function POST(req: NextRequest) {
               const has8h = upperShift.includes('8H') || upperShift.includes('3P');
               const has10h = upperShift.includes('10H');
               const hasL1 = upperShift.includes('L1');
-              const hasObpm = upperShift.includes('OBPM') || upperShift.includes('CIHOBPM');
-              state.latesList[lateIdx].notes = (has8h && hasL1) ? '8h + L1' : (has10h && hasL1) ? '10h + L1' : (hasL1 && hasObpm) ? 'L1 + OBPM' : '24h (L1 + OB)';
+              const hasOb = upperShift.includes('OB') || upperShift.includes('CIHOB') || upperShift.includes('OBPM') || upperShift.includes('CIHOBPM');
+              state.latesList[lateIdx].notes = (has8h && hasL1 && hasOb) ? '24h (8h+L1+OB)' : (has8h && hasL1) ? '8h + L1' : (has10h && hasL1) ? '10h + L1' : (hasL1 && hasOb) ? 'L1 + OB' : '24h (L1 + OB)';
             } else if (isL1) {
               state.latesList[lateIdx].role = 'CRNA';
               const hasPostCall = upperShift.includes('POSTOB') ? 'postOB' :
@@ -1095,8 +1102,8 @@ export async function POST(req: NextRequest) {
           const has8h = upperShift.includes('8H') || upperShift.includes('3P');
           const has10h = upperShift.includes('10H');
           const hasL1 = upperShift.includes('L1');
-          const hasObpm = upperShift.includes('OBPM') || upperShift.includes('CIHOBPM');
-          const lateNote = is24h ? ((has8h && hasL1) ? '8h + L1' : (has10h && hasL1) ? '10h + L1' : (hasL1 && hasObpm) ? 'L1 + OBPM' : '24h (L1 + OB)') : (isL1 ? (hasPostCall ? `L1, ${hasPostCall}` : 'L1') : undefined);
+          const hasOb = upperShift.includes('OB') || upperShift.includes('CIHOB') || upperShift.includes('OBPM') || upperShift.includes('CIHOBPM');
+          const lateNote = is24h ? ((has8h && hasL1 && hasOb) ? '24h (8h+L1+OB)' : (has8h && hasL1) ? '8h + L1' : (has10h && hasL1) ? '10h + L1' : (hasL1 && hasOb) ? 'L1 + OB' : '24h (L1 + OB)') : (isL1 ? (hasPostCall ? `L1, ${hasPostCall}` : 'L1') : undefined);
 
           state.latesList.push({
             id: `late_${s.id}_${Date.now()}`,
@@ -1105,7 +1112,8 @@ export async function POST(req: NextRequest) {
             role: (isL1 || is8h) ? 'CRNA' : (targetCreds === 'MD' ? 'MD' : 'CRNA'),
             timeEstimate: effectiveTimeEstimate,
             orderIndex: state.latesList.length,
-            notes: lateNote
+            notes: lateNote,
+            qgendaAbbr: s.qgendaAbbr
           });
         }
         }

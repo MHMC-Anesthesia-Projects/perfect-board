@@ -518,10 +518,11 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
     const isItemMd = (item: LateShiftItem) => {
       if (item.role === 'MD') return true;
       if (item.role === 'CRNA') return false;
-      const match = (boardState.staff || []).find(s =>
-        s.lastName.toUpperCase() === item.name.toUpperCase() ||
-        (item.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === item.qgendaAbbr.toUpperCase())
-      );
+      if (item.qgendaAbbr) {
+        const matchQ = (boardState.staff || []).find(s => s.qgendaAbbr?.toUpperCase() === item.qgendaAbbr?.toUpperCase());
+        if (matchQ) return matchQ.credentials === 'MD';
+      }
+      const match = (boardState.staff || []).find(s => s.lastName.toUpperCase() === item.name.toUpperCase());
       return match?.credentials === 'MD';
     };
 

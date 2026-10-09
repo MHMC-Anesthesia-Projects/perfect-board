@@ -131,13 +131,47 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     if (!onSelectStaff) return;
 
     const cleanLast = lastName.trim().toUpperCase();
-    const matched = staff.find(s =>
-      s.lastName.toUpperCase() === cleanLast ||
-      (qgendaAbbr && s.qgendaAbbr?.toUpperCase() === qgendaAbbr.toUpperCase()) ||
-      (id && s.id === id) ||
-      (cleanLast === 'KD' && (s.lastName.toUpperCase().includes('DWARAK') || s.qgendaAbbr?.toUpperCase().includes('DWARAK'))) ||
-      (cleanLast === 'TALL' && (s.lastName.toUpperCase().includes('TALLACK') || s.qgendaAbbr?.toUpperCase().includes('TALLACK')))
-    );
+    const cleanQ = (qgendaAbbr || '').replace(/\[.*?\]/g, '').toUpperCase().trim();
+    const targetRole = fallbackCreds;
+
+    // 1. Exact match by qgendaAbbr
+    let matched = cleanQ ? staff.find(s => s.qgendaAbbr?.toUpperCase() === cleanQ) : undefined;
+
+    // 2. Direct match by id
+    if (!matched && id) {
+      matched = staff.find(s => s.id === id);
+    }
+
+    // 3. Match by matching lastName AND matching role/credentials
+    if (!matched) {
+      matched = staff.find(s => {
+        const sLast = s.lastName.toUpperCase();
+        const isLastMatch = sLast === cleanLast ||
+          cleanLast.startsWith(sLast + ' ') ||
+          (cleanLast === 'KD' && (sLast.includes('DWARAK') || s.qgendaAbbr?.toUpperCase().includes('DWARAK'))) ||
+          (cleanLast === 'TALL' && (sLast.includes('TALLACK') || s.qgendaAbbr?.toUpperCase().includes('TALLACK')));
+
+        if (!isLastMatch) return false;
+
+        if (targetRole === 'MD') {
+          return s.credentials === 'MD';
+        } else if (targetRole === 'CRNA') {
+          return s.credentials === 'CRNA' || s.credentials === 'Resident' || s.credentials === 'SRNA' || s.credentials === 'PA';
+        }
+        return true;
+      });
+    }
+
+    // 4. Fallback to lastName only if no credential-specific match
+    if (!matched) {
+      matched = staff.find(s => {
+        const sLast = s.lastName.toUpperCase();
+        return sLast === cleanLast ||
+          cleanLast.startsWith(sLast + ' ') ||
+          (cleanLast === 'KD' && (sLast.includes('DWARAK') || s.qgendaAbbr?.toUpperCase().includes('DWARAK'))) ||
+          (cleanLast === 'TALL' && (sLast.includes('TALLACK') || s.qgendaAbbr?.toUpperCase().includes('TALLACK')));
+      });
+    }
 
     if (matched) {
       onSelectStaff({
@@ -422,10 +456,11 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   const isItemMd = (item: LateShiftItem) => {
     if (item.role === 'MD') return true;
     if (item.role === 'CRNA') return false;
-    const match = staff.find(s =>
-      s.lastName.toUpperCase() === item.name.toUpperCase() ||
-      (item.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === item.qgendaAbbr.toUpperCase())
-    );
+    if (item.qgendaAbbr) {
+      const matchQ = staff.find(s => s.qgendaAbbr?.toUpperCase() === item.qgendaAbbr?.toUpperCase());
+      if (matchQ) return matchQ.credentials === 'MD';
+    }
+    const match = staff.find(s => s.lastName.toUpperCase() === item.name.toUpperCase());
     return match?.credentials === 'MD';
   };
 
@@ -1795,7 +1830,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     return (
                     <div
                       key={item.id}
-                      onClick={() => handleStaffClick(item.name, item.id, undefined, item.orderNumber, item.timeCategory, (item.role as any) || 'CRNA')}
+                      onClick={() => handleStaffClick(item.name, item.id, item.qgendaAbbr, item.orderNumber, item.timeCategory, (item.role as any) || 'CRNA')}
                       className="late-staff-row"
                       style={{
                         display: 'flex',

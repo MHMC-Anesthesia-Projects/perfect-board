@@ -274,19 +274,19 @@ export function is24HourShift(shiftStr?: string, taskStr?: string, roomTag?: str
   const has10h = /\b(?:10H|10H_MHMC|10H-MHMC|7A-5P)\b/i.test(combined);
   // 3) L1 shift (e.g. L1, L1_MHMC, L1-MHMC) - strictly exclude post-call postL1
   const hasL1 = /\b(?:L1|L1_MHMC|L1-MHMC)\b/i.test(combined) && !/\bPOST-?L1\b/i.test(combined);
-  // 4) OBPM shift (e.g. OBPM, CIHOBPM, CIHOBPM_MHMC, OBPM_MHMC)
-  const hasObpm = /\b(?:OBPM|CIHOBPM|CIHOBPM_MHMC|CIHOBPM-MHMC|OBPM_MHMC|OBPM-MHMC)\b/i.test(combined);
+  // 4) OB shift (e.g. OB, CIHOB, OBPM, CIHOBPM, CIHOBPM_MHMC, OBPM_MHMC) - strictly exclude post-call postOB
+  const hasOb = /\b(?:OB|CIHOB|OBPM|CIHOBPM|CIHOBPM_MHMC|CIHOBPM-MHMC|OBPM_MHMC|OBPM-MHMC)\b/i.test(combined) && !/\bPOST-?OB\b/i.test(combined);
   // 5) Overnight shift (OB, CIHOB, OBPM, CIHOBPM, 7P-7A, NIGHT, NOCT)
-  const hasOvernight = hasObpm || /\b(?:OB|CIHOB|7P-7A|NIGHT|NOCT)\b/i.test(combined);
+  const hasOvernight = hasOb || /\b(?:7P-7A|NIGHT|NOCT)\b/i.test(combined);
 
   // User specification:
   // - 8h plus L1
   if (has8h && hasL1) return true;
   // - 10h plus L1
   if (has10h && hasL1) return true;
-  // - L1 plus OBPM
-  if (hasL1 && hasObpm) return true;
-  // - General 3-block day + L1 + overnight
+  // - L1 plus OB / OBPM
+  if (hasL1 && hasOb) return true;
+  // - General day + L1 + overnight
   if ((has8h || has10h) && hasL1 && hasOvernight) return true;
 
   return false;
@@ -463,6 +463,11 @@ function resolveEffectiveShift(
   const tasks = (taskStr || '').trim();
   const cleanAbbr = (qgendaAbbr || '').replace(/\[.*?\]/g, '').toLowerCase().trim();
   const cleanLast = (providerLastName || '').toLowerCase().trim();
+
+  // -1. 24-hour continuous shifts (e.g. 8h + L1, 10h + L1, L1 + OB, or "3p,L1,OB")
+  if (is24HourShift(dShift, tasks, rTag)) {
+    return '24h (L1 + OB)';
+  }
 
   // 0. A L1_MHMC role strictly designates a CRNA working until 7p at MHMC.
   // If a provider signs up for L1 / L1_MHMC, it TRUMPS their default departure late time (such as 8h_MHMC / 3p),
@@ -1512,20 +1517,26 @@ export function parseOneUsapHtml(
       return;
     }
 
+    // Detect 24h continuous shifts (e.g. 8h_MHMC + L1_MHMC + CIHOBPM_MHMC or "3p,L1,OB")
+    const is24h = is24HourShift(shift, taskStr, roomTag) || is24HourShift(effectiveShift, taskStr, roomTag);
+
     // In split call / weekend mode, harmonize CRNA effective shifts if not already formatted
     if (role === 'CRNA') {
       const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName, 'CRNA');
       const isGenericTimeOnly = /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(shift.trim());
 
       // Exclude phantom weekend CRNAs with standalone departure time (like Bob Staes) who have no weekend hospital role and no rooms
-      if (isSplitCallMode && isGenericTimeOnly && (!roomInfo.rooms || roomInfo.rooms.length === 0) && !isL1 && !is8h) {
+      if (isSplitCallMode && isGenericTimeOnly && (!roomInfo.rooms || roomInfo.rooms.length === 0) && !is24h && !isL1 && !is8h) {
         const hasExplicitWeekendRole = upperShift.includes('CIH') || upperShift.includes('OB') || upperShift.includes('NOCT') || upperShift.includes('NIGHT');
         if (!hasExplicitWeekendRole) {
           return;
         }
       }
 
-      if (isL1) {
+      if (is24h) {
+        effectiveShift = '24h (L1 + OB)';
+        upperShift = '24H';
+      } else if (isL1) {
         // L1 strictly trumps default 8h_MHMC departure (3p / 15:00), room tags [3p], and post-call resting tags!
         const hasPrecall = isPreCallShift(shift) || isPreCallShift(roomTag || '') || isPreCallShift(effectiveShift) || isPreCallShift(taskStr);
         const combinedAll = `${shift} ${roomTag || ''} ${effectiveShift} ${taskStr}`.toUpperCase();
@@ -1576,7 +1587,7 @@ export function parseOneUsapHtml(
 
     const activeFac = getActiveFacilityCode(facility);
     let facilityLabel = 'MHMC';
-    if (isL1 || is8h) facilityLabel = 'MHMC';
+    if (is24h || isL1 || is8h) facilityLabel = 'MHMC';
     else if (activeFac.includes('HIVF')) facilityLabel = 'HIVF';
     else if (activeFac.includes('MHVIL')) facilityLabel = 'Village';
     else if (activeFac.includes('MHMC')) facilityLabel = 'MHMC';
@@ -1584,9 +1595,6 @@ export function parseOneUsapHtml(
 
     const is13h = is13hShift(upperShift);
     const has8p = /\b8p\b/i.test(upperShift) || upperShift.includes('8P') || is13h;
-
-    // Detect 24h continuous shifts (e.g. 8h_MHMC + L1_MHMC + CIHOBPM_MHMC or "3p,L1,OB")
-    const is24h = is24HourShift(shift, taskStr, roomTag) || is24HourShift(effectiveShift, taskStr, roomTag);
 
     let timeCat = '';
     if (is24h) {
@@ -1648,12 +1656,12 @@ export function parseOneUsapHtml(
         const has8h = /\b(?:8H|8H_MHMC|8H-MHMC|7A-3P|3P)\b/i.test(combinedAll);
         const has10h = /\b(?:10H|10H_MHMC|10H-MHMC|7A-5P)\b/i.test(combinedAll);
         const hasL1 = /\b(?:L1|L1_MHMC|L1-MHMC)\b/i.test(combinedAll) && !/\bPOST-?L1\b/i.test(combinedAll);
-        const hasObpm = /\b(?:OBPM|CIHOBPM|CIHOBPM_MHMC|CIHOBPM-MHMC|OBPM_MHMC|OBPM-MHMC)\b/i.test(combinedAll);
+        const hasOb = /\b(?:OB|CIHOB|OBPM|CIHOBPM|CIHOBPM_MHMC|CIHOBPM-MHMC|OBPM_MHMC|OBPM-MHMC)\b/i.test(combinedAll) && !/\bPOST-?OB\b/i.test(combinedAll);
 
-        if (has8h && hasL1 && hasObpm) noteVal = '24h (8h+L1+OB)';
+        if (has8h && hasL1 && hasOb) noteVal = '24h (8h+L1+OB)';
         else if (has8h && hasL1) noteVal = '8h + L1';
         else if (has10h && hasL1) noteVal = '10h + L1';
-        else if (hasL1 && hasObpm) noteVal = 'L1 + OBPM';
+        else if (hasL1 && hasOb) noteVal = 'L1 + OB';
         else noteVal = '24h (L1 + OB)';
       } else if (isL1) {
         const combinedAll = `${shift} ${roomTag || ''} ${effectiveShift} ${taskStr}`.toUpperCase();
@@ -1689,14 +1697,20 @@ export function parseOneUsapHtml(
   targetDocs.forEach(d => checkLate(d.rawName, d.facility, d.shift, 'MD', d.orderNumber));
   targetAnes.forEach(a => checkLate(a.rawName, a.facility, a.shift, 'CRNA', a.orderNumber));
 
-  // Disambiguate duplicate last names on late list (e.g. SONG Y. and SONG B.)
-  const lateLastNameCounts = new Map<string, number>();
-  lateCandidates.forEach(l => {
-    const lName = l.name.toUpperCase();
-    lateLastNameCounts.set(lName, (lateLastNameCounts.get(lName) || 0) + 1);
+  // Disambiguate duplicate last names on late list (e.g. SONG Y. and SONG B., or PATEL J. and PATEL P.)
+  // We check across all providers in the hospital schedule (targetDocs and targetAnes)
+  const allHospitalLastNames = new Map<string, number>();
+  targetDocs.forEach(d => {
+    const l = formatProviderName(d.rawName).lastName.toUpperCase();
+    allHospitalLastNames.set(l, (allHospitalLastNames.get(l) || 0) + 1);
+  });
+  targetAnes.forEach(a => {
+    const l = formatProviderName(a.rawName).lastName.toUpperCase();
+    allHospitalLastNames.set(l, (allHospitalLastNames.get(l) || 0) + 1);
   });
   lateCandidates.forEach(l => {
-    if ((lateLastNameCounts.get(l.name.toUpperCase()) || 0) > 1) {
+    const lName = l.name.toUpperCase();
+    if ((allHospitalLastNames.get(lName) || 0) > 1) {
       const formatted = formatProviderName(l.qgendaAbbr);
       if (formatted.firstName) {
         l.name = `${formatted.lastName.toUpperCase()} ${formatted.firstName[0].toUpperCase()}.`;
