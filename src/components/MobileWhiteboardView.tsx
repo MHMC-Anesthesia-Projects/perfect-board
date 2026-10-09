@@ -845,6 +845,8 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                       {occupied.map((runner, idx) => {
                         const assignedStaff = getStaffById(runner.staffId);
                         if (!assignedStaff) return null;
+                        const reliefStaff = getStaffById(runner.relief?.staffId || null);
+                        const hasAssignedRelief = Boolean(runner.relief && reliefStaff);
 
                         return (
                           <div
@@ -856,8 +858,15 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                               position: 'relative'
                             }}
                           >
-                            <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%' }}>
-                              <div style={{ flex: 1, minWidth: 0, height: '100%' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', gap: 4 }}>
+                              <div
+                                style={{
+                                  flex: hasAssignedRelief ? '1 1 50%' : 1,
+                                  minWidth: 0,
+                                  maxWidth: hasAssignedRelief ? '50%' : '100%',
+                                  height: '100%'
+                                }}
+                              >
                                 <MagnetTile
                                   staff={assignedStaff}
                                   slotId={runner.id}
@@ -871,6 +880,78 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                   isDraggable={false}
                                 />
                               </div>
+
+                              {hasAssignedRelief && reliefStaff && (
+                                <div
+                                  style={{
+                                    flex: '1 1 50%',
+                                    minWidth: 0,
+                                    maxWidth: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 3,
+                                    height: '100%'
+                                  }}
+                                >
+                                  <span
+                                    className="relief-arrow"
+                                    title="Relief assignment"
+                                    style={{
+                                      fontSize: 11,
+                                      color: 'var(--marker-red, #dc2626)',
+                                      fontWeight: 900,
+                                      flexShrink: 0,
+                                      lineHeight: 1
+                                    }}
+                                  >
+                                    ➔
+                                  </span>
+                                  <div
+                                    className="relief-box mobile-relief-box"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (onOpenReliefModal) {
+                                        onOpenReliefModal({
+                                          type: 'runner_slot',
+                                          id: runner.id,
+                                          roomName: `Runner`,
+                                          departmentName: activeDepartment.name,
+                                          currentStaff: assignedStaff || null,
+                                          currentRelief: runner.relief
+                                        });
+                                      }
+                                    }}
+                                    title={`Relief: ${reliefStaff.lastName} (${reliefStaff.credentials})${runner.relief?.time ? ` • ${runner.relief.time}` : ''}. Tap to edit or hand off.`}
+                                  >
+                                    <div className="relief-identity">
+                                      <span className="relief-name">
+                                        {reliefStaff.displayName 
+                                          ? reliefStaff.displayName.toUpperCase() 
+                                          : `${reliefStaff.lastName.toUpperCase()}${reliefStaff.firstName ? ` ${reliefStaff.firstName[0]}.` : ''}`}
+                                      </span>
+                                    </div>
+                                    {runner.relief?.time && (
+                                      <span
+                                        className="relief-time-tag"
+                                        style={{
+                                          background: 'rgba(0, 0, 0, 0.3)',
+                                          color: '#ffffff',
+                                          fontSize: 9,
+                                          fontWeight: 900,
+                                          padding: '1px 4px',
+                                          borderRadius: 3,
+                                          border: '1px solid rgba(255, 255, 255, 0.25)',
+                                          flexShrink: 0,
+                                          lineHeight: 1.2
+                                        }}
+                                        title={`Relief time: ${runner.relief.time}`}
+                                      >
+                                        {runner.relief.time}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                         );
@@ -922,7 +1003,13 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                 style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 4 }}
                               >
                                 {assignedStaff ? (
-                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div
+                                    style={{
+                                      flex: hasAssignedRelief ? '1 1 50%' : 1,
+                                      minWidth: 0,
+                                      maxWidth: hasAssignedRelief ? '50%' : '100%'
+                                    }}
+                                  >
                                     <MagnetTile
                                       staff={assignedStaff}
                                       slotId={slot.id}
@@ -938,19 +1025,47 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                   </div>
                                 ) : (
                                   <div
-                                    style={{ flex: 1, minWidth: 0, height: '100%', cursor: 'pointer' }}
+                                    style={{
+                                      flex: hasAssignedRelief ? '1 1 50%' : 1,
+                                      minWidth: 0,
+                                      maxWidth: hasAssignedRelief ? '50%' : '100%',
+                                      height: '100%',
+                                      cursor: 'pointer'
+                                    }}
                                     onClick={() => {
                                       onSelectEmptySlot('room_slot', slot.id, `${activeDepartment.name} Room ${room.name}`, room.id, room.futureTime);
                                     }}
                                   />
                                 )}
 
-                                {/* Relief zone on mobile */}
+                                {/* Relief zone on mobile: 50% row width with prominent red fill */}
                                 {hasAssignedRelief && reliefStaff ? (
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-                                    <span className="relief-arrow" title="Relief assignment" style={{ fontSize: 11, color: 'var(--marker-red)' }}>➔</span>
+                                  <div
+                                    style={{
+                                      flex: '1 1 50%',
+                                      minWidth: 0,
+                                      maxWidth: '50%',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 3,
+                                      height: '100%'
+                                    }}
+                                  >
+                                    <span
+                                      className="relief-arrow"
+                                      title="Relief assignment"
+                                      style={{
+                                        fontSize: 11,
+                                        color: 'var(--marker-red, #dc2626)',
+                                        fontWeight: 900,
+                                        flexShrink: 0,
+                                        lineHeight: 1
+                                      }}
+                                    >
+                                      ➔
+                                    </span>
                                     <div
-                                      className="relief-box"
+                                      className="relief-box mobile-relief-box"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         if (onOpenReliefModal) {
@@ -964,10 +1079,34 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                           });
                                         }
                                       }}
+                                      title={`Relief: ${reliefStaff.lastName} (${reliefStaff.credentials})${slot.relief?.time ? ` • ${slot.relief.time}` : ''}. Tap to edit or hand off.`}
                                     >
                                       <div className="relief-identity">
-                                        <span className="relief-name">{reliefStaff.lastName.toUpperCase()}</span>
+                                        <span className="relief-name">
+                                          {reliefStaff.displayName 
+                                            ? reliefStaff.displayName.toUpperCase() 
+                                            : `${reliefStaff.lastName.toUpperCase()}${reliefStaff.firstName ? ` ${reliefStaff.firstName[0]}.` : ''}`}
+                                        </span>
                                       </div>
+                                      {slot.relief?.time && (
+                                        <span
+                                          className="relief-time-tag"
+                                          style={{
+                                            background: 'rgba(0, 0, 0, 0.3)',
+                                            color: '#ffffff',
+                                            fontSize: 9,
+                                            fontWeight: 900,
+                                            padding: '1px 4px',
+                                            borderRadius: 3,
+                                            border: '1px solid rgba(255, 255, 255, 0.25)',
+                                            flexShrink: 0,
+                                            lineHeight: 1.2
+                                          }}
+                                          title={`Relief time: ${slot.relief.time}`}
+                                        >
+                                          {slot.relief.time}
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                 ) : isOpenRedBox ? (

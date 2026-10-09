@@ -3032,6 +3032,63 @@ button {
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
+/* Mobile Relief Box (Prominent solid red-filled tile occupying ~50% row width) */
+.mobile-relief-box {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 26px !important;
+  min-height: 26px !important;
+  max-height: 26px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 4px;
+  padding: 0 6px !important;
+  border-radius: var(--radius-sm, 4px) !important;
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%) !important;
+  border: 1.5px solid #b91c1c !important;
+  box-shadow: 0 1px 4px rgba(220, 38, 38, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  box-sizing: border-box !important;
+  transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.mobile-relief-box:active {
+  transform: scale(0.98);
+  filter: brightness(0.92);
+}
+
+.mobile-relief-box .relief-identity {
+  display: flex !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  flex: 1 !important;
+}
+
+.mobile-relief-box .relief-name {
+  color: #ffffff !important;
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.3px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+[data-theme='dark'] .mobile-relief-box {
+  background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%) !important;
+  border-color: #ef4444 !important;
+  box-shadow: 0 1px 6px rgba(239, 68, 68, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+
 .relief-time-tag {
   background: var(--marker-red);
   color: #ffffff;
