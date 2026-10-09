@@ -1,8 +1,9 @@
-export const BASE_PATH = '';
+export const BASE_PATH = '/board';
 
 /**
  * Helper to ensure client-side fetch and EventSource URLs route cleanly
  */
 export function apiUrl(path: string): string {
-  return path.startsWith('/') ? path : `/${path}`;
+  const clean = path.startsWith('/') ? path : `/${path}`;
+  return `${BASE_PATH}${clean}`;
 }

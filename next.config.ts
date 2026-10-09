@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  basePath: '/board',
   allowedDevOrigins: [
     '192.168.86.84',
     '192.168.86.84:3000',
@@ -11,15 +12,6 @@ const nextConfig: NextConfig = {
     'localhost:3000',
     'localhost:3001',
   ],
-  async redirects() {
-    return [
-      {
-        source: '/board',
-        destination: '/usap/mhmc',
-        permanent: false,
-      },
-    ];
-  },
 };
 
 export default nextConfig;
