@@ -630,6 +630,34 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, state });
       }
 
+      // 4b. Update free-text note on a staff magnet (max 15 chars, travels with magnet)
+      case 'UPDATE_MAGNET_NOTE': {
+        const { staffId, note } = payload;
+        const cleanNote = typeof note === 'string' ? note.trim().slice(0, 15) : '';
+        state.magnetNotes = state.magnetNotes || {};
+        if (cleanNote) {
+          state.magnetNotes[staffId] = cleanNote;
+        } else {
+          delete state.magnetNotes[staffId];
+        }
+
+        const staffMember = state.staff?.find(s => s.id === staffId);
+        if (staffMember) {
+          staffMember.magnetNote = cleanNote;
+        }
+
+        await saveBoardState(state);
+        await recordAuditLog({
+          actionType: 'NOTE_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          targetName: staffMember ? `${staffMember.lastName} ${staffMember.firstName}` : staffId,
+          details: cleanNote ? `Updated magnet red note: "${cleanNote}"` : 'Cleared magnet red note'
+        });
+
+        return NextResponse.json({ success: true, state });
+      }
+
       // 5. Update Departure, Call Team, or Lates lists directly
       case 'UPDATE_LISTS': {
         if (currentUserRole === 'basic_user') {

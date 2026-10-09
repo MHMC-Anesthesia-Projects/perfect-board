@@ -30,6 +30,7 @@ interface DepartmentGridProps {
   onRemoveRelief?: (targetType: 'room_slot' | 'runner_slot', targetId: string, forceDelete?: boolean) => void;
   activeReliefStaffIds?: Set<string>;
   unreadCountsByPhone?: Record<string, number>;
+  onUpdateMagnetNote?: (staffId: string, note: string) => void;
 }
 
 export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
@@ -48,7 +49,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
   onRemoveRelief,
   onSetRoomFutureTime,
   activeReliefStaffIds,
-  unreadCountsByPhone
+  unreadCountsByPhone,
+  onUpdateMagnetNote
 }) => {
   const [dragOverRoomSlotId, setDragOverRoomSlotId] = useState<string | null>(null);
   const dragLeaveTimerRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -345,6 +347,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                           lunchDone={runner.lunchDone}
                           currentUserRole={currentUserRole}
                           unreadMessageCount={getStaffUnreadCount(assignedStaff)}
+                          magnetNote={assignedStaff.magnetNote}
+                          onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(assignedStaff.id, note) : undefined}
                           onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
                           onSelectStaff={onSelectStaff}
                           onDragStart={handleTileDragStart}
@@ -442,6 +446,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                               lunchDone={slot.lunchDone}
                               currentUserRole={currentUserRole}
                               unreadMessageCount={getStaffUnreadCount(assignedStaff)}
+                              magnetNote={assignedStaff.magnetNote}
+                              onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(assignedStaff.id, note) : undefined}
                               onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
                               onSelectStaff={onSelectStaff}
                               onDragStart={handleTileDragStart}

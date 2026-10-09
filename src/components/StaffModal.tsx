@@ -55,6 +55,8 @@ interface StaffModalProps {
   onToggleRedBox?: (targetType: 'room_slot' | 'runner_slot', targetId: string, enable: boolean) => void;
   onRemoveRelief?: (targetType: 'room_slot' | 'runner_slot', targetId: string) => void;
   unreadCount?: number;
+  magnetNotes?: Record<string, string>;
+  onUpdateMagnetNote?: (staffId: string, note: string) => void;
 }
 
 export const StaffModal: React.FC<StaffModalProps> = ({
@@ -80,7 +82,9 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   onUpdateStudent,
   onToggleRedBox,
   onRemoveRelief,
-  unreadCount = 0
+  unreadCount = 0,
+  magnetNotes,
+  onUpdateMagnetNote
 }) => {
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [isEditingShift, setIsEditingShift] = useState(false);
@@ -88,6 +92,11 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   const [isCallTeamSelected, setIsCallTeamSelected] = useState(false);
   const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
   const [displayNameInput, setDisplayNameInput] = useState(staff?.displayName || '');
+  const [magnetNoteDraft, setMagnetNoteDraft] = useState(staff?.magnetNote || (staff?.id && magnetNotes?.[staff.id]) || '');
+
+  useEffect(() => {
+    setMagnetNoteDraft(staff?.magnetNote || (staff?.id && magnetNotes?.[staff.id]) || '');
+  }, [staff, magnetNotes]);
 
   // --- Perfect Call Messaging State ---
   const [messagingEnabled, setMessagingEnabled] = useState(false);
@@ -1184,7 +1193,103 @@ export const StaffModal: React.FC<StaffModalProps> = ({
             </div>
           )}
         </div>
-
+        {/* Red Magnet Note (Travels with Magnet across rooms/runner/bullpen) */}
+        <div style={{
+          background: 'var(--surface-card)',
+          borderRadius: 8,
+          padding: '10px 14px',
+          border: '1.5px solid var(--border-light)',
+          marginBottom: 16
+        }}>
+          <div style={{
+            fontSize: 12,
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+            color: 'var(--text-secondary)',
+            marginBottom: 8,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ color: '#ef4444', fontSize: 13 }}>●</span> Magnet Note (Red Text • Travels with Magnet)
+            </span>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{magnetNoteDraft.length}/15 chars</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input
+              type="text"
+              maxLength={15}
+              placeholder="e.g. 10:30 start, Late, Ped..."
+              value={magnetNoteDraft}
+              onChange={(e) => setMagnetNoteDraft(e.target.value.slice(0, 15))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  if (onUpdateMagnetNote && staff) {
+                    onUpdateMagnetNote(staff.id, magnetNoteDraft.trim());
+                  }
+                }
+              }}
+              style={{
+                flex: 1,
+                padding: '7px 10px',
+                borderRadius: 6,
+                border: '1.5px solid rgba(239, 68, 68, 0.45)',
+                background: 'var(--surface-hover)',
+                color: '#ef4444',
+                fontWeight: 800,
+                fontSize: 13,
+                fontFamily: 'var(--font-mono)',
+                outline: 'none'
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (onUpdateMagnetNote && staff) {
+                  onUpdateMagnetNote(staff.id, magnetNoteDraft.trim());
+                }
+              }}
+              style={{
+                padding: '7px 12px',
+                borderRadius: 6,
+                background: '#ef4444',
+                color: '#fff',
+                fontWeight: 800,
+                fontSize: 12,
+                cursor: 'pointer',
+                border: 'none',
+                boxShadow: '0 1px 4px rgba(239, 68, 68, 0.4)'
+              }}
+            >
+              Save Note
+            </button>
+            {magnetNoteDraft && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMagnetNoteDraft('');
+                  if (onUpdateMagnetNote && staff) {
+                    onUpdateMagnetNote(staff.id, '');
+                  }
+                }}
+                style={{
+                  padding: '7px 10px',
+                  borderRadius: 6,
+                  background: 'var(--surface-hover)',
+                  border: '1px solid var(--border-light)',
+                  color: 'var(--text-secondary)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Break Management Status (Accessible to ALL users, including Basic User!) */}
         {allPlacements.length > 0 && (

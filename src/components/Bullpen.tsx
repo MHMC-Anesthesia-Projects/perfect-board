@@ -20,6 +20,7 @@ interface BullpenProps {
   onToggleCollapse?: () => void;
   activeReliefStaffIds?: Set<string>;
   unreadCountsByPhone?: Record<string, number>;
+  onUpdateMagnetNote?: (staffId: string, note: string) => void;
 }
 
 const isPhysician = (s: Staff) => {
@@ -49,7 +50,8 @@ export const Bullpen: React.FC<BullpenProps> = ({
   isCollapsed: propIsCollapsed,
   onToggleCollapse,
   activeReliefStaffIds,
-  unreadCountsByPhone
+  unreadCountsByPhone,
+  onUpdateMagnetNote
 }) => {
   const getStaffUnreadCount = (staffMember: Staff | null): number => {
     if (!staffMember?.phone || !unreadCountsByPhone) return 0;
@@ -506,6 +508,8 @@ export const Bullpen: React.FC<BullpenProps> = ({
                         showBreaks={false}
                         currentUserRole={currentUserRole}
                         unreadMessageCount={getStaffUnreadCount(s)}
+                        magnetNote={s.magnetNote}
+                        onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(s.id, note) : undefined}
                         isAssignedRelief={isRelief}
                         isDraggable={!isRelief && (currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser')}
                         onSelectStaff={onSelectStaff}

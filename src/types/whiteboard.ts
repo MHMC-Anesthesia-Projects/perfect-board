@@ -32,6 +32,7 @@ export interface Staff {
   isInfrequent?: boolean;
   hasStudent?: boolean;
   studentName?: string;
+  magnetNote?: string;
 }
 
 export interface ReliefAssignment {
@@ -290,6 +291,7 @@ export interface BoardState {
   callTeamList: CallTeamItem[];
   bullpenStaffIds?: string[];
   bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; breakfastTime?: string | null; lunchTime?: string | null }>;
+  magnetNotes?: Record<string, string>;
   lastBreakResetDate?: string;
   infrequentStaffIds?: string[];
   infrequentStaffKeys?: string[];

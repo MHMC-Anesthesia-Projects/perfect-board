@@ -17,6 +17,7 @@ interface BullpenSidebarProps {
   onToggleBreak?: (breakType: 'breakfast' | 'lunch', staffId: string, currentValue: boolean) => void;
   activeReliefStaffIds?: Set<string>;
   unreadCountsByPhone?: Record<string, number>;
+  onUpdateMagnetNote?: (staffId: string, note: string) => void;
 }
 
 const CREDENTIAL_ORDER: Record<string, number> = {
@@ -51,7 +52,8 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
   onToggleCollapse,
   onToggleBreak,
   activeReliefStaffIds,
-  unreadCountsByPhone
+  unreadCountsByPhone,
+  onUpdateMagnetNote
 }) => {
   const getStaffUnreadCount = (staffMember: Staff | null): number => {
     if (!staffMember?.phone || !unreadCountsByPhone) return 0;
@@ -215,6 +217,8 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
                       lunchDone={b?.lunchDone ?? false}
                       currentUserRole={currentUserRole}
                       unreadMessageCount={getStaffUnreadCount(s)}
+                      magnetNote={s.magnetNote}
+                      onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(s.id, note) : undefined}
                       isAssignedRelief={isRelief}
                       isDraggable={isEditor && !isRelief}
                       onToggleBreak={(breakType, currentValue) => {

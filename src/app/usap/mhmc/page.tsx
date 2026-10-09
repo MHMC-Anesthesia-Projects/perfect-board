@@ -791,6 +791,42 @@ export default function WhiteboardPage() {
     await executeToggleBreak(targetType, targetId, breakType, value, currentUser);
   };
 
+  const handleUpdateMagnetNote = async (staffId: string, note: string) => {
+    const cleanNote = (note || '').trim().slice(0, 15);
+
+    setBoardState(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev };
+      updated.magnetNotes = {
+        ...(updated.magnetNotes || {}),
+        [staffId]: cleanNote
+      };
+      if (!cleanNote) {
+        delete updated.magnetNotes[staffId];
+      }
+      if (updated.staff) {
+        updated.staff = updated.staff.map(st =>
+          st.id === staffId ? { ...st, magnetNote: cleanNote } : st
+        );
+      }
+      return updated;
+    });
+
+    try {
+      await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_MAGNET_NOTE',
+          payload: { staffId, note: cleanNote },
+          user: currentUser || { role: 'basic_user', displayName: 'Staff (Basic User)' }
+        })
+      });
+    } catch (err) {
+      console.error('Error updating magnet note:', err);
+    }
+  };
+
   // 2. Assign staff to slot
   const handleAssignStaff = async (
     targetType: 'room_slot' | 'runner_slot',
@@ -2392,6 +2428,7 @@ export default function WhiteboardPage() {
           reliefCount={totalScheduledReliefsCount}
           isCompletingRelief={isCompletingAllReliefs}
           unreadCountsByPhone={unreadCountsByPhone}
+          onUpdateMagnetNote={handleUpdateMagnetNote}
           onUndo={handleExecuteUndo}
           canUndo={undoStack.length > 0}
           undoCount={undoStack.length}
@@ -2449,6 +2486,7 @@ export default function WhiteboardPage() {
             onToggleCollapse={() => setIsBullpenOpen(false)}
             onToggleBreak={(breakType, staffId, currentValue) => handleToggleBreak('bullpen', staffId, breakType, currentValue)}
             unreadCountsByPhone={unreadCountsByPhone}
+            onUpdateMagnetNote={handleUpdateMagnetNote}
           />
         ) : (
           /* Expand Tab on Left Edge to slide Bullpen back open */
@@ -2496,6 +2534,7 @@ export default function WhiteboardPage() {
           onSetRelief={handleSetRelief}
           onRemoveRelief={handleRemoveRelief}
           unreadCountsByPhone={unreadCountsByPhone}
+          onUpdateMagnetNote={handleUpdateMagnetNote}
         />
 
         {/* Right 2 Columns: DEPARTURE & LATES (Can be hidden to the right) */}
@@ -2548,6 +2587,7 @@ export default function WhiteboardPage() {
         isCollapsed={isBullpenCollapsed}
         onToggleCollapse={() => setIsBullpenCollapsed(prev => !prev)}
         unreadCountsByPhone={unreadCountsByPhone}
+        onUpdateMagnetNote={handleUpdateMagnetNote}
       />
         </div>
       )}
@@ -2588,6 +2628,8 @@ export default function WhiteboardPage() {
         onToggleRedBox={handleToggleRedBox}
         onRemoveRelief={handleRemoveRelief}
         unreadCount={selectedStaff?.phone ? (unreadCountsByPhone[selectedStaff.phone.replace(/\D/g, '').slice(-10)] || 0) : 0}
+        magnetNotes={boardState?.magnetNotes}
+        onUpdateMagnetNote={handleUpdateMagnetNote}
       />
 
       <SlotAssignModal

@@ -289,6 +289,7 @@ export function getInitialBoardState(staff: Staff[] = []): BoardState {
     latesNotes: '',
     bullpenStaffIds: [],
     bullpenBreaks: {},
+    magnetNotes: {},
     lastBreakResetDate: getLatest1AmThreshold(),
     infrequentStaffIds: [],
     infrequentStaffKeys: [],
@@ -494,6 +495,9 @@ function sanitizeBoardState(loaded: BoardState): BoardState {
   }
   if (!loaded.bullpenBreaks || typeof loaded.bullpenBreaks !== 'object') {
     loaded.bullpenBreaks = {};
+  }
+  if (!loaded.magnetNotes || typeof loaded.magnetNotes !== 'object') {
+    loaded.magnetNotes = {};
   }
   if (!loaded.uniqueSchedules || !Array.isArray(loaded.uniqueSchedules) || loaded.uniqueSchedules.length === 0) {
     loaded.uniqueSchedules = getDefaultUniqueSchedules();
