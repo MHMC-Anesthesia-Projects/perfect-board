@@ -266,15 +266,30 @@ export function is24HourShift(shiftStr?: string, taskStr?: string, roomTag?: str
   if (/\b24\s*-?\s*h(?:r|our)?s?\b/i.test(combined)) {
     return true;
   }
-  // Continuous 3-block combination building up to 24h:
-  // 1) Morning day shift ending at 3p (3p, 8h, 7a-3p, 8h_MHMC)
-  const hasDay = /\b(?:3P|8H|7A-3P|8H_MHMC)\b/i.test(combined);
-  // 2) Late bridge shift (L1, L1_MHMC, 3p-7p)
-  const hasL1 = /\b(?:L1|L1_MHMC)\b/i.test(combined);
-  // 3) Overnight shift (OB, CIHOB, OBPM, CIHOBPM, 7P-7A, NIGHT, NOCT)
-  const hasOvernight = /\b(?:OB|CIHOB|OBPM|CIHOBPM|7P-7A|NIGHT|NOCT)\b/i.test(combined);
 
-  return hasDay && hasL1 && hasOvernight;
+  // Detect individual shift components for MHMC CRNAs:
+  // 1) 8h day shift (e.g. 8h, 8h_MHMC, 8H-MHMC, 7a-3p, 3p)
+  const has8h = /\b(?:8H|8H_MHMC|8H-MHMC|7A-3P|3P)\b/i.test(combined);
+  // 2) 10h day shift (e.g. 10h, 10h_MHMC, 10H-MHMC, 7A-5P)
+  const has10h = /\b(?:10H|10H_MHMC|10H-MHMC|7A-5P)\b/i.test(combined);
+  // 3) L1 shift (e.g. L1, L1_MHMC, L1-MHMC) - strictly exclude post-call postL1
+  const hasL1 = /\b(?:L1|L1_MHMC|L1-MHMC)\b/i.test(combined) && !/\bPOST-?L1\b/i.test(combined);
+  // 4) OBPM shift (e.g. OBPM, CIHOBPM, CIHOBPM_MHMC, OBPM_MHMC)
+  const hasObpm = /\b(?:OBPM|CIHOBPM|CIHOBPM_MHMC|CIHOBPM-MHMC|OBPM_MHMC|OBPM-MHMC)\b/i.test(combined);
+  // 5) Overnight shift (OB, CIHOB, OBPM, CIHOBPM, 7P-7A, NIGHT, NOCT)
+  const hasOvernight = hasObpm || /\b(?:OB|CIHOB|7P-7A|NIGHT|NOCT)\b/i.test(combined);
+
+  // User specification:
+  // - 8h plus L1
+  if (has8h && hasL1) return true;
+  // - 10h plus L1
+  if (has10h && hasL1) return true;
+  // - L1 plus OBPM
+  if (hasL1 && hasObpm) return true;
+  // - General 3-block day + L1 + overnight
+  if ((has8h || has10h) && hasL1 && hasOvernight) return true;
+
+  return false;
 }
 
 export function isLateShift(s: string): boolean {
@@ -836,10 +851,19 @@ export function parseOneUsapHtml(
     const s = entry.shift || '';
     if (
       s.includes('8h_') || s.includes('L1_') || s.includes('8H_') || s.includes('L1-') || s.includes('8H-') ||
+      s.includes('10h_') || s.includes('10H_') || s.includes('10h-') || s.includes('10H-') ||
+      s.includes('OBPM') || s.includes('CIHOBPM') || s.includes('obpm') || s.includes('cihobpm') ||
       s.includes('DrWrk_') || s.includes('DRWRK_') || s.includes('DrWrk-') || s.includes('DRWRK-')
     ) {
       const existing = providerTasksMap.get(cleanId);
       providerTasksMap.set(cleanId, existing ? `${existing}, ${s}` : s);
+
+      const formatted = formatProviderName(entry.rawName);
+      if (formatted.lastName) {
+        const lastKey = formatted.lastName.toLowerCase();
+        const existingLast = providerTasksMap.get(lastKey);
+        providerTasksMap.set(lastKey, existingLast ? `${existingLast}, ${s}` : s);
+      }
     }
   });
 
@@ -1300,8 +1324,9 @@ export function parseOneUsapHtml(
     const formatted = formatProviderName(rawName);
     const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
+    const taskStr = getProviderTasks(rawName, formatted.lastName);
     const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName, 'MD');
-    let effectiveShift: string | undefined = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules);
+    let effectiveShift: string | undefined = resolveEffectiveShift(shift, roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules, facility, taskStr);
 
     const hasTargetRooms = roomInfo.rooms.length > 0;
     const hasObRoom = hasTargetRooms && roomInfo.rooms.some(r => {
@@ -1367,8 +1392,10 @@ export function parseOneUsapHtml(
       return;
     }
 
-    // Exclude any L1_MHMC or 8h_MHMC provider (these roles strictly designate CRNAs at MHMC)
+    // Exclude any 24h, L1_MHMC, or 8h_MHMC provider (these roles strictly designate CRNAs at MHMC)
     if (
+      is24HourShift(shift, taskStr) ||
+      is24HourShift(effectiveShift, taskStr) ||
       isL1MhmcRole(shift, facility, rawName) ||
       isL1MhmcRole(effectiveShift, facility, rawName) ||
       is8hMhmcRole(shift, facility, rawName) ||
@@ -1615,8 +1642,20 @@ export function parseOneUsapHtml(
         precallNote = '13h';
       }
 
-      let noteVal = is24h ? '24h (L1 + OB)' : precallNote;
-      if (!is24h && isL1) {
+      let noteVal = precallNote;
+      if (is24h) {
+        const combinedAll = `${shift} ${roomTag || ''} ${effectiveShift} ${taskStr}`.toUpperCase();
+        const has8h = /\b(?:8H|8H_MHMC|8H-MHMC|7A-3P|3P)\b/i.test(combinedAll);
+        const has10h = /\b(?:10H|10H_MHMC|10H-MHMC|7A-5P)\b/i.test(combinedAll);
+        const hasL1 = /\b(?:L1|L1_MHMC|L1-MHMC)\b/i.test(combinedAll) && !/\bPOST-?L1\b/i.test(combinedAll);
+        const hasObpm = /\b(?:OBPM|CIHOBPM|CIHOBPM_MHMC|CIHOBPM-MHMC|OBPM_MHMC|OBPM-MHMC)\b/i.test(combinedAll);
+
+        if (has8h && hasL1 && hasObpm) noteVal = '24h (8h+L1+OB)';
+        else if (has8h && hasL1) noteVal = '8h + L1';
+        else if (has10h && hasL1) noteVal = '10h + L1';
+        else if (hasL1 && hasObpm) noteVal = 'L1 + OBPM';
+        else noteVal = '24h (L1 + OB)';
+      } else if (isL1) {
         const combinedAll = `${shift} ${roomTag || ''} ${effectiveShift} ${taskStr}`.toUpperCase();
         const hasPostCall = combinedAll.includes('POSTOB') ? 'postOB' :
                             combinedAll.includes('POSTC1') ? 'postC1' :

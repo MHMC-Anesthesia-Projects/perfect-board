@@ -2,11 +2,16 @@
 
 import { apiUrl } from '@/lib/api';
 import React, { useState, useEffect } from 'react';
-import { User, Staff, Department, ScraperConfig, UserRole, StaffCredential, RunnerSlot, ScraperPreviewResult, UniqueScheduleRule, MessagingConfig } from '@/types/whiteboard';
+import { 
+  User, Staff, Department, ScraperConfig, UserRole, StaffCredential, RunnerSlot, 
+  ScraperPreviewResult, UniqueScheduleRule, MessagingConfig,
+  BoardLayoutConfig, DEFAULT_LAYOUT_CONFIG, ManualDepartureSection, ManualLateSection
+} from '@/types/whiteboard';
 import { 
   Users, UserCheck, UserPlus, ShieldCheck, Layout, Globe, 
   Plus, Trash2, Edit2, Key, RefreshCw, X, Check, RotateCcw, AlertTriangle,
-  Eye, EyeOff, Search, Phone, Building2, CheckCircle2, ChevronRight, Sparkles, Clock, MessageSquare, Send, Radio
+  Eye, EyeOff, Search, Phone, Building2, CheckCircle2, ChevronRight, Sparkles, Clock, MessageSquare, Send, Radio,
+  ChevronUp, ChevronDown, Sliders, Layers, Plane, ToggleLeft, ToggleRight
 } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
@@ -19,8 +24,9 @@ interface AdminModalProps {
   scraperConfig: ScraperConfig;
   uniqueSchedules?: UniqueScheduleRule[];
   messagingConfig?: MessagingConfig;
-  onSaveDepartments: (departments: Department[]) => void;
-  onResetToPhotoDefault: () => void;
+  layoutConfig?: BoardLayoutConfig;
+  onSaveDepartments: (departments: Department[], layoutConfig?: BoardLayoutConfig) => void;
+  onResetToPhotoDefault?: () => void;
   onRefreshData: () => void;
   onUpdateCurrentUser?: (user: { id: string; username: string; displayName: string; role: UserRole }) => void;
 }
@@ -120,6 +126,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   scraperConfig,
   uniqueSchedules,
   messagingConfig,
+  layoutConfig,
   onSaveDepartments,
   onResetToPhotoDefault,
   onRefreshData,
@@ -399,6 +406,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [isAddingDept, setIsAddingDept] = useState(false);
   const [newRoomName, setNewRoomName] = useState('');
   const [layoutSaveMsg, setLayoutSaveMsg] = useState('');
+  const [boardLayoutConfig, setBoardLayoutConfig] = useState<BoardLayoutConfig>(DEFAULT_LAYOUT_CONFIG);
+  const [layoutSubTab, setLayoutSubTab] = useState<'rooms' | 'features'>('rooms');
 
   // Fetch users & initialize layout when opening modal
   useEffect(() => {
@@ -409,8 +418,13 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       if (cloned.length > 0) {
         setSelectedDeptId(prev => prev && cloned.some((d: Department) => d.id === prev) ? prev : cloned[0].id);
       }
+      setBoardLayoutConfig(layoutConfig ? {
+        ...DEFAULT_LAYOUT_CONFIG,
+        ...JSON.parse(JSON.stringify(layoutConfig)),
+        enableUnassignedStaff: layoutConfig.enableUnassignedStaff ?? true
+      } : DEFAULT_LAYOUT_CONFIG);
     }
-  }, [isOpen, departments]);
+  }, [isOpen, departments, layoutConfig]);
 
   useEffect(() => {
     if (scraperConfig) {
@@ -940,9 +954,124 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     });
   };
 
+  const handleMoveDept = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= layoutDepts.length) return;
+    const newDepts = [...layoutDepts];
+    const temp = newDepts[index];
+    newDepts[index] = newDepts[targetIndex];
+    newDepts[targetIndex] = temp;
+    newDepts.forEach((d, i) => {
+      d.orderIndex = i;
+    });
+    setLayoutDepts(newDepts);
+  };
+
+  // --- Manual Departure List Builder Helpers ---
+  const handleAddDepartureSection = () => {
+    const currentSections = boardLayoutConfig.manualDepartureConfig?.sections || [];
+    const newSection: ManualDepartureSection = {
+      id: `m_dep_${Date.now()}`,
+      label: `Section ${currentSections.length + 1}`,
+      orderIndex: currentSections.length,
+      callTypes: []
+    };
+    setBoardLayoutConfig(prev => ({
+      ...prev,
+      manualDepartureConfig: {
+        sections: [...(prev.manualDepartureConfig?.sections || []), newSection]
+      }
+    }));
+  };
+
+  const handleUpdateDepartureSection = (id: string, updates: Partial<ManualDepartureSection>) => {
+    setBoardLayoutConfig(prev => ({
+      ...prev,
+      manualDepartureConfig: {
+        sections: (prev.manualDepartureConfig?.sections || []).map(sec => 
+          sec.id === id ? { ...sec, ...updates } : sec
+        )
+      }
+    }));
+  };
+
+  const handleMoveDepartureSection = (index: number, direction: 'up' | 'down') => {
+    const currentSections = [...(boardLayoutConfig.manualDepartureConfig?.sections || [])];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= currentSections.length) return;
+    const temp = currentSections[index];
+    currentSections[index] = currentSections[targetIndex];
+    currentSections[targetIndex] = temp;
+    currentSections.forEach((s, idx) => { s.orderIndex = idx; });
+    setBoardLayoutConfig(prev => ({
+      ...prev,
+      manualDepartureConfig: { sections: currentSections }
+    }));
+  };
+
+  const handleDeleteDepartureSection = (id: string) => {
+    const filtered = (boardLayoutConfig.manualDepartureConfig?.sections || []).filter(s => s.id !== id);
+    filtered.forEach((s, idx) => { s.orderIndex = idx; });
+    setBoardLayoutConfig(prev => ({
+      ...prev,
+      manualDepartureConfig: { sections: filtered }
+    }));
+  };
+
+  // --- Manual Late List Builder Helpers ---
+  const handleAddLateSection = () => {
+    const currentSections = boardLayoutConfig.manualLateConfig?.sections || [];
+    const newSection: ManualLateSection = {
+      id: `m_late_${Date.now()}`,
+      label: 'New Shift',
+      timeCategory: 'shift',
+      orderIndex: currentSections.length
+    };
+    setBoardLayoutConfig(prev => ({
+      ...prev,
+      manualLateConfig: {
+        sections: [...(prev.manualLateConfig?.sections || []), newSection]
+      }
+    }));
+  };
+
+  const handleUpdateLateSection = (id: string, updates: Partial<ManualLateSection>) => {
+    setBoardLayoutConfig(prev => ({
+      ...prev,
+      manualLateConfig: {
+        sections: (prev.manualLateConfig?.sections || []).map(sec => 
+          sec.id === id ? { ...sec, ...updates } : sec
+        )
+      }
+    }));
+  };
+
+  const handleMoveLateSection = (index: number, direction: 'up' | 'down') => {
+    const currentSections = [...(boardLayoutConfig.manualLateConfig?.sections || [])];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= currentSections.length) return;
+    const temp = currentSections[index];
+    currentSections[index] = currentSections[targetIndex];
+    currentSections[targetIndex] = temp;
+    currentSections.forEach((s, idx) => { s.orderIndex = idx; });
+    setBoardLayoutConfig(prev => ({
+      ...prev,
+      manualLateConfig: { sections: currentSections }
+    }));
+  };
+
+  const handleDeleteLateSection = (id: string) => {
+    const filtered = (boardLayoutConfig.manualLateConfig?.sections || []).filter(s => s.id !== id);
+    filtered.forEach((s, idx) => { s.orderIndex = idx; });
+    setBoardLayoutConfig(prev => ({
+      ...prev,
+      manualLateConfig: { sections: filtered }
+    }));
+  };
+
   const handleSaveLayoutChanges = () => {
-    onSaveDepartments(layoutDepts);
-    setLayoutSaveMsg('Layout saved and live on the whiteboard!');
+    onSaveDepartments(layoutDepts, boardLayoutConfig);
+    setLayoutSaveMsg('Layout & configuration saved and live on the whiteboard!');
     setTimeout(() => setLayoutSaveMsg(''), 3500);
   };
 
@@ -1802,42 +1931,13 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)', paddingBottom: 10 }}>
                 <div>
                   <h3 style={{ fontSize: 16, fontWeight: 900, textTransform: 'uppercase' }}>
-                    Interactive Board Layout & Room Editor
+                    Interactive Board Layout & Architecture
                   </h3>
                   <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                    Fully customize department names, add/edit/delete numbered rooms, and adjust runner slots
+                    Customize department order and rooms, or configure board modules (Departure list, Late list, Bullpen, Feed vs Manual)
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <button
-                    onClick={() => {
-                      setDeleteModalState({
-                        isOpen: true,
-                        title: 'Restore Layout Defaults',
-                        itemName: 'Original Photo Layout & Assignments',
-                        itemCategory: 'Layout Reset',
-                        message: 'Are you sure you want to reset the whiteboard layout, rooms, and assignments back to the photo default?',
-                        confirmButtonText: 'Restore Defaults',
-                        onConfirm: onResetToPhotoDefault
-                      });
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      padding: '6px 12px',
-                      borderRadius: 6,
-                      background: 'rgba(211,47,47,0.1)',
-                      border: '1px solid var(--marker-red)',
-                      color: 'var(--marker-red)',
-                      fontWeight: 700,
-                      fontSize: 12
-                    }}
-                  >
-                    <RotateCcw size={14} />
-                    <span>Restore Photo Default</span>
-                  </button>
-
                   <button
                     onClick={handleSaveLayoutChanges}
                     style={{
@@ -1850,13 +1950,69 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       color: '#fff',
                       fontWeight: 800,
                       fontSize: 13,
-                      boxShadow: '0 2px 6px rgba(46, 160, 67, 0.3)'
+                      boxShadow: '0 2px 6px rgba(46, 160, 67, 0.3)',
+                      cursor: 'pointer',
+                      border: 'none'
                     }}
                   >
                     <Check size={16} />
                     <span>Save Layout Changes to Board</span>
                   </button>
                 </div>
+              </div>
+
+              {/* Sub-tab Navigation */}
+              <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border-light)', paddingBottom: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setLayoutSubTab('rooms')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 6,
+                    border: 'none',
+                    background: layoutSubTab === 'rooms' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                    color: layoutSubTab === 'rooms' ? '#fff' : 'var(--text-primary)',
+                    fontWeight: 800,
+                    fontSize: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Building2 size={14} />
+                  <span>Departments & Rooms</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLayoutSubTab('features')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 6,
+                    border: 'none',
+                    background: layoutSubTab === 'features' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                    color: layoutSubTab === 'features' ? '#fff' : 'var(--text-primary)',
+                    fontWeight: 800,
+                    fontSize: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Sliders size={14} />
+                  <span>Board Architecture & Features</span>
+                  <span style={{
+                    fontSize: 10,
+                    padding: '1px 6px',
+                    borderRadius: 10,
+                    background: boardLayoutConfig.boardMode === 'feed' ? 'rgba(56, 189, 248, 0.2)' : 'rgba(234, 179, 8, 0.2)',
+                    color: boardLayoutConfig.boardMode === 'feed' ? '#38bdf8' : '#eab308',
+                    fontWeight: 700
+                  }}>
+                    {boardLayoutConfig.boardMode === 'feed' ? 'FEED ACTIVE' : 'MANUAL'}
+                  </span>
+                </button>
               </div>
 
               {layoutSaveMsg && (
@@ -1876,83 +2032,134 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 </div>
               )}
 
-              {/* Master Layout Workspace */}
-              <div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 400, overflow: 'hidden' }}>
-                {/* Left: Department List Selector */}
-                <div style={{ width: 220, borderRight: '1px solid var(--border-light)', paddingRight: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                    <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                      Departments ({layoutDepts.length})
-                    </span>
-                    <button
-                      onClick={() => setIsAddingDept(prev => !prev)}
-                      style={{ padding: '2px 6px', fontSize: 11, fontWeight: 700, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: 2 }}
-                    >
-                      <Plus size={12} />
-                      <span>Add</span>
-                    </button>
+              {layoutSubTab === 'rooms' && (
+                /* Master Layout Workspace */
+                <div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 400, overflow: 'hidden' }}>
+                  {/* Left: Department List Selector */}
+                  <div style={{ width: 230, borderRight: '1px solid var(--border-light)', paddingRight: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                        Departments ({layoutDepts.length})
+                      </span>
+                      <button
+                        onClick={() => setIsAddingDept(prev => !prev)}
+                        style={{ padding: '2px 6px', fontSize: 11, fontWeight: 700, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: 2 }}
+                      >
+                        <Plus size={12} />
+                        <span>Add</span>
+                      </button>
+                    </div>
 
+                    {/* Add Department Input */}
+                    {isAddingDept && (
+                      <form onSubmit={handleAddDepartment} style={{ padding: 6, background: 'var(--surface-hover)', borderRadius: 6, marginBottom: 6 }}>
+                        <input
+                          type="text"
+                          placeholder="Department Name..."
+                          value={newDeptName}
+                          onChange={e => setNewDeptName(e.target.value)}
+                          autoFocus
+                          style={{ width: '100%', padding: '4px 6px', fontSize: 12, borderRadius: 4, border: '1px solid var(--border-light)', marginBottom: 4 }}
+                        />
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button type="submit" style={{ flex: 1, padding: 3, background: 'var(--accent-primary)', color: '#fff', borderRadius: 4, fontSize: 11, fontWeight: 700 }}>
+                            Create
+                          </button>
+                          <button type="button" onClick={() => setIsAddingDept(false)} style={{ padding: '3px 6px', fontSize: 11 }}>
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    )}
+
+                    {/* Department Navigation Buttons with Reorder */}
+                    <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {layoutDepts.map((dept, idx) => {
+                        const isSelected = dept.id === selectedDeptId;
+                        return (
+                          <div
+                            key={dept.id}
+                            onClick={() => setSelectedDeptId(dept.id)}
+                            style={{
+                              padding: '6px 8px',
+                              borderRadius: 6,
+                              textAlign: 'left',
+                              background: isSelected ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                              color: isSelected ? '#fff' : 'var(--text-primary)',
+                              fontWeight: 800,
+                              fontSize: 12,
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
+                              {/* Reorder Buttons */}
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleMoveDept(idx, 'up');
+                                  }}
+                                  style={{
+                                    padding: 0,
+                                    background: 'none',
+                                    border: 'none',
+                                    color: isSelected ? '#fff' : 'var(--text-secondary)',
+                                    opacity: idx === 0 ? 0.2 : 0.8,
+                                    cursor: idx === 0 ? 'default' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                  }}
+                                  title="Move Department Up"
+                                >
+                                  <ChevronUp size={12} />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === layoutDepts.length - 1}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleMoveDept(idx, 'down');
+                                  }}
+                                  style={{
+                                    padding: 0,
+                                    background: 'none',
+                                    border: 'none',
+                                    color: isSelected ? '#fff' : 'var(--text-secondary)',
+                                    opacity: idx === layoutDepts.length - 1 ? 0.2 : 0.8,
+                                    cursor: idx === layoutDepts.length - 1 ? 'default' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                  }}
+                                  title="Move Department Down"
+                                >
+                                  <ChevronDown size={12} />
+                                </button>
+                              </div>
+                              <span style={{ textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {dept.name}
+                              </span>
+                            </div>
+                            <span style={{
+                              fontSize: 10,
+                              opacity: 0.85,
+                              background: isSelected ? 'rgba(255,255,255,0.2)' : 'var(--surface-card)',
+                              padding: '1px 5px',
+                              borderRadius: 3,
+                              flexShrink: 0
+                            }}>
+                              {dept.rooms.length} R
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-
-                  {/* Add Department Input */}
-                  {isAddingDept && (
-                    <form onSubmit={handleAddDepartment} style={{ padding: 6, background: 'var(--surface-hover)', borderRadius: 6, marginBottom: 6 }}>
-                      <input
-                        type="text"
-                        placeholder="Department Name..."
-                        value={newDeptName}
-                        onChange={e => setNewDeptName(e.target.value)}
-                        autoFocus
-                        style={{ width: '100%', padding: '4px 6px', fontSize: 12, borderRadius: 4, border: '1px solid var(--border-light)', marginBottom: 4 }}
-                      />
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        <button type="submit" style={{ flex: 1, padding: 3, background: 'var(--accent-primary)', color: '#fff', borderRadius: 4, fontSize: 11, fontWeight: 700 }}>
-                          Create
-                        </button>
-                        <button type="button" onClick={() => setIsAddingDept(false)} style={{ padding: '3px 6px', fontSize: 11 }}>
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  )}
-
-                  {/* Department Navigation Buttons */}
-                  <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    {layoutDepts.map(dept => {
-                      const isSelected = dept.id === selectedDeptId;
-                      return (
-                        <button
-                          key={dept.id}
-                          onClick={() => setSelectedDeptId(dept.id)}
-                          style={{
-                            padding: '8px 10px',
-                            borderRadius: 6,
-                            textAlign: 'left',
-                            background: isSelected ? 'var(--accent-primary)' : 'var(--surface-hover)',
-                            color: isSelected ? '#fff' : 'var(--text-primary)',
-                            fontWeight: 800,
-                            fontSize: 12,
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            transition: 'all 0.15s ease'
-                          }}
-                        >
-                          <span style={{ textTransform: 'uppercase' }}>{dept.name}</span>
-                          <span style={{
-                            fontSize: 10,
-                            opacity: 0.85,
-                            background: isSelected ? 'rgba(255,255,255,0.2)' : 'var(--surface-card)',
-                            padding: '1px 5px',
-                            borderRadius: 3
-                          }}>
-                            {dept.rooms.length} R
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
 
                 {/* Right: Selected Department Detail & Room Editor */}
                 {selectedDeptId && (() => {
@@ -2218,7 +2425,720 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     </div>
                   );
                 })()}
-              </div>
+                </div>
+              )}
+
+              {layoutSubTab === 'features' && (
+                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16, paddingRight: 6 }}>
+                  {/* Section 1: Board Architecture / Data Mode */}
+                  <div style={{
+                    background: 'var(--surface-hover)',
+                    borderRadius: 8,
+                    padding: 16,
+                    border: '1px solid var(--border-light)'
+                  }}>
+                    <div style={{ marginBottom: 12 }}>
+                      <span style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Board Mode & Data Ingestion
+                      </span>
+                      <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                        Select whether this whiteboard is powered by an automated hospital scheduling feed or operates as an independent manual board.
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      {/* Option 1: Feed-Driven */}
+                      <div
+                        onClick={() => setBoardLayoutConfig(prev => ({ ...prev, boardMode: 'feed' }))}
+                        style={{
+                          padding: 14,
+                          borderRadius: 8,
+                          border: boardLayoutConfig.boardMode === 'feed' ? '2px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                          background: boardLayoutConfig.boardMode === 'feed' ? 'rgba(56, 189, 248, 0.08)' : 'var(--surface-card)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 6
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Radio size={18} color={boardLayoutConfig.boardMode === 'feed' ? 'var(--accent-primary)' : 'var(--text-secondary)'} />
+                            <span style={{ fontWeight: 800, fontSize: 13 }}>Feed-Driven (Live Sync)</span>
+                          </div>
+                          {boardLayoutConfig.boardMode === 'feed' && (
+                            <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent-primary)', background: 'rgba(56,189,248,0.15)', padding: '2px 6px', borderRadius: 4 }}>
+                              ACTIVE
+                            </span>
+                          )}
+                        </div>
+                        <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+                          Automatically pulls departures, call assignments, and late coverage from OneUSAP / QGenda schedule feeds. Ideal for Memorial Hermann Medical Center and integrated hospital ORs.
+                        </p>
+                      </div>
+
+                      {/* Option 2: Manual / Standalone */}
+                      <div
+                        onClick={() => setBoardLayoutConfig(prev => ({ ...prev, boardMode: 'manual' }))}
+                        style={{
+                          padding: 14,
+                          borderRadius: 8,
+                          border: boardLayoutConfig.boardMode === 'manual' ? '2px solid #eab308' : '1px solid var(--border-light)',
+                          background: boardLayoutConfig.boardMode === 'manual' ? 'rgba(234, 179, 8, 0.08)' : 'var(--surface-card)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 6
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Sliders size={18} color={boardLayoutConfig.boardMode === 'manual' ? '#eab308' : 'var(--text-secondary)'} />
+                            <span style={{ fontWeight: 800, fontSize: 13 }}>Manual / Standalone Board</span>
+                          </div>
+                          {boardLayoutConfig.boardMode === 'manual' && (
+                            <span style={{ fontSize: 10, fontWeight: 800, color: '#eab308', background: 'rgba(234,179,8,0.15)', padding: '2px 6px', borderRadius: 4 }}>
+                              ACTIVE
+                            </span>
+                          )}
+                        </div>
+                        <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+                          Fully custom local departure and late coverage lists built directly in this dashboard. Ideal for independent facilities, surgery centers, or onboarding new hospital partner sites.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 2: Board Feature Modules */}
+                  <div style={{
+                    background: 'var(--surface-hover)',
+                    borderRadius: 8,
+                    padding: 16,
+                    border: '1px solid var(--border-light)'
+                  }}>
+                    <div style={{ marginBottom: 12 }}>
+                      <span style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Board Feature Modules
+                      </span>
+                      <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                        Toggle modules ON or OFF to tailor the whiteboard interface for this specific facility or center.
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                      {/* Toggle: Departure List */}
+                      <div style={{
+                        padding: 12,
+                        borderRadius: 8,
+                        background: 'var(--surface-card)',
+                        border: '1px solid var(--border-light)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: 10
+                      }}>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 13 }}>
+                              <Plane size={16} color="var(--accent-primary)" />
+                              <span>Departure List</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setBoardLayoutConfig(prev => ({ ...prev, enableDepartureList: !prev.enableDepartureList }))}
+                              style={{
+                                border: 'none',
+                                background: 'transparent',
+                                cursor: 'pointer',
+                                padding: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                color: (boardLayoutConfig.enableDepartureList ?? true) ? 'var(--marker-green)' : 'var(--text-muted)'
+                              }}
+                            >
+                              {(boardLayoutConfig.enableDepartureList ?? true) ? <ToggleRight size={30} /> : <ToggleLeft size={30} />}
+                            </button>
+                          </div>
+                          <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.35 }}>
+                            Flight-style departure order, room release sequence, and post-call / non-call staff badges on right panel.
+                          </p>
+                        </div>
+                        <span style={{
+                          fontSize: 10,
+                          fontWeight: 800,
+                          alignSelf: 'flex-start',
+                          padding: '2px 6px',
+                          borderRadius: 4,
+                          background: (boardLayoutConfig.enableDepartureList ?? true) ? 'rgba(46,160,67,0.15)' : 'var(--surface-hover)',
+                          color: (boardLayoutConfig.enableDepartureList ?? true) ? 'var(--marker-green)' : 'var(--text-muted)'
+                        }}>
+                          {(boardLayoutConfig.enableDepartureList ?? true) ? 'MODULE ENABLED' : 'DISABLED'}
+                        </span>
+                      </div>
+
+                      {/* Toggle: Late List */}
+                      <div style={{
+                        padding: 12,
+                        borderRadius: 8,
+                        background: 'var(--surface-card)',
+                        border: '1px solid var(--border-light)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: 10
+                      }}>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 13 }}>
+                              <Clock size={16} color="#eab308" />
+                              <span>Late List</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setBoardLayoutConfig(prev => ({ ...prev, enableLateList: !prev.enableLateList }))}
+                              style={{
+                                border: 'none',
+                                background: 'transparent',
+                                cursor: 'pointer',
+                                padding: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                color: (boardLayoutConfig.enableLateList ?? true) ? 'var(--marker-green)' : 'var(--text-muted)'
+                              }}
+                            >
+                              {(boardLayoutConfig.enableLateList ?? true) ? <ToggleRight size={30} /> : <ToggleLeft size={30} />}
+                            </button>
+                          </div>
+                          <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.35 }}>
+                            Afternoon and evening staggered physician coverage (3p, 4p, 5p, 7p, 8p, 24h) on right panel.
+                          </p>
+                        </div>
+                        <span style={{
+                          fontSize: 10,
+                          fontWeight: 800,
+                          alignSelf: 'flex-start',
+                          padding: '2px 6px',
+                          borderRadius: 4,
+                          background: (boardLayoutConfig.enableLateList ?? true) ? 'rgba(46,160,67,0.15)' : 'var(--surface-hover)',
+                          color: (boardLayoutConfig.enableLateList ?? true) ? 'var(--marker-green)' : 'var(--text-muted)'
+                        }}>
+                          {(boardLayoutConfig.enableLateList ?? true) ? 'MODULE ENABLED' : 'DISABLED'}
+                        </span>
+                      </div>
+
+                      {/* Toggle: Bullpen (Left Slideout) */}
+                      <div style={{
+                        padding: 12,
+                        borderRadius: 8,
+                        background: 'var(--surface-card)',
+                        border: '1px solid var(--border-light)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: 10
+                      }}>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 13 }}>
+                              <Users size={16} color="var(--marker-blue)" />
+                              <span>Bullpen (Left Slideout)</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setBoardLayoutConfig(prev => ({ ...prev, enableBullpen: !prev.enableBullpen }))}
+                              style={{
+                                border: 'none',
+                                background: 'transparent',
+                                cursor: 'pointer',
+                                padding: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                color: (boardLayoutConfig.enableBullpen ?? true) ? 'var(--marker-green)' : 'var(--text-muted)'
+                              }}
+                            >
+                              {(boardLayoutConfig.enableBullpen ?? true) ? <ToggleRight size={30} /> : <ToggleLeft size={30} />}
+                            </button>
+                          </div>
+                          <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.35 }}>
+                            Left-side vertical slideout menu and tab for active relief staff, float pool clinicians, and meal break tracking.
+                          </p>
+                        </div>
+                        <span style={{
+                          fontSize: 10,
+                          fontWeight: 800,
+                          alignSelf: 'flex-start',
+                          padding: '2px 6px',
+                          borderRadius: 4,
+                          background: (boardLayoutConfig.enableBullpen ?? true) ? 'rgba(46,160,67,0.15)' : 'var(--surface-hover)',
+                          color: (boardLayoutConfig.enableBullpen ?? true) ? 'var(--marker-green)' : 'var(--text-muted)'
+                        }}>
+                          {(boardLayoutConfig.enableBullpen ?? true) ? 'MODULE ENABLED' : 'DISABLED'}
+                        </span>
+                      </div>
+
+                      {/* Toggle: Available Unassigned Staff (Bottom Drawer) */}
+                      <div style={{
+                        padding: 12,
+                        borderRadius: 8,
+                        background: 'var(--surface-card)',
+                        border: '1px solid var(--border-light)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: 10
+                      }}>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 13 }}>
+                              <UserCheck size={16} color="var(--marker-green)" />
+                              <span>Available Unassigned Staff</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setBoardLayoutConfig(prev => ({ ...prev, enableUnassignedStaff: !(prev.enableUnassignedStaff ?? true) }))}
+                              style={{
+                                border: 'none',
+                                background: 'transparent',
+                                cursor: 'pointer',
+                                padding: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                color: (boardLayoutConfig.enableUnassignedStaff ?? true) ? 'var(--marker-green)' : 'var(--text-muted)'
+                              }}
+                            >
+                              {(boardLayoutConfig.enableUnassignedStaff ?? true) ? <ToggleRight size={30} /> : <ToggleLeft size={30} />}
+                            </button>
+                          </div>
+                          <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.35 }}>
+                            Bottom collapsible drawer with alphabetical bins for unassigned roster clinicians to drag onto the board.
+                          </p>
+                        </div>
+                        <span style={{
+                          fontSize: 10,
+                          fontWeight: 800,
+                          alignSelf: 'flex-start',
+                          padding: '2px 6px',
+                          borderRadius: 4,
+                          background: (boardLayoutConfig.enableUnassignedStaff ?? true) ? 'rgba(46,160,67,0.15)' : 'var(--surface-hover)',
+                          color: (boardLayoutConfig.enableUnassignedStaff ?? true) ? 'var(--marker-green)' : 'var(--text-muted)'
+                        }}>
+                          {(boardLayoutConfig.enableUnassignedStaff ?? true) ? 'MODULE ENABLED' : 'DISABLED'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Departure List Structure Builder */}
+                  {boardLayoutConfig.enableDepartureList && (
+                    <div style={{
+                      background: 'var(--surface-hover)',
+                      borderRadius: 8,
+                      padding: 16,
+                      border: '1px solid var(--border-light)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                              Departure List Structure Builder
+                            </span>
+                            <span style={{
+                              fontSize: 10,
+                              fontWeight: 800,
+                              padding: '2px 6px',
+                              borderRadius: 4,
+                              background: boardLayoutConfig.boardMode === 'manual' ? 'rgba(234,179,8,0.15)' : 'rgba(56,189,248,0.15)',
+                              color: boardLayoutConfig.boardMode === 'manual' ? '#eab308' : 'var(--accent-primary)'
+                            }}>
+                              {boardLayoutConfig.boardMode === 'manual' ? 'CUSTOM MANUAL SECTIONS' : 'FEED-SYNCHRONIZED'}
+                            </span>
+                          </div>
+                          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                            Define departure grouping sections (e.g. Post-Call, Specials, Non-Call, CV, ASC) and their designated call types.
+                          </p>
+                        </div>
+                        {boardLayoutConfig.boardMode === 'manual' && (
+                          <button
+                            type="button"
+                            onClick={handleAddDepartureSection}
+                            style={{
+                              padding: '5px 10px',
+                              borderRadius: 6,
+                              background: 'var(--accent-primary)',
+                              color: '#fff',
+                              fontSize: 12,
+                              fontWeight: 800,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              border: 'none',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <Plus size={14} />
+                            <span>Add Section</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {boardLayoutConfig.boardMode === 'feed' ? (
+                        <div style={{
+                          padding: 14,
+                          borderRadius: 6,
+                          background: 'rgba(56, 189, 248, 0.08)',
+                          border: '1px dashed rgba(56, 189, 248, 0.3)',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: 12
+                        }}>
+                          <Sparkles size={20} color="var(--accent-primary)" style={{ flexShrink: 0, marginTop: 2 }} />
+                          <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+                            <strong style={{ color: 'var(--accent-primary)' }}>Feed Automation Active (MHMC):</strong>
+                            <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)' }}>
+                              In Feed Mode, the Departure List automatically organizes staff into <strong>Post-Call</strong> (CV, Call 1, 2, 3, OB), <strong>Special Departures</strong>, and <strong>Standard Departures</strong> according to real-time OneUSAP scraper sync data.
+                            </p>
+                            <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: 11 }}>
+                              To construct custom sections manually for an independent board, switch the Board Mode above to <strong>Manual / Standalone</strong>.
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Manual Departure Sections Builder List */
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {(boardLayoutConfig.manualDepartureConfig?.sections || []).length === 0 ? (
+                            <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                              No departure sections configured. Click &quot;Add Section&quot; above to define departure categories.
+                            </div>
+                          ) : (
+                            (boardLayoutConfig.manualDepartureConfig?.sections || []).map((sec, sIdx, allSecs) => (
+                              <div
+                                key={sec.id}
+                                style={{
+                                  background: 'var(--surface-card)',
+                                  borderRadius: 6,
+                                  padding: 10,
+                                  border: '1px solid var(--border-light)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 10
+                                }}
+                              >
+                                {/* Reorder Controls */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                  <button
+                                    type="button"
+                                    disabled={sIdx === 0}
+                                    onClick={() => handleMoveDepartureSection(sIdx, 'up')}
+                                    style={{
+                                      padding: 0,
+                                      background: 'none',
+                                      border: 'none',
+                                      color: 'var(--text-secondary)',
+                                      opacity: sIdx === 0 ? 0.2 : 0.8,
+                                      cursor: sIdx === 0 ? 'default' : 'pointer'
+                                    }}
+                                  >
+                                    <ChevronUp size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={sIdx === allSecs.length - 1}
+                                    onClick={() => handleMoveDepartureSection(sIdx, 'down')}
+                                    style={{
+                                      padding: 0,
+                                      background: 'none',
+                                      border: 'none',
+                                      color: 'var(--text-secondary)',
+                                      opacity: sIdx === allSecs.length - 1 ? 0.2 : 0.8,
+                                      cursor: sIdx === allSecs.length - 1 ? 'default' : 'pointer'
+                                    }}
+                                  >
+                                    <ChevronDown size={14} />
+                                  </button>
+                                </div>
+
+                                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', minWidth: 22 }}>
+                                  #{sIdx + 1}
+                                </span>
+
+                                {/* Section Label */}
+                                <div style={{ flex: 1 }}>
+                                  <label style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'block', marginBottom: 2 }}>
+                                    Section Title
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={sec.label}
+                                    onChange={e => handleUpdateDepartureSection(sec.id, { label: e.target.value })}
+                                    placeholder="e.g. Post-Call, Main OR, ASC..."
+                                    style={{
+                                      width: '100%',
+                                      padding: '5px 8px',
+                                      fontSize: 12,
+                                      fontWeight: 700,
+                                      borderRadius: 4,
+                                      border: '1px solid var(--border-light)',
+                                      background: 'var(--surface-hover)',
+                                      color: 'var(--text-primary)'
+                                    }}
+                                  />
+                                </div>
+
+                                {/* Call Types Tags */}
+                                <div style={{ flex: 1.5 }}>
+                                  <label style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'block', marginBottom: 2 }}>
+                                    Call Types (comma separated)
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={(sec.callTypes || []).join(', ')}
+                                    onChange={e => {
+                                      const tags = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                                      handleUpdateDepartureSection(sec.id, { callTypes: tags });
+                                    }}
+                                    placeholder="e.g. CV, Call 1, Call 2, OB"
+                                    style={{
+                                      width: '100%',
+                                      padding: '5px 8px',
+                                      fontSize: 12,
+                                      borderRadius: 4,
+                                      border: '1px solid var(--border-light)',
+                                      background: 'var(--surface-hover)',
+                                      color: 'var(--text-primary)'
+                                    }}
+                                  />
+                                </div>
+
+                                {/* Delete Section */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteDepartureSection(sec.id)}
+                                  style={{
+                                    marginTop: 14,
+                                    padding: '5px 8px',
+                                    borderRadius: 4,
+                                    background: 'rgba(211,47,47,0.1)',
+                                    border: '1px solid var(--marker-red)',
+                                    color: 'var(--marker-red)',
+                                    cursor: 'pointer'
+                                  }}
+                                  title="Delete Section"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Section 4: Late List Structure Builder */}
+                  {boardLayoutConfig.enableLateList && (
+                    <div style={{
+                      background: 'var(--surface-hover)',
+                      borderRadius: 8,
+                      padding: 16,
+                      border: '1px solid var(--border-light)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                              Late List Shifts Builder
+                            </span>
+                            <span style={{
+                              fontSize: 10,
+                              fontWeight: 800,
+                              padding: '2px 6px',
+                              borderRadius: 4,
+                              background: boardLayoutConfig.boardMode === 'manual' ? 'rgba(234,179,8,0.15)' : 'rgba(56,189,248,0.15)',
+                              color: boardLayoutConfig.boardMode === 'manual' ? '#eab308' : 'var(--accent-primary)'
+                            }}>
+                              {boardLayoutConfig.boardMode === 'manual' ? 'CUSTOM MANUAL SHIFTS' : 'FEED-SYNCHRONIZED'}
+                            </span>
+                          </div>
+                          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                            Define late coverage shift intervals (e.g. 3p, 4p, 5p, 7p, 9p, 24h) and their time tags.
+                          </p>
+                        </div>
+                        {boardLayoutConfig.boardMode === 'manual' && (
+                          <button
+                            type="button"
+                            onClick={handleAddLateSection}
+                            style={{
+                              padding: '5px 10px',
+                              borderRadius: 6,
+                              background: 'var(--accent-primary)',
+                              color: '#fff',
+                              fontSize: 12,
+                              fontWeight: 800,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              border: 'none',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <Plus size={14} />
+                            <span>Add Shift</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {boardLayoutConfig.boardMode === 'feed' ? (
+                        <div style={{
+                          padding: 14,
+                          borderRadius: 6,
+                          background: 'rgba(56, 189, 248, 0.08)',
+                          border: '1px dashed rgba(56, 189, 248, 0.3)',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: 12
+                        }}>
+                          <Sparkles size={20} color="var(--accent-primary)" style={{ flexShrink: 0, marginTop: 2 }} />
+                          <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+                            <strong style={{ color: 'var(--accent-primary)' }}>Feed Automation Active (MHMC):</strong>
+                            <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)' }}>
+                              In Feed Mode, the Late List automatically maps physician assignments into <strong>3p, 4p, 5p, 7p, 8p, 7p-7a, and 24h</strong> bands based on QGenda shift codes pulled during every sync cycle.
+                            </p>
+                            <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: 11 }}>
+                              To configure custom late shifts manually for another facility, switch the Board Mode above to <strong>Manual / Standalone</strong>.
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Manual Late Shifts Builder List */
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {(boardLayoutConfig.manualLateConfig?.sections || []).length === 0 ? (
+                            <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                              No late shifts configured. Click &quot;Add Shift&quot; above to define time coverage bands.
+                            </div>
+                          ) : (
+                            (boardLayoutConfig.manualLateConfig?.sections || []).map((sec, lIdx, allSecs) => (
+                              <div
+                                key={sec.id}
+                                style={{
+                                  background: 'var(--surface-card)',
+                                  borderRadius: 6,
+                                  padding: 10,
+                                  border: '1px solid var(--border-light)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 10
+                                }}
+                              >
+                                {/* Reorder Controls */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                  <button
+                                    type="button"
+                                    disabled={lIdx === 0}
+                                    onClick={() => handleMoveLateSection(lIdx, 'up')}
+                                    style={{
+                                      padding: 0,
+                                      background: 'none',
+                                      border: 'none',
+                                      color: 'var(--text-secondary)',
+                                      opacity: lIdx === 0 ? 0.2 : 0.8,
+                                      cursor: lIdx === 0 ? 'default' : 'pointer'
+                                    }}
+                                  >
+                                    <ChevronUp size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={lIdx === allSecs.length - 1}
+                                    onClick={() => handleMoveLateSection(lIdx, 'down')}
+                                    style={{
+                                      padding: 0,
+                                      background: 'none',
+                                      border: 'none',
+                                      color: 'var(--text-secondary)',
+                                      opacity: lIdx === allSecs.length - 1 ? 0.2 : 0.8,
+                                      cursor: lIdx === allSecs.length - 1 ? 'default' : 'pointer'
+                                    }}
+                                  >
+                                    <ChevronDown size={14} />
+                                  </button>
+                                </div>
+
+                                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', minWidth: 22 }}>
+                                  #{lIdx + 1}
+                                </span>
+
+                                {/* Shift Label */}
+                                <div style={{ flex: 1.5 }}>
+                                  <label style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'block', marginBottom: 2 }}>
+                                    Shift Display Label
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={sec.label}
+                                    onChange={e => handleUpdateLateSection(sec.id, { label: e.target.value })}
+                                    placeholder="e.g. 5 PM Late, 9 PM Shift..."
+                                    style={{
+                                      width: '100%',
+                                      padding: '5px 8px',
+                                      fontSize: 12,
+                                      fontWeight: 700,
+                                      borderRadius: 4,
+                                      border: '1px solid var(--border-light)',
+                                      background: 'var(--surface-hover)',
+                                      color: 'var(--text-primary)'
+                                    }}
+                                  />
+                                </div>
+
+                                {/* Time Category Code */}
+                                <div style={{ flex: 1 }}>
+                                  <label style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'block', marginBottom: 2 }}>
+                                    Time Code / Key
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={sec.timeCategory}
+                                    onChange={e => handleUpdateLateSection(sec.id, { timeCategory: e.target.value })}
+                                    placeholder="e.g. 5p, 9p, 24h"
+                                    style={{
+                                      width: '100%',
+                                      padding: '5px 8px',
+                                      fontSize: 12,
+                                      borderRadius: 4,
+                                      border: '1px solid var(--border-light)',
+                                      background: 'var(--surface-hover)',
+                                      color: 'var(--text-primary)',
+                                      fontFamily: 'var(--font-mono)'
+                                    }}
+                                  />
+                                </div>
+
+                                {/* Delete Shift */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteLateSection(sec.id)}
+                                  style={{
+                                    marginTop: 14,
+                                    padding: '5px 8px',
+                                    borderRadius: 4,
+                                    background: 'rgba(211,47,47,0.1)',
+                                    border: '1px solid var(--marker-red)',
+                                    color: 'var(--marker-red)',
+                                    cursor: 'pointer'
+                                  }}
+                                  title="Delete Shift"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

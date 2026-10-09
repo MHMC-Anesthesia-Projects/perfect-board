@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { BoardState, User, AuditLogEntry, Staff, Department, RunnerSlot, UniqueScheduleRule } from '@/types/whiteboard';
+import { BoardState, User, AuditLogEntry, Staff, Department, RunnerSlot, UniqueScheduleRule, BoardLayoutConfig, DEFAULT_LAYOUT_CONFIG } from '@/types/whiteboard';
 import { getSupabaseServerClient } from '@/lib/supabase';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -310,7 +310,8 @@ export function getInitialBoardState(staff: Staff[] = []): BoardState {
       boardRunnerName: 'OR Board Runner',
       pushEndpoint: 'https://pinecone-backend-7m1p.onrender.com/api/send-chat-push'
     },
-    uniqueSchedules: getDefaultUniqueSchedules()
+    uniqueSchedules: getDefaultUniqueSchedules(),
+    layoutConfig: DEFAULT_LAYOUT_CONFIG
   };
 }
 
@@ -511,6 +512,16 @@ function sanitizeBoardState(loaded: BoardState): BoardState {
       boardRunnerPassword: 'boardrunner@boardrunner.com',
       boardRunnerName: 'OR Board Runner',
       pushEndpoint: 'https://pinecone-backend-7m1p.onrender.com/api/send-chat-push'
+    };
+  }
+  if (!loaded.layoutConfig || typeof loaded.layoutConfig !== 'object') {
+    loaded.layoutConfig = DEFAULT_LAYOUT_CONFIG;
+  } else {
+    loaded.layoutConfig = {
+      ...DEFAULT_LAYOUT_CONFIG,
+      ...loaded.layoutConfig,
+      manualDepartureConfig: loaded.layoutConfig.manualDepartureConfig || DEFAULT_LAYOUT_CONFIG.manualDepartureConfig,
+      manualLateConfig: loaded.layoutConfig.manualLateConfig || DEFAULT_LAYOUT_CONFIG.manualLateConfig
     };
   }
 

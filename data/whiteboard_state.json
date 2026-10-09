@@ -10,6 +10,7 @@
       "lastName": "Patel",
       "firstName": "Purnal",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "PatelPur",
       "credentials": "MD",
       "displayName": "PATEL P.",
@@ -19,42 +20,41 @@
     {
       "id": "staff_oneusap_doc_lukey",
       "phone": "(314) 443-6797",
-      "shift": "C3",
+      "shift": "postC3",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Lu",
       "firstName": "Key",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "LuKey",
       "credentials": "MD",
       "displayName": "LU K.",
-      "orderNumber": 212,
-      "assignedRoom": "MHMC DS 01",
+      "orderNumber": 109,
+      "assignedRoom": "MHMC DS 02",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC DS 01"
+        "MHMC DS 02"
       ]
     },
     {
       "id": "staff_oneusap_doc_changale",
       "phone": "(415) 361-3433",
-      "shift": "C2",
+      "shift": "postC2",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Chang",
       "firstName": "Alex",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "ChangAle",
       "credentials": "MD",
       "displayName": "CHANG A.",
-      "orderNumber": 214,
-      "assignedRoom": "MHMC Endo1, MHMC Endo2, MHMC Endo3, MHMC Endo4",
+      "orderNumber": 106,
+      "assignedRoom": "MHMC NeuroIR",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC Endo1",
-        "MHMC Endo2",
-        "MHMC Endo3",
-        "MHMC Endo4"
+        "MHMC NeuroIR"
       ]
     },
     {
@@ -67,18 +67,12 @@
       "lastName": "Mankarious",
       "firstName": "Ramy",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "MankariousRam",
       "credentials": "MD",
       "displayName": "MANKARIOUS R.",
       "orderNumber": 72,
-      "assignedRoom": "Village OR1, Village OR5, Village OR6, Village OR7",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "Village OR1",
-        "Village OR5",
-        "Village OR6",
-        "Village OR7"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_doc_shettysha",
@@ -89,6 +83,7 @@
       "lastName": "Shetty",
       "firstName": "Sha",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "ShettySha",
       "credentials": "MD",
       "orderNumber": 90,
@@ -97,43 +92,43 @@
     {
       "id": "staff_oneusap_doc_tallacksondon",
       "phone": "(832) 236-6421",
-      "shift": "postC1,preC1",
+      "shift": "Day",
       "active": true,
-      "facility": "MH Memorial City",
+      "facility": "Houston IVF",
       "lastName": "Tallackson",
       "firstName": "Donald",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "TallacksonDon",
       "credentials": "MD",
       "displayName": "TALLACKSON D.",
-      "orderNumber": 86,
-      "assignedRoom": "MHMC DS 04, MHMC DS 05, MHMC DS 09",
+      "orderNumber": 215,
+      "assignedRoom": "Houston IVF",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC DS 04",
-        "MHMC DS 05",
-        "MHMC DS 09"
+        "Houston IVF"
       ]
     },
     {
       "id": "staff_oneusap_doc_shenoyvik",
       "phone": "(832) 758-3236",
-      "shift": "preC2",
+      "shift": "C2",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Shenoy",
       "firstName": "Vikram",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "ShenoyVik",
       "credentials": "MD",
       "displayName": "SHENOY V.",
-      "orderNumber": 108,
-      "assignedRoom": "MHMC OR7, MHMC OR8, MHMC OR9, MHMC OR10",
+      "orderNumber": 212,
+      "assignedRoom": "MHMC OR6, MHMC OR7, MHMC OR8, MHMC OR10",
       "isInfrequent": false,
       "assignedRooms": [
+        "MHMC OR6",
         "MHMC OR7",
         "MHMC OR8",
-        "MHMC OR9",
         "MHMC OR10"
       ]
     },
@@ -146,6 +141,7 @@
       "lastName": "Dwarakanath",
       "firstName": "Kishore",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "DwarakanathKis",
       "credentials": "MD",
       "displayName": "DWARAKANATH K.",
@@ -157,18 +153,22 @@
       "phone": "(281) 777-5415",
       "shift": "4p",
       "active": true,
-      "facility": "Houston IVF",
+      "facility": "MH Memorial City",
       "lastName": "Chuan",
       "firstName": "Joseph",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "ChuanJos",
       "credentials": "MD",
       "displayName": "CHUAN J.",
-      "orderNumber": 197,
-      "assignedRoom": "Houston IVF",
+      "orderNumber": 133,
+      "assignedRoom": "MHMC MRI, MHMC DS 01, MHMC Endo1, MHMC Endo3",
       "isInfrequent": false,
       "assignedRooms": [
-        "Houston IVF"
+        "MHMC MRI",
+        "MHMC DS 01",
+        "MHMC Endo1",
+        "MHMC Endo3"
       ]
     },
     {
@@ -180,33 +180,36 @@
       "lastName": "Jeffcoat",
       "firstName": "Sherwood",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "JeffcoatShe",
       "credentials": "MD",
       "displayName": "JEFFCOAT S.",
-      "orderNumber": 132,
-      "assignedRoom": "Village OR2",
+      "orderNumber": 142,
+      "assignedRoom": "Village OR4, Village Proc2",
       "isInfrequent": false,
       "assignedRooms": [
-        "Village OR2"
+        "Village OR4",
+        "Village Proc2"
       ]
     },
     {
       "id": "staff_oneusap_doc_shevchenkoyev",
       "phone": "(832) 549-4905",
-      "shift": "3p",
+      "shift": "preC1",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Shevchenko",
       "firstName": "Yevgeniy",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "ShevchenkoYev",
       "credentials": "MD",
       "displayName": "SHEVCHENKO Y.",
-      "orderNumber": 141,
-      "assignedRoom": "MHMC TEE",
+      "orderNumber": 121,
+      "assignedRoom": "MHMC DS 09",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC TEE"
+        "MHMC DS 09"
       ]
     },
     {
@@ -219,6 +222,7 @@
       "lastName": "Daumerie",
       "firstName": "Ger",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "DaumerieGer",
       "credentials": "MD",
       "displayName": "DAUMERIE G.",
@@ -234,10 +238,11 @@
       "lastName": "Martinez",
       "firstName": "Rogelio",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "MartinezRog",
       "credentials": "MD",
       "displayName": "MARTINEZ R.",
-      "orderNumber": 58,
+      "orderNumber": 77,
       "isInfrequent": false
     },
     {
@@ -249,14 +254,17 @@
       "lastName": "Hirsch",
       "firstName": "Douglas",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "HirschDou",
       "credentials": "MD",
       "displayName": "HIRSCH D.",
-      "orderNumber": 188,
-      "assignedRoom": "Village OR8",
+      "orderNumber": 181,
+      "assignedRoom": "Village OR2, Village OR5, Village OR6",
       "isInfrequent": false,
       "assignedRooms": [
-        "Village OR8"
+        "Village OR2",
+        "Village OR5",
+        "Village OR6"
       ]
     },
     {
@@ -268,6 +276,7 @@
       "lastName": "Taylor",
       "firstName": "Matthew",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "TaylorMat",
       "credentials": "MD",
       "orderNumber": 172,
@@ -276,35 +285,37 @@
     {
       "id": "staff_oneusap_doc_bernellmic",
       "phone": "(713) 417-0680",
-      "shift": "Day",
+      "shift": "C3",
       "active": true,
-      "facility": "MH Memorial City",
+      "facility": "Methodist West",
       "lastName": "Bernell",
       "firstName": "Michael",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "BernellMic",
       "credentials": "MD",
       "displayName": "BERNELL M.",
-      "orderNumber": 57,
+      "orderNumber": 210,
       "isInfrequent": false
     },
     {
       "id": "staff_oneusap_doc_choiseu",
       "phone": "(832) 942-2056",
-      "shift": "postCV",
+      "shift": "CV",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Choi",
       "firstName": "Seu",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "ChoiSeu",
       "credentials": "MD",
       "displayName": "CHOI S.",
-      "orderNumber": 110,
-      "assignedRoom": "MHMC Cath1",
+      "orderNumber": 207,
+      "assignedRoom": "MHMC OR11",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC Cath1"
+        "MHMC OR11"
       ]
     },
     {
@@ -316,66 +327,74 @@
       "lastName": "Gunn",
       "firstName": "Clinton",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "GunnCli",
       "credentials": "MD",
       "displayName": "GUNN C.",
-      "orderNumber": 178,
-      "isInfrequent": false
+      "orderNumber": 173,
+      "assignedRoom": "MHMC DS 05",
+      "isInfrequent": false,
+      "assignedRooms": [
+        "MHMC DS 05"
+      ]
     },
     {
       "id": "staff_oneusap_doc_shirakmic",
       "phone": "(845) 706-0180",
-      "shift": "CV",
+      "shift": "postCV",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Shirak",
       "firstName": "Mic",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "ShirakMic",
       "credentials": "MD",
       "displayName": "SHIRAK M.",
-      "orderNumber": 209,
-      "assignedRoom": "MHMC Cath3",
+      "orderNumber": 112,
+      "assignedRoom": "MHMC OR3",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC Cath3"
+        "MHMC OR3"
       ]
     },
     {
       "id": "staff_oneusap_doc_alanizped",
       "phone": "(956) 492-6904",
-      "shift": "C2",
+      "shift": "preOB,preC1",
       "active": true,
-      "facility": "MH Village SC",
+      "facility": "MH Katy",
       "lastName": "Alaniz",
       "firstName": "Pedro",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "AlanizPed",
       "credentials": "MD",
       "displayName": "ALANIZ P.",
-      "orderNumber": 214,
+      "orderNumber": 115,
       "isInfrequent": false
     },
     {
       "id": "staff_oneusap_doc_cavanaughmar",
       "phone": "(520) 360-2587",
-      "shift": "postC3",
+      "shift": "preC3,preOB",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Cavanaugh",
       "firstName": "Mark",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "CavanaughMar",
       "credentials": "MD",
       "displayName": "CAVANAUGH M.",
-      "orderNumber": 91,
-      "assignedRoom": "MHMC Ortho2, MHMC Ortho3, MHMC Ortho4, MHMC Ortho6",
+      "orderNumber": 118,
+      "assignedRoom": "MHMC Ortho3, MHMC Ortho4, MHMC Ortho7, MHMC Ortho8",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC Ortho2",
         "MHMC Ortho3",
         "MHMC Ortho4",
-        "MHMC Ortho6"
+        "MHMC Ortho7",
+        "MHMC Ortho8"
       ]
     },
     {
@@ -387,15 +406,12 @@
       "lastName": "Schroedter",
       "firstName": "Timothy",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "SchroedterTim",
       "credentials": "CRNA",
       "displayName": "SCHROEDTER T.",
       "orderNumber": 325,
-      "assignedRoom": "MHMC Ortho3",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC Ortho3"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_normandken",
@@ -406,6 +422,7 @@
       "lastName": "Normand",
       "firstName": "Kenneth",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "NormandKen",
       "credentials": "CRNA",
       "displayName": "NORMAND K.",
@@ -421,33 +438,31 @@
       "lastName": "Lam",
       "firstName": "Hung",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "LamHun",
       "credentials": "CRNA",
       "displayName": "LAM H.",
       "orderNumber": 358,
-      "assignedRoom": "MHMC Endo1",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC Endo1"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_litin",
       "phone": "(832) 638-2741",
-      "shift": "8p",
+      "shift": "WOR",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Li",
       "firstName": "Tina",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "LiTin",
       "credentials": "CRNA",
       "displayName": "LI T.",
-      "orderNumber": 360,
-      "assignedRoom": "MHMC Ortho4",
+      "orderNumber": 51,
+      "assignedRoom": "MHMC Endo1",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC Ortho4"
+        "MHMC Endo1"
       ]
     },
     {
@@ -459,15 +474,12 @@
       "lastName": "Yi",
       "firstName": "Alex",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "YiAle",
       "credentials": "CRNA",
       "displayName": "YI A.",
-      "orderNumber": 277,
-      "assignedRoom": "MHMC DS 04",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC DS 04"
-      ]
+      "orderNumber": 276,
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_holtonjac",
@@ -478,14 +490,15 @@
       "lastName": "Holton",
       "firstName": "Jacqueline",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "HoltonJac",
       "credentials": "CRNA",
       "displayName": "HOLTON J.",
-      "orderNumber": 202,
-      "assignedRoom": "Village OR5",
+      "orderNumber": 220,
+      "assignedRoom": "Village OR2",
       "isInfrequent": false,
       "assignedRooms": [
-        "Village OR5"
+        "Village OR2"
       ]
     },
     {
@@ -497,11 +510,16 @@
       "lastName": "Hughes",
       "firstName": "Abigail",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "HughesAbi",
       "credentials": "CRNA",
       "displayName": "HUGHES A.",
-      "orderNumber": 199,
-      "isInfrequent": false
+      "orderNumber": 221,
+      "assignedRoom": "MHMC Ortho4",
+      "isInfrequent": false,
+      "assignedRooms": [
+        "MHMC Ortho4"
+      ]
     },
     {
       "id": "staff_oneusap_anes_lowelei",
@@ -512,6 +530,7 @@
       "lastName": "Lowe",
       "firstName": "Leila",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "LoweLei",
       "credentials": "CRNA",
       "displayName": "LOWE L.",
@@ -527,6 +546,7 @@
       "lastName": "Markette",
       "firstName": "Charles",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "MarketteCha",
       "credentials": "CRNA",
       "displayName": "MARKETTE C.",
@@ -542,15 +562,12 @@
       "lastName": "Mateo",
       "firstName": "Carmen",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "MateoCar",
       "credentials": "CRNA",
       "displayName": "MATEO C.",
-      "orderNumber": 226,
-      "assignedRoom": "MHMC Endo2",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC Endo2"
-      ]
+      "orderNumber": 229,
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_townechr",
@@ -561,14 +578,15 @@
       "lastName": "Towne",
       "firstName": "Christopher",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "TowneChr",
       "credentials": "CRNA",
       "displayName": "TOWNE C.",
-      "orderNumber": 268,
-      "assignedRoom": "Village OR6",
+      "orderNumber": 271,
+      "assignedRoom": "Village OR5",
       "isInfrequent": false,
       "assignedRooms": [
-        "Village OR6"
+        "Village OR5"
       ]
     },
     {
@@ -580,15 +598,12 @@
       "lastName": "Ataga",
       "firstName": "Sasa",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "AtagaSas",
       "credentials": "CRNA",
       "displayName": "ATAGA S.",
       "orderNumber": 281,
-      "assignedRoom": "MHMC OR10",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC OR10"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_hartsgrovemar",
@@ -599,15 +614,12 @@
       "lastName": "Hartsgrove",
       "firstName": "Mark",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "HartsgroveMar",
       "credentials": "CRNA",
       "displayName": "HARTSGROVE M.",
       "orderNumber": 298,
-      "assignedRoom": "MHMC Endo4",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC Endo4"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_mcguiremeg",
@@ -618,14 +630,15 @@
       "lastName": "McGuire",
       "firstName": "Megan",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "McGuireMeg",
       "credentials": "CRNA",
       "displayName": "MCGUIRE M.",
-      "orderNumber": 310,
-      "assignedRoom": "MHMC OB1",
+      "orderNumber": 311,
+      "assignedRoom": "MHMC DS 01",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC OB1"
+        "MHMC DS 01"
       ]
     },
     {
@@ -637,28 +650,35 @@
       "lastName": "Patel",
       "firstName": "Jinit",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "PatelJin",
       "credentials": "CRNA",
-      "orderNumber": 338,
-      "isInfrequent": false
+      "displayName": "PATEL J.",
+      "orderNumber": 112,
+      "assignedRoom": "MHMC Ortho3",
+      "isInfrequent": false,
+      "assignedRooms": [
+        "MHMC Ortho3"
+      ]
     },
     {
       "id": "staff_oneusap_anes_zemraulud",
       "phone": "(512) 922-7278",
-      "shift": "8p",
+      "shift": "WOR",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Zemrau",
       "firstName": "Ludwig",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "ZemrauLud",
       "credentials": "CRNA",
       "displayName": "ZEMRAU L.",
-      "orderNumber": 368,
-      "assignedRoom": "MHMC OR8",
+      "orderNumber": 111,
+      "assignedRoom": "MHMC Ortho8",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC OR8"
+        "MHMC Ortho8"
       ]
     },
     {
@@ -671,6 +691,7 @@
       "lastName": "Rojas",
       "firstName": "Arthur",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "RojasArt",
       "credentials": "CRNA",
       "orderNumber": 411,
@@ -685,6 +706,7 @@
       "lastName": "VuAnD",
       "firstName": "",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "VuAnD",
       "credentials": "CRNA",
       "displayName": "VU.AN",
@@ -700,29 +722,27 @@
       "lastName": "Hiller",
       "firstName": "Kenneth",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "HillerKen",
       "credentials": "MD",
       "displayName": "HILLER K.",
       "orderNumber": 130,
-      "assignedRoom": "MHMC DS 06",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC DS 06"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_doc_jamesika",
       "phone": "(832) 428-9482",
       "shift": "CV",
       "active": true,
-      "facility": "MH Memorial City",
+      "facility": "HMSL",
       "lastName": "James",
       "firstName": "Ika",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "JamesIka",
       "credentials": "MD",
       "displayName": "JAMES I.",
-      "orderNumber": 209,
+      "orderNumber": 199,
       "isInfrequent": false
     },
     {
@@ -734,6 +754,7 @@
       "lastName": "Ramesh",
       "firstName": "Rekha",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "RameshRek",
       "credentials": "MD",
       "orderNumber": 215,
@@ -748,6 +769,7 @@
       "lastName": "Song",
       "firstName": "Bry",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "SongBry",
       "credentials": "CRNA",
       "displayName": "SONG B.",
@@ -763,6 +785,7 @@
       "lastName": "Kent",
       "firstName": "Reb",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "KentReb",
       "credentials": "CRNA",
       "displayName": "KENT R.",
@@ -778,6 +801,7 @@
       "lastName": "Farias KovacMar",
       "firstName": "",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "Farias KovacMar",
       "credentials": "MD",
       "displayName": "KOVAC M.",
@@ -792,30 +816,37 @@
       "lastName": "Gashler",
       "firstName": "Kyl",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "GashlerKyl",
       "credentials": "MD",
       "displayName": "GASHLER K.",
-      "orderNumber": 177,
-      "assignedRoom": "MHMC OR2",
+      "orderNumber": 185,
+      "assignedRoom": "MHMC DS 07",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC OR2"
+        "MHMC DS 07"
       ]
     },
     {
       "id": "staff_oneusap_doc_chenkev",
       "phone": "(972) 603-8125",
-      "shift": "CV",
+      "shift": "Day",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Chen",
       "firstName": "Kev",
       "hasStudent": false,
-      "qgendaAbbr": "ChenRod",
+      "magnetNote": "",
+      "qgendaAbbr": "ChenKev",
       "credentials": "MD",
       "displayName": "CHEN K.",
-      "orderNumber": 182,
-      "isInfrequent": false
+      "orderNumber": 175,
+      "assignedRoom": "MHMC IR, MHMC TEE",
+      "isInfrequent": false,
+      "assignedRooms": [
+        "MHMC IR",
+        "MHMC TEE"
+      ]
     },
     {
       "id": "staff_oneusap_doc_ruizjua",
@@ -826,6 +857,7 @@
       "lastName": "Ruiz",
       "firstName": "Jua",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "RuizJua",
       "credentials": "MD",
       "orderNumber": 207
@@ -839,15 +871,12 @@
       "lastName": "Crossley",
       "firstName": "Lad",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "CrossleyLad",
       "credentials": "CRNA",
       "displayName": "CROSSLEY L.",
       "orderNumber": 178,
-      "assignedRoom": "Village OR7",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "Village OR7"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_hudzikver",
@@ -858,15 +887,12 @@
       "lastName": "Hudzik",
       "firstName": "Ver",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "HudzikVer",
       "credentials": "CRNA",
       "displayName": "HUDZIK V.",
       "orderNumber": 203,
-      "assignedRoom": "MHMC Ortho6",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC Ortho6"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_moodymat",
@@ -877,14 +903,15 @@
       "lastName": "Moody",
       "firstName": "Mat",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "MoodyMat",
       "credentials": "CRNA",
       "displayName": "MOODY M.",
-      "orderNumber": 232,
-      "assignedRoom": "MHMC DS 05",
+      "orderNumber": 243,
+      "assignedRoom": "MHMC OR8",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC DS 05"
+        "MHMC OR8"
       ]
     },
     {
@@ -897,6 +924,7 @@
       "lastName": "Paloian",
       "firstName": "Mer",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "PaloianMer",
       "credentials": "CRNA",
       "displayName": "PALOIAN M.",
@@ -912,15 +940,12 @@
       "lastName": "Song",
       "firstName": "Yeu",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "SongYeu",
       "credentials": "CRNA",
       "displayName": "SONG Y.",
       "orderNumber": 257,
-      "assignedRoom": "MHMC Endo3",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC Endo3"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_walkernes",
@@ -931,14 +956,15 @@
       "lastName": "Walker",
       "firstName": "Nes",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "WalkerNes",
       "credentials": "CRNA",
       "displayName": "WALKER N.",
-      "orderNumber": 332,
-      "assignedRoom": "MHMC OR7",
+      "orderNumber": 335,
+      "assignedRoom": "MHMC OR10",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC OR7"
+        "MHMC OR10"
       ]
     },
     {
@@ -950,15 +976,12 @@
       "lastName": "Ndujiuba",
       "firstName": "Eny",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "NdujiubaEny",
       "credentials": "CRNA",
       "displayName": "NDUJIUBA E.",
       "orderNumber": 345,
-      "assignedRoom": "MHMC OR9",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC OR9"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_patagocsun",
@@ -969,6 +992,7 @@
       "lastName": "Patagoc",
       "firstName": "Sun",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "PatagocSun",
       "credentials": "CRNA",
       "orderNumber": 342,
@@ -983,15 +1007,12 @@
       "lastName": "Tekwe",
       "firstName": "Chr",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "TekweChr",
       "credentials": "CRNA",
       "displayName": "TEKWE C.",
       "orderNumber": 350,
-      "assignedRoom": "MHMC DS 09",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC DS 09"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_bearderi",
@@ -1002,11 +1023,16 @@
       "lastName": "Beard",
       "firstName": "Eri",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "BeardEri",
       "credentials": "CRNA",
       "displayName": "BEARD E.",
-      "orderNumber": 354,
-      "isInfrequent": false
+      "orderNumber": 348,
+      "assignedRoom": "MHMC MRI",
+      "isInfrequent": false,
+      "assignedRooms": [
+        "MHMC MRI"
+      ]
     },
     {
       "id": "staff_oneusap_anes_flemmingcin",
@@ -1017,10 +1043,11 @@
       "lastName": "Flemming",
       "firstName": "Cin",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "FlemmingCin",
       "credentials": "CRNA",
       "displayName": "FLEMMING C.",
-      "orderNumber": 442,
+      "orderNumber": 415,
       "isInfrequent": false
     },
     {
@@ -1032,11 +1059,16 @@
       "lastName": "Tran",
       "firstName": "Ton",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "TranTon",
       "credentials": "CRNA",
       "displayName": "TRAN T.",
-      "orderNumber": 364,
-      "isInfrequent": false
+      "orderNumber": 355,
+      "assignedRoom": "MHMC OR7",
+      "isInfrequent": false,
+      "assignedRooms": [
+        "MHMC OR7"
+      ]
     },
     {
       "id": "staff_oneusap_anes_vantasselchr",
@@ -1048,6 +1080,7 @@
       "lastName": "VanTasselChr",
       "firstName": "",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "VanTasselChr",
       "credentials": "CRNA",
       "displayName": "VAN TASSEL C.",
@@ -1057,16 +1090,17 @@
     {
       "id": "staff_oneusap_anes_louiskes",
       "phone": "(512) 669-9985",
-      "shift": "7p",
+      "shift": "3p,preOB",
       "active": true,
-      "facility": "MH Memorial City",
+      "facility": "MH Katy",
       "lastName": "Louis",
       "firstName": "Kes",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "LouisKes",
       "credentials": "CRNA",
       "displayName": "LOUIS K.",
-      "orderNumber": 336,
+      "orderNumber": 139,
       "isInfrequent": false
     },
     {
@@ -1079,6 +1113,7 @@
       "lastName": "Flores",
       "firstName": "mina",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "FloresMa.",
       "credentials": "CRNA",
       "displayName": "FLORES M.",
@@ -1094,6 +1129,7 @@
       "lastName": "Waldrop",
       "firstName": "Bil",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "WaldropBil",
       "credentials": "MD",
       "displayName": "WALDROP B.",
@@ -1109,6 +1145,7 @@
       "lastName": "Fuller",
       "firstName": "Tra",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "FullerTra",
       "credentials": "MD",
       "displayName": "FULLER T.",
@@ -1124,14 +1161,15 @@
       "lastName": "Baerensteche",
       "firstName": "Joh",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "BaerenstecheJoh",
       "credentials": "MD",
       "displayName": "BAERENSTECHER J.",
-      "orderNumber": 150,
-      "assignedRoom": "MHMC OB1",
+      "orderNumber": 155,
+      "assignedRoom": "MHMC OB2",
       "isInfrequent": false,
       "assignedRooms": [
-        "MHMC OB1"
+        "MHMC OB2"
       ]
     },
     {
@@ -1143,6 +1181,7 @@
       "lastName": "Carvajal",
       "firstName": "Tom",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "CarvajalTom",
       "credentials": "MD",
       "displayName": "CARVAJAL T.",
@@ -1158,6 +1197,7 @@
       "lastName": "Ahmmed",
       "firstName": "Zah",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "AhmmedZah",
       "credentials": "CRNA",
       "displayName": "AHMMED Z.",
@@ -1173,11 +1213,16 @@
       "lastName": "Nguyen",
       "firstName": "Kat",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "NguyenKat",
       "credentials": "CRNA",
       "displayName": "NGUYEN K.",
-      "orderNumber": 306,
-      "isInfrequent": false
+      "orderNumber": 320,
+      "assignedRoom": "MHMC OB2",
+      "isInfrequent": false,
+      "assignedRooms": [
+        "MHMC OB2"
+      ]
     },
     {
       "id": "staff_oneusap_doc_manthaven",
@@ -1188,6 +1233,7 @@
       "lastName": "Mantha",
       "firstName": "Ven",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "ManthaVen",
       "credentials": "MD",
       "displayName": "MANTHA V.",
@@ -1203,15 +1249,12 @@
       "lastName": "Shich",
       "firstName": "Ber",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "ShichBer",
       "credentials": "MD",
       "displayName": "SHICH B.",
       "orderNumber": 142,
-      "assignedRoom": "MHMC DS 03",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC DS 03"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_albrechtkel",
@@ -1222,6 +1265,7 @@
       "lastName": "Albrecht",
       "firstName": "Kel",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "AlbrechtKel",
       "credentials": "CRNA",
       "displayName": "ALBRECHT K.",
@@ -1237,30 +1281,32 @@
       "lastName": "Roach",
       "firstName": "Ann",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "RoachAnn",
       "credentials": "CRNA",
       "displayName": "ROACH A.",
       "orderNumber": 244,
-      "assignedRoom": "MHMC Ortho2",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC Ortho2"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_simjul",
       "phone": "(713) 679-4898",
       "shift": "3p",
       "active": true,
-      "facility": "MH Memorial City",
+      "facility": "MH Village SC",
       "lastName": "Sim",
       "firstName": "Jul",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "SimJul",
       "credentials": "CRNA",
       "displayName": "SIM J.",
-      "orderNumber": 241,
-      "isInfrequent": false
+      "orderNumber": 259,
+      "assignedRoom": "Village OR6",
+      "isInfrequent": false,
+      "assignedRooms": [
+        "Village OR6"
+      ]
     },
     {
       "id": "staff_oneusap_anes_wallslis",
@@ -1271,6 +1317,7 @@
       "lastName": "Walls",
       "firstName": "Lis",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "WallsLis",
       "credentials": "CRNA",
       "displayName": "WALLS L.",
@@ -1286,6 +1333,7 @@
       "lastName": "Parnacott",
       "firstName": "Cli",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "ParnacottCli",
       "credentials": "CRNA",
       "displayName": "PARNACOTT C.",
@@ -1301,15 +1349,12 @@
       "lastName": "Adams",
       "firstName": "Jam",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "AdamsJam",
       "credentials": "CRNA",
       "displayName": "ADAMS J.",
       "orderNumber": 148,
-      "assignedRoom": "Village OR1",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "Village OR1"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_cliffordste",
@@ -1320,6 +1365,7 @@
       "lastName": "Clifford",
       "firstName": "Ste",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "CliffordSte",
       "credentials": "CRNA",
       "displayName": "CLIFFORD S.",
@@ -1335,6 +1381,7 @@
       "lastName": "DAvignonT",
       "firstName": "",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "DAvignonT",
       "credentials": "CRNA",
       "displayName": "DAVIGNONT",
@@ -1350,321 +1397,223 @@
       "lastName": "Cuzick",
       "firstName": "Les",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "CuzickLes",
       "credentials": "MD",
       "displayName": "CUZICK L.",
       "orderNumber": 95,
-      "assignedRoom": "MHMC IR",
-      "isInfrequent": false,
-      "assignedRooms": [
-        "MHMC IR"
-      ]
+      "isInfrequent": false
     },
     {
       "id": "staff_oneusap_anes_spearsall",
-      "phone": "(555) 000-0000",
-      "shift": "Orient",
+      "phone": "(832) 696-9323",
+      "shift": "3p",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Spears",
       "firstName": "All",
       "hasStudent": false,
+      "magnetNote": "",
       "qgendaAbbr": "SpearsAll",
       "credentials": "CRNA",
       "displayName": "SPEARS A.",
-      "orderNumber": 371,
-      "isInfrequent": false
+      "orderNumber": 262,
+      "assignedRoom": "MHMC OR6",
+      "isInfrequent": false,
+      "assignedRooms": [
+        "MHMC OR6"
+      ]
     }
   ],
   "version": 1,
   "latesList": [
     {
-      "id": "late_0_1791467724913",
-      "name": "HILLER",
+      "id": "late_0_1791573598793",
+      "name": "GUNN",
       "role": "MD",
       "orderIndex": 0,
-      "qgendaAbbr": "HillerKen",
-      "orderNumber": 130,
-      "assignedRoom": "MHMC DS 06",
-      "timeCategory": "3p"
-    },
-    {
-      "id": "late_1_1791467724913",
-      "name": "JEFFCOAT",
-      "role": "MD",
-      "orderIndex": 1,
-      "qgendaAbbr": "JeffcoatShe",
-      "orderNumber": 132,
-      "assignedRoom": "Village OR2",
-      "timeCategory": "3p"
-    },
-    {
-      "id": "late_2_1791467724913",
-      "name": "SHEVCHENKO",
-      "role": "MD",
-      "orderIndex": 2,
-      "qgendaAbbr": "ShevchenkoYev",
-      "orderNumber": 141,
-      "assignedRoom": "MHMC TEE",
-      "timeCategory": "3p"
-    },
-    {
-      "id": "late_3_1791467724913",
-      "name": "SHICH",
-      "role": "MD",
-      "orderIndex": 3,
-      "qgendaAbbr": "ShichBer",
-      "orderNumber": 142,
-      "assignedRoom": "MHMC DS 03",
-      "timeCategory": "3p"
-    },
-    {
-      "id": "late_4_1791467724913",
-      "name": "ADAMS",
-      "role": "CRNA",
-      "orderIndex": 4,
-      "qgendaAbbr": "AdamsJam",
-      "orderNumber": 148,
-      "assignedRoom": "Village OR1",
-      "timeCategory": "3p"
-    },
-    {
-      "id": "late_5_1791467724913",
-      "name": "CROSSLEY",
-      "role": "CRNA",
-      "orderIndex": 5,
-      "qgendaAbbr": "CrossleyLad",
-      "orderNumber": 178,
-      "assignedRoom": "Village OR7",
-      "timeCategory": "3p"
-    },
-    {
-      "id": "late_6_1791467724913",
-      "name": "HOLTON",
-      "role": "CRNA",
-      "orderIndex": 6,
-      "qgendaAbbr": "HoltonJac",
-      "orderNumber": 202,
-      "assignedRoom": "Village OR5",
-      "timeCategory": "3p"
-    },
-    {
-      "id": "late_7_1791467724913",
-      "name": "HUDZIK",
-      "role": "CRNA",
-      "orderIndex": 7,
-      "qgendaAbbr": "HudzikVer",
-      "orderNumber": 203,
-      "assignedRoom": "MHMC Ortho6",
-      "timeCategory": "3p"
-    },
-    {
-      "id": "late_8_1791467724913",
-      "name": "MATEO",
-      "role": "CRNA",
-      "orderIndex": 8,
-      "qgendaAbbr": "MateoCar",
-      "orderNumber": 226,
-      "assignedRoom": "MHMC Endo2",
-      "timeCategory": "3p"
-    },
-    {
-      "id": "late_9_1791467724913",
-      "name": "MOODY",
-      "role": "CRNA",
-      "orderIndex": 9,
-      "qgendaAbbr": "MoodyMat",
-      "orderNumber": 232,
+      "qgendaAbbr": "GunnCli",
+      "orderNumber": 173,
       "assignedRoom": "MHMC DS 05",
       "timeCategory": "3p"
     },
     {
-      "id": "late_10_1791467724913",
-      "name": "ROACH",
-      "role": "CRNA",
-      "orderIndex": 10,
-      "qgendaAbbr": "RoachAnn",
-      "orderNumber": 244,
-      "assignedRoom": "MHMC Ortho2",
+      "id": "late_1_1791573598793",
+      "name": "JEFFCOAT",
+      "role": "MD",
+      "orderIndex": 1,
+      "qgendaAbbr": "JeffcoatShe",
+      "orderNumber": 142,
+      "assignedRoom": "Village OR4, Village Proc2",
       "timeCategory": "3p"
     },
     {
-      "id": "late_11_1791467724913",
-      "name": "SONG",
+      "id": "late_2_1791573598793",
+      "name": "HOLTON",
       "role": "CRNA",
-      "orderIndex": 11,
-      "qgendaAbbr": "SongYeu",
-      "orderNumber": 257,
-      "assignedRoom": "MHMC Endo3",
+      "orderIndex": 2,
+      "qgendaAbbr": "HoltonJac",
+      "orderNumber": 220,
+      "assignedRoom": "Village OR2",
       "timeCategory": "3p"
     },
     {
-      "id": "late_12_1791467724913",
-      "name": "TOWNE",
+      "id": "late_3_1791573598793",
+      "name": "HUGHES",
       "role": "CRNA",
-      "orderIndex": 12,
-      "qgendaAbbr": "TowneChr",
-      "orderNumber": 268,
+      "orderIndex": 3,
+      "qgendaAbbr": "HughesAbi",
+      "orderNumber": 221,
+      "assignedRoom": "MHMC Ortho4",
+      "timeCategory": "3p"
+    },
+    {
+      "id": "late_4_1791573598793",
+      "name": "MOODY",
+      "role": "CRNA",
+      "orderIndex": 4,
+      "qgendaAbbr": "MoodyMat",
+      "orderNumber": 243,
+      "assignedRoom": "MHMC OR8",
+      "timeCategory": "3p"
+    },
+    {
+      "id": "late_5_1791573598793",
+      "name": "SIM",
+      "role": "CRNA",
+      "orderIndex": 5,
+      "qgendaAbbr": "SimJul",
+      "orderNumber": 259,
       "assignedRoom": "Village OR6",
       "timeCategory": "3p"
     },
     {
-      "id": "late_13_1791467724913",
-      "name": "YI",
+      "id": "late_6_1791573598793",
+      "name": "SPEARS",
       "role": "CRNA",
-      "orderIndex": 13,
-      "qgendaAbbr": "YiAle",
-      "orderNumber": 277,
-      "assignedRoom": "MHMC DS 04",
+      "orderIndex": 6,
+      "qgendaAbbr": "SpearsAll",
+      "orderNumber": 262,
+      "assignedRoom": "MHMC OR6",
       "timeCategory": "3p"
     },
     {
-      "id": "late_14_1791467724913",
+      "id": "late_7_1791573598793",
+      "name": "TOWNE",
+      "role": "CRNA",
+      "orderIndex": 7,
+      "qgendaAbbr": "TowneChr",
+      "orderNumber": 271,
+      "assignedRoom": "Village OR5",
+      "timeCategory": "3p"
+    },
+    {
+      "id": "late_8_1791573598793",
       "name": "CHUAN",
       "role": "MD",
-      "orderIndex": 14,
+      "orderIndex": 8,
       "qgendaAbbr": "ChuanJos",
-      "orderNumber": 197,
-      "assignedRoom": "Houston IVF",
+      "orderNumber": 133,
+      "assignedRoom": "MHMC MRI, MHMC DS 01, MHMC Endo1, MHMC Endo3",
       "timeCategory": "4p"
     },
     {
-      "id": "late_15_1791467724913",
+      "id": "late_9_1791573598793",
       "name": "BAERENSTECHE",
       "role": "MD",
-      "orderIndex": 15,
+      "orderIndex": 9,
       "qgendaAbbr": "BaerenstecheJoh",
-      "orderNumber": 150,
-      "assignedRoom": "MHMC OB1",
+      "orderNumber": 155,
+      "assignedRoom": "MHMC OB2",
       "timeCategory": "5p"
     },
     {
-      "id": "late_16_1791467724913",
+      "id": "late_10_1791573598793",
       "name": "HIRSCH",
       "role": "MD",
-      "orderIndex": 16,
+      "orderIndex": 10,
       "qgendaAbbr": "HirschDou",
-      "orderNumber": 188,
-      "assignedRoom": "Village OR8",
+      "orderNumber": 181,
+      "assignedRoom": "Village OR2, Village OR5, Village OR6",
       "timeCategory": "5p"
     },
     {
-      "id": "late_17_1791467724913",
-      "name": "ATAGA",
+      "id": "late_11_1791573598793",
+      "name": "MCGUIRE",
       "role": "CRNA",
-      "orderIndex": 17,
-      "qgendaAbbr": "AtagaSas",
-      "orderNumber": 281,
+      "orderIndex": 11,
+      "qgendaAbbr": "McGuireMeg",
+      "orderNumber": 311,
+      "assignedRoom": "MHMC DS 01",
+      "timeCategory": "5p"
+    },
+    {
+      "id": "late_12_1791573598793",
+      "name": "NGUYEN",
+      "role": "CRNA",
+      "orderIndex": 12,
+      "qgendaAbbr": "NguyenKat",
+      "orderNumber": 320,
+      "assignedRoom": "MHMC OB2",
+      "timeCategory": "5p"
+    },
+    {
+      "id": "late_13_1791573598793",
+      "name": "WALKER",
+      "role": "CRNA",
+      "orderIndex": 13,
+      "qgendaAbbr": "WalkerNes",
+      "orderNumber": 335,
       "assignedRoom": "MHMC OR10",
       "timeCategory": "5p"
     },
     {
-      "id": "late_18_1791467724913",
-      "name": "HARTSGROVE",
+      "id": "late_14_1791573598793",
+      "name": "PATEL",
       "role": "CRNA",
-      "orderIndex": 18,
-      "qgendaAbbr": "HartsgroveMar",
-      "orderNumber": 298,
-      "assignedRoom": "MHMC Endo4",
-      "timeCategory": "5p"
-    },
-    {
-      "id": "late_19_1791467724913",
-      "name": "MCGUIRE",
-      "role": "CRNA",
-      "orderIndex": 19,
-      "qgendaAbbr": "McGuireMeg",
-      "orderNumber": 310,
-      "assignedRoom": "MHMC OB1",
-      "timeCategory": "5p"
-    },
-    {
-      "id": "late_20_1791467724913",
-      "name": "SCHROEDTER",
-      "role": "CRNA",
-      "orderIndex": 20,
-      "qgendaAbbr": "SchroedterTim",
-      "orderNumber": 325,
+      "notes": "L1",
+      "orderIndex": 14,
+      "qgendaAbbr": "PatelJin",
+      "orderNumber": 112,
       "assignedRoom": "MHMC Ortho3",
-      "timeCategory": "5p"
+      "timeCategory": "7p"
     },
     {
-      "id": "late_21_1791467724913",
-      "name": "WALKER",
+      "id": "late_15_1791573598793",
+      "name": "BEARD",
       "role": "CRNA",
-      "orderIndex": 21,
-      "qgendaAbbr": "WalkerNes",
-      "orderNumber": 332,
+      "orderIndex": 15,
+      "qgendaAbbr": "BeardEri",
+      "orderNumber": 348,
+      "assignedRoom": "MHMC MRI",
+      "timeCategory": "8p"
+    },
+    {
+      "id": "late_16_1791573598793",
+      "name": "TRAN",
+      "role": "CRNA",
+      "orderIndex": 16,
+      "qgendaAbbr": "TranTon",
+      "orderNumber": 355,
       "assignedRoom": "MHMC OR7",
-      "timeCategory": "5p"
-    },
-    {
-      "id": "late_22_1791467724913",
-      "name": "NDUJIUBA",
-      "role": "CRNA",
-      "orderIndex": 22,
-      "qgendaAbbr": "NdujiubaEny",
-      "orderNumber": 345,
-      "assignedRoom": "MHMC OR9",
-      "timeCategory": "7p"
-    },
-    {
-      "id": "late_23_1791467724913",
-      "name": "TEKWE",
-      "role": "CRNA",
-      "orderIndex": 23,
-      "qgendaAbbr": "TekweChr",
-      "orderNumber": 350,
-      "assignedRoom": "MHMC DS 09",
-      "timeCategory": "7p"
-    },
-    {
-      "id": "late_24_1791467724913",
-      "name": "LAM",
-      "role": "CRNA",
-      "orderIndex": 24,
-      "qgendaAbbr": "LamHun",
-      "orderNumber": 358,
-      "assignedRoom": "MHMC Endo1",
       "timeCategory": "8p"
     },
     {
-      "id": "late_25_1791467724913",
-      "name": "LI",
-      "role": "CRNA",
-      "orderIndex": 25,
-      "qgendaAbbr": "LiTin",
-      "orderNumber": 360,
-      "assignedRoom": "MHMC Ortho4",
-      "timeCategory": "8p"
-    },
-    {
-      "id": "late_26_1791467724913",
-      "name": "ZEMRAU",
-      "role": "CRNA",
-      "orderIndex": 26,
-      "qgendaAbbr": "ZemrauLud",
-      "orderNumber": 368,
-      "assignedRoom": "MHMC OR8",
-      "timeCategory": "8p"
-    },
-    {
-      "id": "late_27_1791467724913",
+      "id": "late_17_1791573598793",
       "name": "FLEMMING",
       "role": "CRNA",
-      "orderIndex": 27,
+      "orderIndex": 17,
       "qgendaAbbr": "FlemmingCin",
-      "orderNumber": 442,
+      "orderNumber": 415,
       "timeCategory": "7p-7a"
     },
     {
-      "id": "late_28_1791467724913",
-      "name": "VU",
-      "role": "CRNA",
-      "orderIndex": 28,
-      "qgendaAbbr": "VuAnD",
-      "orderNumber": 443,
-      "timeCategory": "7p-7a"
+      "id": "late_1791573775558",
+      "name": "PATEL",
+      "timeCategory": "7p-7a",
+      "role": "MD",
+      "qgendaAbbr": "PatelPur",
+      "orderIndex": 18
     }
   ],
   "latesNotes": "",
@@ -1681,6 +1630,7 @@
             {
               "id": "dept_main_or_room_1_slot_0",
               "notes": "",
+              "relief": null,
               "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
@@ -1698,12 +1648,10 @@
             {
               "id": "dept_main_or_room_2_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_doc_gashlerkyl",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
-              "lunchTime": null,
-              "breakfastDone": false,
-              "breakfastTime": null
+              "breakfastDone": false
             }
           ],
           "futureTime": null,
@@ -1717,10 +1665,12 @@
             {
               "id": "dept_main_or_room_3_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_doc_shirakmic",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "lunchTime": null,
+              "breakfastDone": false,
+              "breakfastTime": null
             }
           ],
           "futureTime": null,
@@ -1768,7 +1718,7 @@
             {
               "id": "dept_main_or_room_6_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_anes_spearsall",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -1785,7 +1735,7 @@
             {
               "id": "dept_main_or_room_7_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_anes_tranton",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -1802,7 +1752,7 @@
             {
               "id": "dept_main_or_room_8_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_zemraulud",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "lunchTime": null,
@@ -1821,18 +1771,10 @@
             {
               "id": "dept_main_or_room_9_slot_0",
               "notes": "",
-              "relief": {
-                "time": "3:00 PM",
-                "notes": "",
-                "staffId": "staff_oneusap_anes_atagasas",
-                "isRedBox": false
-              },
-              "staffId": "staff_oneusap_anes_ndujiubaeny",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
-              "lunchTime": null,
-              "breakfastDone": false,
-              "breakfastTime": null
+              "breakfastDone": false
             }
           ],
           "futureTime": null,
@@ -1846,12 +1788,11 @@
             {
               "id": "dept_main_or_room_10_slot_0",
               "notes": "",
-              "staffId": null,
+              "relief": null,
+              "staffId": "staff_oneusap_anes_walkernes",
               "roleType": "primary",
               "lunchDone": false,
-              "lunchTime": null,
-              "breakfastDone": false,
-              "breakfastTime": null
+              "breakfastDone": false
             }
           ],
           "futureTime": null,
@@ -1865,7 +1806,7 @@
             {
               "id": "dept_main_or_room_11_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_doc_choiseu",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -1878,7 +1819,7 @@
       "orderIndex": 0,
       "runnerSlots": [
         {
-          "id": "runner_dept_main_or_1791480939775_1",
+          "id": "runner_dept_main_or_1791571445127_1",
           "title": "Runner 1",
           "staffId": "staff_oneusap_doc_shenoyvik",
           "lunchDone": false,
@@ -1898,7 +1839,7 @@
             {
               "id": "dept_west_pav_room_1_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_doc_lukey",
+              "staffId": "staff_oneusap_anes_mcguiremeg",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -1915,7 +1856,7 @@
             {
               "id": "dept_west_pav_room_2_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_doc_lukey",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -1932,7 +1873,7 @@
             {
               "id": "dept_west_pav_room_3_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_doc_shichber",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -1949,7 +1890,7 @@
             {
               "id": "dept_west_pav_room_4_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_yiale",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -1966,7 +1907,7 @@
             {
               "id": "dept_west_pav_room_5_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_moodymat",
+              "staffId": "staff_oneusap_doc_gunncli",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2000,7 +1941,7 @@
             {
               "id": "dept_west_pav_room_7_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_doc_gashlerkyl",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2034,7 +1975,7 @@
             {
               "id": "dept_west_pav_room_9_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_tekwechr",
+              "staffId": "staff_oneusap_doc_shevchenkoyev",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2096,15 +2037,7 @@
         }
       ],
       "orderIndex": 1,
-      "runnerSlots": [
-        {
-          "id": "runner_dept_west_pav_1791480939775_1",
-          "title": "Runner 1",
-          "staffId": "staff_oneusap_doc_tallacksondon",
-          "lunchDone": false,
-          "breakfastDone": false
-        }
-      ]
+      "runnerSlots": []
     },
     {
       "id": "dept_ortho",
@@ -2135,13 +2068,7 @@
             {
               "id": "dept_ortho_room_2_slot_0",
               "notes": "",
-              "relief": {
-                "time": "3:00 PM",
-                "notes": "",
-                "staffId": null,
-                "isRedBox": true
-              },
-              "staffId": "staff_oneusap_anes_roachann",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2158,7 +2085,7 @@
             {
               "id": "dept_ortho_room_3_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_anes_pateljin",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2175,7 +2102,7 @@
             {
               "id": "dept_ortho_room_4_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_litin",
+              "staffId": "staff_oneusap_anes_hughesabi",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2192,7 +2119,7 @@
             {
               "id": "dept_ortho_room_5_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_schroedtertim",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2209,7 +2136,7 @@
             {
               "id": "dept_ortho_room_6_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_hudzikver",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2226,7 +2153,7 @@
             {
               "id": "dept_ortho_room_7_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_anes_mateocar",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2243,7 +2170,7 @@
             {
               "id": "dept_ortho_room_8_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_anes_zemraulud",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2256,7 +2183,7 @@
       "orderIndex": 2,
       "runnerSlots": [
         {
-          "id": "runner_dept_ortho_1791480939775_1",
+          "id": "runner_dept_ortho_1791571445127_1",
           "title": "Runner 1",
           "staffId": "staff_oneusap_doc_cavanaughmar",
           "lunchDone": false,
@@ -2276,7 +2203,7 @@
             {
               "id": "dept_village_room_1_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_adamsjam",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2293,7 +2220,7 @@
             {
               "id": "dept_village_room_2_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_doc_jeffcoatshe",
+              "staffId": "staff_oneusap_anes_holtonjac",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2344,7 +2271,7 @@
             {
               "id": "dept_village_room_5_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_holtonjac",
+              "staffId": "staff_oneusap_anes_townechr",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2361,7 +2288,7 @@
             {
               "id": "dept_village_room_6_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_townechr",
+              "staffId": "staff_oneusap_anes_simjul",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2378,7 +2305,7 @@
             {
               "id": "dept_village_room_7_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_crossleylad",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2395,7 +2322,7 @@
             {
               "id": "dept_village_room_8_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_doc_hirschdou",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2442,9 +2369,16 @@
       "orderIndex": 3,
       "runnerSlots": [
         {
-          "id": "runner_dept_village_1791480939775_1",
+          "id": "runner_dept_village_1791571445127_1",
           "title": "Runner 1",
-          "staffId": "staff_oneusap_doc_mankariousram",
+          "staffId": "staff_oneusap_doc_jeffcoatshe",
+          "lunchDone": false,
+          "breakfastDone": false
+        },
+        {
+          "id": "runner_dept_village_1791571445127_2",
+          "title": "Runner 2",
+          "staffId": "staff_oneusap_doc_hirschdou",
           "lunchDone": false,
           "breakfastDone": false
         }
@@ -2496,13 +2430,7 @@
             {
               "id": "dept_9th_floor_room_CCL1_slot_0",
               "notes": "",
-              "relief": {
-                "time": "3:00 PM",
-                "notes": "",
-                "staffId": null,
-                "isRedBox": true
-              },
-              "staffId": "staff_oneusap_doc_choiseu",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2536,13 +2464,7 @@
             {
               "id": "dept_9th_floor_room_CCL3_slot_0",
               "notes": "",
-              "relief": {
-                "time": "3:00 PM",
-                "notes": "",
-                "staffId": "staff_oneusap_doc_cuzickles",
-                "isRedBox": false
-              },
-              "staffId": "staff_oneusap_doc_shirakmic",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2559,7 +2481,7 @@
             {
               "id": "dept_9th_floor_room_IR_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_doc_cuzickles",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2576,7 +2498,7 @@
             {
               "id": "dept_9th_floor_room_NIR_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_doc_changale",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2593,7 +2515,7 @@
             {
               "id": "dept_9th_floor_room_TEE_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_doc_shevchenkoyev",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2604,7 +2526,15 @@
         }
       ],
       "orderIndex": 4,
-      "runnerSlots": []
+      "runnerSlots": [
+        {
+          "id": "runner_dept_9th_floor_1791571445127_1",
+          "title": "Runner 1",
+          "staffId": "staff_oneusap_doc_chenkev",
+          "lunchDone": false,
+          "breakfastDone": false
+        }
+      ]
     },
     {
       "id": "dept_endo",
@@ -2618,7 +2548,7 @@
             {
               "id": "dept_endo_room_1_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_lamhun",
+              "staffId": "staff_oneusap_anes_litin",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2635,7 +2565,7 @@
             {
               "id": "dept_endo_room_2_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_mateocar",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2652,7 +2582,7 @@
             {
               "id": "dept_endo_room_3_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_songyeu",
+              "staffId": "staff_oneusap_anes_yiale",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2669,7 +2599,7 @@
             {
               "id": "dept_endo_room_4_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_hartsgrovemar",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2686,7 +2616,7 @@
             {
               "id": "dept_endo_room_MRI_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_anes_bearderi",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2699,9 +2629,9 @@
       "orderIndex": 5,
       "runnerSlots": [
         {
-          "id": "runner_dept_endo_1791480939775_1",
+          "id": "runner_dept_endo_1791571445127_1",
           "title": "Runner 1",
-          "staffId": "staff_oneusap_doc_changale",
+          "staffId": "staff_oneusap_doc_chuanjos",
           "lunchDone": false,
           "breakfastDone": false
         }
@@ -2719,7 +2649,7 @@
             {
               "id": "dept_ob_room_1_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_mcguiremeg",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2736,7 +2666,7 @@
             {
               "id": "dept_ob_room_2_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_anes_nguyenkat",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2783,7 +2713,7 @@
       "orderIndex": 6,
       "runnerSlots": [
         {
-          "id": "runner_dept_ob_1791480939775_1",
+          "id": "runner_dept_ob_1791571445127_1",
           "title": "Runner 1",
           "staffId": "staff_oneusap_doc_baerenstechejoh",
           "lunchDone": false,
@@ -2803,7 +2733,7 @@
             {
               "id": "dept_ivf_room_1_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_doc_chuanjos",
+              "staffId": "staff_oneusap_doc_tallacksondon",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2817,125 +2747,221 @@
       "runnerSlots": []
     }
   ],
-  "lastUpdated": "2026-10-09T05:58:22.231Z",
+  "lastUpdated": "2026-10-09T19:22:55.695Z",
+  "magnetNotes": {},
   "callTeamList": [
     {
-      "id": "call_0_1791467724913",
+      "id": "call_0_1791573598793",
       "role": "CV",
-      "doctorName": "SHIRAK",
+      "doctorName": "CHOI",
       "orderIndex": 0,
-      "qgendaAbbr": "ShirakMic",
-      "orderNumber": 209
+      "qgendaAbbr": "ChoiSeu",
+      "orderNumber": 207
     },
     {
-      "id": "call_1_1791467724913",
+      "id": "call_1_1791573598793",
       "role": "Call 3",
-      "doctorName": "LU",
+      "doctorName": "BERNELL",
       "orderIndex": 1,
-      "qgendaAbbr": "LuKey",
+      "qgendaAbbr": "BernellMic",
+      "orderNumber": 210
+    },
+    {
+      "id": "call_2_1791573598793",
+      "role": "Call 2",
+      "doctorName": "SHENOY",
+      "orderIndex": 2,
+      "qgendaAbbr": "ShenoyVik",
       "orderNumber": 212
     },
     {
-      "id": "call_2_1791467724913",
-      "role": "Call 2",
-      "doctorName": "CHANG",
-      "orderIndex": 2,
-      "qgendaAbbr": "ChangAle",
-      "orderNumber": 214
-    },
-    {
-      "id": "call_3_1791467724913",
+      "id": "call_3_1791573598793",
       "role": "Call 1",
       "doctorName": "MARTINEZ",
       "orderIndex": 3,
       "qgendaAbbr": "MartinezRog",
-      "orderNumber": 58
+      "orderNumber": 77
     },
     {
-      "id": "call_4_1791467724913",
+      "id": "call_4_1791573598793",
       "role": "OB",
       "doctorName": "MARTINEZ",
       "orderIndex": 4,
       "qgendaAbbr": "MartinezRog",
-      "orderNumber": 58
+      "orderNumber": 77
     }
   ],
-  "bullpenBreaks": {},
+  "layoutConfig": {
+    "boardMode": "feed",
+    "enableDepartureList": true,
+    "enableLateList": true,
+    "enableBullpen": true,
+    "enableUnassignedStaff": true,
+    "manualDepartureConfig": {
+      "sections": [
+        {
+          "id": "sec_post_call",
+          "label": "Post-Call",
+          "callTypes": [
+            "CV",
+            "Call 3",
+            "Call 2",
+            "Call 1",
+            "OB"
+          ],
+          "orderIndex": 0
+        },
+        {
+          "id": "sec_special",
+          "label": "Special / Midday",
+          "callTypes": [],
+          "orderIndex": 1
+        },
+        {
+          "id": "sec_non_call",
+          "label": "Standard Departures",
+          "callTypes": [],
+          "orderIndex": 2
+        }
+      ]
+    },
+    "manualLateConfig": {
+      "sections": [
+        {
+          "id": "late_3p",
+          "label": "3 PM",
+          "orderIndex": 0,
+          "timeCategory": "3p"
+        },
+        {
+          "id": "late_4p",
+          "label": "4 PM",
+          "orderIndex": 1,
+          "timeCategory": "4p"
+        },
+        {
+          "id": "late_5p",
+          "label": "5 PM",
+          "orderIndex": 2,
+          "timeCategory": "5p"
+        },
+        {
+          "id": "late_7p",
+          "label": "7 PM",
+          "orderIndex": 3,
+          "timeCategory": "7p"
+        },
+        {
+          "id": "late_8p",
+          "label": "8 PM",
+          "orderIndex": 4,
+          "timeCategory": "8p"
+        },
+        {
+          "id": "late_7p_7a",
+          "label": "7 PM - 7 AM (Nocturnist)",
+          "orderIndex": 5,
+          "timeCategory": "7p-7a"
+        },
+        {
+          "id": "late_24h",
+          "label": "24 Hours (L1 + OB)",
+          "orderIndex": 6,
+          "timeCategory": "24h"
+        }
+      ]
+    }
+  },
+  "bullpenBreaks": {
+    "staff_oneusap_anes_moodymat": {
+      "lunchDone": false,
+      "lunchTime": null,
+      "breakfastDone": false,
+      "breakfastTime": null
+    },
+    "staff_oneusap_doc_shirakmic": {
+      "lunchDone": false,
+      "breakfastDone": false
+    }
+  },
   "departureList": [
     {
-      "id": "dep_post_1_1791467724912",
-      "name": "CAVANAUGH",
+      "id": "dep_post_0_1791573598793",
+      "name": "CHANG",
       "category": "post_call",
-      "departed": true,
       "orderIndex": 0,
-      "qgendaAbbr": "CavanaughMar",
-      "orderNumber": 91,
-      "assignedRoom": "MHMC Ortho2, MHMC Ortho3, MHMC Ortho4, MHMC Ortho6",
+      "qgendaAbbr": "ChangAle",
+      "orderNumber": 106,
+      "assignedRoom": "MHMC NeuroIR",
+      "timeEstimate": "postC2"
+    },
+    {
+      "id": "dep_post_1_1791573598793",
+      "name": "LU",
+      "category": "post_call",
+      "orderIndex": 1,
+      "qgendaAbbr": "LuKey",
+      "orderNumber": 109,
+      "assignedRoom": "MHMC DS 02",
       "timeEstimate": "postC3"
     },
     {
-      "id": "dep_post_2_1791467724912",
-      "name": "CUZICK",
+      "id": "dep_post_2_1791573598793",
+      "name": "SHIRAK",
       "category": "post_call",
-      "departed": true,
-      "orderIndex": 1,
-      "qgendaAbbr": "CuzickLes",
-      "orderNumber": 95,
-      "assignedRoom": "MHMC IR",
-      "timeEstimate": "postCV"
-    },
-    {
-      "id": "dep_post_0_1791467724912",
-      "name": "TALLACKSON",
-      "category": "post_call",
-      "departed": true,
       "orderIndex": 2,
-      "qgendaAbbr": "TallacksonDon",
-      "orderNumber": 86,
-      "assignedRoom": "MHMC DS 04, MHMC DS 05, MHMC DS 09",
-      "timeEstimate": "postC1,preC1"
-    },
-    {
-      "id": "dep_non_2_1791467724913",
-      "name": "CHOI",
-      "category": "post_call",
-      "departed": true,
-      "orderIndex": 3,
-      "qgendaAbbr": "ChoiSeu",
-      "orderNumber": 110,
-      "assignedRoom": "MHMC Cath1",
+      "qgendaAbbr": "ShirakMic",
+      "orderNumber": 112,
+      "assignedRoom": "MHMC OR3",
       "timeEstimate": "postCV"
     },
     {
-      "id": "dep_non_0_1791467724913",
-      "name": "MANKARIOUS",
+      "id": "dep_non_0_1791573598793",
+      "name": "CAVANAUGH",
       "category": "non_call",
-      "departed": false,
+      "orderIndex": 3,
+      "qgendaAbbr": "CavanaughMar",
+      "orderNumber": 118,
+      "assignedRoom": "MHMC Ortho3, MHMC Ortho4, MHMC Ortho7, MHMC Ortho8",
+      "timeEstimate": "preC3,preOB"
+    },
+    {
+      "id": "dep_non_1_1791573598793",
+      "name": "SHEVCHENKO",
+      "category": "non_call",
       "orderIndex": 4,
-      "qgendaAbbr": "MankariousRam",
-      "orderNumber": 72,
-      "assignedRoom": "Village OR1, Village OR5, Village OR6, Village OR7"
+      "qgendaAbbr": "ShevchenkoYev",
+      "orderNumber": 121,
+      "assignedRoom": "MHMC DS 09",
+      "timeEstimate": "preC1"
     },
     {
-      "id": "dep_non_1_1791467724913",
-      "name": "SHENOY",
+      "id": "dep_non_2_1791573598793",
+      "name": "CHEN",
       "category": "non_call",
-      "departed": false,
       "orderIndex": 5,
-      "qgendaAbbr": "ShenoyVik",
-      "orderNumber": 108,
-      "assignedRoom": "MHMC OR7, MHMC OR8, MHMC OR9, MHMC OR10",
-      "timeEstimate": "preC2"
+      "qgendaAbbr": "ChenKev",
+      "orderNumber": 175,
+      "assignedRoom": "MHMC IR, MHMC TEE"
     },
     {
-      "id": "dep_non_4_1791467724913",
+      "id": "dep_non_3_1791573598793",
       "name": "GASHLER",
       "category": "non_call",
-      "departed": false,
       "orderIndex": 6,
       "qgendaAbbr": "GashlerKyl",
-      "orderNumber": 177,
-      "assignedRoom": "MHMC OR2"
+      "orderNumber": 185,
+      "assignedRoom": "MHMC DS 07"
+    },
+    {
+      "id": "dep_non_4_1791573598793",
+      "name": "TALLACKSON",
+      "category": "non_call",
+      "orderIndex": 7,
+      "qgendaAbbr": "TallacksonDon",
+      "orderNumber": 215,
+      "assignedRoom": "Houston IVF",
+      "timeEstimate": "C1"
     }
   ],
   "scraperConfig": {
@@ -2944,7 +2970,7 @@
     "username": "",
     "portalUrl": "https://www.oneusap.com/assignments",
     "portalType": "oneusap",
-    "lastSyncTime": "2026-10-08T13:55:24.914Z",
+    "lastSyncTime": "2026-10-09T19:19:58.794Z",
     "lastSyncStatus": "success",
     "selectedFacilities": [
       "MHMC",
@@ -2954,11 +2980,7 @@
     "autoSyncIntervalMinutes": 15
   },
   "departureNotes": "",
-  "bullpenStaffIds": [
-    "staff_oneusap_anes_walkernes",
-    "staff_oneusap_anes_atagasas",
-    "staff_oneusap_doc_hillerken"
-  ],
+  "bullpenStaffIds": [],
   "messagingConfig": {
     "enabled": true,
     "pushEndpoint": "https://pinecone-backend-7m1p.onrender.com/api/send-chat-push",
