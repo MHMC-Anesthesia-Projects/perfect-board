@@ -1,7 +1,7 @@
 'use client';
 
 import { apiUrl } from '@/lib/api';
-import { getBrowserSupabase, getPublicBrowserSupabase } from '@/lib/supabase';
+import { getBrowserSupabase, getPublicBrowserSupabase, PERFECT_BOARD_SCHEMA } from '@/lib/supabase';
 import { getHoustonDateString } from '@/lib/dateUtils';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { BoardState, Staff, Department, RoomSlot, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential, ReliefAssignment, AuditLogEntry } from '@/types/whiteboard';
@@ -353,19 +353,20 @@ export default function WhiteboardPage() {
     };
   }, []);
 
-  // Set up real-time board updates via Supabase Realtime (with SSE fallback)
+  // Set up real-time board updates via Supabase Realtime (with heartbeat and visibility sync)
   useEffect(() => {
     const supabase = getBrowserSupabase();
+    let channel: any = null;
 
     // 1. If Supabase is configured in the environment, use Realtime WebSockets (<50ms sync)
     if (supabase) {
-      const channel = supabase
-        .channel('whiteboard-realtime')
+      channel = supabase
+        .channel('perfect-board-realtime')
         .on(
           'postgres_changes',
           {
             event: '*',
-            schema: 'whiteboard',
+            schema: PERFECT_BOARD_SCHEMA,
             table: 'board_state',
           },
           (payload) => {
@@ -375,38 +376,60 @@ export default function WhiteboardPage() {
             if (payload.new && (payload.new as any).state && (payload.new as any).state.departments) {
               setBoardState((payload.new as any).state);
               setLoadError(null);
-            } else if ((payload.new as any)?.id === 'current') {
+            } else {
               fetchBoardState(false);
             }
           }
         )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
+        .subscribe((status, err) => {
+          if (status === 'CHANNEL_ERROR') {
+            console.warn('[Realtime] WebSocket channel error:', err);
+          }
+        });
     }
 
-    // 2. Fallback to SSE listener when running locally without Supabase keys
+    // 2. Active tab / phone unlock re-sync: refresh whenever user returns to screen
+    const handleVisibilitySync = () => {
+      if (document.visibilityState === 'visible') {
+        fetchBoardState(false);
+      }
+    };
+    window.addEventListener('visibilitychange', handleVisibilitySync);
+    window.addEventListener('focus', handleVisibilitySync);
+
+    // 3. Gentle 15-second background heartbeat to guarantee zero-drift sync
+    const heartbeatInterval = setInterval(() => {
+      fetchBoardState(false);
+    }, 15000);
+
+    // 4. Fallback to SSE listener when running locally without Supabase keys
     let eventSource: EventSource | null = null;
-    try {
-      eventSource = new EventSource(apiUrl('/api/realtime'));
-      eventSource.onmessage = (event) => {
-        try {
-          const parsed = JSON.parse(event.data);
-          if (parsed.type === 'BOARD_UPDATED') {
-            fetchBoardState(false);
-          }
-        } catch {}
-      };
-    } catch (err) {
-      console.error('SSE initialization error:', err);
+    if (!supabase) {
+      try {
+        eventSource = new EventSource(apiUrl('/api/realtime'));
+        eventSource.onmessage = (event) => {
+          try {
+            const parsed = JSON.parse(event.data);
+            if (parsed.type === 'BOARD_UPDATED') {
+              fetchBoardState(false);
+            }
+          } catch {}
+        };
+      } catch (err) {
+        console.error('SSE initialization error:', err);
+      }
     }
 
     return () => {
+      if (supabase && channel) {
+        supabase.removeChannel(channel);
+      }
       if (eventSource) {
         eventSource.close();
       }
+      window.removeEventListener('visibilitychange', handleVisibilitySync);
+      window.removeEventListener('focus', handleVisibilitySync);
+      clearInterval(heartbeatInterval);
     };
   }, []);
 
