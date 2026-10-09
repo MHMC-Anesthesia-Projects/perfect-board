@@ -92,10 +92,16 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   const [isCallTeamSelected, setIsCallTeamSelected] = useState(false);
   const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
   const [displayNameInput, setDisplayNameInput] = useState(staff?.displayName || '');
-  const [magnetNoteDraft, setMagnetNoteDraft] = useState(staff?.magnetNote || (staff?.id && magnetNotes?.[staff.id]) || '');
+  const currentMagnetNote = (staff?.id && magnetNotes && magnetNotes[staff.id] !== undefined)
+    ? magnetNotes[staff.id]
+    : (staff?.magnetNote || '');
+  const [magnetNoteDraft, setMagnetNoteDraft] = useState(currentMagnetNote);
 
   useEffect(() => {
-    setMagnetNoteDraft(staff?.magnetNote || (staff?.id && magnetNotes?.[staff.id]) || '');
+    const note = (staff?.id && magnetNotes && magnetNotes[staff.id] !== undefined)
+      ? magnetNotes[staff.id]
+      : (staff?.magnetNote || '');
+    setMagnetNoteDraft(note);
   }, [staff, magnetNotes]);
 
   // --- Perfect Call Messaging State ---

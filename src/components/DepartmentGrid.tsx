@@ -347,7 +347,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                           lunchDone={runner.lunchDone}
                           currentUserRole={currentUserRole}
                           unreadMessageCount={getStaffUnreadCount(assignedStaff)}
-                          magnetNote={assignedStaff.magnetNote}
+                          magnetNote={assignedStaff.magnetNote || ''}
                           onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(assignedStaff.id, note) : undefined}
                           onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
                           onSelectStaff={onSelectStaff}
@@ -446,7 +446,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                               lunchDone={slot.lunchDone}
                               currentUserRole={currentUserRole}
                               unreadMessageCount={getStaffUnreadCount(assignedStaff)}
-                              magnetNote={assignedStaff.magnetNote}
+                              magnetNote={assignedStaff.magnetNote || ''}
                               onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(assignedStaff.id, note) : undefined}
                               onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
                               onSelectStaff={onSelectStaff}

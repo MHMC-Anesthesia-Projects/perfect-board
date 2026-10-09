@@ -878,7 +878,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                   lunchDone={runner.lunchDone}
                                   currentUserRole={currentUserRole}
                                   unreadMessageCount={getStaffUnreadCount(assignedStaff)}
-                                  magnetNote={assignedStaff.magnetNote}
+                                  magnetNote={assignedStaff.magnetNote || ''}
                                   onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(assignedStaff.id, note) : undefined}
                                   onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
                                   onSelectStaff={onSelectStaff}
@@ -1023,7 +1023,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                       lunchDone={slot.lunchDone}
                                       currentUserRole={currentUserRole}
                                       unreadMessageCount={getStaffUnreadCount(assignedStaff)}
-                                      magnetNote={assignedStaff.magnetNote}
+                                      magnetNote={assignedStaff.magnetNote || ''}
                                       onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(assignedStaff.id, note) : undefined}
                                       onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
                                       onSelectStaff={onSelectStaff}
@@ -1705,7 +1705,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                           lunchDone={breakStatus.lunchDone}
                           currentUserRole={currentUserRole}
                           unreadMessageCount={getStaffUnreadCount(staffMember)}
-                          magnetNote={staffMember.magnetNote}
+                          magnetNote={staffMember.magnetNote || ''}
                           onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(staffMember.id, note) : undefined}
                           onToggleBreak={(type, val) => onToggleBreak('bullpen', staffId, type, val)}
                           onSelectStaff={onSelectStaff}
@@ -1764,7 +1764,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                             showBreaks={false}
                             currentUserRole={currentUserRole}
                             unreadMessageCount={getStaffUnreadCount(s)}
-                            magnetNote={s.magnetNote}
+                            magnetNote={s.magnetNote || ''}
                             onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(s.id, note) : undefined}
                             onSelectStaff={onSelectStaff}
                             isDraggable={false}

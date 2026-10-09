@@ -794,16 +794,17 @@ export default function WhiteboardPage() {
   const handleUpdateMagnetNote = async (staffId: string, note: string) => {
     const cleanNote = (note || '').trim().slice(0, 15);
 
+    // Optimistic UI update
     setBoardState(prev => {
       if (!prev) return prev;
       const updated = { ...prev };
-      updated.magnetNotes = {
-        ...(updated.magnetNotes || {}),
-        [staffId]: cleanNote
-      };
-      if (!cleanNote) {
-        delete updated.magnetNotes[staffId];
+      const nextNotes = { ...(updated.magnetNotes || {}) };
+      if (cleanNote) {
+        nextNotes[staffId] = cleanNote;
+      } else {
+        delete nextNotes[staffId];
       }
+      updated.magnetNotes = nextNotes;
       if (updated.staff) {
         updated.staff = updated.staff.map(st =>
           st.id === staffId ? { ...st, magnetNote: cleanNote } : st
@@ -813,7 +814,7 @@ export default function WhiteboardPage() {
     });
 
     try {
-      await fetch(apiUrl('/api/board'), {
+      const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -822,6 +823,10 @@ export default function WhiteboardPage() {
           user: currentUser || { role: 'basic_user', displayName: 'Staff (Basic User)' }
         })
       });
+      const data = await res.json();
+      if (data?.state) {
+        setBoardState(data.state);
+      }
     } catch (err) {
       console.error('Error updating magnet note:', err);
     }

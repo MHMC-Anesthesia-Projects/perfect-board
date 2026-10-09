@@ -508,7 +508,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
                         showBreaks={false}
                         currentUserRole={currentUserRole}
                         unreadMessageCount={getStaffUnreadCount(s)}
-                        magnetNote={s.magnetNote}
+                        magnetNote={s.magnetNote || ''}
                         onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(s.id, note) : undefined}
                         isAssignedRelief={isRelief}
                         isDraggable={!isRelief && (currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser')}

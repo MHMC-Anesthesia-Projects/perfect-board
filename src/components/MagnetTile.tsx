@@ -46,13 +46,17 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   magnetNote,
   onUpdateNote
 }) => {
-  const currentNote = magnetNote !== undefined ? magnetNote : (staff.magnetNote || '');
+  const lastSavedNoteRef = useRef<string | null>(null);
+  const effectivePropNote = (magnetNote !== undefined ? magnetNote : (staff.magnetNote || '')) || '';
+  const currentNote = lastSavedNoteRef.current !== null ? lastSavedNoteRef.current : effectivePropNote;
+
   const [noteDraft, setNoteDraft] = useState(currentNote);
   const [isHovered, setIsHovered] = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [popoverPlacement, setPopoverPlacement] = useState<'top' | 'bottom'>('top');
   const [popoverCoords, setPopoverCoords] = useState<{ left: number; top: number }>({ left: 0, top: 0 });
   const [mounted, setMounted] = useState(false);
+  const isClosingViaActionRef = useRef(false);
 
   const tileRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +64,12 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (lastSavedNoteRef.current !== null && effectivePropNote === lastSavedNoteRef.current) {
+      lastSavedNoteRef.current = null;
+    }
+  }, [effectivePropNote]);
 
   useEffect(() => {
     if (!isEditingNote) {
@@ -107,15 +117,15 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
 
-      // When hovering over this tile and user starts typing (printable character or Backspace)
-      if (e.key.length === 1 || e.key === 'Backspace') {
+      // When hovering over this tile and user starts typing (printable character or Backspace/Delete)
+      if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
         e.stopPropagation();
         updatePopoverPosition();
         setIsEditingNote(true);
 
         let initialVal = noteDraft;
-        if (e.key === 'Backspace') {
+        if (e.key === 'Backspace' || e.key === 'Delete') {
           initialVal = initialVal.slice(0, -1);
         } else if (e.key.length === 1) {
           if (initialVal.length < 15) {
@@ -138,7 +148,9 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   }, [isHovered, isEditingNote, noteDraft]);
 
   const handleSaveNote = (newVal: string) => {
-    const trimmed = newVal.trim().slice(0, 15);
+    const trimmed = (newVal || '').trim().slice(0, 15);
+    lastSavedNoteRef.current = trimmed;
+    setNoteDraft(trimmed);
     if (onUpdateNote) {
       onUpdateNote(trimmed);
     }
@@ -252,7 +264,12 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
                 e.stopPropagation();
                 updatePopoverPosition();
                 setIsEditingNote(true);
-                setTimeout(() => inputRef.current?.focus(), 40);
+                setTimeout(() => {
+                  if (inputRef.current) {
+                    inputRef.current.focus();
+                    inputRef.current.select();
+                  }
+                }, 40);
               }}
             >
               {currentNote}
@@ -327,28 +344,47 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  e.currentTarget.blur();
+                  e.preventDefault();
+                  e.stopPropagation();
+                  isClosingViaActionRef.current = true;
+                  const finalVal = noteDraft.trim().slice(0, 15);
+                  handleSaveNote(finalVal);
+                  setIsEditingNote(false);
                 } else if (e.key === 'Escape') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  isClosingViaActionRef.current = true;
                   setNoteDraft(currentNote);
                   setIsEditingNote(false);
                 }
               }}
               onBlur={() => {
+                if (isClosingViaActionRef.current) {
+                  isClosingViaActionRef.current = false;
+                  return;
+                }
                 setIsEditingNote(false);
-                if (noteDraft.trim() !== currentNote) {
-                  handleSaveNote(noteDraft);
+                const finalVal = noteDraft.trim().slice(0, 15);
+                if (finalVal !== currentNote) {
+                  handleSaveNote(finalVal);
                 }
               }}
             />
-            {noteDraft && (
+            {Boolean(noteDraft) && (
               <button
                 type="button"
                 className="magnet-hover-note-clear"
-                onClick={(e) => {
+                onMouseDown={(e) => {
+                  // Prevent input blur before onClick fires
+                  e.preventDefault();
                   e.stopPropagation();
-                  setNoteDraft('');
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  isClosingViaActionRef.current = true;
                   handleSaveNote('');
-                  if (inputRef.current) inputRef.current.focus();
+                  setIsEditingNote(false);
                 }}
                 title="Clear note"
               >

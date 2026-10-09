@@ -499,6 +499,12 @@ function sanitizeBoardState(loaded: BoardState): BoardState {
   if (!loaded.magnetNotes || typeof loaded.magnetNotes !== 'object') {
     loaded.magnetNotes = {};
   }
+  // Ensure staff records strictly reflect the authoritative magnetNotes dictionary
+  if (loaded.staff && Array.isArray(loaded.staff)) {
+    for (const s of loaded.staff) {
+      s.magnetNote = loaded.magnetNotes[s.id] || '';
+    }
+  }
   if (!loaded.uniqueSchedules || !Array.isArray(loaded.uniqueSchedules) || loaded.uniqueSchedules.length === 0) {
     loaded.uniqueSchedules = getDefaultUniqueSchedules();
   }

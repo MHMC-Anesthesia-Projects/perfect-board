@@ -641,12 +641,16 @@ export async function POST(req: NextRequest) {
           delete state.magnetNotes[staffId];
         }
 
-        const staffMember = state.staff?.find(s => s.id === staffId);
-        if (staffMember) {
-          staffMember.magnetNote = cleanNote;
+        if (state.staff && Array.isArray(state.staff)) {
+          state.staff.forEach(s => {
+            if (s.id === staffId) {
+              s.magnetNote = cleanNote;
+            }
+          });
         }
 
         await saveBoardState(state);
+        const staffMember = state.staff?.find(s => s.id === staffId);
         await recordAuditLog({
           actionType: 'NOTE_UPDATED',
           performedBy: currentUserName,
@@ -655,6 +659,7 @@ export async function POST(req: NextRequest) {
           details: cleanNote ? `Updated magnet red note: "${cleanNote}"` : 'Cleared magnet red note'
         });
 
+        broadcastStateChange();
         return NextResponse.json({ success: true, state });
       }
 

@@ -217,7 +217,7 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
                       lunchDone={b?.lunchDone ?? false}
                       currentUserRole={currentUserRole}
                       unreadMessageCount={getStaffUnreadCount(s)}
-                      magnetNote={s.magnetNote}
+                      magnetNote={s.magnetNote || ''}
                       onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(s.id, note) : undefined}
                       isAssignedRelief={isRelief}
                       isDraggable={isEditor && !isRelief}
