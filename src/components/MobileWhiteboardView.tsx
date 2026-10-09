@@ -472,6 +472,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
       return 14 * 60; // 2:00 PM (before 3pm)
     }
     if (cat === '7p-7a' || cat.includes('night')) return 19 * 60 + 1;
+    if (cat === '24h') return 24 * 60 + 50; // 24-hour shift at bottom of late list
     const match = cat.match(/(\d{1,2})(?::(\d{2}))?\s*(a|p|am|pm)?/i);
     if (match) {
       let hours = parseInt(match[1], 10);
@@ -491,11 +492,11 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   // Lates grouped by shift category - chronologically sorted (times before 3pm appear at top)
   const latesGrouped = useMemo(() => {
     const grouped: Record<string, LateShiftItem[]> = {};
-    const baseCats = ['special', '3p', '4p', '5p', '7p', '8p', '7p-7a'];
+    const baseCats = ['special', '3p', '4p', '5p', '7p', '8p', '7p-7a', '24h'];
     baseCats.forEach(cat => {
       grouped[cat] = [];
     });
-    const standardCats = ['3p', '4p', '5p', '7p', '8p', '7p-7a'];
+    const standardCats = ['3p', '4p', '5p', '7p', '8p', '7p-7a', '24h'];
     (boardState.latesList || []).forEach(item => {
       const rawCat = (item.timeCategory || '').trim();
       const lowerCat = rawCat.toLowerCase();
@@ -1594,12 +1595,13 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
               {sortedTimeCategories.map(cat => {
                 const items = latesGrouped[cat] || [];
                 const isSpecial = cat === 'special';
-                const isAtypical = !['3p', '4p', '5p', '7p', '8p', '7p-7a'].includes(cat.toLowerCase());
-                if ((isSpecial || isAtypical) && items.length === 0) return null;
+                const is24h = cat.toLowerCase() === '24h';
+                const isAtypical = !['3p', '4p', '5p', '7p', '8p', '7p-7a', '24h'].includes(cat.toLowerCase());
+                if ((isSpecial || is24h || isAtypical) && items.length === 0) return null;
                 return (
                   <div key={cat} className="mobile-card mobile-lates-group-card">
                     <div className="mobile-lates-header">
-                      <span className="mobile-lates-time-pill" style={(isSpecial || isAtypical) ? { background: '#2563eb', color: '#fff' } : undefined}>
+                      <span className="mobile-lates-time-pill" style={(isSpecial || isAtypical) ? { background: '#2563eb', color: '#fff' } : is24h ? { background: '#ea580c', color: '#fff' } : undefined}>
                         {isSpecial ? 'SPECIAL SHIFT' : `${cat.toUpperCase()} SHIFT`}
                       </span>
                       <span className="mobile-lates-count">{items.length} Staff</span>

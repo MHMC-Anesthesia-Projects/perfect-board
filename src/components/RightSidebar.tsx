@@ -348,6 +348,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     if (cat === '7p-7a' || cat.includes('night')) {
       return 19 * 60 + 1; // 7:01 PM night shift
     }
+    if (cat === '24h') {
+      return 24 * 60 + 50; // 24-hour shift at bottom of late list
+    }
     const match = cat.match(/(\d{1,2})(?::(\d{2}))?\s*(a|p|am|pm)?/i);
     if (match) {
       let hours = parseInt(match[1], 10);
@@ -366,15 +369,15 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     return 9999;
   };
 
-  // Group lates by time category (Special at top, then 3p, 4p, 5p, 7p, 8p, 7p-7a)
-  const baseLateCategories = ['special', '3p', '4p', '5p', '7p', '8p', '7p-7a'];
+  // Group lates by time category (Special at top, then 3p, 4p, 5p, 7p, 8p, 7p-7a, 24h)
+  const baseLateCategories = ['special', '3p', '4p', '5p', '7p', '8p', '7p-7a', '24h'];
   const latesGrouped: Record<string, LateShiftItem[]> = {};
   baseLateCategories.forEach(cat => {
     latesGrouped[cat] = [];
   });
   
   // Standard late categories (>= 3pm)
-  const standardLateCats = ['3p', '4p', '5p', '7p', '8p', '7p-7a'];
+  const standardLateCats = ['3p', '4p', '5p', '7p', '8p', '7p-7a', '24h'];
 
   // Group items: Any atypical time (like 2p, 1p, special) groups into 'special'
   latesList.forEach(item => {
@@ -1386,9 +1389,10 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           {sortedLateCategories.map(category => {
             const items = latesGrouped[category] || [];
             const isSpecial = category.toLowerCase() === 'special';
-            const isAtypicalTime = !['3p', '4p', '5p', '7p', '8p', '7p-7a'].includes(category.toLowerCase());
-            // Hide special and custom atypical times if empty; keep standard late categories visible
-            if ((isSpecial || isAtypicalTime) && items.length === 0) return null;
+            const is24h = category.toLowerCase() === '24h';
+            const isAtypicalTime = !['3p', '4p', '5p', '7p', '8p', '7p-7a', '24h'].includes(category.toLowerCase());
+            // Hide special, 24h, and custom atypical times if empty; keep standard late categories visible
+            if ((isSpecial || is24h || isAtypicalTime) && items.length === 0) return null;
 
             return (
               <div key={category} style={{ marginBottom: 4 }}>

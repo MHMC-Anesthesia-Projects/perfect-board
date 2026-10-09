@@ -871,8 +871,9 @@ export async function POST(req: NextRequest) {
           upperShift === 'CALL' || upperShift === 'CALL TEAM'
         );
 
-        const standardLateKeys = ['3P', '4P', '5P', '7P', '8P', '7P-7A', '11A-11P'];
-        const isStandardLate = !isCallShift && !isPostCall && (isL1 || is8h || standardLateKeys.some(k => upperShift === k || upperShift.startsWith(k)));
+        const standardLateKeys = ['3P', '4P', '5P', '7P', '8P', '7P-7A', '11A-11P', '24H'];
+        const is24h = /24\s*-?\s*h/i.test(upperShift) || upperShift === '24H';
+        const isStandardLate = !isCallShift && !isPostCall && (is24h || isL1 || is8h || standardLateKeys.some(k => upperShift === k || upperShift.startsWith(k)));
 
         const isAtypicalTime = !isCallShift && !isPostCall && (
           upperShift === 'SPECIAL' ||
@@ -1028,13 +1029,16 @@ export async function POST(req: NextRequest) {
         );
 
         const shouldBeInLates = !isCallShift && (isStandardLate || isAtypicalTime);
-        const lateCategory = isL1 ? '7p' : (is8h ? '3p' : (isStandardLate ? shift.toLowerCase() : (isAtypicalTime ? 'special' : '')));
+        const lateCategory = is24h ? '24h' : (isL1 ? '7p' : (is8h ? '3p' : (isStandardLate ? shift.toLowerCase() : (isAtypicalTime ? 'special' : ''))));
 
         if (lateIdx !== -1) {
           if (shouldBeInLates) {
             state.latesList[lateIdx].timeCategory = lateCategory;
-            state.latesList[lateIdx].timeEstimate = effectiveTimeEstimate;
-            if (isL1) {
+            state.latesList[lateIdx].timeEstimate = is24h ? '24h' : effectiveTimeEstimate;
+            if (is24h) {
+              state.latesList[lateIdx].role = 'CRNA';
+              state.latesList[lateIdx].notes = '24h (L1 + OB)';
+            } else if (isL1) {
               state.latesList[lateIdx].role = 'CRNA';
               const hasPostCall = upperShift.includes('POSTOB') ? 'postOB' :
                                   upperShift.includes('POSTC1') ? 'postC1' :
@@ -1050,7 +1054,7 @@ export async function POST(req: NextRequest) {
           const hasPostCall = upperShift.includes('POSTOB') ? 'postOB' :
                               upperShift.includes('POSTC1') ? 'postC1' :
                               upperShift.includes('POST') ? 'postCall' : '';
-          const lateNote = isL1 ? (hasPostCall ? `L1, ${hasPostCall}` : 'L1') : undefined;
+          const lateNote = is24h ? '24h (L1 + OB)' : (isL1 ? (hasPostCall ? `L1, ${hasPostCall}` : 'L1') : undefined);
 
           state.latesList.push({
             id: `late_${s.id}_${Date.now()}`,
