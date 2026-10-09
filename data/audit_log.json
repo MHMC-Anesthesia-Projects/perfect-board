@@ -1,5 +1,29 @@
 [
   {
+    "id": "audit_1791507742184_9wi1s",
+    "timestamp": "2026-10-09T01:02:22.184Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "System Scheduler (1:00 AM Auto-Reset)",
+    "userRole": "superuser",
+    "details": "Daily 1:00 AM reset: Cleared breakfast and lunch break completion for all rooms, runners, and bullpen staff"
+  },
+  {
+    "id": "audit_1791507681962_kd61c",
+    "timestamp": "2026-10-09T01:01:21.962Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "System Scheduler (1:00 AM Auto-Reset)",
+    "userRole": "superuser",
+    "details": "Daily 1:00 AM reset: Cleared breakfast and lunch break completion for all rooms, runners, and bullpen staff"
+  },
+  {
+    "id": "audit_1791507621977_pfr6x",
+    "timestamp": "2026-10-09T01:00:21.977Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "System Scheduler (1:00 AM Auto-Reset)",
+    "userRole": "superuser",
+    "details": "Daily 1:00 AM reset: Cleared breakfast and lunch break completion for all rooms, runners, and bullpen staff"
+  },
+  {
     "id": "audit_1791409407889_z8ley",
     "timestamp": "2026-10-07T21:43:27.889Z",
     "actionType": "BULLPEN_UPDATED",
