@@ -138,6 +138,14 @@ export default function WhiteboardPage() {
     return () => clearTimeout(timer);
   }, [activeUndoToast]);
 
+  // Lock body scroll on the whiteboard page to prevent touchscreen bouncing
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   // Guard to prevent undo operations from recording their inverse action as a new step
   const isExecutingUndoRef = useRef(false);
 
