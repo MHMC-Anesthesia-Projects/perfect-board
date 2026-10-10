@@ -6,7 +6,8 @@ import {
   Sun, Moon, Shield, Lock, LogIn, LogOut, 
   RotateCw, FileSpreadsheet, Settings, 
   Keyboard, Clock, CheckCircle2, Mic, Sparkles,
-  Smartphone, Eraser, MessageSquare, CheckCheck, Undo2, FileText 
+  Smartphone, Eraser, MessageSquare, CheckCheck, Undo2, FileText,
+  Maximize, Minimize 
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -78,6 +79,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
 }) => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [currentDate, setCurrentDate] = useState<string>('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -89,6 +91,67 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isDocFull = Boolean(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      setIsFullscreen(isDocFull);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = () => {
+    try {
+      const doc = document as any;
+      const isDocFull = Boolean(
+        doc.fullscreenElement ||
+        doc.webkitFullscreenElement ||
+        doc.mozFullScreenElement ||
+        doc.msFullscreenElement
+      );
+
+      if (!isDocFull) {
+        const elem = document.documentElement as any;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen().catch(() => {});
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen();
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        }
+      } else {
+        if (doc.exitFullscreen) {
+          doc.exitFullscreen().catch(() => {});
+        } else if (doc.webkitExitFullscreen) {
+          doc.webkitExitFullscreen();
+        } else if (doc.mozCancelFullScreen) {
+          doc.mozCancelFullScreen();
+        } else if (doc.msExitFullscreen) {
+          doc.msExitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn('Error toggling fullscreen:', err);
+    }
+  };
 
   const isEditor = currentUser && (currentUser.role === 'board_runner' || currentUser.role === 'admin' || currentUser.role === 'superuser');
 
@@ -535,6 +598,27 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           title={theme === 'whiteboard' ? 'Switch to OR Dark Mode' : 'Switch to Whiteboard Mode'}
         >
           {theme === 'whiteboard' ? <Moon size={15} /> : <Sun size={15} />}
+        </button>
+
+        {/* Fullscreen Toggle (Maximize / Minimize icon) */}
+        <button
+          onClick={toggleFullscreen}
+          style={{
+            padding: '6px 10px',
+            borderRadius: 6,
+            background: 'var(--surface-hover)',
+            border: '1px solid var(--border-light)',
+            color: 'var(--text-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: 'pointer'
+          }}
+          title={isFullscreen ? 'Exit Full Screen' : 'Enter Full Screen'}
+        >
+          {isFullscreen ? <Minimize size={15} /> : <Maximize size={15} />}
         </button>
 
         {/* Mobile View Switcher (Hidden on Computer/TV view) */}

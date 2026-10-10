@@ -283,6 +283,60 @@ export interface UnreadChatState {
   matchedStaffId?: string;
 }
 
+export interface ManualDepartureSection {
+  id: string;
+  label: string;
+  orderIndex: number;
+  callTypes?: string[];
+}
+
+export interface ManualLateSection {
+  id: string;
+  label: string;
+  timeCategory: string;
+  orderIndex: number;
+}
+
+export interface BoardLayoutConfig {
+  boardMode: 'feed' | 'manual';
+  enableDepartureList: boolean;
+  enableLateList: boolean;
+  enableBullpen: boolean;
+  enableUnassignedStaff?: boolean;
+  manualDepartureConfig?: {
+    sections: ManualDepartureSection[];
+  };
+  manualLateConfig?: {
+    sections: ManualLateSection[];
+  };
+}
+
+export const DEFAULT_LAYOUT_CONFIG: BoardLayoutConfig = {
+  boardMode: 'feed',
+  enableDepartureList: true,
+  enableLateList: true,
+  enableBullpen: true,
+  enableUnassignedStaff: true,
+  manualDepartureConfig: {
+    sections: [
+      { id: 'sec_post_call', label: 'Post-Call', orderIndex: 0, callTypes: ['CV', 'Call 3', 'Call 2', 'Call 1', 'OB'] },
+      { id: 'sec_special', label: 'Special / Midday', orderIndex: 1, callTypes: [] },
+      { id: 'sec_non_call', label: 'Standard Departures', orderIndex: 2, callTypes: [] }
+    ]
+  },
+  manualLateConfig: {
+    sections: [
+      { id: 'late_3p', label: '3 PM', timeCategory: '3p', orderIndex: 0 },
+      { id: 'late_4p', label: '4 PM', timeCategory: '4p', orderIndex: 1 },
+      { id: 'late_5p', label: '5 PM', timeCategory: '5p', orderIndex: 2 },
+      { id: 'late_7p', label: '7 PM', timeCategory: '7p', orderIndex: 3 },
+      { id: 'late_8p', label: '8 PM', timeCategory: '8p', orderIndex: 4 },
+      { id: 'late_7p_7a', label: '7 PM - 7 AM (Nocturnist)', timeCategory: '7p-7a', orderIndex: 5 },
+      { id: 'late_24h', label: '24 Hours (L1 + OB)', timeCategory: '24h', orderIndex: 6 }
+    ]
+  }
+};
+
 export interface BoardState {
   version: number;
   lastUpdated: string;
@@ -303,4 +357,5 @@ export interface BoardState {
   scraperConfig: ScraperConfig;
   uniqueSchedules?: UniqueScheduleRule[];
   messagingConfig?: MessagingConfig;
+  layoutConfig?: BoardLayoutConfig;
 }

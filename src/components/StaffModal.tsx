@@ -127,6 +127,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   const [isPagingExpanded, setIsPagingExpanded] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const pagingAccordionRef = useRef<HTMLDivElement>(null);
 
   // Auto-expand paging section ONLY if there are active unread incoming messages
   useEffect(() => {
@@ -135,16 +136,22 @@ export const StaffModal: React.FC<StaffModalProps> = ({
     }
   }, [unreadCount]);
 
-  const fetchMessagingStatus = async (phone?: string) => {
-    if (!phone) {
-      setMessagingEnabled(false);
-      setRecipientProfile(null);
-      return;
+  // Smooth scroll into view when paging section is expanded so all controls are exposed
+  useEffect(() => {
+    if (isPagingExpanded && pagingAccordionRef.current) {
+      const timer = setTimeout(() => {
+        pagingAccordionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 120);
+      return () => clearTimeout(timer);
     }
+  }, [isPagingExpanded]);
+
+  const fetchMessagingStatus = async (phone?: string) => {
     setIsLoadingChat(true);
     setChatError(null);
     try {
-      const res = await fetch(apiUrl(`/api/messages?action=check_status&phone=${encodeURIComponent(phone)}`));
+      const phoneParam = phone ? `&phone=${encodeURIComponent(phone)}` : '';
+      const res = await fetch(apiUrl(`/api/messages?action=check_status${phoneParam}`));
       const data = await res.json();
       setMessagingEnabled(Boolean(data.enabled));
       if (data.enabled && data.recipientProfile) {
@@ -391,7 +398,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%',
-          maxWidth: 460,
+          maxWidth: 480,
           maxHeight: 'min(92vh, calc(100dvh - 32px))',
           padding: 0,
           textAlign: 'left',
@@ -471,12 +478,15 @@ export const StaffModal: React.FC<StaffModalProps> = ({
 
         {/* Scrollable Modal Content */}
         <div style={{
-          flex: 1,
+          flex: '1 1 auto',
+          minHeight: 0,
           overflowY: 'auto',
-          padding: '16px 20px',
-          display: 'flex',
-          flexDirection: 'column',
-          WebkitOverflowScrolling: 'touch'
+          overflowX: 'hidden',
+          padding: '16px 20px 32px 20px',
+          display: 'block',
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
+          touchAction: 'pan-y'
         }}>
 
         {/* Contact & Shift Info */}
@@ -1778,14 +1788,17 @@ export const StaffModal: React.FC<StaffModalProps> = ({
             PERFECT CALL INTERNAL CLINICIAN PAGING & MESSAGING (Collapsible Accordion)
             ========================================================================== */}
         {messagingEnabled && (
-          <div style={{
-            background: 'var(--surface-card)',
-            borderRadius: 8,
-            border: '1.5px solid rgba(16, 185, 129, 0.35)',
-            marginTop: 14,
-            marginBottom: 8,
-            overflow: 'hidden'
-          }}>
+          <div
+            ref={pagingAccordionRef}
+            style={{
+              background: 'var(--surface-card)',
+              borderRadius: 8,
+              border: '1.5px solid rgba(16, 185, 129, 0.35)',
+              marginTop: 14,
+              marginBottom: 8,
+              overflow: 'hidden'
+            }}
+          >
             {/* Header Accordion Bar */}
             <div
               onClick={() => setIsPagingExpanded(prev => !prev)}

@@ -14,6 +14,8 @@ interface RightSidebarProps {
   currentUserRole: UserRole;
   staff?: Staff[];
   departments?: Department[];
+  showDepartureList?: boolean;
+  showLateList?: boolean;
   onSelectStaff?: (staff: Staff) => void;
   onUpdateDepartureNotes?: (notes: string) => void;
   onUpdateLatesNotes: (notes: string) => void;
@@ -32,6 +34,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   currentUserRole,
   staff = [],
   departments = [],
+  showDepartureList = true,
+  showLateList = true,
   onSelectStaff,
   onUpdateLatesNotes,
   onUpdateLists,
@@ -127,13 +131,47 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     if (!onSelectStaff) return;
 
     const cleanLast = lastName.trim().toUpperCase();
-    const matched = staff.find(s =>
-      s.lastName.toUpperCase() === cleanLast ||
-      (qgendaAbbr && s.qgendaAbbr?.toUpperCase() === qgendaAbbr.toUpperCase()) ||
-      (id && s.id === id) ||
-      (cleanLast === 'KD' && (s.lastName.toUpperCase().includes('DWARAK') || s.qgendaAbbr?.toUpperCase().includes('DWARAK'))) ||
-      (cleanLast === 'TALL' && (s.lastName.toUpperCase().includes('TALLACK') || s.qgendaAbbr?.toUpperCase().includes('TALLACK')))
-    );
+    const cleanQ = (qgendaAbbr || '').replace(/\[.*?\]/g, '').toUpperCase().trim();
+    const targetRole = fallbackCreds;
+
+    // 1. Exact match by qgendaAbbr
+    let matched = cleanQ ? staff.find(s => s.qgendaAbbr?.toUpperCase() === cleanQ) : undefined;
+
+    // 2. Direct match by id
+    if (!matched && id) {
+      matched = staff.find(s => s.id === id);
+    }
+
+    // 3. Match by matching lastName AND matching role/credentials
+    if (!matched) {
+      matched = staff.find(s => {
+        const sLast = s.lastName.toUpperCase();
+        const isLastMatch = sLast === cleanLast ||
+          cleanLast.startsWith(sLast + ' ') ||
+          (cleanLast === 'KD' && (sLast.includes('DWARAK') || s.qgendaAbbr?.toUpperCase().includes('DWARAK'))) ||
+          (cleanLast === 'TALL' && (sLast.includes('TALLACK') || s.qgendaAbbr?.toUpperCase().includes('TALLACK')));
+
+        if (!isLastMatch) return false;
+
+        if (targetRole === 'MD') {
+          return s.credentials === 'MD';
+        } else if (targetRole === 'CRNA') {
+          return s.credentials === 'CRNA' || s.credentials === 'Resident' || s.credentials === 'SRNA' || s.credentials === 'PA';
+        }
+        return true;
+      });
+    }
+
+    // 4. Fallback to lastName only if no credential-specific match
+    if (!matched) {
+      matched = staff.find(s => {
+        const sLast = s.lastName.toUpperCase();
+        return sLast === cleanLast ||
+          cleanLast.startsWith(sLast + ' ') ||
+          (cleanLast === 'KD' && (sLast.includes('DWARAK') || s.qgendaAbbr?.toUpperCase().includes('DWARAK'))) ||
+          (cleanLast === 'TALL' && (sLast.includes('TALLACK') || s.qgendaAbbr?.toUpperCase().includes('TALLACK')));
+      });
+    }
 
     if (matched) {
       onSelectStaff({
@@ -325,7 +363,22 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   // State for adding late staff (supports specific category targeted by plus button)
   const [addingToCategory, setAddingToCategory] = useState<string | null>(null);
   const [newLateName, setNewLateName] = useState('');
+  const [newLateRole, setNewLateRole] = useState<'CRNA' | 'MD'>('CRNA');
+  const [disambiguationMessage, setDisambiguationMessage] = useState<string | null>(null);
   const [showLatesNotesModal, setShowLatesNotesModal] = useState(false);
+
+  // Matching staff suggestions for late staff addition with disambiguation (e.g. Patel MD vs Patel CRNA)
+  const matchingLateStaffSuggestions = useMemo(() => {
+    const q = newLateName.trim().toLowerCase();
+    if (!q || q.length < 1) return [];
+    return staff.filter(s => {
+      const last = (s.lastName || '').toLowerCase();
+      const first = (s.firstName || '').toLowerCase();
+      const disp = (s.displayName || '').toLowerCase();
+      const qg = (s.qgendaAbbr || '').toLowerCase();
+      return last.startsWith(q) || last.includes(q) || first.includes(q) || disp.includes(q) || qg.includes(q);
+    }).slice(0, 10);
+  }, [newLateName, staff]);
 
   // App-themed modal state for confirming staff deletion
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -403,10 +456,11 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   const isItemMd = (item: LateShiftItem) => {
     if (item.role === 'MD') return true;
     if (item.role === 'CRNA') return false;
-    const match = staff.find(s =>
-      s.lastName.toUpperCase() === item.name.toUpperCase() ||
-      (item.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === item.qgendaAbbr.toUpperCase())
-    );
+    if (item.qgendaAbbr) {
+      const matchQ = staff.find(s => s.qgendaAbbr?.toUpperCase() === item.qgendaAbbr?.toUpperCase());
+      if (matchQ) return matchQ.credentials === 'MD';
+    }
+    const match = staff.find(s => s.lastName.toUpperCase() === item.name.toUpperCase());
     return match?.credentials === 'MD';
   };
 
@@ -527,24 +581,82 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     });
   };
 
-  const handleAddLateToCategory = (category: string, e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newLateName.trim()) return;
-    const cleanName = newLateName.trim().toUpperCase();
-    const matchedStaff = staff.find(s => s.lastName.toUpperCase() === cleanName);
-    const updated = [
-      ...latesList,
-      {
-        id: `late_${Date.now()}`,
-        name: cleanName,
-        timeCategory: category,
-        role: matchedStaff ? (matchedStaff.credentials as any) : 'CRNA',
-        qgendaAbbr: matchedStaff?.qgendaAbbr,
-        orderIndex: latesList.length
-      }
-    ];
+  const handleAddSelectedStaffToLate = (category: string, selectedStaff: Staff) => {
+    // Check if multiple providers share this last name to determine whether to use displayName
+    const sameLastName = staff.filter(s => (s.lastName || '').toUpperCase() === (selectedStaff.lastName || '').toUpperCase());
+    const useDisplayName = sameLastName.length > 1;
+    const finalName = useDisplayName && selectedStaff.displayName
+      ? selectedStaff.displayName.toUpperCase()
+      : (selectedStaff.lastName || selectedStaff.displayName || '').toUpperCase();
+
+    const role = (selectedStaff.credentials as 'MD' | 'CRNA') || newLateRole;
+
+    const newItem: LateShiftItem = {
+      id: `late_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      name: finalName,
+      timeCategory: category,
+      role: role,
+      qgendaAbbr: selectedStaff.qgendaAbbr,
+      orderIndex: latesList.length
+    };
+
+    const updated = [...latesList, newItem];
     onUpdateLists(departureList, updated);
     setNewLateName('');
+    setDisambiguationMessage(null);
+    setAddingToCategory(null);
+  };
+
+  const handleAddLateToCategory = (category: string, e: React.FormEvent) => {
+    e.preventDefault();
+    const query = newLateName.trim();
+    if (!query) return;
+
+    const cleanUpper = query.toUpperCase();
+    const exactMatches = staff.filter(s =>
+      (s.lastName || '').toUpperCase() === cleanUpper ||
+      (s.displayName && s.displayName.toUpperCase() === cleanUpper) ||
+      (s.qgendaAbbr && s.qgendaAbbr.toUpperCase() === cleanUpper)
+    );
+
+    // If there are multiple matches (e.g. Patel MD and Patel CRNA)
+    if (exactMatches.length > 1) {
+      const roleMatches = exactMatches.filter(s => s.credentials === newLateRole);
+      if (roleMatches.length === 1) {
+        handleAddSelectedStaffToLate(category, roleMatches[0]);
+        return;
+      }
+      setDisambiguationMessage(`Multiple providers found matching "${query}". Please choose CRNA or MD above or select below:`);
+      return;
+    }
+
+    if (exactMatches.length === 1) {
+      handleAddSelectedStaffToLate(category, exactMatches[0]);
+      return;
+    }
+
+    // Partial matches if only 1 exists
+    const partialMatches = staff.filter(s =>
+      (s.lastName || '').toUpperCase().startsWith(cleanUpper) ||
+      (s.displayName && s.displayName.toUpperCase().startsWith(cleanUpper))
+    );
+    if (partialMatches.length === 1) {
+      handleAddSelectedStaffToLate(category, partialMatches[0]);
+      return;
+    }
+
+    // Otherwise, add as custom/manual staff with selected role
+    const newItem: LateShiftItem = {
+      id: `late_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      name: cleanUpper,
+      timeCategory: category,
+      role: newLateRole,
+      orderIndex: latesList.length
+    };
+    const updated = [...latesList, newItem];
+    onUpdateLists(departureList, updated);
+    setNewLateName('');
+    setDisambiguationMessage(null);
     setAddingToCategory(null);
   };
 
@@ -553,7 +665,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     setDeleteTarget({
       type: 'late',
       id: item.id,
-      name: item.name,
+      name: `${item.name}${item.role ? ' (' + item.role + ')' : ''}`,
       categoryLabel: `${category} Late Shift`
     });
   };
@@ -584,6 +696,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
       />
 
       {/* ---------------- 1. DEPARTURE COLUMN ---------------- */}
+      {showDepartureList && (
       <div className="sidebar-col">
         <div className="sidebar-col-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -851,31 +964,55 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     )}
                   </div>
 
-                  {/* Mark Departed Toggle Circle */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleDepartureStruck(doc.id);
-                    }}
-                    style={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: '50%',
-                      border: doc.departed ? '1.5px solid var(--marker-green)' : '1.5px solid var(--border-light)',
-                      background: doc.departed ? 'var(--marker-green)' : 'transparent',
-                      color: '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      padding: 0,
-                      flexShrink: 0
-                    }}
-                    title={doc.departed ? 'Marked departed (Click to unmark)' : 'Mark as departed (Strike through)'}
-                  >
-                    {doc.departed && <Check size={10} strokeWidth={3} />}
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                    {isEditor && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleInitiateRemoveDeparture(doc, e)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          padding: '2px',
+                          cursor: 'pointer',
+                          color: 'var(--text-muted)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          opacity: 0.5
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#ef4444'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                        title={`Remove ${doc.name} from Departure list`}
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    )}
+                    {/* Mark Departed Toggle Circle */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleDepartureStruck(doc.id);
+                      }}
+                      style={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: '50%',
+                        border: doc.departed ? '1.5px solid var(--marker-green)' : '1.5px solid var(--border-light)',
+                        background: doc.departed ? 'var(--marker-green)' : 'transparent',
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        padding: 0,
+                        flexShrink: 0
+                      }}
+                      title={doc.departed ? 'Marked departed (Click to unmark)' : 'Mark as departed (Strike through)'}
+                    >
+                      {doc.departed && <Check size={10} strokeWidth={3} />}
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -987,31 +1124,55 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       <span className="departure-name">{doc.name}</span>
                     </div>
 
-                    {/* Mark Departed Toggle Circle */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleDepartureStruck(doc.id);
-                      }}
-                      style={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: '50%',
-                        border: doc.departed ? '1.5px solid var(--marker-green)' : '1.5px solid var(--border-light)',
-                        background: doc.departed ? 'var(--marker-green)' : 'transparent',
-                        color: '#fff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        padding: 0,
-                        flexShrink: 0
-                      }}
-                      title={doc.departed ? 'Marked departed (Click to unmark)' : 'Mark as departed (Strike through)'}
-                    >
-                      {doc.departed && <Check size={10} strokeWidth={3} />}
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                      {isEditor && (
+                        <button
+                          type="button"
+                          onClick={(e) => handleInitiateRemoveDeparture(doc, e)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: '2px',
+                            cursor: 'pointer',
+                            color: 'var(--text-muted)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            opacity: 0.5
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#ef4444'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                          title={`Remove ${doc.name} from Departure list`}
+                        >
+                          <Trash2 size={11} />
+                        </button>
+                      )}
+                      {/* Mark Departed Toggle Circle */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleDepartureStruck(doc.id);
+                        }}
+                        style={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: '50%',
+                          border: doc.departed ? '1.5px solid var(--marker-green)' : '1.5px solid var(--border-light)',
+                          background: doc.departed ? 'var(--marker-green)' : 'transparent',
+                          color: '#fff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          padding: 0,
+                          flexShrink: 0
+                        }}
+                        title={doc.departed ? 'Marked departed (Click to unmark)' : 'Mark as departed (Strike through)'}
+                      >
+                        {doc.departed && <Check size={10} strokeWidth={3} />}
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -1128,31 +1289,55 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     )}
                   </div>
 
-                  {/* Mark Departed Toggle Circle */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleDepartureStruck(doc.id);
-                    }}
-                    style={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: '50%',
-                      border: doc.departed ? '1.5px solid var(--marker-green)' : '1.5px solid var(--border-light)',
-                      background: doc.departed ? 'var(--marker-green)' : 'transparent',
-                      color: '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      padding: 0,
-                      flexShrink: 0
-                    }}
-                    title={doc.departed ? 'Marked departed (Click to unmark)' : 'Mark as departed (Strike through)'}
-                  >
-                    {doc.departed && <Check size={10} strokeWidth={3} />}
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                    {isEditor && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleInitiateRemoveDeparture(doc, e)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          padding: '2px',
+                          cursor: 'pointer',
+                          color: 'var(--text-muted)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          opacity: 0.5
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#ef4444'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                        title={`Remove ${doc.name} from Departure list`}
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    )}
+                    {/* Mark Departed Toggle Circle */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleDepartureStruck(doc.id);
+                      }}
+                      style={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: '50%',
+                        border: doc.departed ? '1.5px solid var(--marker-green)' : '1.5px solid var(--border-light)',
+                        background: doc.departed ? 'var(--marker-green)' : 'transparent',
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        padding: 0,
+                        flexShrink: 0
+                      }}
+                      title={doc.departed ? 'Marked departed (Click to unmark)' : 'Mark as departed (Strike through)'}
+                    >
+                      {doc.departed && <Check size={10} strokeWidth={3} />}
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -1275,7 +1460,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 key={item.id}
                 className="call-team-item clickable"
                 onClick={() => handleStaffClick(item.doctorName, item.id, item.qgendaAbbr, item.orderNumber, item.role, 'MD')}
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 title={`Click to view/edit details for Dr. ${item.doctorName}`}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1288,6 +1473,28 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   )}
                   <span className="call-doc-name">{item.doctorName}</span>
                 </div>
+                {isEditor && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleInitiateRemoveCallTeam(item, e)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: '2px',
+                      cursor: 'pointer',
+                      color: 'var(--text-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      opacity: 0.5
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#ef4444'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                    title={`Remove ${item.doctorName} from Call Team`}
+                  >
+                    <Trash2 size={11} />
+                  </button>
+                )}
               </div>
             );
             })}
@@ -1302,8 +1509,10 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
         {/* End of Departure Column */}
       </div>
+      )}
 
       {/* ---------------- 2. LATES COLUMN ---------------- */}
+      {showLateList && (
       <div className="sidebar-col">
         <div className="sidebar-col-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1442,60 +1651,186 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
                 {/* Inline Add Input for this specific time category */}
                 {addingToCategory === category && isEditor && (
-                  <form onSubmit={(e) => handleAddLateToCategory(category, e)} style={{ padding: 4, background: 'var(--surface-hover)', borderRadius: 4, marginBottom: 6 }}>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      <input
-                        type="text"
-                        placeholder={`Staff Last Name for ${category}...`}
-                        value={newLateName}
-                        onChange={e => setNewLateName(e.target.value)}
-                        autoFocus
-                        style={{
-                          flex: 1,
-                          padding: '4px 6px',
-                          fontSize: 12,
-                          borderRadius: 4,
-                          border: '1px solid var(--border-light)',
-                          background: 'var(--surface-card)',
-                          color: 'var(--text-primary)'
-                        }}
-                      />
+                  <div style={{ padding: 8, background: 'var(--surface-hover)', borderRadius: 6, marginBottom: 8, border: '1px solid var(--border-light)' }}>
+                    {/* Role toggle */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)' }}>ROLE:</span>
                       <button
-                        type="submit"
+                        type="button"
+                        onClick={() => { setNewLateRole('CRNA'); setDisambiguationMessage(null); }}
                         style={{
-                          padding: '3px 8px',
-                          background: 'var(--accent-primary)',
-                          color: '#fff',
-                          borderRadius: 4,
-                          fontSize: 11,
-                          fontWeight: 700
+                          padding: '2px 8px',
+                          borderRadius: 3,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          border: newLateRole === 'CRNA' ? '1.5px solid #059669' : '1px solid var(--border-light)',
+                          background: newLateRole === 'CRNA' ? 'rgba(16, 185, 129, 0.15)' : 'var(--surface-card)',
+                          color: newLateRole === 'CRNA' ? '#059669' : 'var(--text-secondary)',
+                          cursor: 'pointer'
                         }}
                       >
-                        Add
+                        CRNA
                       </button>
                       <button
                         type="button"
-                        onClick={() => setAddingToCategory(null)}
+                        onClick={() => { setNewLateRole('MD'); setDisambiguationMessage(null); }}
                         style={{
-                          padding: '3px 6px',
+                          padding: '2px 8px',
+                          borderRadius: 3,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          border: newLateRole === 'MD' ? '1.5px solid #2563eb' : '1px solid var(--border-light)',
+                          background: newLateRole === 'MD' ? 'rgba(37, 99, 235, 0.15)' : 'var(--surface-card)',
+                          color: newLateRole === 'MD' ? '#2563eb' : 'var(--text-secondary)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        MD
+                      </button>
+                    </div>
+
+                    {disambiguationMessage && (
+                      <div style={{ fontSize: 11, color: 'var(--marker-red)', fontWeight: 700, marginBottom: 6 }}>
+                        {disambiguationMessage}
+                      </div>
+                    )}
+
+                    <form onSubmit={(e) => handleAddLateToCategory(category, e)}>
+                      <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
+                        <input
+                          type="text"
+                          placeholder={`Staff name (e.g. Patel)...`}
+                          value={newLateName}
+                          onChange={e => {
+                            setNewLateName(e.target.value);
+                            setDisambiguationMessage(null);
+                          }}
+                          autoFocus
+                          style={{
+                            flex: 1,
+                            padding: '4px 6px',
+                            fontSize: 12,
+                            borderRadius: 4,
+                            border: '1px solid var(--border-light)',
+                            background: 'var(--surface-card)',
+                            color: 'var(--text-primary)'
+                          }}
+                        />
+                        <button
+                          type="submit"
+                          style={{
+                            padding: '3px 8px',
+                            background: 'var(--accent-primary)',
+                            color: '#fff',
+                            borderRadius: 4,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Add
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAddingToCategory(null);
+                            setNewLateName('');
+                            setDisambiguationMessage(null);
+                          }}
+                          style={{
+                            padding: '3px 6px',
+                            background: 'var(--surface-card)',
+                            border: '1px solid var(--border-light)',
+                            borderRadius: 4,
+                            fontSize: 11,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </form>
+
+                    {/* Suggestions list dropdown */}
+                    {matchingLateStaffSuggestions.length > 0 && (
+                      <div
+                        style={{
+                          marginTop: 4,
+                          maxHeight: 140,
+                          overflowY: 'auto',
                           background: 'var(--surface-card)',
                           border: '1px solid var(--border-light)',
                           borderRadius: 4,
-                          fontSize: 11
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                         }}
                       >
-                        ✕
-                      </button>
-                    </div>
-                  </form>
-                )}                  {/* Staff names under this time slot */}
+                        <div style={{ padding: '3px 6px', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', borderBottom: '1px solid var(--border-light)' }}>
+                          Click to add exact provider:
+                        </div>
+                        {matchingLateStaffSuggestions.map(s => {
+                          const isMd = s.credentials === 'MD';
+                          return (
+                            <div
+                              key={s.id}
+                              onClick={() => handleAddSelectedStaffToLate(category, s)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '4px 8px',
+                                cursor: 'pointer',
+                                fontSize: 11,
+                                borderBottom: '1px solid rgba(0,0,0,0.04)',
+                                transition: 'background 0.15s'
+                              }}
+                              onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
+                              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                                  {s.lastName}, {s.firstName}
+                                </span>
+                                {s.displayName && (
+                                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                                    ({s.displayName})
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                {s.qgendaAbbr && (
+                                  <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+                                    [{s.qgendaAbbr}]
+                                  </span>
+                                )}
+                                <span
+                                  style={{
+                                    fontSize: 9,
+                                    fontWeight: 800,
+                                    padding: '1px 4px',
+                                    borderRadius: 3,
+                                    background: isMd ? 'rgba(37, 99, 235, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                                    color: isMd ? '#2563eb' : '#059669',
+                                    border: isMd ? '1px solid rgba(37, 99, 235, 0.25)' : '1px solid rgba(16, 185, 129, 0.25)'
+                                  }}
+                                >
+                                  {s.credentials || 'CRNA'}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* Staff names under this time slot */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {items.map(item => {
                     const reliefLocs = getReliefLocations(item.name, item.id, item.qgendaAbbr);
                     return (
                     <div
                       key={item.id}
-                      onClick={() => handleStaffClick(item.name, item.id, undefined, item.orderNumber, item.timeCategory, (item.role as any) || 'CRNA')}
+                      onClick={() => handleStaffClick(item.name, item.id, item.qgendaAbbr, item.orderNumber, item.timeCategory, (item.role as any) || 'CRNA')}
                       className="late-staff-row"
                       style={{
                         display: 'flex',
@@ -1557,6 +1892,38 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                           </span>
                         )}
                       </div>
+
+                      {/* Delete button from late section */}
+                      {isEditor && (
+                        <button
+                          type="button"
+                          onClick={(e) => handleInitiateRemoveLate(item, category, e)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: '2px 4px',
+                            cursor: 'pointer',
+                            color: 'var(--text-muted)',
+                            borderRadius: 3,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            opacity: 0.6,
+                            transition: 'opacity 0.15s, color 0.15s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.opacity = '1';
+                            e.currentTarget.style.color = '#ef4444';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.opacity = '0.6';
+                            e.currentTarget.style.color = 'var(--text-muted)';
+                          }}
+                          title={`Remove ${item.name} from ${category}`}
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
                     </div>
                   );
                 })}
@@ -1573,6 +1940,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
         {/* End of Lates Column */}
       </div>
+      )}
 
       {/* App-Themed Staff Deletion Confirmation Modal */}
       <ConfirmDeleteModal

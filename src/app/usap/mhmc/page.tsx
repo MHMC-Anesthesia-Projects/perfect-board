@@ -4,7 +4,7 @@ import { apiUrl } from '@/lib/api';
 import { getBrowserSupabase, getPublicBrowserSupabase, PERFECT_BOARD_SCHEMA } from '@/lib/supabase';
 import { getHoustonDateString } from '@/lib/dateUtils';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { BoardState, Staff, Department, RoomSlot, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential, ReliefAssignment, AuditLogEntry } from '@/types/whiteboard';
+import { BoardState, Staff, Department, RoomSlot, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential, ReliefAssignment, AuditLogEntry, BoardLayoutConfig, DEFAULT_LAYOUT_CONFIG } from '@/types/whiteboard';
 import { HeaderNav } from '@/components/HeaderNav';
 import { DepartmentGrid } from '@/components/DepartmentGrid';
 import { RightSidebar } from '@/components/RightSidebar';
@@ -2563,14 +2563,14 @@ export default function WhiteboardPage() {
   };
 
   // 8. Superuser Layout actions
-  const handleSaveDepartments = async (departments: Department[]) => {
+  const handleSaveDepartments = async (departments: Department[], layoutConfig?: BoardLayoutConfig) => {
     try {
       const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'SAVE_LAYOUT',
-          payload: { departments },
+          payload: { departments, layoutConfig },
           user: currentUser
         })
       });
@@ -2751,8 +2751,9 @@ export default function WhiteboardPage() {
       {/* Main Whiteboard Display Area */}
       <main className="board-main-area">
         {/* Left Bullpen (Expandable left-sided vertical menu for available staff) */}
-        {isBullpenOpen ? (
-          <BullpenSidebar
+        {((boardState?.layoutConfig?.enableBullpen ?? true)) && (
+          isBullpenOpen ? (
+            <BullpenSidebar
             bullpenStaffIds={effectiveBullpenStaffIds}
             bullpenBreaks={boardState.bullpenBreaks || {}}
             staff={boardState.staff}
@@ -2801,7 +2802,7 @@ export default function WhiteboardPage() {
               BULLPEN {(boardState.bullpenStaffIds?.length ?? 0) > 0 ? `(${boardState.bullpenStaffIds?.length})` : ''}
             </span>
           </button>
-        )}
+        ))}
 
         {/* 8 Departments (Main OR, West Pav, Ortho, Village, 9th Floor, Endo, OB, IVF) */}
         <DepartmentGrid
@@ -2842,40 +2843,45 @@ export default function WhiteboardPage() {
         />
 
         {/* Right 2 Columns: DEPARTURE & LATES (Can be hidden to the right) */}
-        {isRightSidebarOpen ? (
-          <RightSidebar
-            departureList={boardState.departureList}
-            callTeamList={boardState.callTeamList || []}
-            departureNotes={boardState.departureNotes}
-            latesList={boardState.latesList}
-            latesNotes={boardState.latesNotes}
-            currentUserRole={currentUserRole}
-            staff={boardState.staff}
-            departments={boardState.departments}
-            onSelectStaff={handleSelectStaff}
-            onUpdateDepartureNotes={notes => handleSaveNotes('departure', undefined, notes)}
-            onUpdateLatesNotes={notes => handleSaveNotes('lates', undefined, notes)}
-            onUpdateLists={handleUpdateLists}
-            onUpdateCallTeam={handleUpdateCallTeam}
-            onOpenVoiceNotes={(type, notes) => setVoiceNoteTarget({ type, currentNotes: notes })}
-            onToggleDepartureStruck={handleToggleDepartureStruck}
-            onToggleCollapse={() => setIsRightSidebarOpen(false)}
-          />
-        ) : (
-          /* Expand Tab on Right Edge to slide Departure & Lates back open */
-          <button
-            type="button"
-            className="sidebar-expand-tab"
-            onClick={() => setIsRightSidebarOpen(true)}
-            title="Show Departure & Lates (Expand Whiteboard)"
-          >
-            <ChevronLeft size={16} />
-            <span className="sidebar-expand-tab-text">DEPARTURE &amp; LATES</span>
-          </button>
+        {((boardState?.layoutConfig?.enableDepartureList ?? true) || (boardState?.layoutConfig?.enableLateList ?? true)) && (
+          isRightSidebarOpen ? (
+            <RightSidebar
+              departureList={boardState.departureList}
+              callTeamList={boardState.callTeamList || []}
+              departureNotes={boardState.departureNotes}
+              latesList={boardState.latesList}
+              latesNotes={boardState.latesNotes}
+              currentUserRole={currentUserRole}
+              staff={boardState.staff}
+              departments={boardState.departments}
+              showDepartureList={boardState?.layoutConfig?.enableDepartureList ?? true}
+              showLateList={boardState?.layoutConfig?.enableLateList ?? true}
+              onSelectStaff={handleSelectStaff}
+              onUpdateDepartureNotes={notes => handleSaveNotes('departure', undefined, notes)}
+              onUpdateLatesNotes={notes => handleSaveNotes('lates', undefined, notes)}
+              onUpdateLists={handleUpdateLists}
+              onUpdateCallTeam={handleUpdateCallTeam}
+              onOpenVoiceNotes={(type, notes) => setVoiceNoteTarget({ type, currentNotes: notes })}
+              onToggleDepartureStruck={handleToggleDepartureStruck}
+              onToggleCollapse={() => setIsRightSidebarOpen(false)}
+            />
+          ) : (
+            /* Expand Tab on Right Edge to slide Departure & Lates back open */
+            <button
+              type="button"
+              className="sidebar-expand-tab"
+              onClick={() => setIsRightSidebarOpen(true)}
+              title="Show Departure & Lates (Expand Whiteboard)"
+            >
+              <ChevronLeft size={16} />
+              <span className="sidebar-expand-tab-text">DEPARTURE &amp; LATES</span>
+            </button>
+          )
         )}
       </main>
 
       {/* Bottom Available Unassigned Staff (Alphabetical Staff Holding Bins - Collapsible to Bottom) */}
+      {(boardState?.layoutConfig?.enableUnassignedStaff ?? true) && (
       <Bullpen
         staff={boardState.staff}
         departments={boardState.departments}
@@ -2894,6 +2900,7 @@ export default function WhiteboardPage() {
         magnetNotes={boardState.magnetNotes}
         onUpdateMagnetNote={handleUpdateMagnetNote}
       />
+      )}
         </div>
       )}
 
@@ -3027,6 +3034,7 @@ export default function WhiteboardPage() {
         scraperConfig={boardState.scraperConfig}
         uniqueSchedules={boardState.uniqueSchedules || []}
         messagingConfig={boardState.messagingConfig}
+        layoutConfig={boardState.layoutConfig}
         onSaveDepartments={handleSaveDepartments}
         onResetToPhotoDefault={handleResetToPhotoDefault}
         onClearAllTextNotes={handleClearAllTextNotes}

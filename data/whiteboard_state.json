@@ -327,7 +327,7 @@
       "lastName": "Gunn",
       "firstName": "Clinton",
       "hasStudent": false,
-      "magnetNote": "",
+      "magnetNote": "NGCSEA",
       "qgendaAbbr": "GunnCli",
       "credentials": "MD",
       "displayName": "GUNN C.",
@@ -479,8 +479,8 @@
       "credentials": "CRNA",
       "displayName": "YI A.",
       "orderNumber": 278,
-      "assignedRoom": "MHMC Endo3",
       "isInfrequent": false,
+      "assignedRoom": "MHMC Endo3",
       "assignedRooms": [
         "MHMC Endo3"
       ]
@@ -571,8 +571,8 @@
       "credentials": "CRNA",
       "displayName": "MATEO C.",
       "orderNumber": 234,
-      "assignedRoom": "MHMC Ortho7",
       "isInfrequent": false,
+      "assignedRoom": "MHMC Ortho7",
       "assignedRooms": [
         "MHMC Ortho7"
       ]
@@ -638,7 +638,7 @@
       "lastName": "McGuire",
       "firstName": "Megan",
       "hasStudent": false,
-      "magnetNote": "",
+      "magnetNote": "ggggf",
       "qgendaAbbr": "McGuireMeg",
       "credentials": "CRNA",
       "displayName": "MCGUIRE M.",
@@ -1031,7 +1031,7 @@
       "lastName": "Beard",
       "firstName": "Eri",
       "hasStudent": false,
-      "magnetNote": "",
+      "magnetNote": "leave at 4",
       "qgendaAbbr": "BeardEri",
       "credentials": "CRNA",
       "displayName": "BEARD E.",
@@ -1206,7 +1206,7 @@
       "lastName": "Ahmmed",
       "firstName": "Zah",
       "hasStudent": false,
-      "magnetNote": "",
+      "magnetNote": "kg",
       "qgendaAbbr": "AhmmedZah",
       "credentials": "CRNA",
       "displayName": "AHMMED Z.",
@@ -1439,214 +1439,214 @@
     {
       "id": "late_0_1791587633591",
       "name": "GUNN",
-      "role": "MD",
+      "timeCategory": "3p",
       "orderIndex": 0,
-      "qgendaAbbr": "GunnCli",
       "orderNumber": 180,
-      "assignedRoom": "MHMC DS 05",
-      "timeCategory": "3p"
+      "role": "MD",
+      "qgendaAbbr": "GunnCli",
+      "assignedRoom": "MHMC DS 05"
     },
     {
       "id": "late_1_1791587633591",
       "name": "JEFFCOAT",
-      "role": "MD",
+      "timeCategory": "3p",
       "orderIndex": 1,
-      "qgendaAbbr": "JeffcoatShe",
       "orderNumber": 150,
-      "assignedRoom": "Village OR4, Village Proc2",
-      "timeCategory": "3p"
+      "role": "MD",
+      "qgendaAbbr": "JeffcoatShe",
+      "assignedRoom": "Village OR4, Village Proc2"
     },
     {
       "id": "late_2_1791587633591",
       "name": "SHEVCHENKO",
-      "role": "MD",
-      "notes": "preC1",
+      "timeCategory": "3p",
       "orderIndex": 2,
-      "qgendaAbbr": "ShevchenkoYev",
       "orderNumber": 121,
+      "role": "MD",
+      "qgendaAbbr": "ShevchenkoYev",
       "assignedRoom": "MHMC DS 09",
-      "timeCategory": "3p"
+      "notes": "preC1"
     },
     {
       "id": "late_3_1791587633591",
       "name": "HOLTON",
-      "role": "CRNA",
+      "timeCategory": "3p",
       "orderIndex": 3,
-      "qgendaAbbr": "HoltonJac",
       "orderNumber": 220,
-      "assignedRoom": "Village OR2",
-      "timeCategory": "3p"
+      "role": "CRNA",
+      "qgendaAbbr": "HoltonJac",
+      "assignedRoom": "Village OR2"
     },
     {
       "id": "late_4_1791587633591",
       "name": "HUGHES",
-      "role": "CRNA",
+      "timeCategory": "3p",
       "orderIndex": 4,
-      "qgendaAbbr": "HughesAbi",
       "orderNumber": 221,
-      "assignedRoom": "MHMC Ortho4",
-      "timeCategory": "3p"
+      "role": "CRNA",
+      "qgendaAbbr": "HughesAbi",
+      "assignedRoom": "MHMC Ortho4"
     },
     {
       "id": "late_5_1791587633591",
       "name": "MATEO",
-      "role": "CRNA",
+      "timeCategory": "3p",
       "orderIndex": 5,
-      "qgendaAbbr": "MateoCar",
       "orderNumber": 234,
-      "assignedRoom": "MHMC Ortho7",
-      "timeCategory": "3p"
+      "role": "CRNA",
+      "qgendaAbbr": "MateoCar",
+      "assignedRoom": "MHMC Ortho7"
     },
     {
       "id": "late_6_1791587633591",
       "name": "MOODY",
-      "role": "CRNA",
+      "timeCategory": "3p",
       "orderIndex": 6,
-      "qgendaAbbr": "MoodyMat",
       "orderNumber": 239,
-      "assignedRoom": "MHMC OR8",
-      "timeCategory": "3p"
+      "role": "CRNA",
+      "qgendaAbbr": "MoodyMat",
+      "assignedRoom": "MHMC OR8"
     },
     {
       "id": "late_7_1791587633591",
       "name": "SIM",
-      "role": "CRNA",
+      "timeCategory": "3p",
       "orderIndex": 7,
-      "qgendaAbbr": "SimJul",
       "orderNumber": 256,
-      "assignedRoom": "Village OR6",
-      "timeCategory": "3p"
+      "role": "CRNA",
+      "qgendaAbbr": "SimJul",
+      "assignedRoom": "Village OR6"
     },
     {
       "id": "late_8_1791587633591",
       "name": "SPEARS",
-      "role": "CRNA",
+      "timeCategory": "3p",
       "orderIndex": 8,
-      "qgendaAbbr": "SpearsAll",
       "orderNumber": 259,
-      "assignedRoom": "MHMC OR6",
-      "timeCategory": "3p"
+      "role": "CRNA",
+      "qgendaAbbr": "SpearsAll",
+      "assignedRoom": "MHMC OR6"
     },
     {
       "id": "late_9_1791587633591",
       "name": "TOWNE",
-      "role": "CRNA",
+      "timeCategory": "3p",
       "orderIndex": 9,
-      "qgendaAbbr": "TowneChr",
       "orderNumber": 267,
-      "assignedRoom": "Village OR5",
-      "timeCategory": "3p"
+      "role": "CRNA",
+      "qgendaAbbr": "TowneChr",
+      "assignedRoom": "Village OR5"
     },
     {
       "id": "late_10_1791587633591",
       "name": "YI",
-      "role": "CRNA",
+      "timeCategory": "3p",
       "orderIndex": 10,
-      "qgendaAbbr": "YiAle",
       "orderNumber": 278,
-      "assignedRoom": "MHMC Endo3",
-      "timeCategory": "3p"
+      "role": "CRNA",
+      "qgendaAbbr": "YiAle",
+      "assignedRoom": "MHMC Endo3"
     },
     {
       "id": "late_11_1791587633591",
       "name": "CHUAN",
-      "role": "MD",
+      "timeCategory": "4p",
       "orderIndex": 11,
-      "qgendaAbbr": "ChuanJos",
       "orderNumber": 141,
-      "assignedRoom": "MHMC MRI, MHMC DS 01, MHMC Endo1, MHMC Endo3",
-      "timeCategory": "4p"
+      "role": "MD",
+      "qgendaAbbr": "ChuanJos",
+      "assignedRoom": "MHMC MRI, MHMC DS 01, MHMC Endo1, MHMC Endo3"
     },
     {
       "id": "late_12_1791587633591",
       "name": "BAERENSTECHE",
-      "role": "MD",
+      "timeCategory": "5p",
       "orderIndex": 12,
-      "qgendaAbbr": "BaerenstecheJoh",
       "orderNumber": 163,
-      "assignedRoom": "MHMC OB2",
-      "timeCategory": "5p"
+      "role": "MD",
+      "qgendaAbbr": "BaerenstecheJoh",
+      "assignedRoom": "MHMC OB2"
     },
     {
       "id": "late_13_1791587633591",
       "name": "HIRSCH",
-      "role": "MD",
+      "timeCategory": "5p",
       "orderIndex": 13,
-      "qgendaAbbr": "HirschDou",
       "orderNumber": 127,
-      "assignedRoom": "Village OR2, Village OR5, Village OR6",
-      "timeCategory": "5p"
+      "role": "MD",
+      "qgendaAbbr": "HirschDou",
+      "assignedRoom": "Village OR2, Village OR5, Village OR6"
     },
     {
       "id": "late_14_1791587633591",
       "name": "MCGUIRE",
-      "role": "CRNA",
+      "timeCategory": "5p",
       "orderIndex": 14,
-      "qgendaAbbr": "McGuireMeg",
       "orderNumber": 307,
-      "assignedRoom": "MHMC DS 01",
-      "timeCategory": "5p"
+      "role": "CRNA",
+      "qgendaAbbr": "McGuireMeg",
+      "assignedRoom": "MHMC DS 01"
     },
     {
       "id": "late_15_1791587633591",
       "name": "NGUYEN",
-      "role": "CRNA",
+      "timeCategory": "5p",
       "orderIndex": 15,
-      "qgendaAbbr": "NguyenKat",
       "orderNumber": 316,
-      "assignedRoom": "MHMC OB2",
-      "timeCategory": "5p"
+      "role": "CRNA",
+      "qgendaAbbr": "NguyenKat",
+      "assignedRoom": "MHMC OB2"
     },
     {
       "id": "late_16_1791587633591",
       "name": "WALKER",
-      "role": "CRNA",
+      "timeCategory": "5p",
       "orderIndex": 16,
-      "qgendaAbbr": "WalkerNes",
       "orderNumber": 330,
-      "assignedRoom": "MHMC OR10",
-      "timeCategory": "5p"
+      "role": "CRNA",
+      "qgendaAbbr": "WalkerNes",
+      "assignedRoom": "MHMC OR10"
     },
     {
       "id": "late_17_1791587633591",
       "name": "BEARD",
-      "role": "CRNA",
+      "timeCategory": "8p",
       "orderIndex": 17,
-      "qgendaAbbr": "BeardEri",
       "orderNumber": 343,
-      "assignedRoom": "MHMC MRI",
-      "timeCategory": "8p"
+      "role": "CRNA",
+      "qgendaAbbr": "BeardEri",
+      "assignedRoom": "MHMC MRI"
     },
     {
       "id": "late_18_1791587633591",
       "name": "TRAN",
-      "role": "CRNA",
+      "timeCategory": "8p",
       "orderIndex": 18,
-      "qgendaAbbr": "TranTon",
       "orderNumber": 350,
-      "assignedRoom": "MHMC OR7",
-      "timeCategory": "8p"
+      "role": "CRNA",
+      "qgendaAbbr": "TranTon",
+      "assignedRoom": "MHMC OR7"
     },
     {
       "id": "late_19_1791587633591",
       "name": "FLEMMING",
-      "role": "CRNA",
+      "timeCategory": "7p-7a",
       "orderIndex": 19,
-      "qgendaAbbr": "FlemmingCin",
       "orderNumber": 415,
-      "timeCategory": "7p-7a"
+      "role": "CRNA",
+      "qgendaAbbr": "FlemmingCin"
     },
     {
       "id": "late_20_1791587633591",
       "name": "PATEL J.",
-      "role": "CRNA",
-      "notes": "24h (8h+L1+OB)",
-      "orderIndex": 20,
-      "qgendaAbbr": "PatelJin",
-      "orderNumber": 393,
-      "assignedRoom": "MHMC Ortho3",
       "timeCategory": "24h",
-      "timeEstimate": "24h"
+      "orderIndex": 20,
+      "orderNumber": 393,
+      "role": "CRNA",
+      "qgendaAbbr": "PatelJin",
+      "assignedRoom": "MHMC Ortho3",
+      "timeEstimate": "24h",
+      "notes": "24h (8h+L1+OB)"
     }
   ],
   "roomNotes": {},
@@ -2815,41 +2815,41 @@
       "id": "call_0_1791587633591",
       "role": "CV",
       "doctorName": "CHOI",
-      "orderIndex": 0,
       "qgendaAbbr": "ChoiSeu",
-      "orderNumber": 205
+      "orderNumber": 205,
+      "orderIndex": 0
     },
     {
       "id": "call_1_1791587633591",
       "role": "Call 3",
       "doctorName": "BERNELL",
-      "orderIndex": 1,
       "qgendaAbbr": "BernellMic",
-      "orderNumber": 208
+      "orderNumber": 208,
+      "orderIndex": 1
     },
     {
       "id": "call_2_1791587633591",
       "role": "Call 2",
       "doctorName": "SHENOY",
-      "orderIndex": 2,
       "qgendaAbbr": "ShenoyVik",
-      "orderNumber": 210
+      "orderNumber": 210,
+      "orderIndex": 2
     },
     {
       "id": "call_3_1791587633591",
       "role": "Call 1",
       "doctorName": "MARTINEZ",
-      "orderIndex": 3,
       "qgendaAbbr": "MartinezRog",
-      "orderNumber": 228
+      "orderNumber": 228,
+      "orderIndex": 3
     },
     {
       "id": "call_4_1791587633591",
       "role": "OB",
       "doctorName": "MARTINEZ",
-      "orderIndex": 4,
       "qgendaAbbr": "MartinezRog",
-      "orderNumber": 228
+      "orderNumber": 228,
+      "orderIndex": 4
     }
   ],
   "layoutConfig": {
@@ -2951,71 +2951,71 @@
     {
       "id": "dep_post_0_1791587633591",
       "name": "CHANG",
-      "category": "post_call",
       "orderIndex": 0,
-      "qgendaAbbr": "ChangAle",
+      "category": "post_call",
+      "timeEstimate": "postC2",
       "orderNumber": 105,
-      "assignedRoom": "MHMC NeuroIR",
-      "timeEstimate": "postC2"
+      "qgendaAbbr": "ChangAle",
+      "assignedRoom": "MHMC NeuroIR"
     },
     {
       "id": "dep_post_1_1791587633591",
       "name": "LU",
-      "category": "post_call",
       "orderIndex": 1,
-      "qgendaAbbr": "LuKey",
+      "category": "post_call",
+      "timeEstimate": "postC3",
       "orderNumber": 108,
-      "assignedRoom": "MHMC DS 02",
-      "timeEstimate": "postC3"
+      "qgendaAbbr": "LuKey",
+      "assignedRoom": "MHMC DS 02"
     },
     {
       "id": "dep_post_2_1791587633591",
       "name": "SHIRAK",
-      "category": "post_call",
       "orderIndex": 2,
-      "qgendaAbbr": "ShirakMic",
+      "category": "post_call",
+      "timeEstimate": "postCV",
       "orderNumber": 111,
-      "assignedRoom": "MHMC OR3",
-      "timeEstimate": "postCV"
+      "qgendaAbbr": "ShirakMic",
+      "assignedRoom": "MHMC OR3"
     },
     {
       "id": "dep_post_3_1791587633591",
       "name": "CHEN",
-      "category": "post_call",
       "orderIndex": 3,
-      "qgendaAbbr": "ChenKev",
+      "category": "post_call",
+      "timeEstimate": "postCV",
       "orderNumber": 113,
-      "assignedRoom": "MHMC IR, MHMC TEE",
-      "timeEstimate": "postCV"
+      "qgendaAbbr": "ChenKev",
+      "assignedRoom": "MHMC IR, MHMC TEE"
     },
     {
       "id": "dep_non_0_1791587633591",
       "name": "CAVANAUGH",
-      "category": "non_call",
       "orderIndex": 4,
-      "qgendaAbbr": "CavanaughMar",
+      "category": "non_call",
+      "timeEstimate": "preC3,preOB",
       "orderNumber": 118,
-      "assignedRoom": "MHMC Ortho3, MHMC Ortho4, MHMC Ortho7, MHMC Ortho8",
-      "timeEstimate": "preC3,preOB"
+      "qgendaAbbr": "CavanaughMar",
+      "assignedRoom": "MHMC Ortho3, MHMC Ortho4, MHMC Ortho7, MHMC Ortho8"
     },
     {
       "id": "dep_non_1_1791587633591",
       "name": "GASHLER",
-      "category": "non_call",
       "orderIndex": 5,
-      "qgendaAbbr": "GashlerKyl",
+      "category": "non_call",
       "orderNumber": 186,
+      "qgendaAbbr": "GashlerKyl",
       "assignedRoom": "MHMC DS 07"
     },
     {
       "id": "dep_non_2_1791587633591",
       "name": "TALLACKSON",
-      "category": "non_call",
       "orderIndex": 6,
-      "qgendaAbbr": "TallacksonDon",
+      "category": "non_call",
+      "timeEstimate": "C1",
       "orderNumber": 213,
-      "assignedRoom": "Houston IVF",
-      "timeEstimate": "C1"
+      "qgendaAbbr": "TallacksonDon",
+      "assignedRoom": "Houston IVF"
     }
   ],
   "scraperConfig": {

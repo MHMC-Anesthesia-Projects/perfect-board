@@ -368,6 +368,23 @@
     "details": "Daily 1:00 AM reset: Cleared breakfast and lunch break completion for all rooms, runners, and bullpen staff"
   },
   {
+    "id": "audit_1791587633592_gsvlw",
+    "timestamp": "2026-10-09T23:13:53.592Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1791587609460_rvn2t",
+    "timestamp": "2026-10-09T23:13:29.460Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "John Baerenstecher",
+    "details": "Updated details: MD, Phone: (713) 805-2335, Active: true"
+  },
+  {
     "id": "audit_1791585920476_rlo6v",
     "timestamp": "2026-10-09T22:45:20.476Z",
     "actionType": "NOTE_UPDATED",
@@ -375,6 +392,14 @@
     "userRole": "superuser",
     "locationName": "WEST PAV Room 9",
     "details": "Updated Room 9 note: \"mnbv\""
+  },
+  {
+    "id": "audit_1791585775879_ijtn8",
+    "timestamp": "2026-10-09T22:42:55.880Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
   },
   {
     "id": "audit_1791582812648_2qmtr",
@@ -615,6 +640,400 @@
     "userRole": "superuser",
     "locationName": "MAIN OR Room 1",
     "details": "Updated Room 1 note: \"LATEX ALLERGY\""
+  },
+  {
+    "id": "audit_1791573775878_l2xat",
+    "timestamp": "2026-10-09T19:22:55.878Z",
+    "actionType": "DEPARTURE_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Updated departure, call team, or late staff ordering",
+    "metadata": {
+      "previousDepartureList": [
+        {
+          "id": "dep_post_0_1791573598793",
+          "name": "CHANG",
+          "category": "post_call",
+          "orderIndex": 0,
+          "qgendaAbbr": "ChangAle",
+          "orderNumber": 106,
+          "assignedRoom": "MHMC NeuroIR",
+          "timeEstimate": "postC2"
+        },
+        {
+          "id": "dep_post_1_1791573598793",
+          "name": "LU",
+          "category": "post_call",
+          "orderIndex": 1,
+          "qgendaAbbr": "LuKey",
+          "orderNumber": 109,
+          "assignedRoom": "MHMC DS 02",
+          "timeEstimate": "postC3"
+        },
+        {
+          "id": "dep_post_2_1791573598793",
+          "name": "SHIRAK",
+          "category": "post_call",
+          "orderIndex": 2,
+          "qgendaAbbr": "ShirakMic",
+          "orderNumber": 112,
+          "assignedRoom": "MHMC OR3",
+          "timeEstimate": "postCV"
+        },
+        {
+          "id": "dep_non_0_1791573598793",
+          "name": "CAVANAUGH",
+          "category": "non_call",
+          "orderIndex": 3,
+          "qgendaAbbr": "CavanaughMar",
+          "orderNumber": 118,
+          "assignedRoom": "MHMC Ortho3, MHMC Ortho4, MHMC Ortho7, MHMC Ortho8",
+          "timeEstimate": "preC3,preOB"
+        },
+        {
+          "id": "dep_non_1_1791573598793",
+          "name": "SHEVCHENKO",
+          "category": "non_call",
+          "orderIndex": 4,
+          "qgendaAbbr": "ShevchenkoYev",
+          "orderNumber": 121,
+          "assignedRoom": "MHMC DS 09",
+          "timeEstimate": "preC1"
+        },
+        {
+          "id": "dep_non_2_1791573598793",
+          "name": "CHEN",
+          "category": "non_call",
+          "orderIndex": 5,
+          "qgendaAbbr": "ChenKev",
+          "orderNumber": 175,
+          "assignedRoom": "MHMC IR, MHMC TEE"
+        },
+        {
+          "id": "dep_non_3_1791573598793",
+          "name": "GASHLER",
+          "category": "non_call",
+          "orderIndex": 6,
+          "qgendaAbbr": "GashlerKyl",
+          "orderNumber": 185,
+          "assignedRoom": "MHMC DS 07"
+        },
+        {
+          "id": "dep_non_4_1791573598793",
+          "name": "TALLACKSON",
+          "category": "non_call",
+          "orderIndex": 7,
+          "qgendaAbbr": "TallacksonDon",
+          "orderNumber": 215,
+          "assignedRoom": "Houston IVF",
+          "timeEstimate": "C1"
+        }
+      ],
+      "previousLatesList": [
+        {
+          "id": "late_0_1791573598793",
+          "name": "GUNN",
+          "role": "MD",
+          "orderIndex": 0,
+          "qgendaAbbr": "GunnCli",
+          "orderNumber": 173,
+          "assignedRoom": "MHMC DS 05",
+          "timeCategory": "3p"
+        },
+        {
+          "id": "late_1_1791573598793",
+          "name": "JEFFCOAT",
+          "role": "MD",
+          "orderIndex": 1,
+          "qgendaAbbr": "JeffcoatShe",
+          "orderNumber": 142,
+          "assignedRoom": "Village OR4, Village Proc2",
+          "timeCategory": "3p"
+        },
+        {
+          "id": "late_2_1791573598793",
+          "name": "HOLTON",
+          "role": "CRNA",
+          "orderIndex": 2,
+          "qgendaAbbr": "HoltonJac",
+          "orderNumber": 220,
+          "assignedRoom": "Village OR2",
+          "timeCategory": "3p"
+        },
+        {
+          "id": "late_3_1791573598793",
+          "name": "HUGHES",
+          "role": "CRNA",
+          "orderIndex": 3,
+          "qgendaAbbr": "HughesAbi",
+          "orderNumber": 221,
+          "assignedRoom": "MHMC Ortho4",
+          "timeCategory": "3p"
+        },
+        {
+          "id": "late_4_1791573598793",
+          "name": "MOODY",
+          "role": "CRNA",
+          "orderIndex": 4,
+          "qgendaAbbr": "MoodyMat",
+          "orderNumber": 243,
+          "assignedRoom": "MHMC OR8",
+          "timeCategory": "3p"
+        },
+        {
+          "id": "late_5_1791573598793",
+          "name": "SIM",
+          "role": "CRNA",
+          "orderIndex": 5,
+          "qgendaAbbr": "SimJul",
+          "orderNumber": 259,
+          "assignedRoom": "Village OR6",
+          "timeCategory": "3p"
+        },
+        {
+          "id": "late_6_1791573598793",
+          "name": "SPEARS",
+          "role": "CRNA",
+          "orderIndex": 6,
+          "qgendaAbbr": "SpearsAll",
+          "orderNumber": 262,
+          "assignedRoom": "MHMC OR6",
+          "timeCategory": "3p"
+        },
+        {
+          "id": "late_7_1791573598793",
+          "name": "TOWNE",
+          "role": "CRNA",
+          "orderIndex": 7,
+          "qgendaAbbr": "TowneChr",
+          "orderNumber": 271,
+          "assignedRoom": "Village OR5",
+          "timeCategory": "3p"
+        },
+        {
+          "id": "late_8_1791573598793",
+          "name": "CHUAN",
+          "role": "MD",
+          "orderIndex": 8,
+          "qgendaAbbr": "ChuanJos",
+          "orderNumber": 133,
+          "assignedRoom": "MHMC MRI, MHMC DS 01, MHMC Endo1, MHMC Endo3",
+          "timeCategory": "4p"
+        },
+        {
+          "id": "late_9_1791573598793",
+          "name": "BAERENSTECHE",
+          "role": "MD",
+          "orderIndex": 9,
+          "qgendaAbbr": "BaerenstecheJoh",
+          "orderNumber": 155,
+          "assignedRoom": "MHMC OB2",
+          "timeCategory": "5p"
+        },
+        {
+          "id": "late_10_1791573598793",
+          "name": "HIRSCH",
+          "role": "MD",
+          "orderIndex": 10,
+          "qgendaAbbr": "HirschDou",
+          "orderNumber": 181,
+          "assignedRoom": "Village OR2, Village OR5, Village OR6",
+          "timeCategory": "5p"
+        },
+        {
+          "id": "late_11_1791573598793",
+          "name": "MCGUIRE",
+          "role": "CRNA",
+          "orderIndex": 11,
+          "qgendaAbbr": "McGuireMeg",
+          "orderNumber": 311,
+          "assignedRoom": "MHMC DS 01",
+          "timeCategory": "5p"
+        },
+        {
+          "id": "late_12_1791573598793",
+          "name": "NGUYEN",
+          "role": "CRNA",
+          "orderIndex": 12,
+          "qgendaAbbr": "NguyenKat",
+          "orderNumber": 320,
+          "assignedRoom": "MHMC OB2",
+          "timeCategory": "5p"
+        },
+        {
+          "id": "late_13_1791573598793",
+          "name": "WALKER",
+          "role": "CRNA",
+          "orderIndex": 13,
+          "qgendaAbbr": "WalkerNes",
+          "orderNumber": 335,
+          "assignedRoom": "MHMC OR10",
+          "timeCategory": "5p"
+        },
+        {
+          "id": "late_14_1791573598793",
+          "name": "PATEL",
+          "role": "CRNA",
+          "notes": "L1",
+          "orderIndex": 14,
+          "qgendaAbbr": "PatelJin",
+          "orderNumber": 112,
+          "assignedRoom": "MHMC Ortho3",
+          "timeCategory": "7p"
+        },
+        {
+          "id": "late_15_1791573598793",
+          "name": "BEARD",
+          "role": "CRNA",
+          "orderIndex": 15,
+          "qgendaAbbr": "BeardEri",
+          "orderNumber": 348,
+          "assignedRoom": "MHMC MRI",
+          "timeCategory": "8p"
+        },
+        {
+          "id": "late_16_1791573598793",
+          "name": "TRAN",
+          "role": "CRNA",
+          "orderIndex": 16,
+          "qgendaAbbr": "TranTon",
+          "orderNumber": 355,
+          "assignedRoom": "MHMC OR7",
+          "timeCategory": "8p"
+        },
+        {
+          "id": "late_17_1791573598793",
+          "name": "FLEMMING",
+          "role": "CRNA",
+          "orderIndex": 17,
+          "qgendaAbbr": "FlemmingCin",
+          "orderNumber": 415,
+          "timeCategory": "7p-7a"
+        }
+      ],
+      "previousCallTeamList": [
+        {
+          "id": "call_0_1791573598793",
+          "role": "CV",
+          "doctorName": "CHOI",
+          "orderIndex": 0,
+          "qgendaAbbr": "ChoiSeu",
+          "orderNumber": 207
+        },
+        {
+          "id": "call_1_1791573598793",
+          "role": "Call 3",
+          "doctorName": "BERNELL",
+          "orderIndex": 1,
+          "qgendaAbbr": "BernellMic",
+          "orderNumber": 210
+        },
+        {
+          "id": "call_2_1791573598793",
+          "role": "Call 2",
+          "doctorName": "SHENOY",
+          "orderIndex": 2,
+          "qgendaAbbr": "ShenoyVik",
+          "orderNumber": 212
+        },
+        {
+          "id": "call_3_1791573598793",
+          "role": "Call 1",
+          "doctorName": "MARTINEZ",
+          "orderIndex": 3,
+          "qgendaAbbr": "MartinezRog",
+          "orderNumber": 77
+        },
+        {
+          "id": "call_4_1791573598793",
+          "role": "OB",
+          "doctorName": "MARTINEZ",
+          "orderIndex": 4,
+          "qgendaAbbr": "MartinezRog",
+          "orderNumber": 77
+        }
+      ]
+    }
+  },
+  {
+    "id": "audit_1791573559503_6eh1d",
+    "timestamp": "2026-10-09T19:19:19.503Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Altered department layout, order, and board architecture"
+  },
+  {
+    "id": "audit_1791573540373_vksxg",
+    "timestamp": "2026-10-09T19:19:00.373Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Altered department layout, order, and board architecture"
+  },
+  {
+    "id": "audit_1791573527088_n2enc",
+    "timestamp": "2026-10-09T19:18:47.088Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Altered department layout, order, and board architecture"
+  },
+  {
+    "id": "audit_1791573521523_jmae3",
+    "timestamp": "2026-10-09T19:18:41.523Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Altered department layout, order, and board architecture"
+  },
+  {
+    "id": "audit_1791573218016_p64zc",
+    "timestamp": "2026-10-09T19:13:38.016Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Altered department layout, order, and board architecture"
+  },
+  {
+    "id": "audit_1791573188098_vybp1",
+    "timestamp": "2026-10-09T19:13:08.098Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Altered department layout, order, and board architecture"
+  },
+  {
+    "id": "audit_1791573186187_c9qq5",
+    "timestamp": "2026-10-09T19:13:06.187Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Altered department layout, order, and board architecture"
+  },
+  {
+    "id": "audit_1791573166500_cn22l",
+    "timestamp": "2026-10-09T19:12:46.500Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Altered department layout, order, and board architecture"
+  },
+  {
+    "id": "audit_1791573162765_7cvoh",
+    "timestamp": "2026-10-09T19:12:42.765Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Altered department layout, order, and board architecture"
+  },
+  {
+    "id": "audit_1791573146523_b81ki",
+    "timestamp": "2026-10-09T19:12:26.523Z",
+    "actionType": "LAYOUT_CHANGED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Altered department layout, order, and board architecture"
   },
   {
     "id": "audit_1791572812281_ug89v",
