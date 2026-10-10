@@ -2421,7 +2421,7 @@ button {
 }
 
 .mobile-brand-title {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 900;
   letter-spacing: 0.5px;
   line-height: 1.05;
@@ -2430,8 +2430,8 @@ button {
 .mobile-sync-status {
   display: flex;
   align-items: center;
-  gap: 3px;
-  font-size: 9px;
+  gap: 4px;
+  font-size: 10px;
   font-weight: 800;
   color: #10b981;
   line-height: 1.1;
@@ -2439,11 +2439,11 @@ button {
 }
 
 .mobile-pulse-dot {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: #10b981;
-  box-shadow: 0 0 5px #10b981;
+  box-shadow: 0 0 6px #10b981;
   animation: mobile-pulse 2s infinite ease-in-out;
 }
 
