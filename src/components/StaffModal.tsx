@@ -127,6 +127,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   const [isPagingExpanded, setIsPagingExpanded] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const pagingAccordionRef = useRef<HTMLDivElement>(null);
 
   // Auto-expand paging section ONLY if there are active unread incoming messages
   useEffect(() => {
@@ -134,6 +135,16 @@ export const StaffModal: React.FC<StaffModalProps> = ({
       setIsPagingExpanded(true);
     }
   }, [unreadCount]);
+
+  // Smooth scroll into view when paging section is expanded so all controls are exposed
+  useEffect(() => {
+    if (isPagingExpanded && pagingAccordionRef.current) {
+      const timer = setTimeout(() => {
+        pagingAccordionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 120);
+      return () => clearTimeout(timer);
+    }
+  }, [isPagingExpanded]);
 
   const fetchMessagingStatus = async (phone?: string) => {
     setIsLoadingChat(true);
@@ -470,11 +481,12 @@ export const StaffModal: React.FC<StaffModalProps> = ({
           flex: '1 1 auto',
           minHeight: 0,
           overflowY: 'auto',
-          padding: '16px 20px 24px 20px',
-          display: 'flex',
-          flexDirection: 'column',
+          overflowX: 'hidden',
+          padding: '16px 20px 32px 20px',
+          display: 'block',
           WebkitOverflowScrolling: 'touch',
-          overscrollBehavior: 'contain'
+          overscrollBehavior: 'contain',
+          touchAction: 'pan-y'
         }}>
 
         {/* Contact & Shift Info */}
@@ -1776,14 +1788,17 @@ export const StaffModal: React.FC<StaffModalProps> = ({
             PERFECT CALL INTERNAL CLINICIAN PAGING & MESSAGING (Collapsible Accordion)
             ========================================================================== */}
         {messagingEnabled && (
-          <div style={{
-            background: 'var(--surface-card)',
-            borderRadius: 8,
-            border: '1.5px solid rgba(16, 185, 129, 0.35)',
-            marginTop: 14,
-            marginBottom: 8,
-            overflow: 'hidden'
-          }}>
+          <div
+            ref={pagingAccordionRef}
+            style={{
+              background: 'var(--surface-card)',
+              borderRadius: 8,
+              border: '1.5px solid rgba(16, 185, 129, 0.35)',
+              marginTop: 14,
+              marginBottom: 8,
+              overflow: 'hidden'
+            }}
+          >
             {/* Header Accordion Bar */}
             <div
               onClick={() => setIsPagingExpanded(prev => !prev)}
