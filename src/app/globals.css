@@ -18,6 +18,14 @@
   --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Hide native Edge/IE clear buttons on text inputs to avoid unexpected surprise X */
+input::-ms-clear,
+input::-ms-reveal {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 /* 1. PHYSICAL WHITEBOARD THEME (Default - Exact Real Twin) */
 /* 1. PHYSICAL WHITEBOARD THEME (Elevated Surgical Command Center) */
 [data-theme='whiteboard'] {
@@ -550,32 +558,33 @@ button {
 }
 
 .magnet-hover-note-clear {
-  color: rgba(255, 255, 255, 0.7);
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.28);
   font-size: 11px;
-  font-weight: 700;
-  background: transparent;
-  border: none;
+  font-weight: 800;
   cursor: pointer;
-  padding: 0 4px;
-  height: 18px;
-  min-width: 18px;
+  padding: 0;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
+  border-radius: 4px;
   transition: all 0.15s ease;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .magnet-hover-note-clear:hover {
   color: #fff;
-  background: rgba(239, 68, 68, 0.65);
+  background: #ef4444;
 }
 
 .magnet-hover-note-count {
   font-size: 8.5px;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-muted, #64748b);
   font-family: var(--font-mono);
   flex-shrink: 0;
 }
@@ -745,36 +754,39 @@ button {
 }
 
 .room-hover-note-clear {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--marker-blue, #0284c7);
+  background: rgba(2, 132, 199, 0.12);
+  border: 1px solid rgba(2, 132, 199, 0.28);
   font-size: 11px;
-  font-weight: 700;
-  background: transparent;
-  border: none;
+  font-weight: 800;
   cursor: pointer;
-  padding: 0 4px;
-  height: 18px;
-  min-width: 18px;
+  padding: 0;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
+  border-radius: 4px;
   transition: all 0.15s ease;
   line-height: 1;
+  flex-shrink: 0;
+}
+
+[data-theme='dark'] .room-hover-note-clear {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.4);
 }
 
 .room-hover-note-clear:hover {
   color: #fff;
-  background: rgba(2, 132, 199, 0.65);
-}
-
-[data-theme='dark'] .room-hover-note-clear:hover {
-  background: rgba(56, 189, 248, 0.65);
+  background: var(--marker-blue, #0284c7);
 }
 
 .room-hover-note-count {
   font-size: 8.5px;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-muted, #64748b);
   font-family: var(--font-mono, monospace);
   flex-shrink: 0;
 }

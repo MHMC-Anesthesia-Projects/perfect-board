@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { UserRole } from '@/types/whiteboard';
 import { 
   Sun, Moon, Shield, Lock, LogIn, LogOut, 
   RotateCw, FileSpreadsheet, Settings, 
   Keyboard, Clock, CheckCircle2, Mic, Sparkles,
   Smartphone, Eraser, MessageSquare, CheckCheck, Undo2, FileText,
-  Maximize, Minimize 
+  Maximize, Minimize, ChevronDown, Zap
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -80,6 +80,31 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   const [currentTime, setCurrentTime] = useState<string>('');
   const [currentDate, setCurrentDate] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close Action dropdown when clicking outside or pressing Escape
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
+        setIsActionMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsActionMenuOpen(false);
+      }
+    };
+
+    if (isActionMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isActionMenuOpen]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -311,102 +336,351 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
 
       {/* Right Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {/* Scraper Sync Button (Board Runner & Superuser only) */}
+        {/* Unified "Action" Dropdown Menu (Board Runner, Admin & Superuser) */}
         {isEditor && (
-          <button
-            onClick={onTriggerSync}
-            disabled={isSyncing}
-            title={lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString()}` : 'Sync'}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 6,
-              background: 'var(--surface-hover)',
-              border: '1px solid var(--border-light)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 12,
-              fontWeight: 700,
-              color: 'var(--text-primary)'
-            }}
-          >
-            <RotateCw size={14} className={isSyncing ? 'spin-animation' : ''} />
-            <span>{isSyncing ? 'Syncing...' : 'Sync'}</span>
-          </button>
-        )}
+          <div ref={actionMenuRef} style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setIsActionMenuOpen(prev => !prev)}
+              title="Board Runner & Admin Action Menu"
+              style={{
+                padding: '6px 12px',
+                borderRadius: 6,
+                background: isActionMenuOpen ? 'var(--surface-active, rgba(9, 105, 218, 0.12))' : 'var(--surface-hover)',
+                border: isActionMenuOpen ? '1px solid var(--accent-border, #0969da)' : '1px solid var(--border-light)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 12,
+                fontWeight: 800,
+                color: isActionMenuOpen ? 'var(--accent-primary, #0969da)' : 'var(--text-primary)',
+                cursor: 'pointer',
+                boxShadow: isActionMenuOpen ? '0 0 0 2px rgba(9, 105, 218, 0.15)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Zap size={14} style={{ color: 'var(--accent-primary)' }} />
+              <span>Action</span>
+              {(isSyncing || isAutoAssigning || isCompletingRelief) && (
+                <RotateCw size={12} className="spin-animation" style={{ color: 'var(--accent-primary)' }} />
+              )}
+              {reliefCount > 0 && !isCompletingRelief && (
+                <span
+                  style={{
+                    background: 'var(--marker-red, #dc2626)',
+                    color: '#fff',
+                    fontSize: 10,
+                    fontWeight: 900,
+                    padding: '1px 5px',
+                    borderRadius: 10,
+                    lineHeight: 1.1
+                  }}
+                  title={`${reliefCount} pending relief handoffs`}
+                >
+                  {reliefCount}
+                </span>
+              )}
+              <ChevronDown
+                size={13}
+                style={{
+                  transform: isActionMenuOpen ? 'rotate(180deg)' : 'none',
+                  transition: 'transform 0.2s ease',
+                  color: 'var(--text-secondary)'
+                }}
+              />
+            </button>
 
-        {/* Auto-Assign Magnets Button (Board Runner & Superuser only) */}
-        {onAutoAssign && isEditor && (
-          <button
-            onClick={onAutoAssign}
-            disabled={isAutoAssigning}
-            title="Auto-assign staff magnets to department rooms and runner slots based on portal schedule"
-            style={{
-              padding: '6px 12px',
-              borderRadius: 6,
-              background: 'var(--surface-hover)',
-              border: '1px solid var(--border-light)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 12,
-              fontWeight: 700,
-              color: 'var(--accent-primary)',
-              cursor: isAutoAssigning ? 'not-allowed' : 'pointer'
-            }}
-          >
-            <Sparkles size={14} className={isAutoAssigning ? 'spin-animation' : ''} />
-            <span>{isAutoAssigning ? 'Assigning...' : 'Auto-Assign'}</span>
-          </button>
-        )}
+            {isActionMenuOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  right: 0,
+                  zIndex: 1000,
+                  width: 270,
+                  background: 'var(--surface-card, #ffffff)',
+                  border: '1px solid var(--border-light)',
+                  borderRadius: 10,
+                  boxShadow: '0 14px 36px rgba(0, 0, 0, 0.25)',
+                  padding: '6px',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                <div style={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.6,
+                  color: 'var(--text-muted)',
+                  padding: '6px 10px 4px 10px'
+                }}>
+                  Portal & Automations
+                </div>
 
-        {/* Clean Whiteboard / Reset for Today Button (Board Runner & Superuser) */}
-        {onCleanWhiteboard && isEditor && (
-          <button
-            onClick={onCleanWhiteboard}
-            title="Clean Whiteboard: Clear all room and runner magnets to start a fresh day"
-            style={{
-              padding: '6px 12px',
-              borderRadius: 6,
-              background: 'var(--surface-hover)',
-              border: '1px solid var(--border-light)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 12,
-              fontWeight: 700,
-              color: 'var(--text-secondary)',
-              cursor: 'pointer'
-            }}
-          >
-            <Eraser size={14} />
-            <span>Clean Board</span>
-          </button>
-        )}
+                {/* 1. Sync */}
+                <button
+                  type="button"
+                  className="action-dropdown-item"
+                  disabled={isSyncing}
+                  onClick={() => {
+                    onTriggerSync();
+                    setIsActionMenuOpen(false);
+                  }}
+                  title={lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString()}` : 'Sync portal data'}
+                >
+                  <div className="action-item-icon">
+                    <RotateCw size={14} className={isSyncing ? 'spin-animation' : ''} style={{ color: 'var(--accent-primary)' }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                      {isSyncing ? 'Syncing...' : 'Sync'}
+                    </div>
+                    <div style={{ fontSize: 10.5, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Refresh portal schedules'}
+                    </div>
+                  </div>
+                </button>
 
-        {/* Clear All Text Notes Button (Board Runner & Admin) */}
-        {onClearAllTextNotes && isEditor && (
-          <button
-            type="button"
-            onClick={onClearAllTextNotes}
-            title="Clear all free text notes on rooms and magnets across the board"
-            style={{
-              padding: '6px 12px',
-              borderRadius: 6,
-              background: 'var(--surface-hover)',
-              border: '1px solid var(--border-light)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 12,
-              fontWeight: 700,
-              color: 'var(--text-secondary)',
-              cursor: 'pointer'
-            }}
-          >
-            <FileText size={14} />
-            <span>Clear All Notes</span>
-          </button>
+                {/* 2. Auto-Assign */}
+                {onAutoAssign && (
+                  <button
+                    type="button"
+                    className="action-dropdown-item"
+                    disabled={isAutoAssigning}
+                    onClick={() => {
+                      onAutoAssign();
+                      setIsActionMenuOpen(false);
+                    }}
+                    title="Auto-assign staff magnets to department rooms and runner slots based on portal schedule"
+                  >
+                    <div className="action-item-icon">
+                      <Sparkles size={14} className={isAutoAssigning ? 'spin-animation' : ''} style={{ color: 'var(--accent-primary)' }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                        {isAutoAssigning ? 'Assigning...' : 'Auto-Assign'}
+                      </div>
+                      <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                        Place magnets from portal roster
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                <div className="action-dropdown-divider" />
+
+                <div style={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.6,
+                  color: 'var(--text-muted)',
+                  padding: '6px 10px 4px 10px'
+                }}>
+                  Relief Coordination
+                </div>
+
+                {/* 3. Relief Assignments */}
+                {onOpenReliefTextModal && (
+                  <button
+                    type="button"
+                    className="action-dropdown-item"
+                    onClick={() => {
+                      onOpenReliefTextModal();
+                      setIsActionMenuOpen(false);
+                    }}
+                    title="Build text thread of everyone in a room, relieving, or running"
+                  >
+                    <div className="action-item-icon">
+                      <MessageSquare size={14} style={{ color: 'var(--marker-red)' }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                        Relief Assignments
+                      </div>
+                      <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                        Group text thread & handoffs
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* 4. Complete Relief */}
+                {onCompleteAllReliefs && (
+                  <button
+                    type="button"
+                    className="action-dropdown-item"
+                    disabled={reliefCount === 0 || isCompletingRelief}
+                    onClick={() => {
+                      onCompleteAllReliefs();
+                      setIsActionMenuOpen(false);
+                    }}
+                    title={reliefCount > 0 ? `Complete all ${reliefCount} relief handoffs and move relief staff into their active slots` : 'No active relief assignments scheduled'}
+                  >
+                    <div className="action-item-icon">
+                      <CheckCheck size={14} className={isCompletingRelief ? 'spin-animation' : ''} style={{ color: reliefCount > 0 ? 'var(--marker-red)' : 'var(--text-muted)' }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 12.5, fontWeight: 700 }}>Complete Relief</span>
+                        {reliefCount > 0 && (
+                          <span style={{
+                            background: 'var(--marker-red)',
+                            color: '#fff',
+                            fontSize: 10,
+                            fontWeight: 800,
+                            padding: '1px 6px',
+                            borderRadius: 10
+                          }}>
+                            {reliefCount}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                        {reliefCount > 0 ? `Move ${reliefCount} relief staff to active` : 'No pending reliefs'}
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                <div className="action-dropdown-divider" />
+
+                <div style={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.6,
+                  color: 'var(--text-muted)',
+                  padding: '6px 10px 4px 10px'
+                }}>
+                  Maintenance & History
+                </div>
+
+                {/* 5. Clear All Notes */}
+                {onClearAllTextNotes && (
+                  <button
+                    type="button"
+                    className="action-dropdown-item"
+                    onClick={() => {
+                      onClearAllTextNotes();
+                      setIsActionMenuOpen(false);
+                    }}
+                    title="Clear all free text notes on rooms and magnets across the board"
+                  >
+                    <div className="action-item-icon">
+                      <FileText size={14} style={{ color: 'var(--text-secondary)' }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                        Clear All Notes
+                      </div>
+                      <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                        Clear room & magnet text notes
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* 6. Clean Board */}
+                {onCleanWhiteboard && (
+                  <button
+                    type="button"
+                    className="action-dropdown-item"
+                    onClick={() => {
+                      onCleanWhiteboard();
+                      setIsActionMenuOpen(false);
+                    }}
+                    title="Clean Whiteboard: Clear all room and runner magnets to start a fresh day"
+                  >
+                    <div className="action-item-icon">
+                      <Eraser size={14} style={{ color: 'var(--text-secondary)' }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                        Clean Board
+                      </div>
+                      <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                        Clear magnets for a fresh day
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* 7. Audit Log */}
+                <button
+                  type="button"
+                  className="action-dropdown-item"
+                  onClick={() => {
+                    onOpenAudit();
+                    setIsActionMenuOpen(false);
+                  }}
+                  title="Open audit ledger and activity history"
+                >
+                  <div className="action-item-icon">
+                    <FileSpreadsheet size={14} style={{ color: 'var(--text-secondary)' }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                      Audit Log
+                    </div>
+                    <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                      Board action history & ledger
+                    </div>
+                  </div>
+                </button>
+
+                {/* 8. Admin Settings (Org Admin level only) */}
+                {(currentUser?.role === 'admin' || currentUser?.role === 'superuser') && (
+                  <>
+                    <div className="action-dropdown-divider" />
+                    <div style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.6,
+                      color: 'var(--text-muted)',
+                      padding: '6px 10px 4px 10px'
+                    }}>
+                      Org Admin
+                    </div>
+                    <button
+                      type="button"
+                      className="action-dropdown-item"
+                      onClick={() => {
+                        onOpenAdmin();
+                        setIsActionMenuOpen(false);
+                      }}
+                      title="Facility Admin Settings & Command Center"
+                    >
+                      <div className="action-item-icon">
+                        <Settings size={14} style={{ color: 'var(--marker-red)' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 12.5, fontWeight: 700 }}>Admin Settings</span>
+                          <span style={{
+                            background: 'rgba(211, 47, 47, 0.12)',
+                            color: 'var(--marker-red)',
+                            border: '1px solid rgba(211, 47, 47, 0.3)',
+                            borderRadius: 4,
+                            fontSize: 9.5,
+                            fontWeight: 800,
+                            padding: '1px 5px'
+                          }}>
+                            Org Admin
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                          Facility setup & permissions
+                        </div>
+                      </div>
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         {/* In-Session Undo Button */}
@@ -438,102 +712,6 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           >
             <Undo2 size={14} />
             <span>Undo{undoCount && undoCount > 0 ? ` (${undoCount})` : ''}</span>
-          </button>
-        )}
-
-
-        {/* Complete All Reliefs Button */}
-        {isEditor && onCompleteAllReliefs && (
-          <button
-            onClick={onCompleteAllReliefs}
-            disabled={reliefCount === 0 || isCompletingRelief}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 6,
-              background: reliefCount > 0 ? 'var(--marker-red, #dc2626)' : 'var(--surface-hover)',
-              border: reliefCount > 0 ? '1.5px solid #b91c1c' : '1px solid var(--border-light)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 12,
-              fontWeight: 800,
-              color: reliefCount > 0 ? '#ffffff' : 'var(--text-muted)',
-              cursor: reliefCount > 0 && !isCompletingRelief ? 'pointer' : 'not-allowed',
-              boxShadow: reliefCount > 0 ? '0 2px 8px rgba(220, 38, 38, 0.35)' : 'none',
-              transition: 'all 0.15s ease'
-            }}
-            title={reliefCount > 0 ? `Complete all ${reliefCount} relief handoffs and move relief staff into their active slots` : 'No active relief assignments scheduled'}
-          >
-            <CheckCheck size={14} className={isCompletingRelief ? 'spin-animation' : ''} />
-            <span>Complete Relief{reliefCount > 0 ? ` (${reliefCount})` : ''}</span>
-          </button>
-        )}
-
-        {/* Relief Assignments Group SMS Button */}
-        {isEditor && onOpenReliefTextModal && (
-          <button
-            onClick={onOpenReliefTextModal}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 6,
-              background: 'rgba(239, 68, 68, 0.12)',
-              border: '1.5px solid var(--marker-red, #dc2626)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 12,
-              fontWeight: 800,
-              color: 'var(--marker-red, #dc2626)',
-              cursor: 'pointer'
-            }}
-            title="Build text thread of everyone in a room, relieving, or running"
-          >
-            <MessageSquare size={14} />
-            <span>Relief Assignments</span>
-          </button>
-        )}
-
-        {/* Audit Log / Historical Ledger Button (Board Runner & Superuser only) */}
-        {isEditor && (
-          <button
-            onClick={onOpenAudit}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 6,
-              background: 'var(--surface-hover)',
-              border: '1px solid var(--border-light)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 12,
-              fontWeight: 700,
-              color: 'var(--text-primary)',
-              cursor: 'pointer'
-            }}
-          >
-            <FileSpreadsheet size={14} />
-            <span>Audit Log</span>
-          </button>
-        )}
-
-        {/* Admin Dashboard (Visible to Admin & Superuser - Gear icon only to save space) */}
-        {(currentUser?.role === 'admin' || currentUser?.role === 'superuser') && (
-          <button
-            onClick={onOpenAdmin}
-            title="Facility Admin Settings & Command Center"
-            style={{
-              padding: '6px 10px',
-              borderRadius: 6,
-              background: 'rgba(211, 47, 47, 0.1)',
-              border: '1px solid var(--marker-red)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--marker-red)',
-              cursor: 'pointer'
-            }}
-          >
-            <Settings size={15} />
           </button>
         )}
 
@@ -696,6 +874,44 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        .action-dropdown-item {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 7px 10px;
+          border-radius: 6px;
+          border: none;
+          background: transparent;
+          color: var(--text-primary);
+          text-align: left;
+          cursor: pointer;
+          transition: background 0.15s ease, color 0.15s ease;
+          font-family: inherit;
+        }
+        .action-dropdown-item:hover:not(:disabled) {
+          background: var(--surface-hover);
+        }
+        .action-dropdown-item:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+        }
+        .action-item-icon {
+          width: 26px;
+          height: 26px;
+          border-radius: 6px;
+          background: var(--surface-hover);
+          border: 1px solid var(--border-light);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .action-dropdown-divider {
+          height: 1px;
+          background: var(--border-light);
+          margin: 4px 6px;
         }
       `}</style>
     </header>

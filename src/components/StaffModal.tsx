@@ -96,12 +96,14 @@ export const StaffModal: React.FC<StaffModalProps> = ({
     ? magnetNotes[staff.id]
     : (staff?.magnetNote || '');
   const [magnetNoteDraft, setMagnetNoteDraft] = useState(currentMagnetNote);
+  const [isNoteSaved, setIsNoteSaved] = useState(false);
 
   useEffect(() => {
     const note = (staff?.id && magnetNotes && magnetNotes[staff.id] !== undefined)
       ? magnetNotes[staff.id]
       : (staff?.magnetNote || '');
     setMagnetNoteDraft(note);
+    setIsNoteSaved(false);
   }, [staff, magnetNotes]);
 
   // --- Perfect Call Messaging State ---
@@ -1234,64 +1236,137 @@ export const StaffModal: React.FC<StaffModalProps> = ({
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{magnetNoteDraft.length}/15 chars</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input
-              type="text"
-              maxLength={15}
-              placeholder="e.g. 10:30 start, Late, Ped..."
-              value={magnetNoteDraft}
-              onChange={(e) => setMagnetNoteDraft(e.target.value.slice(0, 15))}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  if (onUpdateMagnetNote && staff) {
-                    onUpdateMagnetNote(staff.id, magnetNoteDraft.trim());
+            <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
+              <input
+                type="text"
+                maxLength={15}
+                placeholder="e.g. 10:30 start, Late, Ped..."
+                value={magnetNoteDraft}
+                onChange={(e) => {
+                  setMagnetNoteDraft(e.target.value.slice(0, 15));
+                  setIsNoteSaved(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    if (onUpdateMagnetNote && staff) {
+                      onUpdateMagnetNote(staff.id, magnetNoteDraft.trim());
+                      setIsNoteSaved(true);
+                    }
                   }
-                }
-              }}
-              style={{
-                flex: 1,
-                padding: '7px 10px',
-                borderRadius: 6,
-                border: '1.5px solid rgba(239, 68, 68, 0.45)',
-                background: 'var(--surface-hover)',
-                color: '#ef4444',
-                fontWeight: 800,
-                fontSize: 13,
-                fontFamily: 'var(--font-mono)',
-                outline: 'none'
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                if (onUpdateMagnetNote && staff) {
-                  onUpdateMagnetNote(staff.id, magnetNoteDraft.trim());
-                }
-              }}
-              style={{
-                padding: '7px 12px',
-                borderRadius: 6,
-                background: '#ef4444',
-                color: '#fff',
-                fontWeight: 800,
-                fontSize: 12,
-                cursor: 'pointer',
-                border: 'none',
-                boxShadow: '0 1px 4px rgba(239, 68, 68, 0.4)'
-              }}
-            >
-              Save Note
-            </button>
-            {magnetNoteDraft && (
+                }}
+                style={{
+                  width: '100%',
+                  padding: magnetNoteDraft ? '7px 32px 7px 10px' : '7px 10px',
+                  borderRadius: 6,
+                  border: '1.5px solid rgba(239, 68, 68, 0.45)',
+                  background: 'var(--surface-hover)',
+                  color: '#ef4444',
+                  fontWeight: 800,
+                  fontSize: 13,
+                  fontFamily: 'var(--font-mono)',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+              {Boolean(magnetNoteDraft) && (
+                <button
+                  type="button"
+                  onPointerDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setMagnetNoteDraft('');
+                    setIsNoteSaved(false);
+                    if (onUpdateMagnetNote && staff) {
+                      onUpdateMagnetNote(staff.id, '');
+                    }
+                  }}
+                  style={{
+                    position: 'absolute',
+                    right: 6,
+                    width: 22,
+                    height: 22,
+                    borderRadius: 4,
+                    background: 'rgba(239, 68, 68, 0.12)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    color: '#ef4444',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0
+                  }}
+                  title="Delete note"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            {/* Save Note / Saved Dynamic Button */}
+            {(() => {
+              const isSaved = isNoteSaved || Boolean(currentMagnetNote && magnetNoteDraft.trim() === currentMagnetNote.trim());
+              return isSaved ? (
+                <button
+                  type="button"
+                  disabled
+                  style={{
+                    padding: '7px 14px',
+                    borderRadius: 6,
+                    background: '#10b981',
+                    color: '#fff',
+                    fontWeight: 800,
+                    fontSize: 12,
+                    cursor: 'default',
+                    border: 'none',
+                    boxShadow: '0 1px 4px rgba(16, 185, 129, 0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4
+                  }}
+                >
+                  <Check size={14} />
+                  <span>Saved</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onUpdateMagnetNote && staff) {
+                      onUpdateMagnetNote(staff.id, magnetNoteDraft.trim());
+                      setIsNoteSaved(true);
+                    }
+                  }}
+                  style={{
+                    padding: '7px 14px',
+                    borderRadius: 6,
+                    background: '#ef4444',
+                    color: '#fff',
+                    fontWeight: 800,
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    border: 'none',
+                    boxShadow: '0 1px 4px rgba(239, 68, 68, 0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4
+                  }}
+                >
+                  Save Note
+                </button>
+              );
+            })()}
+
+            {Boolean(magnetNoteDraft) && (
               <button
                 type="button"
                 onClick={() => {
                   setMagnetNoteDraft('');
+                  setIsNoteSaved(false);
                   if (onUpdateMagnetNote && staff) {
                     onUpdateMagnetNote(staff.id, '');
                   }
                 }}
                 style={{
-                  padding: '7px 10px',
+                  padding: '7px 12px',
                   borderRadius: 6,
                   background: 'var(--surface-hover)',
                   border: '1px solid var(--border-light)',

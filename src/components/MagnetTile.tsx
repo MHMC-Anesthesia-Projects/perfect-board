@@ -21,6 +21,7 @@ interface MagnetTileProps {
   isCompact?: boolean;
   isDraggable?: boolean;
   isAssignedRelief?: boolean;
+  hasPendingRelief?: boolean;
   unreadMessageCount?: number;
   magnetNote?: string;
   onUpdateNote?: (note: string) => void;
@@ -42,6 +43,7 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   isCompact = false,
   isDraggable: propIsDraggable,
   isAssignedRelief = false,
+  hasPendingRelief = false,
   unreadMessageCount = 0,
   magnetNote,
   onUpdateNote
@@ -154,9 +156,9 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
     ? propIsDraggable 
     : (currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser'));
 
-  const canShowBreaks = showBreaks !== undefined
+  const canShowBreaks = !hasPendingRelief && (showBreaks !== undefined
     ? showBreaks
-    : (slotType !== 'unassigned' && (Boolean(onToggleBreak) || breakfastDone || lunchDone));
+    : (slotType !== 'unassigned' && (Boolean(onToggleBreak) || breakfastDone || lunchDone)));
 
   const handleTileClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -364,14 +366,23 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
                 }
               }}
             />
+            <span className="magnet-hover-note-count">
+              {noteDraft.length}/15
+            </span>
             {Boolean(noteDraft) && (
               <button
                 type="button"
                 className="magnet-hover-note-clear"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  isClosingViaActionRef.current = true;
+                }}
                 onMouseDown={(e) => {
                   // Prevent input blur before onClick fires
                   e.preventDefault();
                   e.stopPropagation();
+                  isClosingViaActionRef.current = true;
                 }}
                 onClick={(e) => {
                   e.preventDefault();
@@ -380,14 +391,11 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
                   handleSaveNote('');
                   setIsEditingNote(false);
                 }}
-                title="Clear note"
+                title="Delete note"
               >
                 ✕
               </button>
             )}
-            <span className="magnet-hover-note-count">
-              {noteDraft.length}/15
-            </span>
           </div>
           <div className={popoverPlacement === 'top' ? 'magnet-hover-note-arrow-down' : 'magnet-hover-note-arrow-up'} />
         </div>,

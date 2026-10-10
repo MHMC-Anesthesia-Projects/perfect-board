@@ -276,28 +276,34 @@ export const RoomLabel: React.FC<RoomLabelProps> = ({
                 }
               }}
             />
+            <span className="room-hover-note-count">
+              {noteDraft.length}/30
+            </span>
             {Boolean(noteDraft) && (
               <button
                 type="button"
                 className="room-hover-note-clear"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  isClosingViaActionRef.current = true;
+                }}
                 onMouseDown={(e) => {
                   // Prevent input blur before onClick fires
                   e.preventDefault();
                   e.stopPropagation();
+                  isClosingViaActionRef.current = true;
                 }}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   handleClearNote();
                 }}
-                title="Clear note"
+                title="Delete note"
               >
                 ✕
               </button>
             )}
-            <span className="room-hover-note-count">
-              {noteDraft.length}/30
-            </span>
           </div>
           <div className={popoverPlacement === 'top' ? 'room-hover-note-arrow-down' : 'room-hover-note-arrow-up'} />
         </div>,

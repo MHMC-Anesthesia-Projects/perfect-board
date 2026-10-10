@@ -960,6 +960,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                   onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
                                   onSelectStaff={onSelectStaff}
                                   isDraggable={false}
+                                  hasPendingRelief={hasAssignedRelief}
                                 />
                               </div>
 
@@ -1110,6 +1111,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                       onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
                                       onSelectStaff={onSelectStaff}
                                       isDraggable={false}
+                                      hasPendingRelief={hasAssignedRelief}
                                     />
                                   </div>
                                 ) : (

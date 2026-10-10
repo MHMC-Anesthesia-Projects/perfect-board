@@ -329,6 +329,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                   const assignedStaff = getStaffById(runner.staffId);
                   if (!assignedStaff) return null;
                   const displayTitle = (runner.title || `Runner ${idx + 1}`).replace(/^RUNNER(\s+\d+)?$/i, (m: string, n?: string) => `Runner${n || ''}`);
+                  const runnerReliefStaff = getStaffById(runner.relief?.staffId || null);
+                  const hasRunnerRelief = Boolean(runner.relief && runnerReliefStaff);
 
                   return (
                     <div
@@ -372,6 +374,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                           onSelectStaff={onSelectStaff}
                           onDragStart={handleTileDragStart}
                           onDragEnd={handleTileDragEnd}
+                          hasPendingRelief={hasRunnerRelief}
                         />
                       </div>
                     </div>
@@ -476,6 +479,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                               onSelectStaff={onSelectStaff}
                               onDragStart={handleTileDragStart}
                               onDragEnd={handleTileDragEnd}
+                              hasPendingRelief={hasAssignedRelief}
                             />
                           ) : (
                             <div
