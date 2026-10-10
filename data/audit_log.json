@@ -1,5 +1,30 @@
 [
   {
+    "id": "audit_1791587633592_gsvlw",
+    "timestamp": "2026-10-09T23:13:53.592Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
+    "id": "audit_1791587609460_rvn2t",
+    "timestamp": "2026-10-09T23:13:29.460Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "John Baerenstecher",
+    "details": "Updated details: MD, Phone: (713) 805-2335, Active: true"
+  },
+  {
+    "id": "audit_1791585775879_ijtn8",
+    "timestamp": "2026-10-09T22:42:55.880Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Admin",
+    "userRole": "superuser",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
     "id": "audit_1791573775878_l2xat",
     "timestamp": "2026-10-09T19:22:55.878Z",
     "actionType": "DEPARTURE_UPDATED",

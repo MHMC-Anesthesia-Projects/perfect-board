@@ -136,15 +136,11 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   }, [unreadCount]);
 
   const fetchMessagingStatus = async (phone?: string) => {
-    if (!phone) {
-      setMessagingEnabled(false);
-      setRecipientProfile(null);
-      return;
-    }
     setIsLoadingChat(true);
     setChatError(null);
     try {
-      const res = await fetch(apiUrl(`/api/messages?action=check_status&phone=${encodeURIComponent(phone)}`));
+      const phoneParam = phone ? `&phone=${encodeURIComponent(phone)}` : '';
+      const res = await fetch(apiUrl(`/api/messages?action=check_status${phoneParam}`));
       const data = await res.json();
       setMessagingEnabled(Boolean(data.enabled));
       if (data.enabled && data.recipientProfile) {
@@ -391,7 +387,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%',
-          maxWidth: 460,
+          maxWidth: 480,
           maxHeight: 'min(92vh, calc(100dvh - 32px))',
           padding: 0,
           textAlign: 'left',
@@ -471,12 +467,14 @@ export const StaffModal: React.FC<StaffModalProps> = ({
 
         {/* Scrollable Modal Content */}
         <div style={{
-          flex: 1,
+          flex: '1 1 auto',
+          minHeight: 0,
           overflowY: 'auto',
-          padding: '16px 20px',
+          padding: '16px 20px 24px 20px',
           display: 'flex',
           flexDirection: 'column',
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain'
         }}>
 
         {/* Contact & Shift Info */}

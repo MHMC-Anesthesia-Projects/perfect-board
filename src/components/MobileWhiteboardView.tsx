@@ -33,7 +33,8 @@ import {
   ArrowRight,
   MessageSquare,
   CheckCheck,
-  Undo2
+  Undo2,
+  Maximize, Minimize
 } from 'lucide-react';
 import { MagnetTile } from './MagnetTile';
 
@@ -134,6 +135,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
 
   const [selectedView, setSelectedView] = useState<string>(defaultViewKey);
   const [currentTime, setCurrentTime] = useState<string>('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Update clock every second
   useEffect(() => {
@@ -145,6 +147,67 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isDocFull = Boolean(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      setIsFullscreen(isDocFull);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = () => {
+    try {
+      const doc = document as any;
+      const isDocFull = Boolean(
+        doc.fullscreenElement ||
+        doc.webkitFullscreenElement ||
+        doc.mozFullScreenElement ||
+        doc.msFullscreenElement
+      );
+
+      if (!isDocFull) {
+        const elem = document.documentElement as any;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen().catch(() => {});
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen();
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        }
+      } else {
+        if (doc.exitFullscreen) {
+          doc.exitFullscreen().catch(() => {});
+        } else if (doc.webkitExitFullscreen) {
+          doc.webkitExitFullscreen();
+        } else if (doc.mozCancelFullScreen) {
+          doc.mozCancelFullScreen();
+        } else if (doc.msExitFullscreen) {
+          doc.msExitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn('Error toggling fullscreen:', err);
+    }
+  };
 
   // Sync selectedView if boardState loads later
   useEffect(() => {
@@ -681,6 +744,16 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
             title={theme === 'whiteboard' ? 'Switch to Dark Mode' : 'Switch to Whiteboard Theme'}
           >
             {theme === 'whiteboard' ? <Moon size={16} /> : <Sun size={16} />}
+          </button>
+
+          {/* Fullscreen Toggle */}
+          <button
+            type="button"
+            className="mobile-header-btn"
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Exit Full Screen' : 'Enter Full Screen'}
+          >
+            {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
           </button>
 
           {/* Auth Button */}
