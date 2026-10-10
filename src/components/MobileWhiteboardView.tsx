@@ -637,7 +637,8 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
         <div className="mobile-header-brand">
           <div className="mobile-brand-icon">OR</div>
           <div className="mobile-brand-text">
-            <span className="mobile-brand-title">PERFECT BOARD</span>
+            <span className="mobile-brand-title">PERFECT</span>
+            <span className="mobile-brand-title">BOARD</span>
             <div className="mobile-sync-status">
               <span className="mobile-pulse-dot" />
               <span>LIVE</span>
