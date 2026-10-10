@@ -1941,67 +1941,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <button
-                    onClick={() => {
-                      setDeleteModalState({
-                        isOpen: true,
-                        title: 'Restore Layout Defaults',
-                        itemName: 'Original Photo Layout & Assignments',
-                        itemCategory: 'Layout Reset',
-                        message: 'Are you sure you want to reset the whiteboard layout, rooms, and assignments back to the photo default?',
-                        confirmButtonText: 'Restore Defaults',
-                        onConfirm: () => onResetToPhotoDefault?.()
-                      });
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      padding: '6px 12px',
-                      borderRadius: 6,
-                      background: 'rgba(211,47,47,0.1)',
-                      border: '1px solid var(--marker-red)',
-                      color: 'var(--marker-red)',
-                      fontWeight: 700,
-                      fontSize: 12
-                    }}
-                  >
-                    <RotateCcw size={14} />
-                    <span>Restore Photo Default</span>
-                  </button>
-
-                  {onClearAllTextNotes && (
-                    <button
-                      onClick={() => {
-                        setDeleteModalState({
-                          isOpen: true,
-                          title: 'Clear All Text Notes',
-                          itemName: 'All Room & Magnet Text Notes',
-                          itemCategory: 'Text Notes Reset',
-                          message: 'Are you sure you want to clear all text notes across the whiteboard? This will remove all free-text notes from rooms and clinician magnets.',
-                          confirmButtonText: 'Clear All Notes',
-                          onConfirm: onClearAllTextNotes
-                        });
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        padding: '6px 12px',
-                        borderRadius: 6,
-                        background: 'rgba(211,47,47,0.1)',
-                        border: '1px solid var(--marker-red)',
-                        color: 'var(--marker-red)',
-                        fontWeight: 700,
-                        fontSize: 12
-                      }}
-                      title="Clear all free text notes on rooms and magnets across the board"
-                    >
-                      <Trash2 size={14} />
-                      <span>Clear All Text Notes</span>
-                    </button>
-                  )}
-
-                  <button
                     onClick={handleSaveLayoutChanges}
                     style={{
                       display: 'flex',
