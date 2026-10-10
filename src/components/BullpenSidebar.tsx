@@ -17,6 +17,7 @@ interface BullpenSidebarProps {
   onToggleBreak?: (breakType: 'breakfast' | 'lunch', staffId: string, currentValue: boolean) => void;
   activeReliefStaffIds?: Set<string>;
   unreadCountsByPhone?: Record<string, number>;
+  magnetNotes?: Record<string, string>;
   onUpdateMagnetNote?: (staffId: string, note: string) => void;
 }
 
@@ -53,6 +54,7 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
   onToggleBreak,
   activeReliefStaffIds,
   unreadCountsByPhone,
+  magnetNotes,
   onUpdateMagnetNote
 }) => {
   const getStaffUnreadCount = (staffMember: Staff | null): number => {
@@ -84,14 +86,31 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
     }
   };
 
+  const extractDragData = (e: React.DragEvent) => {
+    let raw = e.dataTransfer.getData('application/json');
+    if (!raw) raw = e.dataTransfer.getData('text/plain');
+    if (!raw) raw = e.dataTransfer.getData('text');
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && (parsed.staffId || parsed.id)) return parsed;
+      } catch {
+        if (raw.trim()) return { staffId: raw.trim(), type: 'unassigned' };
+      }
+    }
+    if (typeof window !== 'undefined' && (window as any).__activeDraggedStaff) {
+      return (window as any).__activeDraggedStaff;
+    }
+    return null;
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     try {
-      const raw = e.dataTransfer.getData('application/json');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        onDropToBullpen(parsed);
+      const data = extractDragData(e);
+      if (data) {
+        onDropToBullpen(data);
       }
     } catch (err) {
       console.error('Error dropping staff to bullpen:', err);
@@ -166,7 +185,7 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
 
       {/* Drag Over Banner */}
       {isDragOver && (
-        <div className="bullpen-drop-indicator">
+        <div className="bullpen-drop-indicator" style={{ pointerEvents: 'none' }}>
           <Sparkles size={14} />
           <span>Drop to place in Bullpen</span>
         </div>
@@ -217,7 +236,7 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
                       lunchDone={b?.lunchDone ?? false}
                       currentUserRole={currentUserRole}
                       unreadMessageCount={getStaffUnreadCount(s)}
-                      magnetNote={s.magnetNote || ''}
+                      magnetNote={magnetNotes?.[s.id] ?? s.magnetNote ?? ''}
                       onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(s.id, note) : undefined}
                       isAssignedRelief={isRelief}
                       isDraggable={isEditor && !isRelief}

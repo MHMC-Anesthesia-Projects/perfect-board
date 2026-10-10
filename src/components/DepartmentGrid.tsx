@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Department, Staff, UserRole, ReliefAssignment, RunnerSlot } from '@/types/whiteboard';
 import { MagnetTile } from './MagnetTile';
+import { RoomLabel } from './RoomLabel';
 import { Plus } from 'lucide-react';
 
 interface DepartmentGridProps {
@@ -31,6 +32,10 @@ interface DepartmentGridProps {
   activeReliefStaffIds?: Set<string>;
   unreadCountsByPhone?: Record<string, number>;
   onUpdateMagnetNote?: (staffId: string, note: string) => void;
+  magnetNotes?: Record<string, string>;
+  roomNotes?: Record<string, string>;
+  onUpdateRoomNote?: (roomId: string, note: string) => void;
+  onOpenLogin?: () => void;
 }
 
 export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
@@ -50,7 +55,11 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
   onSetRoomFutureTime,
   activeReliefStaffIds,
   unreadCountsByPhone,
-  onUpdateMagnetNote
+  onUpdateMagnetNote,
+  magnetNotes,
+  roomNotes,
+  onUpdateRoomNote,
+  onOpenLogin
 }) => {
   const [dragOverRoomSlotId, setDragOverRoomSlotId] = useState<string | null>(null);
   const dragLeaveTimerRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -357,7 +366,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                           lunchDone={runner.lunchDone}
                           currentUserRole={currentUserRole}
                           unreadMessageCount={getStaffUnreadCount(assignedStaff)}
-                          magnetNote={assignedStaff.magnetNote || ''}
+                          magnetNote={magnetNotes?.[assignedStaff.id] ?? assignedStaff.magnetNote ?? ''}
                           onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(assignedStaff.id, note) : undefined}
                           onToggleBreak={(type, val) => onToggleBreak('runner_slot', runner.id, type, val)}
                           onSelectStaff={onSelectStaff}
@@ -378,10 +387,15 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
           {dept.rooms.map(room => {
             return (
               <div key={room.id} className="room-row">
-                {/* Room Number / Identifier */}
-                <div className="room-label" title={`Room ${room.name}`}>
-                  {room.name}
-                </div>
+                {/* Room Number / Identifier & Free-text Note */}
+                <RoomLabel
+                  room={room}
+                  deptName={dept.name}
+                  roomNote={roomNotes?.[room.id] ?? room.note ?? ''}
+                  onUpdateRoomNote={onUpdateRoomNote}
+                  currentUserRole={currentUserRole}
+                  onOpenLogin={onOpenLogin}
+                />
 
                 {/* Slots inside Room */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 3, alignItems: 'center', height: '100%', minWidth: 0 }}>
@@ -456,7 +470,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                               lunchDone={slot.lunchDone}
                               currentUserRole={currentUserRole}
                               unreadMessageCount={getStaffUnreadCount(assignedStaff)}
-                              magnetNote={assignedStaff.magnetNote || ''}
+                              magnetNote={magnetNotes?.[assignedStaff.id] ?? assignedStaff.magnetNote ?? ''}
                               onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(assignedStaff.id, note) : undefined}
                               onToggleBreak={(type, val) => onToggleBreak('room_slot', slot.id, type, val)}
                               onSelectStaff={onSelectStaff}

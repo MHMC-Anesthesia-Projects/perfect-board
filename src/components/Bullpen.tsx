@@ -20,6 +20,7 @@ interface BullpenProps {
   onToggleCollapse?: () => void;
   activeReliefStaffIds?: Set<string>;
   unreadCountsByPhone?: Record<string, number>;
+  magnetNotes?: Record<string, string>;
   onUpdateMagnetNote?: (staffId: string, note: string) => void;
 }
 
@@ -51,6 +52,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
   onToggleCollapse,
   activeReliefStaffIds,
   unreadCountsByPhone,
+  magnetNotes,
   onUpdateMagnetNote
 }) => {
   const getStaffUnreadCount = (staffMember: Staff | null): number => {
@@ -239,8 +241,28 @@ export const Bullpen: React.FC<BullpenProps> = ({
     if (!isDragOver) setIsDragOver(true);
   };
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
     setIsDragOver(false);
+    setHoveredBin(null);
+  };
+
+  const extractDragData = (e: React.DragEvent) => {
+    let raw = e.dataTransfer.getData('application/json');
+    if (!raw) raw = e.dataTransfer.getData('text/plain');
+    if (!raw) raw = e.dataTransfer.getData('text');
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && (parsed.staffId || parsed.id)) return parsed;
+      } catch {
+        if (raw.trim()) return { staffId: raw.trim(), type: 'unassigned' };
+      }
+    }
+    if (typeof window !== 'undefined' && (window as any).__activeDraggedStaff) {
+      return (window as any).__activeDraggedStaff;
+    }
+    return null;
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -248,10 +270,9 @@ export const Bullpen: React.FC<BullpenProps> = ({
     setIsDragOver(false);
     setHoveredBin(null);
     try {
-      const raw = e.dataTransfer.getData('application/json');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        onDropToBullpen(parsed);
+      const data = extractDragData(e);
+      if (data) {
+        onDropToBullpen(data);
       }
     } catch (err) {
       console.error('Error dropping to bullpen:', err);
@@ -266,31 +287,20 @@ export const Bullpen: React.FC<BullpenProps> = ({
   };
 
   const handleBinDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
     setHoveredBin(null);
   };
 
-  const handleBinDrop = (e: React.DragEvent, binKey: 'MD' | 'CRNA' | 'Infrequent') => {
+  const handleBinDrop = (e: React.DragEvent, _binKey: 'MD' | 'CRNA' | 'Infrequent') => {
     e.preventDefault();
     e.stopPropagation();
     setHoveredBin(null);
     setIsDragOver(false);
     try {
-      const raw = e.dataTransfer.getData('application/json');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (binKey === 'Infrequent') {
-          if (onSetStaffInfrequent) {
-            onSetStaffInfrequent(parsed.staffId, true);
-          }
-          onDropToBullpen({ ...parsed, targetGroup: 'Infrequent' });
-        } else {
-          if (onSetStaffInfrequent) {
-            onSetStaffInfrequent(parsed.staffId, false);
-          }
-          onDropToBullpen({ ...parsed, targetGroup: binKey });
-        }
+      const data = extractDragData(e);
+      if (data) {
+        // Accept regardless of which bin dropped on; system automatically sorts to proper pool
+        onDropToBullpen(data);
       }
     } catch (err) {
       console.error('Error dropping to bin:', err);
@@ -375,9 +385,9 @@ export const Bullpen: React.FC<BullpenProps> = ({
               fontSize: 11,
               fontWeight: 800,
               marginLeft: 8,
-              color: hoveredBin === 'Infrequent' ? '#d97706' : (hoveredBin === 'MD' ? '#0969da' : '#1a7f37')
+              color: 'var(--accent-primary)'
             }}>
-              • Drop to place in {hoveredBin === 'Infrequent' ? 'Infrequent (PRN)' : hoveredBin} group
+              • Drop to unassign
             </span>
           )}
         </div>
@@ -492,7 +502,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
                   <span className="bullpen-bin-count" style={{ fontWeight: 800, opacity: 0.9 }}>({bin.items.length})</span>
                   {isTarget && (
                     <span style={{ fontSize: 10, fontWeight: 800, marginLeft: 4 }}>
-                      • Drop to set as {bin.label}
+                      • Drop to unassign
                     </span>
                   )}
                 </div>
@@ -508,7 +518,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
                         showBreaks={false}
                         currentUserRole={currentUserRole}
                         unreadMessageCount={getStaffUnreadCount(s)}
-                        magnetNote={s.magnetNote || ''}
+                        magnetNote={magnetNotes?.[s.id] ?? s.magnetNote ?? ''}
                         onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(s.id, note) : undefined}
                         isAssignedRelief={isRelief}
                         isDraggable={!isRelief && (currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser')}

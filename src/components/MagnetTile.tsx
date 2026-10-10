@@ -46,9 +46,7 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   magnetNote,
   onUpdateNote
 }) => {
-  const lastSavedNoteRef = useRef<string | null>(null);
-  const effectivePropNote = (magnetNote !== undefined ? magnetNote : (staff.magnetNote || '')) || '';
-  const currentNote = lastSavedNoteRef.current !== null ? lastSavedNoteRef.current : effectivePropNote;
+  const currentNote = (magnetNote !== undefined ? magnetNote : (staff.magnetNote || '')) || '';
 
   const [noteDraft, setNoteDraft] = useState(currentNote);
   const [isHovered, setIsHovered] = useState(false);
@@ -58,18 +56,14 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   const [mounted, setMounted] = useState(false);
   const isClosingViaActionRef = useRef(false);
 
+  const canViewRedNote = currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser';
+
   const tileRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (lastSavedNoteRef.current !== null && effectivePropNote === lastSavedNoteRef.current) {
-      lastSavedNoteRef.current = null;
-    }
-  }, [effectivePropNote]);
 
   useEffect(() => {
     if (!isEditingNote) {
@@ -97,8 +91,9 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
     setIsHovered(false);
   };
 
-  // Trigger popup ONLY when user starts typing while hovering over this magnet tile
+  // Trigger popup ONLY when user starts typing while hovering over this magnet tile (board runner / admin only)
   useEffect(() => {
+    if (!canViewRedNote) return;
     if (!isHovered && !isEditingNote) return;
 
     const handleWindowKeyDown = (e: KeyboardEvent) => {
@@ -145,11 +140,10 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
 
     window.addEventListener('keydown', handleWindowKeyDown);
     return () => window.removeEventListener('keydown', handleWindowKeyDown);
-  }, [isHovered, isEditingNote, noteDraft]);
+  }, [isHovered, isEditingNote, noteDraft, canViewRedNote]);
 
   const handleSaveNote = (newVal: string) => {
     const trimmed = (newVal || '').trim().slice(0, 15);
-    lastSavedNoteRef.current = trimmed;
     setNoteDraft(trimmed);
     if (onUpdateNote) {
       onUpdateNote(trimmed);
@@ -210,8 +204,8 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
         title={isAssignedRelief
           ? `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials}) • Currently assigned as relief. Cannot be assigned to another relief box.`
           : (currentUserRole === 'view_only'
-            ? `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials})${currentNote ? ` [Note: ${currentNote}]` : ''}${staff.hasStudent ? ` • 🎓 Student: ${staff.studentName || 'Assigned'}` : ''} • Tap to login`
-            : `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials})${currentNote ? ` [Note: ${currentNote}]` : ''}${staff.hasStudent ? ` • 🎓 Student: ${staff.studentName || 'Assigned'}` : ''} • Phone: ${staff.phone}${unreadMessageCount > 0 ? ` • ${unreadMessageCount} NEW MESSAGE(S)` : ''}`)}
+            ? `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials})${canViewRedNote && currentNote ? ` [Note: ${currentNote}]` : ''}${staff.hasStudent ? ` • 🎓 Student: ${staff.studentName || 'Assigned'}` : ''} • Tap to login`
+            : `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials})${canViewRedNote && currentNote ? ` [Note: ${currentNote}]` : ''}${staff.hasStudent ? ` • 🎓 Student: ${staff.studentName || 'Assigned'}` : ''} • Phone: ${staff.phone}${unreadMessageCount > 0 ? ` • ${unreadMessageCount} NEW MESSAGE(S)` : ''}`)}
         style={{
           cursor: isDraggable ? 'grab' : (isAssignedRelief ? 'not-allowed' : 'pointer')
         }}
@@ -255,8 +249,8 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
               : `${staff.lastName.toUpperCase()}${staff.firstName ? ` ${staff.firstName[0]}.` : ''}`}
           </span>
 
-          {/* Quick Red Text Note (travels with magnet, max 15 chars) */}
-          {currentNote && (
+          {/* Quick Red Text Note (travels with magnet, max 15 chars) - only visible to board runner or admin */}
+          {canViewRedNote && currentNote && (
             <span
               className="magnet-red-note"
               title={`Note: ${currentNote} (Click or type to edit)`}
@@ -315,8 +309,8 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
         )}
       </div>
 
-      {/* Floating Popover: Appears ONLY when typing starts or user clicks to edit */}
-      {mounted && isEditingNote && createPortal(
+      {/* Floating Popover: Appears ONLY when typing starts or user clicks to edit (board runner / admin only) */}
+      {canViewRedNote && mounted && isEditingNote && createPortal(
         <div
           className="magnet-hover-note-popover"
           style={{

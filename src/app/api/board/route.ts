@@ -265,6 +265,15 @@ export async function POST(req: NextRequest) {
               const slot = room.slots.find(s => s.id === targetId);
               if (slot) {
                 slot.staffId = staffId || null;
+                if (staffId) {
+                  // Clear room text box note when a magnet is placed in the room
+                  if (room.note || (state.roomNotes && state.roomNotes[room.id])) {
+                    room.note = '';
+                    if (state.roomNotes) {
+                      delete state.roomNotes[room.id];
+                    }
+                  }
+                }
                 if (staffId && state.bullpenBreaks?.[staffId]) {
                   slot.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
                   slot.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
@@ -288,6 +297,7 @@ export async function POST(req: NextRequest) {
           details: staffId ? `Assigned to ${locationName}` : `Cleared from ${locationName} to available staff`
         });
 
+        broadcastStateChange();
         return NextResponse.json({ success: true, state });
       }
 
@@ -555,6 +565,15 @@ export async function POST(req: NextRequest) {
               const slot = room.slots.find(s => s.id === toId);
               if (slot) {
                 slot.staffId = staffId;
+                if (staffId) {
+                  // Clear room text box note when a magnet is dropped in the room
+                  if (room.note || (state.roomNotes && state.roomNotes[room.id])) {
+                    room.note = '';
+                    if (state.roomNotes) {
+                      delete state.roomNotes[room.id];
+                    }
+                  }
+                }
                 if (transferredRelief) {
                   slot.relief = transferredRelief;
                 }
@@ -589,6 +608,7 @@ export async function POST(req: NextRequest) {
           }
         });
 
+        broadcastStateChange();
         return NextResponse.json({ success: true, state });
       }
 
@@ -657,6 +677,82 @@ export async function POST(req: NextRequest) {
           userRole: currentUserRole,
           targetName: staffMember ? `${staffMember.lastName} ${staffMember.firstName}` : staffId,
           details: cleanNote ? `Updated magnet red note: "${cleanNote}"` : 'Cleared magnet red note'
+        });
+
+        broadcastStateChange();
+        return NextResponse.json({ success: true, state });
+      }
+
+      // 4c. Update free-text note on a room (max 30 chars)
+      case 'UPDATE_ROOM_NOTE': {
+        const { roomId, note } = payload;
+        const cleanNote = typeof note === 'string' ? note.trim().slice(0, 30) : '';
+        state.roomNotes = state.roomNotes || {};
+        if (cleanNote) {
+          state.roomNotes[roomId] = cleanNote;
+        } else {
+          delete state.roomNotes[roomId];
+        }
+
+        let roomName = '';
+        let deptName = '';
+        if (state.departments && Array.isArray(state.departments)) {
+          for (const dept of state.departments) {
+            for (const room of dept.rooms || []) {
+              if (room.id === roomId) {
+                room.note = cleanNote;
+                roomName = room.name;
+                deptName = dept.name;
+              }
+            }
+          }
+        }
+
+        await saveBoardState(state);
+        await recordAuditLog({
+          actionType: 'NOTE_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          locationName: deptName && roomName ? `${deptName} Room ${roomName}` : `Room ${roomName || roomId}`,
+          details: cleanNote ? `Updated Room ${roomName || roomId} note: "${cleanNote}"` : `Cleared Room ${roomName || roomId} note`
+        });
+
+        broadcastStateChange();
+        return NextResponse.json({ success: true, state });
+      }
+
+      // 4d. Clear all free-text notes across the whiteboard (all room notes and all magnet notes)
+      case 'CLEAR_ALL_TEXT_NOTES': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Admin login required.' }, { status: 403 });
+        }
+
+        const clearedMagnetCount = Object.keys(state.magnetNotes || {}).length;
+        const clearedRoomCount = Object.keys(state.roomNotes || {}).length;
+
+        state.magnetNotes = {};
+        if (state.staff && Array.isArray(state.staff)) {
+          state.staff.forEach(s => {
+            s.magnetNote = '';
+          });
+        }
+
+        state.roomNotes = {};
+        if (state.departments && Array.isArray(state.departments)) {
+          state.departments.forEach(dept => {
+            for (const room of dept.rooms || []) {
+              room.note = '';
+            }
+          });
+        }
+
+        await saveBoardState(state);
+        await recordAuditLog({
+          actionType: 'NOTE_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          locationName: 'Entire Whiteboard',
+          details: `Cleared all text notes (${clearedRoomCount} room note(s), ${clearedMagnetCount} magnet note(s))`
         });
 
         broadcastStateChange();

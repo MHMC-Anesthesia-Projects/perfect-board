@@ -6,7 +6,7 @@ import {
   Sun, Moon, Shield, Lock, LogIn, LogOut, 
   RotateCw, FileSpreadsheet, Settings, 
   Keyboard, Clock, CheckCircle2, Mic, Sparkles,
-  Smartphone, Eraser, MessageSquare, CheckCheck, Undo2 
+  Smartphone, Eraser, MessageSquare, CheckCheck, Undo2, FileText 
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -24,6 +24,7 @@ interface HeaderNavProps {
   onAutoAssign?: () => void;
   isAutoAssigning?: boolean;
   onCleanWhiteboard?: () => void;
+  onClearAllTextNotes?: () => void;
   onUndo?: () => void;
   canUndo?: boolean;
   undoCount?: number;
@@ -57,6 +58,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onAutoAssign,
   isAutoAssigning = false,
   onCleanWhiteboard,
+  onClearAllTextNotes,
   onUndo,
   canUndo = false,
   undoCount = 0,
@@ -316,6 +318,31 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           >
             <Eraser size={14} />
             <span>Clean Board</span>
+          </button>
+        )}
+
+        {/* Clear All Text Notes Button (Board Runner & Admin) */}
+        {onClearAllTextNotes && isEditor && (
+          <button
+            type="button"
+            onClick={onClearAllTextNotes}
+            title="Clear all free text notes on rooms and magnets across the board"
+            style={{
+              padding: '6px 12px',
+              borderRadius: 6,
+              background: 'var(--surface-hover)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 700,
+              color: 'var(--text-secondary)',
+              cursor: 'pointer'
+            }}
+          >
+            <FileText size={14} />
+            <span>Clear All Notes</span>
           </button>
         )}
 

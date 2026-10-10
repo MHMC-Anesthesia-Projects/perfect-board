@@ -114,6 +114,7 @@ export default function WhiteboardPage() {
   const [isSyncWarningOpen, setIsSyncWarningOpen] = useState(false);
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);
   const [isCleanBoardModalOpen, setIsCleanBoardModalOpen] = useState(false);
+  const [isClearNotesModalOpen, setIsClearNotesModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Undo / Mistake Resolution System (Layers 1 & 2)
@@ -832,6 +833,48 @@ export default function WhiteboardPage() {
     }
   };
 
+  const handleUpdateRoomNote = async (roomId: string, note: string) => {
+    const cleanNote = (note || '').trim().slice(0, 30);
+
+    // Optimistic UI update
+    setBoardState(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev };
+      const nextNotes = { ...(updated.roomNotes || {}) };
+      if (cleanNote) {
+        nextNotes[roomId] = cleanNote;
+      } else {
+        delete nextNotes[roomId];
+      }
+      updated.roomNotes = nextNotes;
+      if (updated.departments) {
+        updated.departments = updated.departments.map(dept => ({
+          ...dept,
+          rooms: dept.rooms.map(rm => rm.id === roomId ? { ...rm, note: cleanNote } : rm)
+        }));
+      }
+      return updated;
+    });
+
+    try {
+      const res = await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_ROOM_NOTE',
+          payload: { roomId, note: cleanNote },
+          user: currentUser || { role: 'basic_user', displayName: 'Staff (Basic User)' }
+        })
+      });
+      const data = await res.json();
+      if (data?.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error updating room note:', err);
+    }
+  };
+
   // 2. Assign staff to slot
   const handleAssignStaff = async (
     targetType: 'room_slot' | 'runner_slot',
@@ -841,6 +884,38 @@ export default function WhiteboardPage() {
     if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
+    }
+
+    // Optimistically clear room note when assigning staff to a room
+    if (targetType === 'room_slot' && staffId && boardState) {
+      let targetRoomId: string | null = null;
+      for (const dept of boardState.departments || []) {
+        for (const rm of dept.rooms || []) {
+          if (rm.slots.some(slot => slot.id === targetId)) {
+            targetRoomId = rm.id;
+            break;
+          }
+        }
+        if (targetRoomId) break;
+      }
+      if (targetRoomId) {
+        setBoardState(prev => {
+          if (!prev) return prev;
+          const updated = { ...prev };
+          if (updated.roomNotes && updated.roomNotes[targetRoomId!]) {
+            const nextNotes = { ...updated.roomNotes };
+            delete nextNotes[targetRoomId!];
+            updated.roomNotes = nextNotes;
+          }
+          if (updated.departments) {
+            updated.departments = updated.departments.map(dept => ({
+              ...dept,
+              rooms: dept.rooms.map(rm => rm.id === targetRoomId ? { ...rm, note: '' } : rm)
+            }));
+          }
+          return updated;
+        });
+      }
     }
 
     try {
@@ -925,6 +1000,7 @@ export default function WhiteboardPage() {
 
     let destName = 'Slot';
     let previousOccupantId: string | null = null;
+    let targetRoomId: string | null = null;
     if (toType === 'room_slot' && toId) {
       for (const dept of boardState?.departments || []) {
         for (const rm of dept.rooms || []) {
@@ -932,9 +1008,11 @@ export default function WhiteboardPage() {
           if (s) {
             destName = `${dept.name} Rm ${rm.name}`;
             previousOccupantId = s.staffId;
+            targetRoomId = rm.id;
             break;
           }
         }
+        if (targetRoomId) break;
       }
     } else if (toType === 'runner_slot' && toId) {
       for (const dept of boardState?.departments || []) {
@@ -952,6 +1030,41 @@ export default function WhiteboardPage() {
     } else if (toType === 'unassigned') {
       destName = targetGroup ? `${targetGroup} Holding Bin` : 'Unassigned';
     }
+
+    // Optimistically update board state immediately (0ms) so magnet moves without lag
+    setBoardState(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev };
+      if (targetRoomId && updated.roomNotes && updated.roomNotes[targetRoomId!]) {
+        const nextNotes = { ...updated.roomNotes };
+        delete nextNotes[targetRoomId!];
+        updated.roomNotes = nextNotes;
+      }
+      const bullpenIds = (updated.bullpenStaffIds || []).filter(id => id !== targetStaffId);
+      if (toType === 'bullpen') bullpenIds.push(targetStaffId);
+      updated.bullpenStaffIds = bullpenIds;
+
+      if (updated.departments) {
+        updated.departments = updated.departments.map(dept => ({
+          ...dept,
+          runnerSlots: (dept.runnerSlots || []).map(r => {
+            if (toType === 'runner_slot' && r.id === toId) return { ...r, staffId: targetStaffId };
+            if (fromData.id ? r.id === fromData.id : r.staffId === targetStaffId) return { ...r, staffId: null };
+            return r;
+          }),
+          rooms: dept.rooms.map(rm => ({
+            ...rm,
+            note: rm.id === targetRoomId ? '' : rm.note,
+            slots: rm.slots.map(s => {
+              if (toType === 'room_slot' && s.id === toId) return { ...s, staffId: targetStaffId };
+              if (fromData.id ? s.id === fromData.id : s.staffId === targetStaffId) return { ...s, staffId: null };
+              return s;
+            })
+          }))
+        }));
+      }
+      return updated;
+    });
 
     try {
       const res = await fetch(apiUrl('/api/board'), {
@@ -1827,6 +1940,33 @@ export default function WhiteboardPage() {
     const prevId = fromData.id;
     const targetStaffId = fromData.staffId;
 
+    // IMMEDIATE OPTIMISTIC UPDATE: Move to bullpen instantly in UI (0ms)
+    setBoardState(prev => {
+      if (!prev) return prev;
+      const bullpenIds = (prev.bullpenStaffIds || []).filter(id => id !== targetStaffId);
+      bullpenIds.push(targetStaffId);
+
+      const nextDepts = prev.departments.map(dept => ({
+        ...dept,
+        runnerSlots: (dept.runnerSlots || []).filter(r => (fromData.id ? r.id !== fromData.id : r.staffId !== targetStaffId)),
+        rooms: dept.rooms.map(rm => ({
+          ...rm,
+          slots: rm.slots.map(s => {
+            if (fromData.id ? s.id === fromData.id : s.staffId === targetStaffId) {
+              return { ...s, staffId: null };
+            }
+            return s;
+          })
+        }))
+      }));
+
+      return {
+        ...prev,
+        bullpenStaffIds: bullpenIds,
+        departments: nextDepts
+      };
+    });
+
     try {
       const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
@@ -1894,6 +2034,32 @@ export default function WhiteboardPage() {
     const prevType = fromData?.type || 'bullpen';
     const prevId = fromData?.id;
 
+    // IMMEDIATE OPTIMISTIC UPDATE: Clear staff from bullpen, rooms, and runner slots (0ms)
+    setBoardState(prev => {
+      if (!prev) return prev;
+      const nextBullpenIds = (prev.bullpenStaffIds || []).filter(id => id !== staffId);
+
+      const nextDepts = prev.departments.map(dept => ({
+        ...dept,
+        runnerSlots: (dept.runnerSlots || []).filter(r => (fromData?.id ? r.id !== fromData.id : r.staffId !== staffId)),
+        rooms: dept.rooms.map(rm => ({
+          ...rm,
+          slots: rm.slots.map(s => {
+            if (fromData?.id ? s.id === fromData.id : s.staffId === staffId) {
+              return { ...s, staffId: null };
+            }
+            return s;
+          })
+        }))
+      }));
+
+      return {
+        ...prev,
+        bullpenStaffIds: nextBullpenIds,
+        departments: nextDepts
+      };
+    });
+
     try {
       const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
@@ -1903,8 +2069,7 @@ export default function WhiteboardPage() {
           payload: {
             fromTargetType: fromData?.type || 'bullpen',
             fromId: fromData?.id,
-            toTargetType: fromData?.targetGroup === 'Infrequent' ? 'infrequent' : (fromData?.targetGroup === 'MD' ? 'md' : (fromData?.targetGroup === 'CRNA' ? 'crna' : 'unassigned')),
-            targetGroup: fromData?.targetGroup,
+            toTargetType: 'unassigned',
             staffId: staffId
           },
           user: currentUser
@@ -1977,9 +2142,6 @@ export default function WhiteboardPage() {
     if (fromData.type === 'relief_slot') {
       const sourceSlotId = fromData.id || (fromData as any).sourceSlotId;
       handleRemoveRelief('room_slot', sourceSlotId).then(async () => {
-        if (fromData.targetGroup) {
-          await handleSetStaffInfrequent(fromData.staffId, fromData.targetGroup === 'Infrequent');
-        }
         const st = boardState?.staff.find(s => s.id === fromData.staffId);
         setToastMessage(`${st ? st.lastName : 'Relief clinician'} returned to Available Staff`);
         setTimeout(() => setToastMessage(null), 3000);
@@ -2001,7 +2163,6 @@ export default function WhiteboardPage() {
       setPendingReliefMovePrompt({
         fromData: { ...fromData, type: 'room_slot', id: reliefRoom.slot.id },
         toType: 'unassigned',
-        targetGroup: fromData.targetGroup,
         staffName,
         sourceRoomName: `${reliefRoom.departmentName} ${reliefRoom.roomName}`,
         reliefStaffName,
@@ -2011,58 +2172,7 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // If explicitly dropped into MD, CRNA, or Infrequent bin, apply immediately
-    if (fromData.targetGroup || fromData.type === 'unassigned') {
-      handleMoveStaffToUnassigned(fromData.staffId, fromData);
-      return;
-    }
-
-    if (fromData.type === 'room_slot' || fromData.type === 'runner_slot') {
-      const staffMember = boardState?.staff.find(s => s.id === fromData.staffId);
-      let locName = 'Whiteboard';
-      if (boardState) {
-        for (const dept of boardState.departments) {
-          if (fromData.type === 'runner_slot') {
-            const runner = dept.runnerSlots.find(r => r.id === fromData.id);
-            if (runner) {
-              locName = `${dept.name} (${runner.title})`;
-              break;
-            }
-          } else {
-            for (const room of dept.rooms) {
-              const slot = room.slots.find(s => s.id === fromData.id);
-              if (slot) {
-                locName = `${dept.name} Room ${room.name}`;
-                break;
-              }
-            }
-          }
-        }
-      }
-
-      if (staffMember) {
-        setUnassignPromptTarget({
-          staff: staffMember,
-          fromData,
-          fromLocationName: locName
-        });
-        return;
-      }
-    }
-
-    if (fromData.type === 'bullpen') {
-      const staffMember = boardState?.staff.find(s => s.id === fromData.staffId);
-      if (staffMember) {
-        setUnassignPromptTarget({
-          staff: staffMember,
-          fromData,
-          fromLocationName: 'Bullpen'
-        });
-        return;
-      }
-    }
-
-    // Default: move directly to unassigned
+    // Immediately unassign staff member - accepts drop into any bin or background and sorts them properly
     handleMoveStaffToUnassigned(fromData.staffId, fromData);
   };
 
@@ -2361,6 +2471,97 @@ export default function WhiteboardPage() {
     }
   };
 
+  const handleClearAllTextNotes = async () => {
+    if (!isEditor) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    const prevMagnetNotes = boardState?.magnetNotes ? { ...boardState.magnetNotes } : {};
+    const prevRoomNotes = boardState?.roomNotes ? { ...boardState.roomNotes } : {};
+
+    // Optimistic UI update
+    setBoardState(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        magnetNotes: {},
+        roomNotes: {},
+        staff: prev.staff.map(s => ({ ...s, magnetNote: '' })),
+        departments: prev.departments.map(dept => ({
+          ...dept,
+          rooms: dept.rooms.map(rm => ({ ...rm, note: '' }))
+        }))
+      };
+    });
+    setIsClearNotesModalOpen(false);
+
+    try {
+      const res = await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'CLEAR_ALL_TEXT_NOTES',
+          payload: {},
+          user: currentUser || { role: 'admin', displayName: 'Admin' }
+        })
+      });
+      const data = await res.json();
+      if (data?.state) {
+        setBoardState(data.state);
+        setToastMessage('✓ All text notes cleared');
+        setTimeout(() => setToastMessage(null), 3000);
+
+        // Register Quick Undo action
+        pushUndoAction(
+          'Cleared all text notes',
+          async () => {
+            const restorePromises = [];
+            for (const [staffId, note] of Object.entries(prevMagnetNotes)) {
+              restorePromises.push(
+                fetch(apiUrl('/api/board'), {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    action: 'UPDATE_MAGNET_NOTE',
+                    payload: { staffId, note },
+                    user: currentUser
+                  })
+                })
+              );
+            }
+            for (const [roomId, note] of Object.entries(prevRoomNotes)) {
+              restorePromises.push(
+                fetch(apiUrl('/api/board'), {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    action: 'UPDATE_ROOM_NOTE',
+                    payload: { roomId, note },
+                    user: currentUser
+                  })
+                })
+              );
+            }
+            await Promise.all(restorePromises);
+            const refreshRes = await fetch(apiUrl('/api/board'));
+            const refreshData = await refreshRes.json();
+            if (refreshData?.state) {
+              setBoardState(refreshData.state);
+            }
+          }
+        );
+      } else {
+        setToastMessage(`Clear error: ${data.error || 'Failed'}`);
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error('Error clearing text notes:', err);
+      setToastMessage('Error clearing text notes.');
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
+
   // 8. Superuser Layout actions
   const handleSaveDepartments = async (departments: Department[]) => {
     try {
@@ -2504,6 +2705,7 @@ export default function WhiteboardPage() {
           isCompletingRelief={isCompletingAllReliefs}
           unreadCountsByPhone={unreadCountsByPhone}
           onUpdateMagnetNote={handleUpdateMagnetNote}
+          onUpdateRoomNote={handleUpdateRoomNote}
           onUndo={handleExecuteUndo}
           canUndo={undoStack.length > 0}
           undoCount={undoStack.length}
@@ -2527,6 +2729,7 @@ export default function WhiteboardPage() {
             onAutoAssign={handleAutoAssign}
             isAutoAssigning={isAutoAssigning}
             onCleanWhiteboard={() => setIsCleanBoardModalOpen(true)}
+            onClearAllTextNotes={() => setIsClearNotesModalOpen(true)}
             onUndo={handleExecuteUndo}
             canUndo={undoStack.length > 0}
             undoCount={undoStack.length}
@@ -2561,6 +2764,7 @@ export default function WhiteboardPage() {
             onToggleCollapse={() => setIsBullpenOpen(false)}
             onToggleBreak={(breakType, staffId, currentValue) => handleToggleBreak('bullpen', staffId, breakType, currentValue)}
             unreadCountsByPhone={unreadCountsByPhone}
+            magnetNotes={boardState.magnetNotes}
             onUpdateMagnetNote={handleUpdateMagnetNote}
           />
         ) : (
@@ -2569,6 +2773,27 @@ export default function WhiteboardPage() {
             type="button"
             className="bullpen-expand-tab"
             onClick={() => setIsBullpenOpen(true)}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'move';
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              let raw = e.dataTransfer.getData('application/json') || e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text');
+              let data: any = null;
+              if (raw) {
+                try { data = JSON.parse(raw); } catch {
+                  if (raw.trim()) data = { staffId: raw.trim(), type: 'unassigned' };
+                }
+              }
+              if (!data && typeof window !== 'undefined' && (window as any).__activeDraggedStaff) {
+                data = (window as any).__activeDraggedStaff;
+              }
+              if (data) {
+                handleDropToBullpen(data);
+                setIsBullpenOpen(true);
+              }
+            }}
             title="Show Bullpen (Available Staff for Breaks / Cases)"
           >
             <ChevronRight size={16} />
@@ -2609,7 +2834,11 @@ export default function WhiteboardPage() {
           onSetRelief={handleSetRelief}
           onRemoveRelief={handleRemoveRelief}
           unreadCountsByPhone={unreadCountsByPhone}
+          magnetNotes={boardState.magnetNotes}
           onUpdateMagnetNote={handleUpdateMagnetNote}
+          roomNotes={boardState.roomNotes}
+          onUpdateRoomNote={handleUpdateRoomNote}
+          onOpenLogin={() => setIsLoginModalOpen(true)}
         />
 
         {/* Right 2 Columns: DEPARTURE & LATES (Can be hidden to the right) */}
@@ -2662,6 +2891,7 @@ export default function WhiteboardPage() {
         isCollapsed={isBullpenCollapsed}
         onToggleCollapse={() => setIsBullpenCollapsed(prev => !prev)}
         unreadCountsByPhone={unreadCountsByPhone}
+        magnetNotes={boardState.magnetNotes}
         onUpdateMagnetNote={handleUpdateMagnetNote}
       />
         </div>
@@ -2799,6 +3029,7 @@ export default function WhiteboardPage() {
         messagingConfig={boardState.messagingConfig}
         onSaveDepartments={handleSaveDepartments}
         onResetToPhotoDefault={handleResetToPhotoDefault}
+        onClearAllTextNotes={handleClearAllTextNotes}
         onRefreshData={() => fetchBoardState(false)}
         onUpdateCurrentUser={(updated) => setCurrentUser(prev => prev ? { ...prev, ...updated } : updated)}
       />
@@ -2837,6 +3068,19 @@ export default function WhiteboardPage() {
         cancelButtonText="Cancel"
         onConfirm={handleCleanWhiteboard}
         onClose={() => setIsCleanBoardModalOpen(false)}
+      />
+
+      {/* Clear All Text Notes Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={isClearNotesModalOpen}
+        title="Clear All Text Notes"
+        itemName="All Room & Magnet Text Notes"
+        itemCategory="Text Notes Reset"
+        message="Are you sure you want to clear all text notes across the whiteboard? This will remove all free-text notes from rooms and clinician magnets."
+        confirmButtonText="Clear All Notes"
+        cancelButtonText="Cancel"
+        onConfirm={handleClearAllTextNotes}
+        onClose={() => setIsClearNotesModalOpen(false)}
       />
 
       {/* Complete All Relief Confirmation Modal */}

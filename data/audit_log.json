@@ -1,5 +1,622 @@
 [
   {
+    "id": "audit_1791644186954_0bzi6",
+    "timestamp": "2026-10-10T14:56:26.954Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "locationName": "Entire Whiteboard",
+    "details": "Cleared all text notes (0 room note(s), 1 magnet note(s))"
+  },
+  {
+    "id": "audit_1791644180880_tyfm8",
+    "timestamp": "2026-10-10T14:56:20.880Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Cavanaugh Mark",
+    "details": "Updated magnet red note: \"yo\""
+  },
+  {
+    "id": "audit_1791644173950_jhpyg",
+    "timestamp": "2026-10-10T14:56:13.950Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "MAIN OR Room 7",
+    "details": "Moved from Bullpen -> MAIN OR Room 7",
+    "metadata": {
+      "fromTargetType": "bullpen",
+      "fromId": "staff_oneusap_doc_cavanaughmar",
+      "toTargetType": "room_slot",
+      "toId": "dept_main_or_room_7_slot_0",
+      "staffId": "staff_oneusap_doc_cavanaughmar",
+      "fromLocation": "Bullpen",
+      "toLocation": "MAIN OR Room 7"
+    }
+  },
+  {
+    "id": "audit_1791644171375_38oja",
+    "timestamp": "2026-10-10T14:56:11.375Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Mark Cavanaugh",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from 9th Floor Room EP1 -> Bullpen (Available Staff)",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_9th_floor_room_EP1_slot_0",
+      "toTargetType": "bullpen",
+      "staffId": "staff_oneusap_doc_cavanaughmar",
+      "fromLocation": "9th Floor Room EP1",
+      "toLocation": "Bullpen (Available Staff)"
+    }
+  },
+  {
+    "id": "audit_1791644168685_6oppt",
+    "timestamp": "2026-10-10T14:56:08.685Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Vikram Shenoy",
+    "locationName": "Available Unassigned Staff",
+    "details": "Moved from WEST PAV Room 2 -> Available Unassigned Staff",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_west_pav_room_2_slot_0",
+      "toTargetType": "unassigned",
+      "staffId": "staff_oneusap_doc_shenoyvik",
+      "fromLocation": "WEST PAV Room 2",
+      "toLocation": "Available Unassigned Staff"
+    }
+  },
+  {
+    "id": "audit_1791644083634_1yqop",
+    "timestamp": "2026-10-10T14:54:43.634Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Anonymous Staff",
+    "userRole": "board_runner",
+    "targetName": "Vikram Shenoy",
+    "locationName": "WEST PAV Room 2",
+    "details": "Moved from Bullpen -> WEST PAV Room 2",
+    "metadata": {
+      "fromTargetType": "bullpen",
+      "toTargetType": "room_slot",
+      "toId": "dept_west_pav_room_2_slot_0",
+      "staffId": "staff_oneusap_doc_shenoyvik",
+      "fromLocation": "Bullpen",
+      "toLocation": "WEST PAV Room 2"
+    }
+  },
+  {
+    "id": "audit_1791644083221_5tylm",
+    "timestamp": "2026-10-10T14:54:43.221Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Anonymous Staff",
+    "userRole": "board_runner",
+    "targetName": "Vikram Shenoy",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from WEST PAV Room 2 -> Bullpen (Available Staff)",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_west_pav_room_2_slot_0",
+      "toTargetType": "bullpen",
+      "staffId": "staff_oneusap_doc_shenoyvik",
+      "fromLocation": "WEST PAV Room 2",
+      "toLocation": "Bullpen (Available Staff)"
+    }
+  },
+  {
+    "id": "audit_1791644082750_cuveh",
+    "timestamp": "2026-10-10T14:54:42.750Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Anonymous Staff",
+    "userRole": "board_runner",
+    "targetName": "Vikram Shenoy",
+    "locationName": "WEST PAV Room 2",
+    "details": "Moved from Staff Pool -> WEST PAV Room 2",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "room_slot",
+      "toId": "dept_west_pav_room_2_slot_0",
+      "staffId": "staff_oneusap_doc_shenoyvik",
+      "fromLocation": "",
+      "toLocation": "WEST PAV Room 2"
+    }
+  },
+  {
+    "id": "audit_1791644081936_zvrte",
+    "timestamp": "2026-10-10T14:54:41.936Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Anonymous Staff",
+    "userRole": "board_runner",
+    "targetName": "Vikram Shenoy",
+    "locationName": "Available Unassigned Staff",
+    "details": "Moved from WEST PAV Room 2 -> Available Unassigned Staff",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_west_pav_room_2_slot_0",
+      "toTargetType": "unassigned",
+      "staffId": "staff_oneusap_doc_shenoyvik",
+      "fromLocation": "WEST PAV Room 2",
+      "toLocation": "Available Unassigned Staff"
+    }
+  },
+  {
+    "id": "audit_1791643407830_um9bx",
+    "timestamp": "2026-10-10T14:43:27.830Z",
+    "actionType": "BULLPEN_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Staff",
+    "locationName": "Bullpen (Available Staff)",
+    "details": "Moved from Staff Pool -> Bullpen (Available Staff)",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "bullpen",
+      "staffId": "drag",
+      "fromLocation": "",
+      "toLocation": "Bullpen (Available Staff)"
+    }
+  },
+  {
+    "id": "audit_1791641666490_rf7fa",
+    "timestamp": "2026-10-10T14:14:26.490Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Vikram Shenoy",
+    "details": "Moved Vikram Shenoy to regular MD staff group"
+  },
+  {
+    "id": "audit_1791641666278_ijmm8",
+    "timestamp": "2026-10-10T14:14:26.278Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Vikram Shenoy",
+    "locationName": "MD Staff Group",
+    "details": "Moved from WEST PAV Room 2 -> MD Staff Group",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_west_pav_room_2_slot_0",
+      "toTargetType": "md",
+      "staffId": "staff_oneusap_doc_shenoyvik",
+      "fromLocation": "WEST PAV Room 2",
+      "toLocation": "MD Staff Group"
+    }
+  },
+  {
+    "id": "audit_1791641170190_2jn87",
+    "timestamp": "2026-10-10T14:06:10.190Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "Entire Whiteboard",
+    "details": "Cleared all text notes (2 room note(s), 1 magnet note(s))"
+  },
+  {
+    "id": "audit_1791641166574_4k9zy",
+    "timestamp": "2026-10-10T14:06:06.574Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "WEST PAV Room 7",
+    "details": "Updated Room 7 note: \"erere\""
+  },
+  {
+    "id": "audit_1791641163834_1dump",
+    "timestamp": "2026-10-10T14:06:03.834Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Shenoy Vikram",
+    "details": "Updated magnet red note: \"wait\""
+  },
+  {
+    "id": "audit_1791641005954_8j7v4",
+    "timestamp": "2026-10-10T14:03:25.954Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "MAIN OR Room 1",
+    "details": "Updated Room 1 note: \"TEST-ROOM\""
+  },
+  {
+    "id": "audit_1791641005654_1naoy",
+    "timestamp": "2026-10-10T14:03:25.654Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "MAIN OR Room 1",
+    "details": "Updated Room 1 note: \"TEST-ROOM\""
+  },
+  {
+    "id": "audit_1791640977727_gfhpc",
+    "timestamp": "2026-10-10T14:02:57.727Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "Entire Whiteboard",
+    "details": "Cleared all text notes (1 room note(s), 0 magnet note(s))"
+  },
+  {
+    "id": "audit_1791640914728_5k24i",
+    "timestamp": "2026-10-10T14:01:54.728Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Shenoy Vikram",
+    "details": "Cleared magnet red note"
+  },
+  {
+    "id": "audit_1791640840362_kenje",
+    "timestamp": "2026-10-10T14:00:40.362Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "MAIN OR Room 1",
+    "details": "Updated Room 1 note: \"TEST-ROOM\""
+  },
+  {
+    "id": "audit_1791640702599_wyf2p",
+    "timestamp": "2026-10-10T13:58:22.599Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "admin",
+    "locationName": "Entire Whiteboard",
+    "details": "Cleared all text notes (1 room note(s), 1 magnet note(s))"
+  },
+  {
+    "id": "audit_1791640701923_sk32c",
+    "timestamp": "2026-10-10T13:58:21.923Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "admin",
+    "locationName": "MAIN OR Room 1",
+    "details": "Updated Room 1 note: \"Hold for labs\""
+  },
+  {
+    "id": "audit_1791640701357_b7l2v",
+    "timestamp": "2026-10-10T13:58:21.357Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Admin",
+    "userRole": "admin",
+    "targetName": "Patel Purnal",
+    "details": "Updated magnet red note: \"URGENT\""
+  },
+  {
+    "id": "audit_1791639550457_cezyp",
+    "timestamp": "2026-10-10T13:39:10.457Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "Entire Whiteboard",
+    "details": "Cleared all text notes (0 room note(s), 0 magnet note(s))"
+  },
+  {
+    "id": "audit_1791639540430_qel8p",
+    "timestamp": "2026-10-10T13:39:00.430Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "Entire Whiteboard",
+    "details": "Cleared all text notes (0 room note(s), 0 magnet note(s))"
+  },
+  {
+    "id": "audit_1791638521602_glru3",
+    "timestamp": "2026-10-10T13:22:01.602Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "locationName": "Entire Whiteboard",
+    "details": "Cleared all text notes (2 room note(s), 6 magnet note(s))"
+  },
+  {
+    "id": "audit_1791638450851_7jnu8",
+    "timestamp": "2026-10-10T13:20:50.851Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Hiller Kenneth",
+    "details": "Updated magnet red note: \"NOTE FOR ROOM 1\""
+  },
+  {
+    "id": "audit_1791638377503_sto8j",
+    "timestamp": "2026-10-10T13:19:37.503Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Hiller Kenneth",
+    "details": "Updated magnet red note: \"NOTE FOR ROOM 1\""
+  },
+  {
+    "id": "audit_1791638335783_99ri9",
+    "timestamp": "2026-10-10T13:18:55.783Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Hiller Kenneth",
+    "details": "Updated magnet red note: \"NOTE FOR ROOM 1\""
+  },
+  {
+    "id": "audit_1791634927760_hw8m2",
+    "timestamp": "2026-10-10T12:22:07.760Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Shenoy Vikram",
+    "details": "Updated magnet red note: \"sdf\""
+  },
+  {
+    "id": "audit_1791634913356_xllgl",
+    "timestamp": "2026-10-10T12:21:53.356Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "WEST PAV Room 4",
+    "details": "Updated Room 4 note: \"ccccc\""
+  },
+  {
+    "id": "audit_1791633222937_dfrs1",
+    "timestamp": "2026-10-10T11:53:42.937Z",
+    "actionType": "BREAKFAST_TOGGLED",
+    "performedBy": "System Scheduler (1:00 AM Auto-Reset)",
+    "userRole": "superuser",
+    "details": "Daily 1:00 AM reset: Cleared breakfast and lunch break completion for all rooms, runners, and bullpen staff"
+  },
+  {
+    "id": "audit_1791585920476_rlo6v",
+    "timestamp": "2026-10-09T22:45:20.476Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "WEST PAV Room 9",
+    "details": "Updated Room 9 note: \"mnbv\""
+  },
+  {
+    "id": "audit_1791582812648_2qmtr",
+    "timestamp": "2026-10-09T21:53:32.648Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "ORTHO Room 3",
+    "details": "Cleared Room 3 note"
+  },
+  {
+    "id": "audit_1791582800699_4xdq9",
+    "timestamp": "2026-10-09T21:53:20.699Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "WEST PAV Room 9",
+    "details": "Cleared Room 9 note"
+  },
+  {
+    "id": "audit_1791582547826_urut5",
+    "timestamp": "2026-10-09T21:49:07.826Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Seu Choi",
+    "locationName": "WEST PAV Room 10",
+    "details": "Moved from Staff Pool -> WEST PAV Room 10",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "room_slot",
+      "toId": "dept_west_pav_room_10_slot_0",
+      "staffId": "staff_oneusap_doc_choiseu",
+      "fromLocation": "",
+      "toLocation": "WEST PAV Room 10"
+    }
+  },
+  {
+    "id": "audit_1791582544209_1k501",
+    "timestamp": "2026-10-09T21:49:04.209Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "WEST PAV Room 10",
+    "details": "Updated Room 10 note: \"sdsdfdf\""
+  },
+  {
+    "id": "audit_1791581231989_72m36",
+    "timestamp": "2026-10-09T21:27:11.989Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Clinton Gunn",
+    "locationName": "MAIN OR Room 2",
+    "details": "Assigned to MAIN OR Room 2"
+  },
+  {
+    "id": "audit_1791581093648_vtw9y",
+    "timestamp": "2026-10-09T21:24:53.648Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Pedro Alaniz",
+    "locationName": "MAIN OR Room 2",
+    "details": "Assigned to MAIN OR Room 2"
+  },
+  {
+    "id": "audit_1791580519951_rr7sg",
+    "timestamp": "2026-10-09T21:15:19.951Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Pedro Alaniz",
+    "locationName": "MAIN OR Room 9",
+    "details": "Assigned to MAIN OR Room 9"
+  },
+  {
+    "id": "audit_1791580391798_xbctw",
+    "timestamp": "2026-10-09T21:13:11.798Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 2",
+    "details": "Cleared Room 2 note"
+  },
+  {
+    "id": "audit_1791580169411_hwj4u",
+    "timestamp": "2026-10-09T21:09:29.411Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Clinton Gunn",
+    "locationName": "MAIN OR Room 6",
+    "details": "Assigned to MAIN OR Room 6"
+  },
+  {
+    "id": "audit_1791579883048_cqlop",
+    "timestamp": "2026-10-09T21:04:43.048Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Nes Walker",
+    "locationName": "MAIN OR Room 3",
+    "details": "Assigned to MAIN OR Room 3"
+  },
+  {
+    "id": "audit_1791579775944_npxbk",
+    "timestamp": "2026-10-09T21:02:55.944Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "All Spears",
+    "locationName": "MAIN OR Room 1",
+    "details": "Assigned to MAIN OR Room 1"
+  },
+  {
+    "id": "audit_1791579577870_6rmgj",
+    "timestamp": "2026-10-09T20:59:37.870Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 2",
+    "details": "Updated Room 2 note: \"PENDING CASE\""
+  },
+  {
+    "id": "audit_1791579549713_a20m5",
+    "timestamp": "2026-10-09T20:59:09.713Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Gunn Clinton",
+    "details": "Updated magnet red note: \"NGCSEA\""
+  },
+  {
+    "id": "audit_1791579221143_9wm3o",
+    "timestamp": "2026-10-09T20:53:41.143Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "targetName": "Jam Adams",
+    "locationName": "ORTHO Room 3",
+    "details": "Moved from Staff Pool -> ORTHO Room 3",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "room_slot",
+      "toId": "dept_ortho_room_3_slot_0",
+      "staffId": "staff_oneusap_anes_adamsjam",
+      "fromLocation": "",
+      "toLocation": "ORTHO Room 3"
+    }
+  },
+  {
+    "id": "audit_1791579210739_uxgpa",
+    "timestamp": "2026-10-09T20:53:30.739Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "ORTHO Room 3",
+    "details": "Updated Room 3 note: \"need someone later\""
+  },
+  {
+    "id": "audit_1791578085529_inklo",
+    "timestamp": "2026-10-09T20:34:45.529Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 3",
+    "details": "Cleared Room 3 note"
+  },
+  {
+    "id": "audit_1791577995371_rza6d",
+    "timestamp": "2026-10-09T20:33:15.371Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 3",
+    "details": "Updated Room 3 note: \"FOR LABS\""
+  },
+  {
+    "id": "audit_1791577835744_dsgww",
+    "timestamp": "2026-10-09T20:30:35.744Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 3",
+    "details": "Cleared Room 3 note"
+  },
+  {
+    "id": "audit_1791577748073_ctkvk",
+    "timestamp": "2026-10-09T20:29:08.073Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 3",
+    "details": "Cleared Room 3 note"
+  },
+  {
+    "id": "audit_1791577684586_rt1m0",
+    "timestamp": "2026-10-09T20:28:04.586Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 3",
+    "details": "Cleared Room 3 note"
+  },
+  {
+    "id": "audit_1791577548829_v39tk",
+    "timestamp": "2026-10-09T20:25:48.829Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 3",
+    "details": "Cleared Room 3 note"
+  },
+  {
+    "id": "audit_1791577240332_regvi",
+    "timestamp": "2026-10-09T20:20:40.332Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "WEST PAV Room 9",
+    "details": "Updated Room 9 note: \"cccc\""
+  },
+  {
+    "id": "audit_1791575964777_l4led",
+    "timestamp": "2026-10-09T19:59:24.777Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 1",
+    "details": "Cleared Room 1 note"
+  },
+  {
+    "id": "audit_1791575914204_pm7xq",
+    "timestamp": "2026-10-09T19:58:34.204Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "Dr. Admin (Superuser)",
+    "userRole": "superuser",
+    "locationName": "MAIN OR Room 1",
+    "details": "Updated Room 1 note: \"LATEX ALLERGY\""
+  },
+  {
     "id": "audit_1791572812281_ug89v",
     "timestamp": "2026-10-09T19:06:52.281Z",
     "actionType": "STAFF_UNASSIGNED",

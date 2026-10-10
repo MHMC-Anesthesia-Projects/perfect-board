@@ -62,6 +62,7 @@ export interface Room {
   procedure?: string;
   notes?: string;
   futureTime?: string | null; // e.g. "1030" (military format)
+  note?: string; // Free-text note for room (max 30 chars)
 }
 
 export interface RunnerSlot {
@@ -292,6 +293,7 @@ export interface BoardState {
   bullpenStaffIds?: string[];
   bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; breakfastTime?: string | null; lunchTime?: string | null }>;
   magnetNotes?: Record<string, string>;
+  roomNotes?: Record<string, string>;
   lastBreakResetDate?: string;
   infrequentStaffIds?: string[];
   infrequentStaffKeys?: string[];
