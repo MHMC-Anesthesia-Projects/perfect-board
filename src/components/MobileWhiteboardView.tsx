@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   BoardState, 
   Staff, 
@@ -33,7 +33,14 @@ import {
   ArrowRight,
   MessageSquare,
   CheckCheck,
-  Undo2
+  Undo2,
+  Zap,
+  RotateCw,
+  FileText,
+  Eraser,
+  FileSpreadsheet,
+  Settings,
+  ChevronDown
 } from 'lucide-react';
 import { MagnetTile } from './MagnetTile';
 import { RoomLabel } from './RoomLabel';
@@ -82,6 +89,13 @@ interface MobileWhiteboardViewProps {
   canUndo?: boolean;
   undoCount?: number;
   lastUndoDescription?: string;
+  onTriggerSync?: () => void;
+  isSyncing?: boolean;
+  lastSyncTime?: string | null;
+  onCleanWhiteboard?: () => void;
+  onClearAllTextNotes?: () => void;
+  onOpenAudit?: () => void;
+  onOpenAdmin?: () => void;
 }
 
 export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
@@ -120,7 +134,14 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   onUndo,
   canUndo = false,
   undoCount = 0,
-  lastUndoDescription
+  lastUndoDescription,
+  onTriggerSync,
+  isSyncing = false,
+  lastSyncTime,
+  onCleanWhiteboard,
+  onClearAllTextNotes,
+  onOpenAudit,
+  onOpenAdmin
 }) => {
   const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser';
 
@@ -157,6 +178,34 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
       setSelectedView(defaultViewKey);
     }
   }, [defaultViewKey, selectedView]);
+
+  // Unified Action Dropdown Menu state & click-outside handling
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
+        setIsActionMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsActionMenuOpen(false);
+      }
+    };
+
+    if (isActionMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isActionMenuOpen]);
 
   // Staff lookup helper
   const getStaffById = (id: string | null): Staff | undefined => {
@@ -774,54 +823,419 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
         </button>
       </div>
 
-      {/* 2b. Administrator Relief Action Bar */}
-      {isEditor && onOpenReliefTextModal && (
+      {/* 2b. Administrator Relief & Action Bar */}
+      {isEditor && (
         <div 
           className="mobile-admin-quick-bar"
           style={{
-            padding: '7px 14px',
+            padding: '7px 12px',
             background: 'var(--surface-header, #f8fafc)',
             borderBottom: '1px solid var(--border-light, #e2e8f0)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 10
+            gap: 8,
+            position: 'relative',
+            zIndex: 45
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', minWidth: 0 }}>
             <span style={{ 
               width: 8, 
               height: 8, 
               borderRadius: '50%', 
-              background: reliefsList.length > 0 ? 'var(--marker-red, #dc2626)' : 'var(--text-muted, #94a3b8)' 
+              background: reliefsList.length > 0 ? 'var(--marker-red, #dc2626)' : 'var(--text-muted, #94a3b8)',
+              flexShrink: 0
             }} />
-            <span>{reliefsList.length} Relief{reliefsList.length === 1 ? '' : 's'} Active</span>
+            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {reliefsList.length} Relief{reliefsList.length === 1 ? '' : 's'} Active
+            </span>
           </div>
 
-          <button
-            type="button"
-            id="btn-mobile-relief-assignments"
-            onClick={onOpenReliefTextModal}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '6px 14px',
-              borderRadius: 6,
-              background: 'var(--marker-red, #dc2626)',
-              color: '#ffffff',
-              border: 'none',
-              fontSize: 12.5,
-              fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(220, 38, 38, 0.3)',
-              letterSpacing: 0.3
-            }}
-            title="Build text thread and notify all room, relief, and runner staff"
-          >
-            <MessageSquare size={13} />
-            <span>Relief Assignments</span>
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            {onOpenReliefTextModal && (
+              <button
+                type="button"
+                id="btn-mobile-relief-assignments"
+                onClick={onOpenReliefTextModal}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  padding: '6px 10px',
+                  borderRadius: 6,
+                  background: 'var(--marker-red, #dc2626)',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontSize: 12,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(220, 38, 38, 0.3)',
+                  letterSpacing: 0.2,
+                  whiteSpace: 'nowrap'
+                }}
+                title="Build text thread and notify all room, relief, and runner staff"
+              >
+                <MessageSquare size={13} />
+                <span>Relief Assignments</span>
+              </button>
+            )}
+
+            {/* Unified "Action" Dropdown Menu (Board Runner, Admin & Superuser) */}
+            <div ref={actionMenuRef} style={{ position: 'relative' }}>
+              <button
+                type="button"
+                id="btn-mobile-action-menu"
+                onClick={() => setIsActionMenuOpen(prev => !prev)}
+                title="Board Runner & Admin Action Menu"
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 6,
+                  background: isActionMenuOpen ? 'var(--surface-active, rgba(9, 105, 218, 0.12))' : 'var(--surface-card, #ffffff)',
+                  border: isActionMenuOpen ? '1px solid var(--accent-border, #0969da)' : '1px solid var(--border-light, #cbd5e1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: isActionMenuOpen ? 'var(--accent-primary, #0969da)' : 'var(--text-primary)',
+                  cursor: 'pointer',
+                  boxShadow: isActionMenuOpen ? '0 0 0 2px rgba(9, 105, 218, 0.15)' : '0 1px 2px rgba(0, 0, 0, 0.05)',
+                  transition: 'all 0.15s ease',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <Zap size={13} style={{ color: 'var(--accent-primary, #0969da)' }} />
+                <span>Action</span>
+                {(isSyncing || isAutoAssigning || isCompletingRelief) && (
+                  <RotateCw size={11} className="spin-animation" style={{ color: 'var(--accent-primary, #0969da)' }} />
+                )}
+                {(reliefCount > 0 || reliefsList.length > 0) && !isCompletingRelief && (
+                  <span
+                    style={{
+                      background: 'var(--marker-red, #dc2626)',
+                      color: '#fff',
+                      fontSize: 9.5,
+                      fontWeight: 900,
+                      padding: '1px 5px',
+                      borderRadius: 10,
+                      lineHeight: 1.1
+                    }}
+                    title={`${reliefCount || reliefsList.length} pending relief handoffs`}
+                  >
+                    {reliefCount || reliefsList.length}
+                  </span>
+                )}
+                <ChevronDown
+                  size={12}
+                  style={{
+                    transform: isActionMenuOpen ? 'rotate(180deg)' : 'none',
+                    transition: 'transform 0.2s ease',
+                    color: 'var(--text-secondary)'
+                  }}
+                />
+              </button>
+
+              {isActionMenuOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 6px)',
+                    right: 0,
+                    zIndex: 1000,
+                    width: 270,
+                    maxWidth: 'calc(100vw - 24px)',
+                    background: 'var(--surface-card, #ffffff)',
+                    border: '1px solid var(--border-light)',
+                    borderRadius: 10,
+                    boxShadow: '0 14px 36px rgba(0, 0, 0, 0.25)',
+                    padding: '6px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    maxHeight: 'calc(100dvh - 160px)',
+                    overflowY: 'auto',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
+                  <div style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.6,
+                    color: 'var(--text-muted)',
+                    padding: '6px 10px 4px 10px'
+                  }}>
+                    Portal & Automations
+                  </div>
+
+                  {/* 1. Sync */}
+                  {onTriggerSync && (
+                    <button
+                      type="button"
+                      className="action-dropdown-item"
+                      disabled={isSyncing}
+                      onClick={() => {
+                        onTriggerSync();
+                        setIsActionMenuOpen(false);
+                      }}
+                      title={lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString()}` : 'Sync portal data'}
+                    >
+                      <div className="action-item-icon">
+                        <RotateCw size={14} className={isSyncing ? 'spin-animation' : ''} style={{ color: 'var(--accent-primary)' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                          {isSyncing ? 'Syncing...' : 'Sync'}
+                        </div>
+                        <div style={{ fontSize: 10.5, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Refresh portal schedules'}
+                        </div>
+                      </div>
+                    </button>
+                  )}
+
+                  {/* 2. Auto-Assign */}
+                  {onAutoAssign && (
+                    <button
+                      type="button"
+                      className="action-dropdown-item"
+                      disabled={isAutoAssigning}
+                      onClick={() => {
+                        onAutoAssign();
+                        setIsActionMenuOpen(false);
+                      }}
+                      title="Auto-assign staff magnets to department rooms and runner slots based on portal schedule"
+                    >
+                      <div className="action-item-icon">
+                        <Sparkles size={14} className={isAutoAssigning ? 'spin-animation' : ''} style={{ color: 'var(--accent-primary)' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                          {isAutoAssigning ? 'Assigning...' : 'Auto-Assign'}
+                        </div>
+                        <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                          Place magnets from portal roster
+                        </div>
+                      </div>
+                    </button>
+                  )}
+
+                  <div className="action-dropdown-divider" />
+
+                  <div style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.6,
+                    color: 'var(--text-muted)',
+                    padding: '6px 10px 4px 10px'
+                  }}>
+                    Relief Coordination
+                  </div>
+
+                  {/* 3. Relief Assignments */}
+                  {onOpenReliefTextModal && (
+                    <button
+                      type="button"
+                      className="action-dropdown-item"
+                      onClick={() => {
+                        onOpenReliefTextModal();
+                        setIsActionMenuOpen(false);
+                      }}
+                      title="Build text thread of everyone in a room, relieving, or running"
+                    >
+                      <div className="action-item-icon">
+                        <MessageSquare size={14} style={{ color: 'var(--marker-red)' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                          Relief Assignments
+                        </div>
+                        <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                          Group text thread & handoffs
+                        </div>
+                      </div>
+                    </button>
+                  )}
+
+                  {/* 4. Complete Relief */}
+                  {onCompleteAllReliefs && (
+                    <button
+                      type="button"
+                      className="action-dropdown-item"
+                      disabled={(reliefCount === 0 && reliefsList.length === 0) || isCompletingRelief}
+                      onClick={() => {
+                        onCompleteAllReliefs();
+                        setIsActionMenuOpen(false);
+                      }}
+                      title={(reliefCount > 0 || reliefsList.length > 0) ? `Complete all ${reliefCount || reliefsList.length} relief handoffs and move relief staff into their active slots` : 'No active relief assignments scheduled'}
+                    >
+                      <div className="action-item-icon">
+                        <CheckCheck size={14} className={isCompletingRelief ? 'spin-animation' : ''} style={{ color: (reliefCount > 0 || reliefsList.length > 0) ? 'var(--marker-red)' : 'var(--text-muted)' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 12.5, fontWeight: 700 }}>Complete Relief</span>
+                          {(reliefCount > 0 || reliefsList.length > 0) && (
+                            <span style={{
+                              background: 'var(--marker-red)',
+                              color: '#fff',
+                              fontSize: 10,
+                              fontWeight: 800,
+                              padding: '1px 6px',
+                              borderRadius: 10
+                            }}>
+                              {reliefCount || reliefsList.length}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                          {(reliefCount > 0 || reliefsList.length > 0) ? `Move ${reliefCount || reliefsList.length} relief staff to active` : 'No pending reliefs'}
+                        </div>
+                      </div>
+                    </button>
+                  )}
+
+                  <div className="action-dropdown-divider" />
+
+                  <div style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.6,
+                    color: 'var(--text-muted)',
+                    padding: '6px 10px 4px 10px'
+                  }}>
+                    Maintenance & History
+                  </div>
+
+                  {/* 5. Clear All Notes */}
+                  {onClearAllTextNotes && (
+                    <button
+                      type="button"
+                      className="action-dropdown-item"
+                      onClick={() => {
+                        onClearAllTextNotes();
+                        setIsActionMenuOpen(false);
+                      }}
+                      title="Clear all free text notes on rooms and magnets across the board"
+                    >
+                      <div className="action-item-icon">
+                        <FileText size={14} style={{ color: 'var(--text-secondary)' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                          Clear All Notes
+                        </div>
+                        <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                          Clear room & magnet text notes
+                        </div>
+                      </div>
+                    </button>
+                  )}
+
+                  {/* 6. Clean Board */}
+                  {onCleanWhiteboard && (
+                    <button
+                      type="button"
+                      className="action-dropdown-item"
+                      onClick={() => {
+                        onCleanWhiteboard();
+                        setIsActionMenuOpen(false);
+                      }}
+                      title="Clean Whiteboard: Clear all room and runner magnets to start a fresh day"
+                    >
+                      <div className="action-item-icon">
+                        <Eraser size={14} style={{ color: 'var(--text-secondary)' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                          Clean Board
+                        </div>
+                        <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                          Clear magnets for a fresh day
+                        </div>
+                      </div>
+                    </button>
+                  )}
+
+                  {/* 7. Audit Log */}
+                  {onOpenAudit && (
+                    <button
+                      type="button"
+                      className="action-dropdown-item"
+                      onClick={() => {
+                        onOpenAudit();
+                        setIsActionMenuOpen(false);
+                      }}
+                      title="Open audit ledger and activity history"
+                    >
+                      <div className="action-item-icon">
+                        <FileSpreadsheet size={14} style={{ color: 'var(--text-secondary)' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                          Audit Log
+                        </div>
+                        <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                          Board action history & ledger
+                        </div>
+                      </div>
+                    </button>
+                  )}
+
+                  {/* 8. Admin Settings (Org Admin level only) */}
+                  {(currentUser?.role === 'admin' || currentUser?.role === 'superuser') && onOpenAdmin && (
+                    <>
+                      <div className="action-dropdown-divider" />
+                      <div style={{
+                        fontSize: 10,
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        letterSpacing: 0.6,
+                        color: 'var(--text-muted)',
+                        padding: '6px 10px 4px 10px'
+                      }}>
+                        Org Admin
+                      </div>
+                      <button
+                        type="button"
+                        className="action-dropdown-item"
+                        onClick={() => {
+                          onOpenAdmin();
+                          setIsActionMenuOpen(false);
+                        }}
+                        title="Facility Admin Settings & Command Center"
+                      >
+                        <div className="action-item-icon">
+                          <Settings size={14} style={{ color: 'var(--marker-red)' }} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 12.5, fontWeight: 700 }}>Admin Settings</span>
+                            <span style={{
+                              background: 'rgba(211, 47, 47, 0.12)',
+                              color: 'var(--marker-red)',
+                              border: '1px solid rgba(211, 47, 47, 0.3)',
+                              borderRadius: 4,
+                              fontSize: 9.5,
+                              fontWeight: 800,
+                              padding: '1px 5px'
+                            }}>
+                              Org Admin
+                            </span>
+                          </div>
+                          <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                            Facility setup & permissions
+                          </div>
+                        </div>
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

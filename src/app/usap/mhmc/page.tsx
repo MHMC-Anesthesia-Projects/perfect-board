@@ -2713,6 +2713,13 @@ export default function WhiteboardPage() {
           canUndo={undoStack.length > 0}
           undoCount={undoStack.length}
           lastUndoDescription={undoStack[0]?.description}
+          onTriggerSync={handleTriggerSync}
+          isSyncing={isSyncing}
+          lastSyncTime={boardState.scraperConfig.lastSyncTime}
+          onCleanWhiteboard={() => setIsCleanBoardModalOpen(true)}
+          onClearAllTextNotes={() => setIsClearNotesModalOpen(true)}
+          onOpenAudit={() => setIsAuditDrawerOpen(true)}
+          onOpenAdmin={() => setIsAdminModalOpen(true)}
         />
       ) : (
         <div className="whiteboard-container">

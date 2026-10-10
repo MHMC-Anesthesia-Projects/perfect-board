@@ -3831,3 +3831,60 @@ body.dragging-staff .magnet-tile * {
     box-shadow: 0 0 0 0 rgba(220, 38, 38, 0), 0 0 4px rgba(220, 38, 38, 0.5);
   }
 }
+
+/* ==========================================================================
+   Action Dropdown Menu & Shared Utilities
+   ========================================================================== */
+.spin-animation {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.action-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.action-dropdown-item:hover:not(:disabled),
+.action-dropdown-item:active:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.action-dropdown-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.action-item-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.action-dropdown-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 4px 6px;
+}
