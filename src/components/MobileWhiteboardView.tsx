@@ -40,7 +40,8 @@ import {
   Eraser,
   FileSpreadsheet,
   Settings,
-  ChevronDown
+  ChevronDown,
+  X
 } from 'lucide-react';
 import { MagnetTile } from './MagnetTile';
 import { RoomLabel } from './RoomLabel';
@@ -182,6 +183,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   // Unified Action Dropdown Menu state & click-outside handling
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const actionMenuRef = useRef<HTMLDivElement>(null);
+  const [confirmAction, setConfirmAction] = useState<'sync' | 'auto_assign' | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
@@ -975,8 +977,8 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                       className="action-dropdown-item"
                       disabled={isSyncing}
                       onClick={() => {
-                        onTriggerSync();
                         setIsActionMenuOpen(false);
+                        setConfirmAction('sync');
                       }}
                       title={lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString()}` : 'Sync portal data'}
                     >
@@ -1001,8 +1003,8 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                       className="action-dropdown-item"
                       disabled={isAutoAssigning}
                       onClick={() => {
-                        onAutoAssign();
                         setIsActionMenuOpen(false);
+                        setConfirmAction('auto_assign');
                       }}
                       title="Auto-assign staff magnets to department rooms and runner slots based on portal schedule"
                     >
@@ -1937,7 +1939,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                   <button
                     type="button"
                     className="mobile-action-sm-btn accent"
-                    onClick={onAutoAssign}
+                    onClick={() => setConfirmAction('auto_assign')}
                     disabled={isAutoAssigning}
                     title="Auto-Assign Call Doctors from Schedule"
                   >
@@ -2383,6 +2385,176 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
           </div>
         )}
       </main>
+
+      {/* Confirmation Window for Sync & Auto-Assign (Protection against accidental taps) */}
+      {confirmAction && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setConfirmAction(null)}
+          role="dialog"
+          aria-modal="true"
+          style={{ zIndex: 100000 }}
+        >
+          <div
+            className="pin-pad-card"
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: 360,
+              maxWidth: '92vw',
+              padding: '24px 20px 20px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.45)',
+              borderRadius: 16
+            }}
+          >
+            {/* Header Icon Badge */}
+            <div
+              style={{
+                width: 54,
+                height: 54,
+                borderRadius: '50%',
+                background: 'rgba(9, 105, 218, 0.12)',
+                border: '2px solid rgba(9, 105, 218, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--accent-primary, #0969da)',
+                marginBottom: 14
+              }}
+            >
+              {confirmAction === 'sync' ? (
+                <RotateCw size={26} className={isSyncing ? 'spin-animation' : ''} />
+              ) : (
+                <Sparkles size={26} className={isAutoAssigning ? 'spin-animation' : ''} />
+              )}
+            </div>
+
+            {/* Title */}
+            <h3
+              style={{
+                fontSize: 18,
+                fontWeight: 900,
+                letterSpacing: 0.3,
+                color: 'var(--text-primary)',
+                margin: '0 0 6px 0'
+              }}
+            >
+              {confirmAction === 'sync' ? 'Confirm Portal Sync' : 'Confirm Auto-Assign'}
+            </h3>
+
+            {/* Badge pill */}
+            <div
+              style={{
+                fontSize: 11.5,
+                fontWeight: 800,
+                color: 'var(--accent-primary, #0969da)',
+                padding: '4px 12px',
+                background: 'rgba(9, 105, 218, 0.08)',
+                border: '1px solid rgba(9, 105, 218, 0.2)',
+                borderRadius: 6,
+                marginBottom: 14,
+                letterSpacing: 0.5,
+                textTransform: 'uppercase'
+              }}
+            >
+              {confirmAction === 'sync' ? 'Hospital Portal Refresh' : 'Magnet Auto-Placement'}
+            </div>
+
+            {/* Explanatory Message */}
+            <p
+              style={{
+                fontSize: 13,
+                lineHeight: 1.45,
+                color: 'var(--text-secondary)',
+                margin: '0 0 22px 0',
+                padding: '0 6px'
+              }}
+            >
+              {confirmAction === 'sync'
+                ? 'Are you sure you want to sync portal data? This will refresh schedule and roster data from the hospital portal.'
+                : 'Are you sure you want to run Auto-Assign? This will automatically place clinician magnets into department rooms and runner slots based on today\'s portal schedule.'}
+            </p>
+
+            {/* Touch-Friendly Action Buttons */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 10,
+                width: '100%'
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setConfirmAction(null)}
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: 10,
+                  border: '1.5px solid var(--border-light, #cbd5e1)',
+                  background: 'var(--surface-hover, #f1f5f9)',
+                  color: 'var(--text-primary)',
+                  fontSize: 13.5,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6
+                }}
+              >
+                <X size={15} />
+                <span>Cancel</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const actionToRun = confirmAction;
+                  setConfirmAction(null);
+                  if (actionToRun === 'sync') {
+                    onTriggerSync?.();
+                  } else if (actionToRun === 'auto_assign') {
+                    onAutoAssign?.();
+                  }
+                }}
+                disabled={confirmAction === 'sync' ? isSyncing : isAutoAssigning}
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: 'var(--accent-primary, #0969da)',
+                  color: '#ffffff',
+                  fontSize: 13.5,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  boxShadow: '0 3px 10px rgba(9, 105, 218, 0.35)',
+                  opacity: (confirmAction === 'sync' ? isSyncing : isAutoAssigning) ? 0.6 : 1
+                }}
+                autoFocus
+              >
+                {confirmAction === 'sync' ? (
+                  <>
+                    <RotateCw size={15} className={isSyncing ? 'spin-animation' : ''} />
+                    <span>Sync Now</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={15} className={isAutoAssigning ? 'spin-animation' : ''} />
+                    <span>Auto-Assign</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
