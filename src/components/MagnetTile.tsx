@@ -210,7 +210,9 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
             : `${staff.displayName ? `[${staff.displayName}] ` : ''}${staff.firstName} ${staff.lastName} (${staff.credentials})${canViewRedNote && currentNote ? ` [Note: ${currentNote}]` : ''}${staff.hasStudent ? ` • 🎓 Student: ${staff.studentName || 'Assigned'}` : ''} • Phone: ${staff.phone}${unreadMessageCount > 0 ? ` • ${unreadMessageCount} NEW MESSAGE(S)` : ''}`)}
         style={{
           cursor: isDraggable ? 'grab' : (isAssignedRelief ? 'not-allowed' : 'pointer'),
-          touchAction: 'pan-y'
+          touchAction: isDraggable ? 'none' : 'pan-y',
+          userSelect: 'none',
+          WebkitUserSelect: 'none'
         }}
       >
         {/* Breakfast & Lunch Checkboxes */}

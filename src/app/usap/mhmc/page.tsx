@@ -318,8 +318,10 @@ export default function WhiteboardPage() {
           try {
             enableDragDropTouch(document, document, {
               forceListen: true,
-              dragThresholdPixels: 5,
-              contextMenuDelayMS: 3000
+              dragThresholdPixels: 3,
+              contextMenuDelayMS: 2000,
+              dragImageOpacity: 0.85,
+              allowDragScroll: false
             });
           } catch (err) {
             console.warn('Touch drag-drop polyfill error:', err);

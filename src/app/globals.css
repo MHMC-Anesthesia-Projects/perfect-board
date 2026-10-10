@@ -203,7 +203,10 @@ button {
   cursor: grab;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
   position: relative;
-  touch-action: pan-y;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: element;
   width: 100%;
   box-sizing: border-box;
 }
@@ -3643,6 +3646,16 @@ body.dragging-staff .relief-slot-target.drag-near-active {
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.5) !important;
   min-width: 68px !important;
   animation: pulseRelief 1.4s infinite ease-in-out;
+}
+
+body.dragging-staff,
+body.dragging-staff * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+body.dragging-staff .magnet-tile {
+  transition: none !important;
 }
 
 body.dragging-staff .magnet-tile * {
