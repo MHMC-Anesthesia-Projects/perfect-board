@@ -369,33 +369,31 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
             <span className="magnet-hover-note-count">
               {noteDraft.length}/15
             </span>
-            {Boolean(noteDraft) && (
-              <button
-                type="button"
-                className="magnet-hover-note-clear"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  isClosingViaActionRef.current = true;
-                }}
-                onMouseDown={(e) => {
-                  // Prevent input blur before onClick fires
-                  e.preventDefault();
-                  e.stopPropagation();
-                  isClosingViaActionRef.current = true;
-                }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  isClosingViaActionRef.current = true;
-                  handleSaveNote('');
-                  setIsEditingNote(false);
-                }}
-                title="Delete note"
-              >
-                ✕
-              </button>
-            )}
+            <button
+              type="button"
+              className="magnet-hover-note-clear"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isClosingViaActionRef.current = true;
+              }}
+              onMouseDown={(e) => {
+                // Prevent input blur before onClick fires
+                e.preventDefault();
+                e.stopPropagation();
+                isClosingViaActionRef.current = true;
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isClosingViaActionRef.current = true;
+                handleSaveNote('');
+                setIsEditingNote(false);
+              }}
+              title={noteDraft ? "Delete note" : "Close"}
+            >
+              ✕
+            </button>
           </div>
           <div className={popoverPlacement === 'top' ? 'magnet-hover-note-arrow-down' : 'magnet-hover-note-arrow-up'} />
         </div>,
