@@ -1780,7 +1780,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                     const breakStatus = boardState.bullpenBreaks?.[staffId] || { breakfastDone: false, lunchDone: false };
 
                     return (
-                      <div key={staffId} style={{ height: 26, minHeight: 26 }}>
+                      <div key={staffId} style={{ height: 26, minHeight: 26, touchAction: 'pan-y' }}>
                         <MagnetTile
                           staff={staffMember}
                           slotId={staffId}
@@ -1833,14 +1833,14 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                   <span>{grp.title}</span>
                   <span style={{ fontSize: 11 }}>({grp.items.length})</span>
                 </div>
-                <div className="mobile-card mobile-list-card" style={{ padding: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div className="mobile-card mobile-list-card" style={{ padding: 6, display: 'flex', flexDirection: 'column', gap: 4, touchAction: 'pan-y' }}>
                   {grp.items.length === 0 ? (
                     <div className="mobile-empty-state">No unassigned staff in {grp.label}</div>
                   ) : (
                     grp.items.map(s => {
                       const breakStatus = boardState.bullpenBreaks?.[s.id] || { breakfastDone: false, lunchDone: false };
                       return (
-                        <div key={s.id} style={{ height: 26, minHeight: 26 }}>
+                        <div key={s.id} style={{ height: 26, minHeight: 26, touchAction: 'pan-y' }}>
                           <MagnetTile
                             staff={s}
                             slotId={s.id}
