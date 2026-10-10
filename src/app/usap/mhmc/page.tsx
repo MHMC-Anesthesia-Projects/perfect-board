@@ -1628,6 +1628,9 @@ export default function WhiteboardPage() {
       };
     });
 
+    // Also update slotAssignTarget so open modal receives the latest futureTime immediately
+    setSlotAssignTarget(prev => prev && prev.roomId === roomId ? { ...prev, currentFutureTime: futureTime || null } : prev);
+
     try {
       const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
@@ -2948,6 +2951,9 @@ export default function WhiteboardPage() {
         isOpen={!!slotAssignTarget}
         targetSlot={slotAssignTarget ? {
           ...slotAssignTarget,
+          currentFutureTime: slotAssignTarget.roomId 
+            ? (boardState?.departments.flatMap(d => d.rooms).find(r => r.id === slotAssignTarget.roomId)?.futureTime ?? slotAssignTarget.currentFutureTime)
+            : slotAssignTarget.currentFutureTime,
           currentRelief: findSlotRelief(slotAssignTarget.id, slotAssignTarget.type)
         } : null}
         staff={boardState.staff}

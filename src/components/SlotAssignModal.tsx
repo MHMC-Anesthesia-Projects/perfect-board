@@ -47,17 +47,16 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
   onOpenReliefModal
 }) => {
   const [search, setSearch] = useState('');
-  const [futureTimeInput, setFutureTimeInput] = useState('');
+  const currentSlotTime = targetSlot?.currentFutureTime || '';
+  const [futureTimeInput, setFutureTimeInput] = useState(currentSlotTime);
   const [isSavedRecently, setIsSavedRecently] = useState(false);
 
   useEffect(() => {
-    if (targetSlot?.currentFutureTime) {
-      setFutureTimeInput(targetSlot.currentFutureTime);
-    } else {
-      setFutureTimeInput('');
-    }
+    setFutureTimeInput(currentSlotTime);
     setIsSavedRecently(false);
-  }, [targetSlot]);
+  }, [targetSlot?.id, targetSlot?.roomId, currentSlotTime]);
+
+  const isTimeSaved = isSavedRecently || Boolean(currentSlotTime && futureTimeInput.trim() === currentSlotTime.trim());
 
   if (!isOpen || !targetSlot) return null;
 
@@ -339,7 +338,7 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
                     <Clock size={13} />
                     <span>Future Case Time (Military Format)</span>
                   </div>
-                  {(futureTimeInput || targetSlot.currentFutureTime) && (
+                  {(Boolean(futureTimeInput) || Boolean(currentSlotTime)) && (
                     <button
                       type="button"
                       onClick={handleClearFutureTime}
@@ -374,6 +373,7 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
                       onChange={e => {
                         const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
                         setFutureTimeInput(val);
+                        setIsSavedRecently(false);
                       }}
                       onKeyDown={e => {
                         if (e.key === 'Enter') {
@@ -384,63 +384,107 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
                       style={{
                         width: 86,
                         padding: '6px 8px',
-                        borderRadius: 4,
-                        border: '1.5px solid var(--border-light)',
+                        borderRadius: 5,
+                        border: (isTimeSaved && Boolean(futureTimeInput)) ? '1.5px solid #10b981' : '1.5px solid rgba(239, 68, 68, 0.45)',
                         background: 'var(--surface-card)',
                         color: 'var(--text-primary)',
                         fontSize: 16,
                         fontWeight: 800,
                         fontFamily: 'var(--font-main)',
                         textAlign: 'center',
-                        letterSpacing: 1
+                        letterSpacing: 1,
+                        outline: 'none',
+                        boxShadow: (isTimeSaved && Boolean(futureTimeInput)) ? '0 0 6px rgba(16, 185, 129, 0.3)' : 'none'
                       }}
                     />
                     <button
                       type="button"
+                      disabled={isTimeSaved && Boolean(futureTimeInput)}
                       onClick={() => handleSaveFutureTime()}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: 4,
-                        padding: '6px 12px',
+                        padding: '6px 14px',
                         fontSize: 11,
                         fontWeight: 800,
-                        borderRadius: 4,
-                        background: isSavedRecently ? '#16a34a' : 'var(--marker-red)',
+                        borderRadius: 5,
+                        background: (isTimeSaved && Boolean(futureTimeInput)) ? '#10b981' : 'var(--marker-red)',
                         color: '#fff',
                         border: 'none',
-                        cursor: 'pointer',
-                        transition: 'background 0.2s ease'
+                        cursor: (isTimeSaved && Boolean(futureTimeInput)) ? 'default' : 'pointer',
+                        boxShadow: (isTimeSaved && Boolean(futureTimeInput)) ? '0 1px 4px rgba(16, 185, 129, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)',
+                        transition: 'all 0.2s ease'
                       }}
                     >
-                      {isSavedRecently ? <Check size={12} /> : null}
-                      <span>{isSavedRecently ? 'Saved' : 'Save Time'}</span>
+                      {(isTimeSaved && Boolean(futureTimeInput)) ? <Check size={12} /> : null}
+                      <span>{(isTimeSaved && Boolean(futureTimeInput)) ? 'Saved' : 'Save Time'}</span>
                     </button>
                   </div>
 
                   {/* Preset military buttons */}
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-                    {['0900', '1000', '1030', '1100', '1200', '1300', '1400'].map(preset => (
-                      <button
-                        key={preset}
-                        type="button"
-                        onClick={() => handleSaveFutureTime(preset)}
-                        style={{
-                          padding: '3px 6px',
-                          borderRadius: 3,
-                          fontSize: 10,
-                          fontWeight: 700,
-                          fontFamily: 'var(--font-mono)',
-                          background: futureTimeInput === preset ? 'rgba(239, 68, 68, 0.2)' : 'var(--surface-card)',
-                          color: futureTimeInput === preset ? 'var(--marker-red)' : 'var(--text-secondary)',
-                          border: futureTimeInput === preset ? '1px solid var(--marker-red)' : '1px solid var(--border-light)',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {preset}
-                      </button>
-                    ))}
+                    {['0900', '1000', '1030', '1100', '1200', '1300', '1400'].map(preset => {
+                      const isSelected = futureTimeInput === preset;
+                      return (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => handleSaveFutureTime(preset)}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: 4,
+                            fontSize: 11,
+                            fontWeight: isSelected ? 800 : 700,
+                            fontFamily: 'var(--font-mono)',
+                            background: isSelected ? 'var(--marker-red, #ef4444)' : 'var(--surface-card)',
+                            color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+                            border: isSelected ? '1.5px solid var(--marker-red, #ef4444)' : '1px solid var(--border-light)',
+                            boxShadow: isSelected ? '0 2px 8px rgba(239, 68, 68, 0.45)' : 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 3
+                          }}
+                          title={`Set room future case time to ${preset}`}
+                        >
+                          {isSelected && <span style={{ fontSize: 8 }}>●</span>}
+                          <span>{preset}</span>
+                        </button>
+                      );
+                    })}
                   </div>
+                </div>
+
+                {/* Visible confirmation status indicator */}
+                <div style={{
+                  marginTop: 8,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '4px 8px',
+                  borderRadius: 4,
+                  background: isTimeSaved && futureTimeInput ? 'rgba(16, 185, 129, 0.12)' : 'rgba(0, 0, 0, 0.03)',
+                  border: isTimeSaved && futureTimeInput ? '1px solid rgba(16, 185, 129, 0.3)' : '1px dashed var(--border-light)'
+                }}>
+                  {isTimeSaved && futureTimeInput ? (
+                    <span style={{ color: '#059669', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <Check size={13} />
+                      <span>Board Updated: Room scheduled for <strong>{futureTimeInput}</strong> (Military)</span>
+                    </span>
+                  ) : futureTimeInput ? (
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      Unsaved time: Click &quot;Save Time&quot; or press Enter
+                    </span>
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      No future case time set on board
+                    </span>
+                  )}
                 </div>
               </div>
             )}

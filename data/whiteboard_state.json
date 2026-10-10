@@ -1733,9 +1733,9 @@
               "id": "dept_main_or_room_4_slot_0",
               "notes": "",
               "relief": {
-                "staffId": "staff_oneusap_doc_gashlerkyl",
                 "time": "3:00 PM",
                 "notes": "",
+                "staffId": "staff_oneusap_doc_gashlerkyl",
                 "isRedBox": true
               },
               "staffId": "staff_oneusap_doc_tallacksondon",
@@ -2824,7 +2824,7 @@
       "runnerSlots": []
     }
   ],
-  "lastUpdated": "2026-10-10T19:06:41.686Z",
+  "lastUpdated": "2026-10-10T19:17:57.870Z",
   "magnetNotes": {
     "staff_oneusap_anes_ahmmedzah": "test"
   },
