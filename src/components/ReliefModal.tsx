@@ -535,18 +535,10 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div style={{
-          padding: '14px 20px',
-          background: 'var(--surface-header, #f8fafc)',
-          borderTop: '1px solid var(--border-light, #e2e8f0)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 10
-        }}>
-          <div>
+        <div className={`relief-modal-footer ${target.currentRelief ? 'has-current-relief' : 'no-current-relief'}`}>
+          <div className="relief-modal-footer-left">
             {target.currentRelief && isEditor && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <>
                 {target.currentRelief.staffId ? (
                   <>
                     {target.currentRelief.isRedBox ? (
@@ -554,12 +546,13 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
                         <button
                           type="button"
                           onClick={() => handleRemove(false)}
+                          className="relief-btn-remove"
                           style={{
                             background: 'rgba(239, 68, 68, 0.08)',
                             border: '1px solid #ef4444',
                             color: '#dc2626',
                             borderRadius: 6,
-                            padding: '6px 10px',
+                            padding: '7px 10px',
                             fontSize: 12,
                             fontWeight: 700,
                             cursor: 'pointer',
@@ -570,17 +563,18 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
                           title="Remove clinician and restore the planned Red Box"
                         >
                           <Trash2 size={12} />
-                          <span>Remove Clinician (Keep Red Box)</span>
+                          <span>Remove Clinician</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => handleRemove(true)}
+                          className="relief-btn-clear"
                           style={{
                             background: 'transparent',
                             border: '1px solid var(--border-light, #cbd5e1)',
                             color: 'var(--text-muted, #64748b)',
                             borderRadius: 6,
-                            padding: '6px 10px',
+                            padding: '7px 10px',
                             fontSize: 12,
                             fontWeight: 700,
                             cursor: 'pointer',
@@ -597,12 +591,13 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleRemove(true)}
+                        className="relief-btn-remove"
                         style={{
                           background: 'transparent',
                           border: '1px solid #ef4444',
                           color: '#ef4444',
                           borderRadius: 6,
-                          padding: '6px 12px',
+                          padding: '7px 12px',
                           fontSize: 12,
                           fontWeight: 700,
                           cursor: 'pointer',
@@ -620,12 +615,13 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleRemove(true)}
+                    className="relief-btn-remove"
                     style={{
                       background: 'transparent',
                       border: '1px solid #ef4444',
                       color: '#ef4444',
                       borderRadius: 6,
-                      padding: '6px 12px',
+                      padding: '7px 12px',
                       fontSize: 12,
                       fontWeight: 700,
                       cursor: 'pointer',
@@ -638,14 +634,15 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
                     <span>Remove Red Box</span>
                   </button>
                 )}
-              </div>
+              </>
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="relief-modal-footer-right">
             <button
               type="button"
               onClick={onClose}
+              className="relief-btn-cancel"
               style={{
                 padding: '7px 14px',
                 borderRadius: 6,
@@ -664,6 +661,7 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
               <button
                 type="button"
                 onClick={handleHandoff}
+                className="relief-btn-handoff"
                 style={{
                   padding: '7px 14px',
                   borderRadius: 6,
@@ -689,6 +687,7 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
               <button
                 type="button"
                 onClick={handleMarkOpenRedBox}
+                className="relief-btn-open"
                 style={{
                   padding: '7px 14px',
                   borderRadius: 6,
@@ -712,6 +711,7 @@ export const ReliefModal: React.FC<ReliefModalProps> = ({
               type="button"
               onClick={handleSave}
               disabled={!selectedStaffId}
+              className="relief-btn-assign"
               style={{
                 padding: '7px 16px',
                 borderRadius: 6,

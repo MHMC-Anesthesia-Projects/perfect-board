@@ -544,58 +544,65 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   Custom Magnet Display Name:
                 </label>
               </div>
-              <div style={{ display: 'flex', gap: 6 }}>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', width: '100%', boxSizing: 'border-box' }}>
                 <input
                   type="text"
                   placeholder="e.g. Dr. Dave, Johnny, or blank for default"
                   value={displayNameInput}
                   onChange={e => setDisplayNameInput(e.target.value)}
                   style={{
-                    flex: 1,
+                    flex: '1 1 0',
+                    minWidth: 0,
                     padding: '6px 8px',
                     borderRadius: 4,
                     border: '1px solid var(--border-light)',
                     fontSize: 12,
-                    fontWeight: 700
+                    fontWeight: 700,
+                    boxSizing: 'border-box'
                   }}
                 />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onUpdateDisplayName) {
-                      onUpdateDisplayName(staff.id, displayNameInput.trim());
-                    }
-                    setIsEditingDisplayName(false);
-                  }}
-                  style={{
-                    padding: '6px 12px',
-                    background: 'var(--accent-primary)',
-                    color: '#fff',
-                    borderRadius: 4,
-                    fontWeight: 700,
-                    fontSize: 12,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDisplayNameInput(staff.displayName || '');
-                    setIsEditingDisplayName(false);
-                  }}
-                  style={{
-                    padding: '6px 10px',
-                    background: 'transparent',
-                    border: '1px solid var(--border-light)',
-                    borderRadius: 4,
-                    fontSize: 12,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Cancel
-                </button>
+                <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onUpdateDisplayName) {
+                        onUpdateDisplayName(staff.id, displayNameInput.trim());
+                      }
+                      setIsEditingDisplayName(false);
+                    }}
+                    style={{
+                      padding: '6px 12px',
+                      background: 'var(--accent-primary)',
+                      color: '#fff',
+                      borderRadius: 4,
+                      fontWeight: 700,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      border: 'none',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDisplayNameInput(staff.displayName || '');
+                      setIsEditingDisplayName(false);
+                    }}
+                    style={{
+                      padding: '6px 10px',
+                      background: 'transparent',
+                      border: '1px solid var(--border-light)',
+                      borderRadius: 4,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -836,7 +843,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4, width: '100%', boxSizing: 'border-box' }}>
                 <input
                   type="text"
                   value={customShift}
@@ -846,107 +853,70 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   }}
                   placeholder="e.g. postCV, pre1st, OBcall, 2p, or 4p"
                   style={{
-                    flex: 1,
+                    flex: '1 1 0',
+                    minWidth: 0,
                     padding: '5px 8px',
                     fontSize: 12,
                     borderRadius: 4,
                     border: '1px solid var(--border-light)',
                     background: 'var(--bg-board)',
-                    color: 'var(--text-primary)'
+                    color: 'var(--text-primary)',
+                    boxSizing: 'border-box'
                   }}
                 />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onUpdateShift && customShift.trim()) {
-                      onUpdateShift(staff.id, customShift.trim(), staff.lastName, staff.credentials, isCallTeamSelected);
-                      setIsEditingShift(false);
-                    }
-                  }}
-                  style={{
-                    padding: '5px 12px',
-                    background: 'var(--accent-primary)',
-                    color: '#fff',
-                    borderRadius: 4,
-                    fontSize: 11,
-                    fontWeight: 800,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingShift(false)}
-                  style={{
-                    padding: '4px 8px',
-                    background: 'var(--surface-hover)',
-                    border: '1px solid var(--border-light)',
-                    borderRadius: 4,
-                    fontSize: 11,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Cancel
-                </button>
+                <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onUpdateShift && customShift.trim()) {
+                        onUpdateShift(staff.id, customShift.trim(), staff.lastName, staff.credentials, isCallTeamSelected);
+                        setIsEditingShift(false);
+                      }
+                    }}
+                    style={{
+                      padding: '5px 12px',
+                      background: 'var(--accent-primary)',
+                      color: '#fff',
+                      borderRadius: 4,
+                      fontSize: 11,
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      border: 'none',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingShift(false)}
+                    style={{
+                      padding: '4px 8px',
+                      background: 'var(--surface-hover)',
+                      border: '1px solid var(--border-light)',
+                      borderRadius: 4,
+                      fontSize: 11,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
           {/* Current Assignment(s) Display */}
-          {allPlacements.length <= 1 ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--text-secondary)' }}>
                 <MapPin size={15} style={{ color: 'var(--marker-green)', flexShrink: 0 }} />
-                <span style={{ fontWeight: 600, flexShrink: 0 }}>Current Assignment:</span>
-                <span style={{
-                  fontWeight: 800,
-                  color: currentPlacement ? 'var(--text-primary)' : 'var(--text-muted)',
-                  background: currentPlacement ? 'var(--surface-card)' : 'transparent',
-                  padding: currentPlacement ? '2px 8px' : '0',
-                  borderRadius: 4,
-                  border: currentPlacement ? '1px solid var(--border-light)' : 'none',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}>
-                  {currentPlacement ? currentPlacement.locationName : 'Credentialed Unassigned Staff'}
+                <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {allPlacements.length > 1 ? `Current Assignments (${allPlacements.length}):` : 'Current Assignment:'}
                 </span>
               </div>
-              {isEditor && currentPlacement && onRemoveFromSlot && (
-                <button
-                  type="button"
-                  onClick={() => handleRemovePlacement(currentPlacement)}
-                  title={`Remove from ${currentPlacement.locationName}`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    padding: '3px 8px',
-                    borderRadius: 4,
-                    background: 'rgba(239, 68, 68, 0.08)',
-                    border: '1px solid rgba(239, 68, 68, 0.25)',
-                    color: 'var(--marker-red)',
-                    fontSize: 11,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    flexShrink: 0
-                  }}
-                >
-                  <X size={12} />
-                  <span>Remove</span>
-                </button>
-              )}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
-                  <MapPin size={15} style={{ color: 'var(--marker-green)', flexShrink: 0 }} />
-                  <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Current Assignments ({allPlacements.length}):
-                  </span>
-                </div>
+              {allPlacements.length > 1 && (
                 <span style={{
                   fontSize: 10,
                   fontWeight: 800,
@@ -958,8 +928,10 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                 }}>
                   Multi-Dept Runner
                 </span>
-              </div>
+              )}
+            </div>
 
+            {allPlacements.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {allPlacements.map((p) => (
                   <div
@@ -975,7 +947,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                       border: '1.5px solid var(--border-light)'
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, flex: 1 }}>
                       <span style={{
                         display: 'inline-block',
                         width: 8,
@@ -986,11 +958,9 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                       }} />
                       <span style={{
                         fontWeight: 800,
-                        fontSize: 12.5,
+                        fontSize: 13,
                         color: 'var(--text-primary)',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
+                        wordBreak: 'break-word'
                       }}>
                         {p.locationName}
                       </span>
@@ -1004,26 +974,53 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                           display: 'flex',
                           alignItems: 'center',
                           gap: 4,
-                          padding: '3px 8px',
+                          padding: '4px 9px',
                           borderRadius: 4,
                           background: 'rgba(239, 68, 68, 0.08)',
-                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          border: '1px solid rgba(239, 68, 68, 0.25)',
                           color: 'var(--marker-red)',
                           fontSize: 11,
                           fontWeight: 700,
                           cursor: 'pointer',
-                          flexShrink: 0
+                          flexShrink: 0,
+                          whiteSpace: 'nowrap'
                         }}
                       >
                         <X size={12} />
-                        <span>Remove from {p.departmentName || 'Slot'}</span>
+                        <span>Remove</span>
                       </button>
                     )}
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 7,
+                background: 'var(--surface-card)',
+                padding: '7px 10px',
+                borderRadius: 6,
+                border: '1px dashed var(--border-light)'
+              }}>
+                <span style={{
+                  display: 'inline-block',
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: 'var(--text-muted)',
+                  flexShrink: 0
+                }} />
+                <span style={{
+                  fontWeight: 700,
+                  fontSize: 12.5,
+                  color: 'var(--text-muted)'
+                }}>
+                  Credentialed Unassigned Staff
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Clinical Teaching / Student Precepting Card */}
@@ -1090,7 +1087,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>
                     Student Name &amp; Role (Reference):
                   </label>
-                  <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center', width: '100%', boxSizing: 'border-box' }}>
                     <input
                       type="text"
                       placeholder="e.g. Jessica Miller, SRNA or Mark Tan, MS4"
@@ -1102,60 +1099,66 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                         }
                       }}
                       style={{
-                        flex: 1,
+                        flex: '1 1 0',
+                        minWidth: 0,
                         padding: '6px 8px',
                         borderRadius: 4,
                         border: '1px solid var(--border-light)',
                         fontSize: 12,
                         fontWeight: 600,
                         background: 'var(--bg-board)',
-                        color: 'var(--text-primary)'
+                        color: 'var(--text-primary)',
+                        boxSizing: 'border-box'
                       }}
                     />
-                    <button
-                      type="button"
-                      onClick={() => handleSaveStudent(true, studentNameInput)}
-                      disabled={isSavingStudent}
-                      style={{
-                        padding: '6px 14px',
-                        background: '#6366f1',
-                        color: '#fff',
-                        borderRadius: 4,
-                        fontWeight: 700,
-                        fontSize: 12,
-                        cursor: 'pointer',
-                        border: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4
-                      }}
-                    >
-                      <Check size={13} />
-                      <span>{isSavingStudent ? 'Saving...' : 'Save'}</span>
-                    </button>
-                    {staff.hasStudent && (
+                    <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
                       <button
                         type="button"
-                        onClick={() => {
-                          setHasStudentInput(false);
-                          setStudentNameInput('');
-                          handleSaveStudent(false, '');
-                        }}
-                        title="Remove student assignment"
+                        onClick={() => handleSaveStudent(true, studentNameInput)}
+                        disabled={isSavingStudent}
                         style={{
-                          padding: '6px 10px',
-                          background: 'rgba(239, 68, 68, 0.08)',
-                          border: '1px solid rgba(239, 68, 68, 0.25)',
+                          padding: '6px 14px',
+                          background: '#6366f1',
+                          color: '#fff',
                           borderRadius: 4,
-                          color: 'var(--marker-red)',
-                          fontSize: 12,
                           fontWeight: 700,
-                          cursor: 'pointer'
+                          fontSize: 12,
+                          cursor: 'pointer',
+                          border: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          whiteSpace: 'nowrap'
                         }}
                       >
-                        Clear
+                        <Check size={13} />
+                        <span>{isSavingStudent ? 'Saving...' : 'Save'}</span>
                       </button>
-                    )}
+                      {staff.hasStudent && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setHasStudentInput(false);
+                            setStudentNameInput('');
+                            handleSaveStudent(false, '');
+                          }}
+                          title="Remove student assignment"
+                          style={{
+                            padding: '6px 10px',
+                            background: 'rgba(239, 68, 68, 0.08)',
+                            border: '1px solid rgba(239, 68, 68, 0.25)',
+                            borderRadius: 4,
+                            color: 'var(--marker-red)',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <span style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
                     💡 Displays a 🎓 STU badge on this clinician&apos;s magnet across all rooms and runner slots.
@@ -1654,22 +1657,24 @@ export const StaffModal: React.FC<StaffModalProps> = ({
               <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
                 Move or Assign to Room / Runner:
               </label>
-              <div style={{ display: 'flex', gap: 6 }}>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', width: '100%', boxSizing: 'border-box' }}>
                 <select
                   value={selectedDestination}
                   onChange={e => setSelectedDestination(e.target.value)}
                   style={{
-                    flex: 1,
+                    flex: '1 1 0',
+                    minWidth: 0,
                     padding: '8px 10px',
                     borderRadius: 6,
                     border: '1px solid var(--border-light)',
                     background: 'var(--surface-hover)',
                     color: 'var(--text-primary)',
                     fontSize: 13,
-                    fontWeight: 600
+                    fontWeight: 600,
+                    boxSizing: 'border-box'
                   }}
                 >
-                  <option value="">Select Target Room or Runner...</option>
+                  <option value="">Select Target Room...</option>
                   {availableSlots.map(s => (
                     <option key={s.id} value={s.id}>
                       {s.label}
@@ -1689,7 +1694,11 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                     fontSize: 13,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 4
+                    gap: 4,
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                    cursor: selectedDestination ? 'pointer' : 'default',
+                    border: 'none'
                   }}
                 >
                   <span>Assign</span>
@@ -1857,75 +1866,94 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '10px 14px',
+                padding: '10px 12px',
                 cursor: 'pointer',
                 background: isPagingExpanded ? 'rgba(16, 185, 129, 0.05)' : 'transparent',
                 userSelect: 'none',
-                transition: 'background 0.2s ease'
+                transition: 'background 0.2s ease',
+                gap: 6,
+                width: '100%',
+                boxSizing: 'border-box'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <MessageSquare size={16} style={{ color: '#10b981' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                <MessageSquare size={16} style={{ color: '#10b981', flexShrink: 0 }} />
                 <span style={{
                   fontSize: 12,
                   fontWeight: 800,
                   textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  color: 'var(--text-primary)'
+                  letterSpacing: 0.3,
+                  color: 'var(--text-primary)',
+                  whiteSpace: 'nowrap'
                 }}>
-                  Perfect Call Clinician Paging
+                  Perfect Call Messaging
                 </span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                 {recipientProfile ? (
                   recipientProfile.isOnline ? (
                     <span style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 5,
-                      padding: '2px 8px',
+                      gap: 4,
+                      padding: '2px 7px',
                       borderRadius: 12,
                       background: 'rgba(16, 185, 129, 0.15)',
                       color: '#059669',
                       border: '1px solid #10b981',
                       fontSize: 10,
-                      fontWeight: 800
+                      fontWeight: 800,
+                      whiteSpace: 'nowrap'
                     }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-                      ONLINE ON APP
+                      ONLINE
                     </span>
                   ) : (
                     <span style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 5,
-                      padding: '2px 8px',
+                      gap: 4,
+                      padding: '2px 7px',
                       borderRadius: 12,
                       background: 'var(--surface-hover)',
                       color: 'var(--text-muted)',
                       border: '1px solid var(--border-light)',
                       fontSize: 10,
-                      fontWeight: 700
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap'
                     }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#94a3b8', display: 'inline-block' }} />
-                      OFFLINE (PUSH DELIVERED)
+                      OFFLINE
                     </span>
                   )
                 ) : (
                   <span style={{
-                    padding: '2px 8px',
+                    padding: '2px 6px',
                     borderRadius: 12,
                     background: 'rgba(245, 158, 11, 0.12)',
                     color: '#d97706',
                     border: '1px solid rgba(245, 158, 11, 0.3)',
-                    fontSize: 10,
-                    fontWeight: 700
+                    fontSize: 9.5,
+                    fontWeight: 700,
+                    whiteSpace: 'nowrap'
                   }}>
                     NOT REGISTERED
                   </span>
                 )}
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>
+                <span style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: 'var(--text-secondary)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  background: 'var(--surface-hover)',
+                  border: '1px solid var(--border-light)',
+                  whiteSpace: 'nowrap'
+                }}>
                   {isPagingExpanded ? '▲ Hide' : '▼ Expand'}
                 </span>
               </div>
@@ -2009,7 +2037,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                     </div>
 
                     {/* Custom Message Field */}
-                    <div style={{ display: 'flex', gap: 6 }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', width: '100%', boxSizing: 'border-box' }}>
                       <input
                         type="text"
                         value={messageInput}
@@ -2023,14 +2051,16 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                         placeholder={`Message ${staff.displayName || staff.lastName}...`}
                         disabled={isSendingMessage}
                         style={{
-                          flex: 1,
+                          flex: '1 1 0',
+                          minWidth: 0,
                           padding: '7px 10px',
                           borderRadius: 6,
                           border: '1px solid var(--border-light)',
                           background: 'var(--bg-board)',
                           color: 'var(--text-primary)',
                           fontSize: 12,
-                          fontWeight: 600
+                          fontWeight: 600,
+                          boxSizing: 'border-box'
                         }}
                       />
                       <button
@@ -2048,7 +2078,9 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                           cursor: isSendingMessage || !messageInput.trim() ? 'not-allowed' : 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: 5
+                          gap: 5,
+                          flexShrink: 0,
+                          whiteSpace: 'nowrap'
                         }}
                       >
                         <Send size={12} />
