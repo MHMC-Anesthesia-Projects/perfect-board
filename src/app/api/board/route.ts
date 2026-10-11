@@ -242,17 +242,29 @@ export async function POST(req: NextRequest) {
             if (dept.id === targetId) {
               const alreadyRunnerHere = dept.runnerSlots.some(slot => slot.staffId === staffId);
               if (!alreadyRunnerHere) {
-                const newRunner = {
-                  id: `runner_${dept.id}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-                  title: `Runner ${dept.runnerSlots.length + 1}`,
-                  staffId: staffId || null,
-                  breakfastDone: (staffId && state.bullpenBreaks?.[staffId]?.breakfastDone) || false,
-                  lunchDone: (staffId && state.bullpenBreaks?.[staffId]?.lunchDone) || false,
-                  breakfastTime: (staffId && state.bullpenBreaks?.[staffId]?.breakfastTime) || null,
-                  lunchTime: (staffId && state.bullpenBreaks?.[staffId]?.lunchTime) || null
-                };
-                dept.runnerSlots.push(newRunner);
-                locationName = `${dept.name} Runner (${newRunner.title})`;
+                const emptySlot = dept.runnerSlots.find(slot => !slot.staffId);
+                if (emptySlot) {
+                  emptySlot.staffId = staffId || null;
+                  if (staffId && state.bullpenBreaks?.[staffId]) {
+                    emptySlot.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
+                    emptySlot.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
+                    emptySlot.breakfastTime = state.bullpenBreaks[staffId].breakfastTime || null;
+                    emptySlot.lunchTime = state.bullpenBreaks[staffId].lunchTime || null;
+                  }
+                  locationName = `${dept.name} Runner (${emptySlot.title})`;
+                } else {
+                  const newRunner = {
+                    id: `runner_${dept.id}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                    title: `Runner ${dept.runnerSlots.length + 1}`,
+                    staffId: staffId || null,
+                    breakfastDone: (staffId && state.bullpenBreaks?.[staffId]?.breakfastDone) || false,
+                    lunchDone: (staffId && state.bullpenBreaks?.[staffId]?.lunchDone) || false,
+                    breakfastTime: (staffId && state.bullpenBreaks?.[staffId]?.breakfastTime) || null,
+                    lunchTime: (staffId && state.bullpenBreaks?.[staffId]?.lunchTime) || null
+                  };
+                  dept.runnerSlots.push(newRunner);
+                  locationName = `${dept.name} Runner (${newRunner.title})`;
+                }
               } else {
                 locationName = `${dept.name} Runner (Already Assigned)`;
               }

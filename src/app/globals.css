@@ -968,6 +968,43 @@ button {
   border-color: var(--accent-primary);
 }
 
+.mobile-add-runner-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3.5px;
+  height: 22px;
+  padding: 0 8px;
+  border: 1.5px dashed var(--board-inner-line);
+  border-radius: var(--radius-sm);
+  background: rgba(248, 250, 252, 0.7);
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+[data-theme='dark'] .mobile-add-runner-slot {
+  border-color: rgba(148, 163, 184, 0.45);
+  background: rgba(15, 23, 42, 0.4);
+  color: var(--text-secondary);
+}
+
+.mobile-add-runner-slot:hover,
+.mobile-add-runner-slot:active {
+  border-color: var(--accent-primary);
+  background: var(--accent-surface);
+  color: var(--accent-primary);
+}
+
 .runner-slots-group {
   display: flex;
   flex-direction: row;

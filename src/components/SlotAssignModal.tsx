@@ -8,7 +8,7 @@ import { ReliefAssignment } from '@/types/whiteboard';
 interface SlotAssignModalProps {
   isOpen: boolean;
   targetSlot: {
-    type: 'room_slot' | 'runner_slot';
+    type: 'room_slot' | 'runner_slot' | 'runner_dept';
     id: string;
     label: string;
     roomId?: string;
@@ -19,10 +19,10 @@ interface SlotAssignModalProps {
   assignedStaffIds: Set<string>;
   currentUserRole: UserRole;
   onClose: () => void;
-  onAssign: (targetType: 'room_slot' | 'runner_slot', targetId: string, staffId: string) => void;
+  onAssign: (targetType: 'room_slot' | 'runner_slot' | 'runner_dept', targetId: string, staffId: string) => void;
   onOpenLogin: () => void;
   onSetFutureTime?: (roomId: string, time: string | null) => void;
-  onToggleRedBox?: (targetType: 'room_slot' | 'runner_slot', targetId: string, enable: boolean) => void;
+  onToggleRedBox?: (targetType: 'room_slot' | 'runner_slot' | 'runner_dept', targetId: string, enable: boolean) => void;
   onOpenReliefModal?: (target: {
     type: 'room_slot' | 'runner_slot';
     id: string;

@@ -56,7 +56,7 @@ interface MobileWhiteboardViewProps {
   onLogout: () => void;
   onToggleBreak: (targetType: 'room_slot' | 'runner_slot' | 'bullpen', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
   onSelectStaff: (staff: Staff) => void;
-  onSelectEmptySlot: (targetType: 'room_slot' | 'runner_slot', targetId: string, label: string, roomId?: string, currentFutureTime?: string | null) => void;
+  onSelectEmptySlot: (targetType: 'room_slot' | 'runner_slot' | 'runner_dept', targetId: string, label: string, roomId?: string, currentFutureTime?: string | null) => void;
   onToggleDepartureStruck: (id: string) => void;
   onUpdateLists: (departureList: DepartureItem[], latesList: LateShiftItem[], isReorder?: boolean) => void;
   onUpdateCallTeam: (callTeamList: CallTeamItem[]) => void;
@@ -1256,7 +1256,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
               {/* Department Header with Runner Magnet Slots */}
               <div className="dept-header">
                 <div className="dept-title">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                     <span className="dept-name-text" style={{ fontSize: 13, fontWeight: 800 }}>
                       {activeDepartment.name}
                     </span>
@@ -1264,6 +1264,18 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                       {activeDepartment.rooms.filter(r => r.slots.some(s => !!s.staffId)).length}/{activeDepartment.rooms.length}
                     </span>
                   </div>
+
+                  {isEditor && (
+                    <button
+                      type="button"
+                      className="mobile-add-runner-slot"
+                      onClick={() => onSelectEmptySlot('runner_dept', activeDepartment.id, `${activeDepartment.name} Runner`)}
+                      title={`Add a runner to ${activeDepartment.name}`}
+                    >
+                      <Plus size={11} strokeWidth={2.5} />
+                      <span>Runner</span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Runner Slots Group (Only occupied runners) */}

@@ -73,7 +73,7 @@ export default function WhiteboardPage() {
     | null
   >(null);
   const [slotAssignTarget, setSlotAssignTarget] = useState<{
-    type: 'room_slot' | 'runner_slot';
+    type: 'room_slot' | 'runner_slot' | 'runner_dept';
     id: string;
     label: string;
     roomId?: string;
@@ -879,7 +879,7 @@ export default function WhiteboardPage() {
 
   // 2. Assign staff to slot
   const handleAssignStaff = async (
-    targetType: 'room_slot' | 'runner_slot',
+    targetType: 'room_slot' | 'runner_slot' | 'runner_dept',
     targetId: string,
     staffId: string
   ) => {
@@ -908,8 +908,8 @@ export default function WhiteboardPage() {
   };
 
   // Find current relief assignment for any slot
-  const findSlotRelief = (targetId: string, targetType: 'room_slot' | 'runner_slot' = 'room_slot'): ReliefAssignment | null => {
-    if (!boardState) return null;
+  const findSlotRelief = (targetId: string, targetType: 'room_slot' | 'runner_slot' | 'runner_dept' = 'room_slot'): ReliefAssignment | null => {
+    if (!boardState || targetType === 'runner_dept') return null;
     if (targetType === 'runner_slot') {
       for (const d of boardState.departments) {
         const r = d.runnerSlots?.find(s => s.id === targetId);
@@ -1310,10 +1310,11 @@ export default function WhiteboardPage() {
   };
 
   const handleToggleRedBox = async (
-    targetType: 'room_slot' | 'runner_slot',
+    targetType: 'room_slot' | 'runner_slot' | 'runner_dept',
     targetId: string,
     enable: boolean
   ) => {
+    if (targetType === 'runner_dept') return;
     if (enable) {
       await handleSetRelief(targetType, targetId, '', '', '', true);
     } else {
@@ -1322,10 +1323,11 @@ export default function WhiteboardPage() {
   };
 
   const handleRemoveRelief = async (
-    targetType: 'room_slot' | 'runner_slot',
+    targetType: 'room_slot' | 'runner_slot' | 'runner_dept',
     targetId: string,
     forceDelete = false
   ) => {
+    if (targetType === 'runner_dept') return;
     if (!isEditor) {
       setIsLoginModalOpen(true);
       return;

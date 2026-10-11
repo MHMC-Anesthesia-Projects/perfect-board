@@ -12,7 +12,7 @@ interface DepartmentGridProps {
   currentUserRole: UserRole;
   onToggleBreak: (targetType: 'room_slot' | 'runner_slot', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
   onSelectStaff: (staff: Staff) => void;
-  onSelectEmptySlot: (targetType: 'room_slot' | 'runner_slot', targetId: string, label: string, roomId?: string, currentFutureTime?: string | null) => void;
+  onSelectEmptySlot: (targetType: 'room_slot' | 'runner_slot' | 'runner_dept', targetId: string, label: string, roomId?: string, currentFutureTime?: string | null) => void;
   onDropStaff: (fromData: { staffId: string; type: string; id?: string }, targetType: 'room_slot' | 'runner_slot' | 'runner_dept', targetId: string) => void;
   onOpenVoiceNotes?: (targetType: 'room', targetId: string, currentNotes?: string) => void;
   onAddRunnerSlot?: (departmentId: string) => void;
