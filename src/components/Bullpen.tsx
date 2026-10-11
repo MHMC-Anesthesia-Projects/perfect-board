@@ -364,7 +364,7 @@ export const Bullpen: React.FC<BullpenProps> = ({
       >
         <div className="bullpen-title">
           <Users size={16} style={{ color: 'var(--accent-primary)' }} />
-          <span>AVAILABLE UNASSIGNED STAFF</span>
+          <span>CREDENTIALED UNASSIGNED STAFF</span>
           <span style={{
             fontSize: 11,
             padding: '2px 8px',

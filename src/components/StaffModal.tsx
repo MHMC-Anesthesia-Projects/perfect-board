@@ -910,7 +910,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
                 }}>
-                  {currentPlacement ? currentPlacement.locationName : 'Available Unassigned Staff'}
+                  {currentPlacement ? currentPlacement.locationName : 'Credentialed Unassigned Staff'}
                 </span>
               </div>
               {isEditor && currentPlacement && onRemoveFromSlot && (
@@ -1788,7 +1788,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   <span>
                     {allPlacements.length > 1
                       ? 'Remove from All Locations (Return to Unassigned)'
-                      : 'Return to Available Unassigned Staff'}
+                      : 'Return to Credentialed Unassigned Staff'}
                   </span>
                 </button>
               </div>

@@ -480,7 +480,7 @@ export async function POST(req: NextRequest) {
               toLocation = `${targetGroup} Staff Group`;
             }
           } else {
-            toLocation = 'Available Unassigned Staff';
+            toLocation = 'Credentialed Unassigned Staff';
           }
         } else if (toTargetType === 'runner_slot') {
           // Runners cannot be in the bullpen!

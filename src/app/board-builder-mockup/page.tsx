@@ -661,7 +661,7 @@ function WhiteboardSkeleton({ config }: { config: BoardConfigState }) {
           <div className={styles.exactDrawerHead}>
             <div className={styles.exactDrawerTitle}>
               <Users size={14} color="#0284c7" />
-              <span>AVAILABLE UNASSIGNED STAFF</span>
+              <span>CREDENTIALED UNASSIGNED STAFF</span>
               <span className={styles.exactDrawerCountPill}>0 AVAILABLE</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

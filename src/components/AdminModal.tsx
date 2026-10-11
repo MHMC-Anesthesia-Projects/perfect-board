@@ -2693,7 +2693,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 13 }}>
                               <UserCheck size={16} color="var(--marker-green)" />
-                              <span>Available Unassigned Staff</span>
+                              <span>Credentialed Unassigned Staff</span>
                             </div>
                             <button
                               type="button"
@@ -3742,7 +3742,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                         <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                          These {testSyncResult.workingStaff.length} providers will populate the <strong>Available Unassigned Staff</strong> pool:
+                          These {testSyncResult.workingStaff.length} providers will populate the <strong>Credentialed Unassigned Staff</strong> pool:
                         </div>
                         <input
                           type="text"

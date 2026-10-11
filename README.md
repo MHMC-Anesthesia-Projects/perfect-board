@@ -25,7 +25,7 @@ The whiteboard is pre-configured with a direct digital replica of the operating 
 | CCL1-3, IR, NIR,  | Rooms: 1-4, MRI   | Rooms: 1-4        |                                             | - PATEL...         |        NORMAND     |
 | TEE (1200, 1300)  |                   |                   |                                             | [Scratch Notes...] | [Late Notes...]    |
 +-------------------+-------------------+-------------------+---------------------------------------------+--------------------+--------------------+
-| BULLPEN (Available Unassigned Staff - Categorized Alphabetically)                                                                                 |
+| BULLPEN (Credentialed Unassigned Staff - Categorized Alphabetically)                                                                              |
 | [ A - F ]               | [ G - L ]               | [ M - R ]               | [ S - Z ]                                                           |
 | ALANIZ, ATAGA, CHEN R...| ISHAM, LAMBA, LOWE...   | MUTYALA, NGUYEN K, ROACH| SHETTY, SHROCKEL, TRAN...                                             |
 +---------------------------------------------------------------------------------------------------------------------------------------------------+
