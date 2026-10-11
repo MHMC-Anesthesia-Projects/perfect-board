@@ -518,9 +518,6 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                 }}>
                   {staff.displayName || `${staff.lastName.toUpperCase()}${staff.firstName ? ` ${staff.firstName[0]}.` : ''}`}
                 </span>
-                {staff.displayName && (
-                  <span style={{ fontSize: 9, color: 'var(--accent-primary)', fontWeight: 800 }}>[CUSTOM]</span>
-                )}
               </div>
               {isEditor && onUpdateDisplayName && (
                 <button
@@ -654,27 +651,6 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                     title="Change scheduled shift or departure badge (e.g. postCV, pre1st, OBcall, 2p)"
                   >
                     Edit Shift / Badge
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCustomShift('Call 1');
-                      setIsCallTeamSelected(true);
-                      setIsEditingShift(true);
-                    }}
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 800,
-                      padding: '2px 8px',
-                      borderRadius: 4,
-                      background: 'rgba(211, 47, 47, 0.1)',
-                      border: '1px solid var(--marker-red)',
-                      color: 'var(--marker-red)',
-                      cursor: 'pointer'
-                    }}
-                    title="Assign doctor to in-house Call Team (Call 1, Call 2, Call 3, CV, OB)"
-                  >
-                    Change to Call
                   </button>
                 </div>
               )}

@@ -888,38 +888,6 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // Optimistically clear room note when assigning staff to a room
-    if (targetType === 'room_slot' && staffId && boardState) {
-      let targetRoomId: string | null = null;
-      for (const dept of boardState.departments || []) {
-        for (const rm of dept.rooms || []) {
-          if (rm.slots.some(slot => slot.id === targetId)) {
-            targetRoomId = rm.id;
-            break;
-          }
-        }
-        if (targetRoomId) break;
-      }
-      if (targetRoomId) {
-        setBoardState(prev => {
-          if (!prev) return prev;
-          const updated = { ...prev };
-          if (updated.roomNotes && updated.roomNotes[targetRoomId!]) {
-            const nextNotes = { ...updated.roomNotes };
-            delete nextNotes[targetRoomId!];
-            updated.roomNotes = nextNotes;
-          }
-          if (updated.departments) {
-            updated.departments = updated.departments.map(dept => ({
-              ...dept,
-              rooms: dept.rooms.map(rm => rm.id === targetRoomId ? { ...rm, note: '' } : rm)
-            }));
-          }
-          return updated;
-        });
-      }
-    }
-
     try {
       const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
@@ -1037,11 +1005,6 @@ export default function WhiteboardPage() {
     setBoardState(prev => {
       if (!prev) return prev;
       const updated = { ...prev };
-      if (targetRoomId && updated.roomNotes && updated.roomNotes[targetRoomId!]) {
-        const nextNotes = { ...updated.roomNotes };
-        delete nextNotes[targetRoomId!];
-        updated.roomNotes = nextNotes;
-      }
       const bullpenIds = (updated.bullpenStaffIds || []).filter(id => id !== targetStaffId);
       if (toType === 'bullpen') bullpenIds.push(targetStaffId);
       updated.bullpenStaffIds = bullpenIds;
@@ -2758,6 +2721,7 @@ export default function WhiteboardPage() {
             onCompleteAllReliefs={handleTriggerCompleteAllReliefs}
             reliefCount={totalScheduledReliefsCount}
             isCompletingRelief={isCompletingAllReliefs}
+            isManualMode={boardState?.layoutConfig?.boardMode === 'manual'}
           />
 
       {/* Main Whiteboard Display Area */}

@@ -145,6 +145,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   onOpenAdmin
 }) => {
   const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser';
+  const isManualMode = boardState?.layoutConfig?.boardMode === 'manual';
 
   const getStaffUnreadCount = (staffMember: Staff | null): number => {
     if (!staffMember?.phone || !unreadCountsByPhone) return 0;
@@ -909,7 +910,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
               >
                 <Zap size={13} style={{ color: 'var(--accent-primary, #0969da)' }} />
                 <span>Action</span>
-                {(isSyncing || isAutoAssigning || isCompletingRelief) && (
+                {((!isManualMode && (isSyncing || isAutoAssigning)) || isCompletingRelief) && (
                   <RotateCw size={11} className="spin-animation" style={{ color: 'var(--accent-primary, #0969da)' }} />
                 )}
                 {(reliefCount > 0 || reliefsList.length > 0) && !isCompletingRelief && (
@@ -959,70 +960,75 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                     WebkitOverflowScrolling: 'touch'
                   }}
                 >
-                  <div style={{
-                    fontSize: 10,
-                    fontWeight: 800,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.6,
-                    color: 'var(--text-muted)',
-                    padding: '6px 10px 4px 10px'
-                  }}>
-                    Portal & Automations
-                  </div>
+                  {/* Portal & Automations (Hidden when board is in Manual Mode) */}
+                  {!isManualMode && (
+                    <>
+                      <div style={{
+                        fontSize: 10,
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        letterSpacing: 0.6,
+                        color: 'var(--text-muted)',
+                        padding: '6px 10px 4px 10px'
+                      }}>
+                        Portal & Automations
+                      </div>
 
-                  {/* 1. Sync */}
-                  {onTriggerSync && (
-                    <button
-                      type="button"
-                      className="action-dropdown-item"
-                      disabled={isSyncing}
-                      onClick={() => {
-                        setIsActionMenuOpen(false);
-                        setConfirmAction('sync');
-                      }}
-                      title={lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString()}` : 'Sync portal data'}
-                    >
-                      <div className="action-item-icon">
-                        <RotateCw size={14} className={isSyncing ? 'spin-animation' : ''} style={{ color: 'var(--accent-primary)' }} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12.5, fontWeight: 700 }}>
-                          {isSyncing ? 'Syncing...' : 'Sync'}
-                        </div>
-                        <div style={{ fontSize: 10.5, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Refresh portal schedules'}
-                        </div>
-                      </div>
-                    </button>
+                      {/* 1. Sync */}
+                      {onTriggerSync && (
+                        <button
+                          type="button"
+                          className="action-dropdown-item"
+                          disabled={isSyncing}
+                          onClick={() => {
+                            setIsActionMenuOpen(false);
+                            setConfirmAction('sync');
+                          }}
+                          title={lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString()}` : 'Sync portal data'}
+                        >
+                          <div className="action-item-icon">
+                            <RotateCw size={14} className={isSyncing ? 'spin-animation' : ''} style={{ color: 'var(--accent-primary)' }} />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                              {isSyncing ? 'Syncing...' : 'Sync'}
+                            </div>
+                            <div style={{ fontSize: 10.5, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Refresh portal schedules'}
+                            </div>
+                          </div>
+                        </button>
+                      )}
+
+                      {/* 2. Auto-Assign */}
+                      {onAutoAssign && (
+                        <button
+                          type="button"
+                          className="action-dropdown-item"
+                          disabled={isAutoAssigning}
+                          onClick={() => {
+                            setIsActionMenuOpen(false);
+                            setConfirmAction('auto_assign');
+                          }}
+                          title="Auto-assign staff magnets to department rooms and runner slots based on portal schedule"
+                        >
+                          <div className="action-item-icon">
+                            <Sparkles size={14} className={isAutoAssigning ? 'spin-animation' : ''} style={{ color: 'var(--accent-primary)' }} />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                              {isAutoAssigning ? 'Assigning...' : 'Auto-Assign'}
+                            </div>
+                            <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                              Place magnets from portal roster
+                            </div>
+                          </div>
+                        </button>
+                      )}
+
+                      <div className="action-dropdown-divider" />
+                    </>
                   )}
-
-                  {/* 2. Auto-Assign */}
-                  {onAutoAssign && (
-                    <button
-                      type="button"
-                      className="action-dropdown-item"
-                      disabled={isAutoAssigning}
-                      onClick={() => {
-                        setIsActionMenuOpen(false);
-                        setConfirmAction('auto_assign');
-                      }}
-                      title="Auto-assign staff magnets to department rooms and runner slots based on portal schedule"
-                    >
-                      <div className="action-item-icon">
-                        <Sparkles size={14} className={isAutoAssigning ? 'spin-animation' : ''} style={{ color: 'var(--accent-primary)' }} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12.5, fontWeight: 700 }}>
-                          {isAutoAssigning ? 'Assigning...' : 'Auto-Assign'}
-                        </div>
-                        <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
-                          Place magnets from portal roster
-                        </div>
-                      </div>
-                    </button>
-                  )}
-
-                  <div className="action-dropdown-divider" />
 
                   <div style={{
                     fontSize: 10,
@@ -1935,18 +1941,6 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                   <h1 className="mobile-dept-heading">Call Team</h1>
                   <span className="mobile-dept-subtext">Tonight's On-Call Roster</span>
                 </div>
-                {isEditor && onAutoAssign && (
-                  <button
-                    type="button"
-                    className="mobile-action-sm-btn accent"
-                    onClick={() => setConfirmAction('auto_assign')}
-                    disabled={isAutoAssigning}
-                    title="Auto-Assign Call Doctors from Schedule"
-                  >
-                    <Sparkles size={14} />
-                    <span>{isAutoAssigning ? 'Assigning...' : 'Auto-Assign'}</span>
-                  </button>
-                )}
               </div>
             </div>
 
@@ -2002,9 +1996,11 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                           {item.doctorName ? item.doctorName.toUpperCase() : '(Unassigned)'}
                         </span>
                       </div>
-                      <span className="mobile-call-status-label">
-                        {item.doctorName ? 'Assigned On-Call (Tap for details)' : 'Pending Assignment'}
-                      </span>
+                      {!item.doctorName && (
+                        <span className="mobile-call-status-label">
+                          Pending Assignment
+                        </span>
+                      )}
                     </div>
                   </div>
                 );

@@ -42,6 +42,7 @@ interface HeaderNavProps {
   onCompleteAllReliefs?: () => void;
   reliefCount?: number;
   isCompletingRelief?: boolean;
+  isManualMode?: boolean;
 }
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({
@@ -75,7 +76,8 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onOpenReliefTextModal,
   onCompleteAllReliefs,
   reliefCount = 0,
-  isCompletingRelief = false
+  isCompletingRelief = false,
+  isManualMode = false
 }) => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [currentDate, setCurrentDate] = useState<string>('');
@@ -361,7 +363,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             >
               <Zap size={14} style={{ color: 'var(--accent-primary)' }} />
               <span>Action</span>
-              {(isSyncing || isAutoAssigning || isCompletingRelief) && (
+              {((!isManualMode && (isSyncing || isAutoAssigning)) || isCompletingRelief) && (
                 <RotateCw size={12} className="spin-animation" style={{ color: 'var(--accent-primary)' }} />
               )}
               {reliefCount > 0 && !isCompletingRelief && (
@@ -407,68 +409,73 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                   flexDirection: 'column'
                 }}
               >
-                <div style={{
-                  fontSize: 10,
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.6,
-                  color: 'var(--text-muted)',
-                  padding: '6px 10px 4px 10px'
-                }}>
-                  Portal & Automations
-                </div>
+                {/* Portal & Automations (Hidden when board is in Manual Mode) */}
+                {!isManualMode && (
+                  <>
+                    <div style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.6,
+                      color: 'var(--text-muted)',
+                      padding: '6px 10px 4px 10px'
+                    }}>
+                      Portal & Automations
+                    </div>
 
-                {/* 1. Sync */}
-                <button
-                  type="button"
-                  className="action-dropdown-item"
-                  disabled={isSyncing}
-                  onClick={() => {
-                    onTriggerSync();
-                    setIsActionMenuOpen(false);
-                  }}
-                  title={lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString()}` : 'Sync portal data'}
-                >
-                  <div className="action-item-icon">
-                    <RotateCw size={14} className={isSyncing ? 'spin-animation' : ''} style={{ color: 'var(--accent-primary)' }} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700 }}>
-                      {isSyncing ? 'Syncing...' : 'Sync'}
-                    </div>
-                    <div style={{ fontSize: 10.5, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Refresh portal schedules'}
-                    </div>
-                  </div>
-                </button>
+                    {/* 1. Sync */}
+                    <button
+                      type="button"
+                      className="action-dropdown-item"
+                      disabled={isSyncing}
+                      onClick={() => {
+                        onTriggerSync();
+                        setIsActionMenuOpen(false);
+                      }}
+                      title={lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString()}` : 'Sync portal data'}
+                    >
+                      <div className="action-item-icon">
+                        <RotateCw size={14} className={isSyncing ? 'spin-animation' : ''} style={{ color: 'var(--accent-primary)' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                          {isSyncing ? 'Syncing...' : 'Sync'}
+                        </div>
+                        <div style={{ fontSize: 10.5, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Refresh portal schedules'}
+                        </div>
+                      </div>
+                    </button>
 
-                {/* 2. Auto-Assign */}
-                {onAutoAssign && (
-                  <button
-                    type="button"
-                    className="action-dropdown-item"
-                    disabled={isAutoAssigning}
-                    onClick={() => {
-                      onAutoAssign();
-                      setIsActionMenuOpen(false);
-                    }}
-                    title="Auto-assign staff magnets to department rooms and runner slots based on portal schedule"
-                  >
-                    <div className="action-item-icon">
-                      <Sparkles size={14} className={isAutoAssigning ? 'spin-animation' : ''} style={{ color: 'var(--accent-primary)' }} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 700 }}>
-                        {isAutoAssigning ? 'Assigning...' : 'Auto-Assign'}
-                      </div>
-                      <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
-                        Place magnets from portal roster
-                      </div>
-                    </div>
-                  </button>
+                    {/* 2. Auto-Assign */}
+                    {onAutoAssign && (
+                      <button
+                        type="button"
+                        className="action-dropdown-item"
+                        disabled={isAutoAssigning}
+                        onClick={() => {
+                          onAutoAssign();
+                          setIsActionMenuOpen(false);
+                        }}
+                        title="Auto-assign staff magnets to department rooms and runner slots based on portal schedule"
+                      >
+                        <div className="action-item-icon">
+                          <Sparkles size={14} className={isAutoAssigning ? 'spin-animation' : ''} style={{ color: 'var(--accent-primary)' }} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                            {isAutoAssigning ? 'Assigning...' : 'Auto-Assign'}
+                          </div>
+                          <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                            Place magnets from portal roster
+                          </div>
+                        </div>
+                      </button>
+                    )}
+
+                    <div className="action-dropdown-divider" />
+                  </>
                 )}
-
-                <div className="action-dropdown-divider" />
 
                 <div style={{
                   fontSize: 10,

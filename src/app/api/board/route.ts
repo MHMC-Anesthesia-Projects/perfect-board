@@ -265,15 +265,6 @@ export async function POST(req: NextRequest) {
               const slot = room.slots.find(s => s.id === targetId);
               if (slot) {
                 slot.staffId = staffId || null;
-                if (staffId) {
-                  // Clear room text box note when a magnet is placed in the room
-                  if (room.note || (state.roomNotes && state.roomNotes[room.id])) {
-                    room.note = '';
-                    if (state.roomNotes) {
-                      delete state.roomNotes[room.id];
-                    }
-                  }
-                }
                 if (staffId && state.bullpenBreaks?.[staffId]) {
                   slot.breakfastDone = Boolean(state.bullpenBreaks[staffId].breakfastDone);
                   slot.lunchDone = Boolean(state.bullpenBreaks[staffId].lunchDone);
@@ -565,15 +556,6 @@ export async function POST(req: NextRequest) {
               const slot = room.slots.find(s => s.id === toId);
               if (slot) {
                 slot.staffId = staffId;
-                if (staffId) {
-                  // Clear room text box note when a magnet is dropped in the room
-                  if (room.note || (state.roomNotes && state.roomNotes[room.id])) {
-                    room.note = '';
-                    if (state.roomNotes) {
-                      delete state.roomNotes[room.id];
-                    }
-                  }
-                }
                 if (transferredRelief) {
                   slot.relief = transferredRelief;
                 }
