@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Staff, UserRole } from '@/types/whiteboard';
 import { Search, X, UserCheck, ShieldAlert, LogIn, Clock, Check } from 'lucide-react';
 import { ReliefAssignment } from '@/types/whiteboard';
+import { getFutureTimePresets } from '@/lib/dateUtils';
 
 interface SlotAssignModalProps {
   isOpen: boolean;
@@ -50,6 +51,8 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
   const currentSlotTime = targetSlot?.currentFutureTime || '';
   const [futureTimeInput, setFutureTimeInput] = useState(currentSlotTime);
   const [isSavedRecently, setIsSavedRecently] = useState(false);
+
+  const futurePresets = useMemo(() => getFutureTimePresets(7), [isOpen, targetSlot?.id]);
 
   useEffect(() => {
     setFutureTimeInput(currentSlotTime);
@@ -338,29 +341,29 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
                     <Clock size={13} />
                     <span>Future Case Time (Military Format)</span>
                   </div>
-                  {(Boolean(futureTimeInput) || Boolean(currentSlotTime)) && (
-                    <button
-                      type="button"
-                      onClick={handleClearFutureTime}
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 800,
-                        color: 'var(--marker-red)',
-                        background: 'rgba(239, 68, 68, 0.12)',
-                        border: '1px solid rgba(239, 68, 68, 0.28)',
-                        borderRadius: 4,
-                        cursor: 'pointer',
-                        padding: '2px 8px',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4
-                      }}
-                      title="Clear future time from this room"
-                    >
-                      <X size={11} />
-                      <span>Clear Time</span>
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    disabled={!futureTimeInput && !currentSlotTime}
+                    onClick={handleClearFutureTime}
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: (futureTimeInput || currentSlotTime) ? 'var(--marker-red)' : 'var(--text-muted)',
+                      background: (futureTimeInput || currentSlotTime) ? 'rgba(239, 68, 68, 0.12)' : 'rgba(0, 0, 0, 0.04)',
+                      border: (futureTimeInput || currentSlotTime) ? '1px solid rgba(239, 68, 68, 0.28)' : '1px solid var(--border-light)',
+                      borderRadius: 4,
+                      cursor: (futureTimeInput || currentSlotTime) ? 'pointer' : 'not-allowed',
+                      padding: '2px 8px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      opacity: (futureTimeInput || currentSlotTime) ? 1 : 0.45
+                    }}
+                    title="Clear future time from this room"
+                  >
+                    <X size={11} />
+                    <span>Clear Time</span>
+                  </button>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -424,7 +427,7 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
 
                   {/* Preset military buttons */}
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-                    {['0900', '1000', '1030', '1100', '1200', '1300', '1400'].map(preset => {
+                    {futurePresets.map(preset => {
                       const isSelected = futureTimeInput === preset;
                       return (
                         <button

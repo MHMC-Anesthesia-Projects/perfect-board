@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { apiUrl } from '@/lib/api';
 import { Staff, Department, UserRole, ReliefAssignment, ChatMessage } from '@/types/whiteboard';
 import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, CheckCircle, ShieldCheck, Sparkles, UserCheck, MessageSquare, Send, RefreshCw, Radio, Check, GraduationCap } from 'lucide-react';
+import { getFutureTimePresets } from '@/lib/dateUtils';
 
 export interface StaffPlacement {
   type: 'runner_slot' | 'room_slot' | 'bullpen';
@@ -265,6 +266,23 @@ export const StaffModal: React.FC<StaffModalProps> = ({
     }
   }, [chatMessages, messagingEnabled]);
 
+  // Room Future Case Time State
+  const [futureTimeInput, setFutureTimeInput] = useState('');
+  const [isFutureTimeSavedRecently, setIsFutureTimeSavedRecently] = useState(false);
+
+  // Find room placement if staff is assigned to a room
+  const staffRoomPlacement = staff
+    ? departments.flatMap(d => d.rooms || []).find(r => (r.slots || []).some(s => s.staffId === staff.id))
+    : null;
+  const currentRoomFutureTime = staffRoomPlacement?.futureTime || '';
+
+  useEffect(() => {
+    setFutureTimeInput(currentRoomFutureTime);
+    setIsFutureTimeSavedRecently(false);
+  }, [staff?.id, staffRoomPlacement?.id, currentRoomFutureTime]);
+
+  const futurePresets = useMemo(() => getFutureTimePresets(7), [staff?.id, staffRoomPlacement?.id]);
+
   if (!staff) return null;
 
   const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser';
@@ -324,6 +342,27 @@ export const StaffModal: React.FC<StaffModalProps> = ({
 
   const currentPlacement = allPlacements[0] || null;
   const roomPlacement = allPlacements.find(p => p.type === 'room_slot') || null;
+
+  const isFutureTimeSaved = isFutureTimeSavedRecently || Boolean(currentRoomFutureTime && futureTimeInput.trim() === currentRoomFutureTime.trim());
+
+  const handleSaveFutureTime = (timeToSet?: string) => {
+    const roomId = roomPlacement?.roomId || staffRoomPlacement?.id;
+    if (!roomId || !onSetRoomFutureTime) return;
+    const finalVal = (timeToSet !== undefined ? timeToSet : futureTimeInput).trim();
+    const cleanTime = finalVal ? finalVal.replace(/[^0-9]/g, '').slice(0, 4) : null;
+    onSetRoomFutureTime(roomId, cleanTime);
+    setFutureTimeInput(cleanTime || '');
+    setIsFutureTimeSavedRecently(true);
+    setTimeout(() => setIsFutureTimeSavedRecently(false), 2000);
+  };
+
+  const handleClearFutureTime = () => {
+    const roomId = roomPlacement?.roomId || staffRoomPlacement?.id;
+    if (!roomId || !onSetRoomFutureTime) return;
+    onSetRoomFutureTime(roomId, null);
+    setFutureTimeInput('');
+    setIsFutureTimeSavedRecently(false);
+  };
 
   // Synced break statuses across all active placements
   const isBreakfastDone = allPlacements.some(p => p.breakfastDone) || Boolean(bullpenBreaks[staff.id]?.breakfastDone);
@@ -1578,75 +1617,166 @@ export const StaffModal: React.FC<StaffModalProps> = ({
 
             {/* Future Case Time for this Room */}
             {roomPlacement && roomPlacement.roomId && onSetRoomFutureTime && (
-              <div style={{
-                background: 'rgba(239, 68, 68, 0.06)',
-                border: '1px solid rgba(239, 68, 68, 0.25)',
-                borderRadius: 8,
-                padding: '10px 12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 8
-              }}>
-                <div>
+              <div
+                style={{
+                  background: 'rgba(239, 68, 68, 0.06)',
+                  border: '1px solid rgba(239, 68, 68, 0.28)',
+                  borderRadius: 8,
+                  padding: '10px 12px',
+                  marginBottom: 14
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: 'var(--marker-red)', textTransform: 'uppercase' }}>
-                    <Clock size={12} />
-                    <span>Future Case Time</span>
+                    <Clock size={13} />
+                    <span>Future Case Time (Military Format)</span>
                   </div>
-                  <div style={{ fontSize: 13, fontWeight: 700, marginTop: 2, fontFamily: 'var(--font-mono)' }}>
-                    {roomPlacement.futureTime
-                      ? `Scheduled: ${roomPlacement.futureTime} (Military)`
-                      : 'None set for this room'}
-                  </div>
+                  <button
+                    type="button"
+                    disabled={!futureTimeInput && !roomPlacement.futureTime}
+                    onClick={handleClearFutureTime}
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: (futureTimeInput || roomPlacement.futureTime) ? 'var(--marker-red)' : 'var(--text-muted)',
+                      background: (futureTimeInput || roomPlacement.futureTime) ? 'rgba(239, 68, 68, 0.12)' : 'rgba(0, 0, 0, 0.04)',
+                      border: (futureTimeInput || roomPlacement.futureTime) ? '1px solid rgba(239, 68, 68, 0.28)' : '1px solid var(--border-light)',
+                      borderRadius: 4,
+                      cursor: (futureTimeInput || roomPlacement.futureTime) ? 'pointer' : 'not-allowed',
+                      padding: '2px 8px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      opacity: (futureTimeInput || roomPlacement.futureTime) ? 1 : 0.45
+                    }}
+                    title="Clear future time from this room"
+                  >
+                    <X size={11} />
+                    <span>Clear Time</span>
+                  </button>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {roomPlacement.futureTime ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onSetRoomFutureTime(roomPlacement.roomId!, null);
-                        onClose();
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input
+                      type="text"
+                      placeholder="e.g. 1030"
+                      maxLength={4}
+                      value={futureTimeInput}
+                      onChange={e => {
+                        const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
+                        setFutureTimeInput(val);
+                        setIsFutureTimeSavedRecently(false);
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSaveFutureTime();
+                        }
                       }}
                       style={{
-                        padding: '6px 10px',
-                        borderRadius: 6,
-                        background: 'none',
-                        border: '1px solid var(--marker-red)',
-                        color: 'var(--marker-red)',
+                        width: 86,
+                        padding: '6px 8px',
+                        borderRadius: 5,
+                        border: (isFutureTimeSaved && Boolean(futureTimeInput)) ? '1.5px solid #10b981' : '1.5px solid rgba(239, 68, 68, 0.45)',
+                        background: 'var(--surface-card)',
+                        color: 'var(--text-primary)',
+                        fontSize: 16,
+                        fontWeight: 800,
+                        fontFamily: 'var(--font-main)',
+                        textAlign: 'center',
+                        letterSpacing: 1,
+                        outline: 'none',
+                        boxShadow: (isFutureTimeSaved && Boolean(futureTimeInput)) ? '0 0 6px rgba(16, 185, 129, 0.3)' : 'none'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      disabled={isFutureTimeSaved && Boolean(futureTimeInput)}
+                      onClick={() => handleSaveFutureTime()}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        padding: '6px 14px',
                         fontSize: 11,
-                        fontWeight: 700,
-                        cursor: 'pointer'
+                        fontWeight: 800,
+                        borderRadius: 5,
+                        background: (isFutureTimeSaved && Boolean(futureTimeInput)) ? '#10b981' : 'var(--marker-red)',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: (isFutureTimeSaved && Boolean(futureTimeInput)) ? 'default' : 'pointer',
+                        boxShadow: (isFutureTimeSaved && Boolean(futureTimeInput)) ? '0 1px 4px rgba(16, 185, 129, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)',
+                        transition: 'all 0.2s ease'
                       }}
                     >
-                      Clear Time
+                      {(isFutureTimeSaved && Boolean(futureTimeInput)) ? <Check size={12} /> : null}
+                      <span>{(isFutureTimeSaved && Boolean(futureTimeInput)) ? 'Saved' : 'Save Time'}</span>
                     </button>
-                  ) : (
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      {['1030', '1100', '1200', '1300'].map(preset => (
+                  </div>
+
+                  {/* Preset military buttons (7 dynamic 30-min increments) */}
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+                    {futurePresets.map(preset => {
+                      const isSelected = futureTimeInput === preset;
+                      return (
                         <button
                           key={preset}
                           type="button"
-                          onClick={() => {
-                            onSetRoomFutureTime(roomPlacement.roomId!, preset);
-                            onClose();
-                          }}
+                          onClick={() => handleSaveFutureTime(preset)}
                           style={{
-                            padding: '4px 6px',
+                            padding: '4px 8px',
                             borderRadius: 4,
-                            background: 'var(--surface-card)',
-                            border: '1px solid var(--border-light)',
-                            fontSize: 10,
-                            fontWeight: 700,
+                            fontSize: 11,
+                            fontWeight: isSelected ? 800 : 700,
                             fontFamily: 'var(--font-mono)',
-                            color: 'var(--text-secondary)',
-                            cursor: 'pointer'
+                            background: isSelected ? 'var(--marker-red, #ef4444)' : 'var(--surface-card)',
+                            color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+                            border: isSelected ? '1.5px solid var(--marker-red, #ef4444)' : '1px solid var(--border-light)',
+                            boxShadow: isSelected ? '0 2px 8px rgba(239, 68, 68, 0.45)' : 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 3
                           }}
+                          title={`Set room future case time to ${preset}`}
                         >
-                          {preset}
+                          {isSelected && <span style={{ fontSize: 8 }}>●</span>}
+                          <span>{preset}</span>
                         </button>
-                      ))}
-                    </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Visible confirmation status indicator */}
+                <div style={{
+                  marginTop: 8,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '4px 8px',
+                  borderRadius: 4,
+                  background: isFutureTimeSaved && futureTimeInput ? 'rgba(16, 185, 129, 0.12)' : 'rgba(0, 0, 0, 0.03)',
+                  border: isFutureTimeSaved && futureTimeInput ? '1px solid rgba(16, 185, 129, 0.3)' : '1px dashed var(--border-light)'
+                }}>
+                  {isFutureTimeSaved && futureTimeInput ? (
+                    <span style={{ color: '#059669', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <Check size={13} />
+                      <span>Board Updated: Room scheduled for <strong>{futureTimeInput}</strong> (Military)</span>
+                    </span>
+                  ) : futureTimeInput ? (
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      Unsaved time: Click &quot;Save Time&quot; or press Enter
+                    </span>
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      No future case time set on board
+                    </span>
                   )}
                 </div>
               </div>

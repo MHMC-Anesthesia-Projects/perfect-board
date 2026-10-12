@@ -1,5 +1,13 @@
 [
   {
+    "id": "audit_1791810627223_bcq3v",
+    "timestamp": "2026-10-12T13:10:27.223Z",
+    "actionType": "SCRAPER_SYNCED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "details": "Successfully synchronized Departure, Lates, Call Team and Today's Staff Roster from ONEUSAP"
+  },
+  {
     "id": "audit_1791660154196_rqe1q",
     "timestamp": "2026-10-10T19:22:34.196Z",
     "actionType": "NOTE_UPDATED",
