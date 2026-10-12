@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import React from 'react';
 import { Room, UserRole } from '@/types/whiteboard';
 
 interface RoomLabelProps {
@@ -18,451 +17,130 @@ interface RoomLabelProps {
 
 export const RoomLabel: React.FC<RoomLabelProps> = ({
   room,
-  deptName,
-  roomNote,
-  onUpdateRoomNote,
-  currentUserRole,
-  onOpenLogin,
   stickers,
   onToggleSticker,
   activeStampStickerId
 }) => {
-  const currentNote = (roomNote !== undefined ? roomNote : (room.note || '')) || '';
-
-  const [noteDraft, setNoteDraft] = useState(currentNote);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isEditingNote, setIsEditingNote] = useState(false);
-  const [popoverPlacement, setPopoverPlacement] = useState<'top' | 'bottom'>('top');
-  const [popoverCoords, setPopoverCoords] = useState<{ left: number; top: number; arrowLeft: number }>({ left: 8, top: 0, arrowLeft: 20 });
-  const [mounted, setMounted] = useState(false);
-  const isClosingViaActionRef = useRef(false);
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isEditingNote) {
-      setNoteDraft(currentNote);
-    }
-  }, [currentNote, isEditingNote]);
-
-  const updatePopoverPosition = () => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const isCloseToTop = rect.top < 65;
-    const placement = isCloseToTop ? 'bottom' : 'top';
-    setPopoverPlacement(placement);
-
-    const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 400;
-    const popoverWidth = popoverRef.current?.offsetWidth || Math.min(250, screenWidth - 16);
-    const targetCenterX = rect.left + rect.width / 2;
-
-    // Desired left edge to center the popover over targetCenterX
-    const desiredLeft = targetCenterX - popoverWidth / 2;
-    // Keep popover bounded safely on-screen with an 8px margin on both sides
-    const left = Math.max(8, Math.min(screenWidth - popoverWidth - 8, desiredLeft));
-    // Arrow should point directly to targetCenterX relative to the popover box
-    const arrowLeft = Math.max(14, Math.min(popoverWidth - 14, targetCenterX - left));
-
-    setPopoverCoords({
-      left,
-      top: placement === 'top' ? rect.top - 6 : rect.bottom + 6,
-      arrowLeft
-    });
-  };
-
-  useEffect(() => {
-    if (!isEditingNote) return;
-
-    updatePopoverPosition();
-    const handleScrollOrResize = () => {
-      updatePopoverPosition();
-    };
-
-    window.addEventListener('scroll', handleScrollOrResize, true);
-    window.addEventListener('resize', handleScrollOrResize);
-
-    const raf = requestAnimationFrame(() => {
-      updatePopoverPosition();
-    });
-
-    return () => {
-      window.removeEventListener('scroll', handleScrollOrResize, true);
-      window.removeEventListener('resize', handleScrollOrResize);
-      cancelAnimationFrame(raf);
-    };
-  }, [isEditingNote]);
-
-  // Expand hover area to the ENTIRE box of the room (.room-row)
-  useEffect(() => {
-    const rowEl = containerRef.current?.closest('.room-row') as HTMLElement | null;
-    if (!rowEl) return;
-
-    const handleMouseEnter = (e: MouseEvent) => {
-      const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
-      const isOverMagnet = Boolean(el?.closest('.magnet-tile'));
-      setIsHovered(!isOverMagnet);
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      const isOverMagnet = Boolean(target?.closest('.magnet-tile'));
-      setIsHovered(!isOverMagnet);
-    };
-
-    const handleMouseLeave = () => {
-      setIsHovered(false);
-    };
-
-    rowEl.addEventListener('mouseenter', handleMouseEnter);
-    rowEl.addEventListener('mousemove', handleMouseMove);
-    rowEl.addEventListener('mouseleave', handleMouseLeave);
-
-    return () => {
-      rowEl.removeEventListener('mouseenter', handleMouseEnter);
-      rowEl.removeEventListener('mousemove', handleMouseMove);
-      rowEl.removeEventListener('mouseleave', handleMouseLeave);
-      rowEl.classList.remove('room-hovered');
-    };
-  }, []);
-
-  // Visually highlight the whole room box when hovered
-  useEffect(() => {
-    const rowEl = containerRef.current?.closest('.room-row') as HTMLElement | null;
-    if (!rowEl) return;
-    if (isHovered) {
-      rowEl.classList.add('room-hovered');
-    } else {
-      rowEl.classList.remove('room-hovered');
-    }
-    return () => {
-      rowEl.classList.remove('room-hovered');
-    };
-  }, [isHovered]);
-
-  // Trigger popup ONLY when user starts typing while hovering over this room label/badge
-  useEffect(() => {
-    if (!isHovered && !isEditingNote) return;
-
-    const handleWindowKeyDown = (e: KeyboardEvent) => {
-      // If already focused inside note input, let native input handle it
-      if (document.activeElement === inputRef.current) {
-        return;
-      }
-
-      // If user is currently typing in an input or textarea elsewhere on page, ignore
-      const activeEl = document.activeElement as HTMLElement | null;
-      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
-        return;
-      }
-
-      if (currentUserRole === 'view_only') {
-        return;
-      }
-
-      // Ignore modifier keys and navigation
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
-      if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
-
-      // When hovering over this room and user starts typing (printable character or Backspace/Delete)
-      if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
-        e.preventDefault();
-        e.stopPropagation();
-        updatePopoverPosition();
-        setIsEditingNote(true);
-
-        let initialVal = noteDraft;
-        if (e.key === 'Backspace' || e.key === 'Delete') {
-          initialVal = initialVal.slice(0, -1);
-        } else if (e.key.length === 1) {
-          if (initialVal.length < 30) {
-            initialVal = initialVal + e.key;
-          }
-        }
-        setNoteDraft(initialVal);
-
-        setTimeout(() => {
-          if (inputRef.current) {
-            inputRef.current.focus();
-            inputRef.current.setSelectionRange(initialVal.length, initialVal.length);
-          }
-        }, 30);
-      }
-    };
-
-    window.addEventListener('keydown', handleWindowKeyDown);
-    return () => window.removeEventListener('keydown', handleWindowKeyDown);
-  }, [isHovered, isEditingNote, noteDraft, currentUserRole]);
-
-  const handleSaveNote = (newVal: string) => {
-    const trimmed = (newVal || '').trim().slice(0, 30);
-    setNoteDraft(trimmed);
-    if (onUpdateRoomNote) {
-      onUpdateRoomNote(room.id, trimmed);
-    }
-  };
-
-  const handleOpenEditor = () => {
-    if (currentUserRole === 'view_only') {
-      onOpenLogin?.();
-      return;
-    }
-    updatePopoverPosition();
-    setIsEditingNote(true);
-    setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.focus();
-        inputRef.current.select();
-      }
-    }, 40);
-  };
-
-  const handleClearNote = () => {
-    isClosingViaActionRef.current = true;
-    handleSaveNote('');
-    setIsEditingNote(false);
-  };
-
   return (
-    <>
-      <div
-        ref={containerRef}
-        className={`room-label-container ${isHovered ? 'hovered' : ''}`}
-        onDragOver={(e) => {
-          if (typeof window !== 'undefined' && (window as any).__activeDraggedSticker) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.dataTransfer.dropEffect = 'copy';
+    <div
+      className="room-label-container"
+      onDragOver={(e) => {
+        if (typeof window !== 'undefined' && (window as any).__activeDraggedSticker) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = 'copy';
+        }
+      }}
+      onDrop={(e) => {
+        let stickerId = '';
+        try {
+          const dataStr = e.dataTransfer.getData('application/json') || e.dataTransfer.getData('text');
+          if (dataStr) {
+            const parsed = JSON.parse(dataStr);
+            if (parsed.type === 'sticker') stickerId = parsed.stickerId;
           }
-        }}
-        onDrop={(e) => {
-          let stickerId = '';
-          try {
-            const dataStr = e.dataTransfer.getData('application/json') || e.dataTransfer.getData('text');
-            if (dataStr) {
-              const parsed = JSON.parse(dataStr);
-              if (parsed.type === 'sticker') stickerId = parsed.stickerId;
-            }
-          } catch {}
-          if (!stickerId && typeof window !== 'undefined' && (window as any).__activeDraggedSticker) {
-            stickerId = (window as any).__activeDraggedSticker;
-          }
-          if (stickerId && onToggleSticker) {
-            e.preventDefault();
-            e.stopPropagation();
-            onToggleSticker(room.id, stickerId);
-          }
-        }}
-      >
-        {/* Room Number / Identifier */}
-        <div
-          className={`room-label ${currentNote ? 'has-note' : ''}`}
-          title={`Room ${room.name}${deptName ? ` (${deptName})` : ''}${currentNote ? ` • Note: "${currentNote}" (Click to edit)` : ' • Hover & type to add note'}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (activeStampStickerId && onToggleSticker) {
-              onToggleSticker(room.id, activeStampStickerId);
-              return;
-            }
-            handleOpenEditor();
-          }}
-        >
-          {room.name}
-        </div>
-
-        {/* Room Stickers */}
-        {stickers && stickers.length > 0 && (
-          <div className="room-stickers-container">
-            {stickers.map((stId) => {
-              if (stId === 'green_dot') {
-                return (
-                  <span
-                    key={stId}
-                    className="magnet-sticker-dot green"
-                    title="Green dot sticker on room (Click to peel off)"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleSticker?.(room.id, stId);
-                    }}
-                  />
-                );
-              }
-              if (stId === 'blue_dot') {
-                return (
-                  <span
-                    key={stId}
-                    className="magnet-sticker-dot blue"
-                    title="Blue dot sticker on room (Click to peel off)"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleSticker?.(room.id, stId);
-                    }}
-                  />
-                );
-              }
-              if (stId === 'will_finish' || stId === 'yellow_dot') {
-                return (
-                  <span
-                    key={stId}
-                    className="magnet-sticker-badge will-finish"
-                    title="WILL FINISH badge (Click to remove)"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleSticker?.(room.id, stId);
-                    }}
-                  >
-                    WILL FINISH
-                  </span>
-                );
-              }
-              if (stId === 'vol') {
-                return (
-                  <span
-                    key={stId}
-                    className="magnet-sticker-badge vol"
-                    title="VOLUNTEER badge (Click to remove)"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleSticker?.(room.id, stId);
-                    }}
-                  >
-                    VOLUNTEER
-                  </span>
-                );
-              }
-              if (stId.startsWith('text:') || stId.startsWith('custom:')) {
-                const label = stId.replace(/^(text:|custom:)/, '');
-                return (
-                  <span
-                    key={stId}
-                    className="magnet-sticker-badge custom-text"
-                    title={`"${label}" magnet (Click to remove)`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleSticker?.(room.id, stId);
-                    }}
-                  >
-                    {label}
-                  </span>
-                );
-              }
-              return null;
-            })}
-          </div>
-        )}
-
-        {/* Small Font Room Note Badge (max 30 characters) */}
-        {currentNote && (
-          <span
-            className="room-note-badge"
-            title={`Room note: "${currentNote}" (Click to edit or clear)`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenEditor();
-            }}
-          >
-            {currentNote}
-          </span>
-        )}
+        } catch {}
+        if (!stickerId && typeof window !== 'undefined' && (window as any).__activeDraggedSticker) {
+          stickerId = (window as any).__activeDraggedSticker;
+        }
+        if (stickerId && onToggleSticker) {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggleSticker(room.id, stickerId);
+        }
+      }}
+      onClick={(e) => {
+        if (activeStampStickerId && onToggleSticker) {
+          e.stopPropagation();
+          onToggleSticker(room.id, activeStampStickerId);
+        }
+      }}
+      title={`Room ${room.name}`}
+    >
+      <div className="room-label-number">
+        {room.name}
       </div>
 
-      {/* Floating Popover: Appears ONLY when typing starts or user clicks to edit */}
-      {mounted && isEditingNote && createPortal(
-        <div
-          ref={popoverRef}
-          className="room-hover-note-popover"
-          style={{
-            position: 'fixed',
-            left: popoverCoords.left,
-            top: popoverCoords.top,
-            transform: popoverPlacement === 'top' ? 'translateY(-100%)' : 'translateY(0)',
-            zIndex: 99999
-          }}
-          onClick={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <div className="room-hover-note-inner">
-            <span className="room-hover-note-indicator" title={`Room ${room.name} Note`}>
-              {room.name}
-            </span>
-            <input
-              ref={inputRef}
-              type="text"
-              className="room-hover-note-input"
-              value={noteDraft}
-              maxLength={30}
-              placeholder={`Room ${room.name} note (max 30)...`}
-              onChange={(e) => {
-                const val = e.target.value.slice(0, 30);
-                setNoteDraft(val);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  isClosingViaActionRef.current = true;
-                  const finalVal = noteDraft.trim().slice(0, 30);
-                  handleSaveNote(finalVal);
-                  setIsEditingNote(false);
-                } else if (e.key === 'Escape') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  isClosingViaActionRef.current = true;
-                  setNoteDraft(currentNote);
-                  setIsEditingNote(false);
-                }
-              }}
-              onBlur={() => {
-                if (isClosingViaActionRef.current) {
-                  isClosingViaActionRef.current = false;
-                  return;
-                }
-                setIsEditingNote(false);
-                const finalVal = noteDraft.trim().slice(0, 30);
-                if (finalVal !== currentNote) {
-                  handleSaveNote(finalVal);
-                }
-              }}
-            />
-            <span className="room-hover-note-count">
-              {noteDraft.length}/30
-            </span>
-            <button
-              type="button"
-              className="room-hover-note-clear"
-              onPointerDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                isClosingViaActionRef.current = true;
-              }}
-              onMouseDown={(e) => {
-                // Prevent input blur before onClick fires
-                e.preventDefault();
-                e.stopPropagation();
-                isClosingViaActionRef.current = true;
-              }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleClearNote();
-              }}
-              title={noteDraft ? "Delete note" : "Close"}
-            >
-              ✕
-            </button>
-          </div>
-          <div
-            className={popoverPlacement === 'top' ? 'room-hover-note-arrow-down' : 'room-hover-note-arrow-up'}
-            style={{ left: popoverCoords.arrowLeft }}
-          />
-        </div>,
-        document.body
+      {/* Room Stickers / Magnets */}
+      {stickers && stickers.length > 0 && (
+        <div className="room-stickers-container">
+          {stickers.map((stId) => {
+            if (stId === 'green_dot') {
+              return (
+                <span
+                  key={stId}
+                  className="magnet-sticker-dot green"
+                  title="Green dot (Click to remove)"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSticker?.(room.id, stId);
+                  }}
+                />
+              );
+            }
+            if (stId === 'blue_dot') {
+              return (
+                <span
+                  key={stId}
+                  className="magnet-sticker-dot blue"
+                  title="Blue dot (Click to remove)"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSticker?.(room.id, stId);
+                  }}
+                />
+              );
+            }
+            if (stId === 'vol') {
+              return (
+                <span
+                  key={stId}
+                  className="magnet-sticker-badge vol"
+                  title="VOLUNTEER badge (Click to remove)"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSticker?.(room.id, stId);
+                  }}
+                >
+                  VOLUNTEER
+                </span>
+              );
+            }
+            if (stId === 'will_finish' || stId === 'yellow_dot') {
+              return (
+                <span
+                  key={stId}
+                  className="magnet-sticker-badge will-finish"
+                  title="WILL FINISH badge (Click to remove)"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSticker?.(room.id, stId);
+                  }}
+                >
+                  WILL FINISH
+                </span>
+              );
+            }
+            if (stId.startsWith('text:') || stId.startsWith('custom:')) {
+              const label = stId.replace(/^(text:|custom:)/, '');
+              return (
+                <span
+                  key={stId}
+                  className="magnet-sticker-badge custom-text"
+                  title={`"${label}" magnet (Click to remove)`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSticker?.(room.id, stId);
+                  }}
+                >
+                  {label}
+                </span>
+              );
+            }
+            return null;
+          })}
+        </div>
       )}
-    </>
+    </div>
   );
 };
