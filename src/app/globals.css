@@ -4273,4 +4273,16 @@ body.dragging-staff .magnet-tile * {
     max-width: 98vw !important;
     max-height: 96vh !important;
   }
+
+  .staff-modal-messaging-title {
+    white-space: normal !important;
+  }
+
+  .staff-modal-messaging-word {
+    display: block !important;
+  }
+}
+
+.staff-modal-messaging-title {
+  white-space: nowrap;
 }

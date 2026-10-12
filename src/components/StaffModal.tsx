@@ -1878,15 +1878,19 @@ export const StaffModal: React.FC<StaffModalProps> = ({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                 <MessageSquare size={16} style={{ color: '#10b981', flexShrink: 0 }} />
-                <span style={{
-                  fontSize: 12,
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.3,
-                  color: 'var(--text-primary)',
-                  whiteSpace: 'nowrap'
-                }}>
-                  Perfect Call Messaging
+                <span
+                  className="staff-modal-messaging-title"
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.3,
+                    color: 'var(--text-primary)',
+                    lineHeight: 1.15
+                  }}
+                >
+                  <span>Perfect Call </span>
+                  <span className="staff-modal-messaging-word">Messaging</span>
                 </span>
               </div>
 
