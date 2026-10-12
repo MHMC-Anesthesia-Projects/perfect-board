@@ -1109,7 +1109,7 @@
     {
       "id": "staff_oneusap_anes_louiskes",
       "phone": "(512) 669-9985",
-      "shift": "postOB",
+      "shift": "5p, postOB",
       "active": true,
       "facility": "MH Memorial City",
       "lastName": "Louis",
@@ -1476,202 +1476,31 @@
   "version": 1,
   "latesList": [
     {
-      "id": "late_0_1791810627223",
-      "name": "KEYHANI",
-      "timeCategory": "3p",
+      "id": "late_22_1791810627223",
+      "name": "YI",
+      "timeCategory": "24h",
       "orderIndex": 0,
-      "orderNumber": 137,
-      "role": "MD",
-      "qgendaAbbr": "KeyhaniDia",
-      "assignedRoom": "Village OR1"
+      "orderNumber": 103,
+      "role": "CRNA",
+      "qgendaAbbr": "YiAle",
+      "assignedRoom": "MHMC DS 01",
+      "timeEstimate": "24h",
+      "notes": "L1 + OB"
     },
     {
-      "id": "late_1_1791810627223",
-      "name": "SHICH",
-      "timeCategory": "3p",
+      "id": "late_21_1791810627223",
+      "name": "NORMAND",
+      "timeCategory": "7p-7a",
       "orderIndex": 1,
-      "orderNumber": 144,
-      "role": "MD",
-      "qgendaAbbr": "ShichBer",
-      "assignedRoom": "MHMC DS 06"
-    },
-    {
-      "id": "late_2_1791810627223",
-      "name": "CROSSLEY",
-      "timeCategory": "3p",
-      "orderIndex": 2,
-      "orderNumber": 178,
+      "orderNumber": 418,
       "role": "CRNA",
-      "qgendaAbbr": "CrossleyLad",
-      "assignedRoom": "Village OR2"
-    },
-    {
-      "id": "late_3_1791810627223",
-      "name": "DAVIGNONT",
-      "timeCategory": "3p",
-      "orderIndex": 3,
-      "orderNumber": 180,
-      "role": "CRNA",
-      "qgendaAbbr": "DAvignonT",
-      "assignedRoom": "MHMC Endo4"
-    },
-    {
-      "id": "late_4_1791810627223",
-      "name": "FLEMMING",
-      "timeCategory": "3p",
-      "orderIndex": 4,
-      "orderNumber": 27,
-      "role": "CRNA",
-      "qgendaAbbr": "FlemmingCin",
-      "assignedRoom": "MHMC Ortho8",
-      "notes": "WOR"
-    },
-    {
-      "id": "late_5_1791810627223",
-      "name": "HUGHES",
-      "timeCategory": "3p",
-      "orderIndex": 5,
-      "orderNumber": 200,
-      "role": "CRNA",
-      "qgendaAbbr": "HughesAbi",
-      "assignedRoom": "MHMC OR4"
-    },
-    {
-      "id": "late_6_1791810627223",
-      "name": "MATEO",
-      "timeCategory": "3p",
-      "orderIndex": 6,
-      "orderNumber": 216,
-      "role": "CRNA",
-      "qgendaAbbr": "MateoCar",
-      "assignedRoom": "MHMC Ortho6"
-    },
-    {
-      "id": "late_7_1791810627223",
-      "name": "MOODY",
-      "timeCategory": "3p",
-      "orderIndex": 7,
-      "orderNumber": 224,
-      "role": "CRNA",
-      "qgendaAbbr": "MoodyMat",
-      "assignedRoom": "MHMC Ortho7"
-    },
-    {
-      "id": "late_8_1791810627223",
-      "name": "ROJAS",
-      "timeCategory": "3p",
-      "orderIndex": 8,
-      "orderNumber": 77,
-      "role": "CRNA",
-      "qgendaAbbr": "RojasArt",
-      "assignedRoom": "MHMC OR6",
-      "notes": "WOV"
-    },
-    {
-      "id": "late_9_1791810627223",
-      "name": "SPEARS",
-      "timeCategory": "3p",
-      "orderIndex": 9,
-      "orderNumber": 244,
-      "role": "CRNA",
-      "qgendaAbbr": "SpearsAll",
-      "assignedRoom": "MHMC OR8"
-    },
-    {
-      "id": "late_10_1791810627223",
-      "name": "TOWNE",
-      "timeCategory": "3p",
-      "orderIndex": 10,
-      "orderNumber": 249,
-      "role": "CRNA",
-      "qgendaAbbr": "TowneChr",
-      "assignedRoom": "Village OR4"
-    },
-    {
-      "id": "late_11_1791810627223",
-      "name": "CHUAN",
-      "timeCategory": "4p",
-      "orderIndex": 11,
-      "orderNumber": 125,
-      "role": "MD",
-      "qgendaAbbr": "ChuanJos",
-      "assignedRoom": "MHMC DS 01, MHMC DS 03, MHMC DS 04, MHMC Endo4"
-    },
-    {
-      "id": "late_12_1791810627223",
-      "name": "HIRSCH",
-      "timeCategory": "5p",
-      "orderIndex": 12,
-      "orderNumber": 185,
-      "role": "MD",
-      "qgendaAbbr": "HirschDou",
-      "assignedRoom": "Village OR2, Village OR3, Village OR4"
-    },
-    {
-      "id": "late_13_1791810627223",
-      "name": "MCGUIRE",
-      "timeCategory": "5p",
-      "orderIndex": 13,
-      "orderNumber": 292,
-      "role": "CRNA",
-      "qgendaAbbr": "McGuireMeg",
-      "assignedRoom": "MHMC TEE, MHMC OB2"
-    },
-    {
-      "id": "late_14_1791810627223",
-      "name": "NGUYEN",
-      "timeCategory": "5p",
-      "orderIndex": 14,
-      "orderNumber": 303,
-      "role": "CRNA",
-      "qgendaAbbr": "NguyenKat",
-      "assignedRoom": "MHMC OR11"
-    },
-    {
-      "id": "late_15_1791810627223",
-      "name": "SCHROEDTER",
-      "timeCategory": "5p",
-      "orderIndex": 15,
-      "orderNumber": 312,
-      "role": "CRNA",
-      "qgendaAbbr": "SchroedterTim",
-      "assignedRoom": "MHMC Ortho4"
-    },
-    {
-      "id": "late_16_1791810627223",
-      "name": "WALKER",
-      "timeCategory": "5p",
-      "orderIndex": 16,
-      "orderNumber": 318,
-      "role": "CRNA",
-      "qgendaAbbr": "WalkerNes",
-      "assignedRoom": "MHMC OR10"
-    },
-    {
-      "id": "late_17_1791810627223",
-      "name": "NDUJIUBA",
-      "timeCategory": "7p",
-      "orderIndex": 17,
-      "orderNumber": 333,
-      "role": "CRNA",
-      "qgendaAbbr": "NdujiubaEny",
-      "assignedRoom": "MHMC DS 03"
-    },
-    {
-      "id": "late_18_1791810627223",
-      "name": "TEKWE",
-      "timeCategory": "7p",
-      "orderIndex": 18,
-      "orderNumber": 341,
-      "role": "CRNA",
-      "qgendaAbbr": "TekweChr",
-      "assignedRoom": "MHMC Ortho5"
+      "qgendaAbbr": "NormandKen"
     },
     {
       "id": "late_19_1791810627223",
       "name": "BEARD",
       "timeCategory": "8p",
-      "orderIndex": 19,
+      "orderIndex": 2,
       "orderNumber": 343,
       "role": "CRNA",
       "qgendaAbbr": "BeardEri",
@@ -1681,32 +1510,214 @@
       "id": "late_20_1791810627223",
       "name": "TRAN",
       "timeCategory": "8p",
-      "orderIndex": 20,
+      "orderIndex": 3,
       "orderNumber": 352,
       "role": "CRNA",
       "qgendaAbbr": "TranTon",
       "assignedRoom": "MHMC DS 04"
     },
     {
-      "id": "late_21_1791810627223",
-      "name": "NORMAND",
-      "timeCategory": "7p-7a",
-      "orderIndex": 21,
-      "orderNumber": 418,
+      "id": "late_17_1791810627223",
+      "name": "NDUJIUBA",
+      "timeCategory": "7p",
+      "orderIndex": 4,
+      "orderNumber": 333,
       "role": "CRNA",
-      "qgendaAbbr": "NormandKen"
+      "qgendaAbbr": "NdujiubaEny",
+      "assignedRoom": "MHMC DS 03"
     },
     {
-      "id": "late_22_1791810627223",
-      "name": "YI",
-      "timeCategory": "24h",
-      "orderIndex": 22,
-      "orderNumber": 103,
+      "id": "late_18_1791810627223",
+      "name": "TEKWE",
+      "timeCategory": "7p",
+      "orderIndex": 5,
+      "orderNumber": 341,
       "role": "CRNA",
-      "qgendaAbbr": "YiAle",
-      "assignedRoom": "MHMC DS 01",
-      "timeEstimate": "24h",
-      "notes": "L1 + OB"
+      "qgendaAbbr": "TekweChr",
+      "assignedRoom": "MHMC Ortho5"
+    },
+    {
+      "id": "late_louis_1791813259354",
+      "name": "LOUIS",
+      "timeCategory": "5p",
+      "role": "CRNA",
+      "qgendaAbbr": "LouisKes",
+      "assignedRoom": "MHMC OR9",
+      "orderNumber": 104,
+      "notes": "10h, postOB",
+      "orderIndex": 6
+    },
+    {
+      "id": "late_12_1791810627223",
+      "name": "HIRSCH",
+      "timeCategory": "5p",
+      "orderIndex": 7,
+      "orderNumber": 185,
+      "role": "MD",
+      "qgendaAbbr": "HirschDou",
+      "assignedRoom": "Village OR2, Village OR3, Village OR4"
+    },
+    {
+      "id": "late_13_1791810627223",
+      "name": "MCGUIRE",
+      "timeCategory": "5p",
+      "orderIndex": 8,
+      "orderNumber": 292,
+      "role": "CRNA",
+      "qgendaAbbr": "McGuireMeg",
+      "assignedRoom": "MHMC TEE, MHMC OB2"
+    },
+    {
+      "id": "late_14_1791810627223",
+      "name": "NGUYEN",
+      "timeCategory": "5p",
+      "orderIndex": 9,
+      "orderNumber": 303,
+      "role": "CRNA",
+      "qgendaAbbr": "NguyenKat",
+      "assignedRoom": "MHMC OR11"
+    },
+    {
+      "id": "late_15_1791810627223",
+      "name": "SCHROEDTER",
+      "timeCategory": "5p",
+      "orderIndex": 10,
+      "orderNumber": 312,
+      "role": "CRNA",
+      "qgendaAbbr": "SchroedterTim",
+      "assignedRoom": "MHMC Ortho4"
+    },
+    {
+      "id": "late_16_1791810627223",
+      "name": "WALKER",
+      "timeCategory": "5p",
+      "orderIndex": 11,
+      "orderNumber": 318,
+      "role": "CRNA",
+      "qgendaAbbr": "WalkerNes",
+      "assignedRoom": "MHMC OR10"
+    },
+    {
+      "id": "late_11_1791810627223",
+      "name": "CHUAN",
+      "timeCategory": "4p",
+      "orderIndex": 12,
+      "orderNumber": 125,
+      "role": "MD",
+      "qgendaAbbr": "ChuanJos",
+      "assignedRoom": "MHMC DS 01, MHMC DS 03, MHMC DS 04, MHMC Endo4"
+    },
+    {
+      "id": "late_4_1791810627223",
+      "name": "FLEMMING",
+      "timeCategory": "3p",
+      "orderIndex": 13,
+      "orderNumber": 27,
+      "role": "CRNA",
+      "qgendaAbbr": "FlemmingCin",
+      "assignedRoom": "MHMC Ortho8",
+      "notes": "WOR"
+    },
+    {
+      "id": "late_8_1791810627223",
+      "name": "ROJAS",
+      "timeCategory": "3p",
+      "orderIndex": 14,
+      "orderNumber": 77,
+      "role": "CRNA",
+      "qgendaAbbr": "RojasArt",
+      "assignedRoom": "MHMC OR6",
+      "notes": "WOV"
+    },
+    {
+      "id": "late_0_1791810627223",
+      "name": "KEYHANI",
+      "timeCategory": "3p",
+      "orderIndex": 15,
+      "orderNumber": 137,
+      "role": "MD",
+      "qgendaAbbr": "KeyhaniDia",
+      "assignedRoom": "Village OR1"
+    },
+    {
+      "id": "late_1_1791810627223",
+      "name": "SHICH",
+      "timeCategory": "3p",
+      "orderIndex": 16,
+      "orderNumber": 144,
+      "role": "MD",
+      "qgendaAbbr": "ShichBer",
+      "assignedRoom": "MHMC DS 06"
+    },
+    {
+      "id": "late_2_1791810627223",
+      "name": "CROSSLEY",
+      "timeCategory": "3p",
+      "orderIndex": 17,
+      "orderNumber": 178,
+      "role": "CRNA",
+      "qgendaAbbr": "CrossleyLad",
+      "assignedRoom": "Village OR2"
+    },
+    {
+      "id": "late_3_1791810627223",
+      "name": "DAVIGNONT",
+      "timeCategory": "3p",
+      "orderIndex": 18,
+      "orderNumber": 180,
+      "role": "CRNA",
+      "qgendaAbbr": "DAvignonT",
+      "assignedRoom": "MHMC Endo4"
+    },
+    {
+      "id": "late_5_1791810627223",
+      "name": "HUGHES",
+      "timeCategory": "3p",
+      "orderIndex": 19,
+      "orderNumber": 200,
+      "role": "CRNA",
+      "qgendaAbbr": "HughesAbi",
+      "assignedRoom": "MHMC OR4"
+    },
+    {
+      "id": "late_6_1791810627223",
+      "name": "MATEO",
+      "timeCategory": "3p",
+      "orderIndex": 20,
+      "orderNumber": 216,
+      "role": "CRNA",
+      "qgendaAbbr": "MateoCar",
+      "assignedRoom": "MHMC Ortho6"
+    },
+    {
+      "id": "late_7_1791810627223",
+      "name": "MOODY",
+      "timeCategory": "3p",
+      "orderIndex": 21,
+      "orderNumber": 224,
+      "role": "CRNA",
+      "qgendaAbbr": "MoodyMat",
+      "assignedRoom": "MHMC Ortho7"
+    },
+    {
+      "id": "late_9_1791810627223",
+      "name": "SPEARS",
+      "timeCategory": "3p",
+      "orderIndex": 22,
+      "orderNumber": 244,
+      "role": "CRNA",
+      "qgendaAbbr": "SpearsAll",
+      "assignedRoom": "MHMC OR8"
+    },
+    {
+      "id": "late_10_1791810627223",
+      "name": "TOWNE",
+      "timeCategory": "3p",
+      "orderIndex": 23,
+      "orderNumber": 249,
+      "role": "CRNA",
+      "qgendaAbbr": "TowneChr",
+      "assignedRoom": "Village OR4"
     }
   ],
   "roomNotes": {},
@@ -3181,6 +3192,16 @@
       "qgendaAbbr": "HillerKen",
       "providerName": "Hiller",
       "facilityCondition": "ALL"
+    },
+    {
+      "id": "rule_louis",
+      "providerName": "Louis",
+      "qgendaAbbr": "LouisKes",
+      "fixedShift": "5p",
+      "role": "CRNA",
+      "facilityCondition": "ALL",
+      "active": true,
+      "notes": "10h CRNA at MHMC (10h_MHMC) - works until 5p"
     }
   ],
   "infrequentStaffIds": [

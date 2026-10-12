@@ -258,6 +258,22 @@ export function is10hMhmcRole(shiftOrRole?: string, facilityStr?: string, rawNam
   ) {
     return true;
   }
+
+  // Kesiah Louis (LouisKes) is the 10h_MHMC CRNA working at MHMC (7:00 AM - 5:00 PM)
+  if (
+    n.includes('LOUISKES') ||
+    /\bLOUIS\b/i.test(n) ||
+    s.includes('LOUISKES') ||
+    /\bLOUIS\b/i.test(s)
+  ) {
+    if (/MHKTY|HMWST|MHTW|HMH|MHGH|MHSE|MHSL|MHCH/i.test(combined) && !combined.includes('MHMC')) {
+      return false;
+    }
+    if (combined.includes('MHMC') || !facilityStr || facilityStr.toUpperCase().includes('W: MHMC')) {
+      return true;
+    }
+  }
+
   if (/\b10H\b/i.test(s) || /\b10\s*-?\s*H(?:R|OUR)?S?\b/i.test(s) || (rawName && /\b10H\b/i.test(rawName))) {
     if (/MHKTY|HMWST|MHTW|HMH|MHGH|MHSE|MHSL|MHCH/i.test(combined) && !combined.includes('MHMC')) {
       return false;
@@ -668,7 +684,7 @@ function resolveEffectiveShift(
     }
 
     // 2. Default group rules if uniqueSchedules was not passed
-    if (cleanAbbr.includes('hirsch') || cleanAbbr.includes('baerensteche')) return '5p';
+    if (cleanAbbr.includes('hirsch') || cleanAbbr.includes('baerensteche') || cleanAbbr.includes('louiskes') || cleanLast === 'louis') return '5p';
     if (cleanAbbr.includes('chuan')) return '4p';
     if (cleanAbbr.includes('gunn') || cleanAbbr.includes('martinez') || cleanAbbr.includes('hiller')) return '3p';
   }
@@ -1737,7 +1753,8 @@ export function parseOneUsapHtml(
 
     // Post-call providers (e.g. postOB, postC1, postCV, CIHOBPC) are resting from overnight call and not working a late shift
     const isPostCall = upperShift.includes('POST') || upperShift.includes('PC_') || upperShift.endsWith('PC');
-    if (role === 'CRNA' && isPostCall && !isLateShift(upperShift) && !isL1 && !is8h && !is10h && !isWorWov) {
+    const isLate = isLateShift(upperShift) || isLateShift(effectiveShift);
+    if (role === 'CRNA' && isPostCall && !isLate && !isL1 && !is8h && !is10h && !isWorWov) {
       return;
     }
 

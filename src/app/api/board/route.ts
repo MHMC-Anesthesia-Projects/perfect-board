@@ -974,7 +974,9 @@ export async function POST(req: NextRequest) {
         // Classify shift: standard late (>= 3p) vs atypical/special (e.g. 2p, 1p, Special) vs post-call vs call team
         const upperShift = (shift || '').toUpperCase().trim();
         const isL1 = upperShift.includes('L1_MHMC') || upperShift.includes('L1-MHMC') || /\bL1\b/i.test(upperShift);
+        const is10h = upperShift.includes('10H_MHMC') || upperShift.includes('10H-MHMC') || /\b10H\b/i.test(upperShift);
         const is8h = upperShift.includes('8H_MHMC') || upperShift.includes('8H-MHMC') || /\b8H\b/i.test(upperShift);
+        const isWorWov = upperShift.includes('WOR_MHMC') || upperShift.includes('WOV_MHMC') || /\b(?:WOR|WOV)\b/i.test(upperShift);
 
         // Departure badge classifications:
         // 1. Post-call badges (e.g. postCV, postC1, postC2, postOB, post1st, Post-Call)
@@ -986,7 +988,7 @@ export async function POST(req: NextRequest) {
 
         // Active in-house Call Team assignment for tonight (kept OFF departure list)
         // ONLY true if explicitly assigned to in-house Call Team and NOT a departure badge like postCV, pre1st, OBcall, etc.
-        const isCallShift = !isL1 && !is8h && !isPostCall && !isPreCall && !isOutsideCallBadge && (
+        const isCallShift = !isL1 && !is10h && !is8h && !isWorWov && !isPostCall && !isPreCall && !isOutsideCallBadge && (
           isCallTeamAssignment === true ||
           upperShift === 'CALL 1' || upperShift === 'CALL 2' || upperShift === 'CALL 3' ||
           upperShift === 'C1,OB' || upperShift === 'OB,C1' ||
@@ -1000,7 +1002,7 @@ export async function POST(req: NextRequest) {
             upperShift.includes('8H') || upperShift.includes('10H') || upperShift.includes('3P') ||
             upperShift.includes('OB') || upperShift.includes('CIHOB')
           ));
-        const isStandardLate = !isCallShift && !isPostCall && (is24h || isL1 || is8h || standardLateKeys.some(k => upperShift === k || upperShift.startsWith(k)));
+        const isStandardLate = !isCallShift && !isPostCall && (is24h || isL1 || is10h || is8h || isWorWov || standardLateKeys.some(k => upperShift === k || upperShift.startsWith(k)));
 
         const isAtypicalTime = !isCallShift && !isPostCall && (
           upperShift === 'SPECIAL' ||
@@ -1160,7 +1162,7 @@ export async function POST(req: NextRequest) {
         );
 
         const shouldBeInLates = !isCallShift && (isStandardLate || isAtypicalTime);
-        const lateCategory = is24h ? '24h' : (isL1 ? '7p' : (is8h ? '3p' : (isStandardLate ? shift.toLowerCase() : (isAtypicalTime ? 'special' : ''))));
+        const lateCategory = is24h ? '24h' : (isL1 ? '7p' : (is10h ? '5p' : ((is8h || isWorWov) ? '3p' : (isStandardLate ? shift.toLowerCase() : (isAtypicalTime ? 'special' : '')))));
 
         if (lateIdx !== -1) {
           if (shouldBeInLates) {
@@ -1179,8 +1181,17 @@ export async function POST(req: NextRequest) {
                                   upperShift.includes('POSTC1') ? 'postC1' :
                                   upperShift.includes('POST') ? 'postCall' : '';
               state.latesList[lateIdx].notes = hasPostCall ? `L1, ${hasPostCall}` : 'L1';
+            } else if (is10h) {
+              state.latesList[lateIdx].role = 'CRNA';
+              const hasPostCall = upperShift.includes('POSTOB') ? 'postOB' :
+                                  upperShift.includes('POSTC1') ? 'postC1' :
+                                  upperShift.includes('POST') ? 'postCall' : '';
+              state.latesList[lateIdx].notes = hasPostCall ? `10h, ${hasPostCall}` : '10h';
             } else if (is8h) {
               state.latesList[lateIdx].role = 'CRNA';
+            } else if (isWorWov) {
+              state.latesList[lateIdx].role = 'CRNA';
+              state.latesList[lateIdx].notes = upperShift.includes('WOV') ? 'WOV' : 'WOR';
             }
           } else {
             state.latesList.splice(lateIdx, 1);
@@ -1193,13 +1204,21 @@ export async function POST(req: NextRequest) {
           const has10h = upperShift.includes('10H');
           const hasL1 = upperShift.includes('L1');
           const hasOb = upperShift.includes('OB') || upperShift.includes('CIHOB') || upperShift.includes('OBPM') || upperShift.includes('CIHOBPM');
-          const lateNote = is24h ? ((has8h && hasL1 && hasOb) ? '24h (8h+L1+OB)' : (has8h && hasL1) ? '8h + L1' : (has10h && hasL1) ? '10h + L1' : (hasL1 && hasOb) ? 'L1 + OB' : '24h (L1 + OB)') : (isL1 ? (hasPostCall ? `L1, ${hasPostCall}` : 'L1') : undefined);
+          const lateNote = is24h
+            ? ((has8h && hasL1 && hasOb) ? '24h (8h+L1+OB)' : (has8h && hasL1) ? '8h + L1' : (has10h && hasL1) ? '10h + L1' : (hasL1 && hasOb) ? 'L1 + OB' : '24h (L1 + OB)')
+            : isL1
+              ? (hasPostCall ? `L1, ${hasPostCall}` : 'L1')
+              : is10h
+                ? (hasPostCall ? `10h, ${hasPostCall}` : '10h')
+                : isWorWov
+                  ? (upperShift.includes('WOV') ? 'WOV' : 'WOR')
+                  : undefined;
 
           state.latesList.push({
             id: `late_${s.id}_${Date.now()}`,
             name: targetLastName.toUpperCase(),
             timeCategory: lateCategory,
-            role: (isL1 || is8h) ? 'CRNA' : (targetCreds === 'MD' ? 'MD' : 'CRNA'),
+            role: (isL1 || is8h || is10h || isWorWov) ? 'CRNA' : (targetCreds === 'MD' ? 'MD' : 'CRNA'),
             timeEstimate: effectiveTimeEstimate,
             orderIndex: state.latesList.length,
             notes: lateNote,

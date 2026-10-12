@@ -340,6 +340,16 @@ export function getDefaultUniqueSchedules(): UniqueScheduleRule[] {
       notes: 'Works until 5p daily when working at MHMC'
     },
     {
+      id: 'rule_louis',
+      providerName: 'Louis',
+      qgendaAbbr: 'LouisKes',
+      fixedShift: '5p',
+      role: 'CRNA',
+      facilityCondition: 'ALL',
+      active: true,
+      notes: '10h CRNA at MHMC (10h_MHMC) - works until 5p'
+    },
+    {
       id: 'rule_chuan',
       providerName: 'Chuan',
       qgendaAbbr: 'ChuanJos',
