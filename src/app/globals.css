@@ -4311,45 +4311,43 @@ body.dragging-staff .magnet-tile * {
 }
 
 .runner-slot-row .relief-slot-target {
-  display: none;
+  display: flex !important;
+  flex: 1;
+  min-width: 0;
+  max-width: 50%;
+  height: 100%;
+  min-height: 20px;
+  max-height: 26px;
   align-items: center;
   justify-content: center;
   padding: 0 5px;
-  height: 100%;
-  min-height: 20px;
-  max-height: 24px;
-  min-width: 52px;
   border-radius: var(--radius-sm);
   border: 1.5px dashed rgba(239, 68, 68, 0.7);
   background: rgba(239, 68, 68, 0.08);
   color: var(--marker-red);
   cursor: pointer;
-  opacity: 0.85;
+  opacity: 0.9 !important;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-  flex-shrink: 0;
   user-select: none;
   box-sizing: border-box;
   font-size: 10px;
   font-weight: 800;
 }
 
-.runner-slot-row:hover .relief-slot-target {
-  display: flex;
-}
-
 body.dragging-staff .runner-slot-row .relief-slot-target {
-  display: flex;
+  display: flex !important;
+  opacity: 0.9 !important;
 }
 
 .runner-slot-row .relief-slot-target:hover {
   background: rgba(220, 38, 38, 0.18);
   border-color: var(--marker-red);
+  opacity: 1 !important;
 }
 
 .runner-slot-row .relief-slot-target.persistent-red-box {
   display: flex !important;
-  flex: 1;
-  max-width: 50%;
+  opacity: 1 !important;
   background: rgba(220, 38, 38, 0.22);
   border: 1.5px solid var(--marker-red);
 }

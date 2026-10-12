@@ -359,13 +359,13 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                         handleDrop(e, 'runner_dept', dept.id);
                       }}
                     >
-                      {/* Primary Runner Zone - 100% full width when no relief, shared 50% when relief/red box is present */}
+                      {/* Primary Runner Zone - shared with relief box */}
                       <div
                         className="primary-runner-zone"
                         style={{
-                          flex: (hasRunnerRelief || isOpenRunnerRedBox) ? '1 1 50%' : 1,
+                          flex: 1,
                           minWidth: 0,
-                          maxWidth: (hasRunnerRelief || isOpenRunnerRedBox) ? '55%' : '100%',
+                          maxWidth: (hasRunnerRelief || isOpenRunnerRedBox || (isEditor && assignedStaff)) ? '55%' : '100%',
                           height: '100%'
                         }}
                         onDragEnter={handleZoneDragEnter}
@@ -504,11 +504,20 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                           onClick={(e) => {
                             e.stopPropagation();
                             if (justDroppedRef.current) return;
-                            if (onSetRelief) {
+                            if (onOpenReliefModal) {
+                              onOpenReliefModal({
+                                type: 'runner_slot',
+                                id: runner.id,
+                                roomName: displayTitle,
+                                departmentName: dept.name,
+                                currentStaff: assignedStaff || null,
+                                currentRelief: runner.relief
+                              });
+                            } else if (onSetRelief) {
                               onSetRelief('runner_slot', runner.id, '', '', '', true);
                             }
                           }}
-                          title="Single click / tap to designate relief (Red Box) for Runner, or drop staff here"
+                          title="Click to assign relief for runner, or drop staff here"
                         >
                           <span className="relief-slot-label">+ Relief</span>
                         </div>

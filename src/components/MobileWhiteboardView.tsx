@@ -1320,9 +1320,9 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                             <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', gap: 4 }}>
                               <div
                                 style={{
-                                  flex: (hasAssignedRelief || isOpenRedBox) ? '1 1 50%' : 1,
+                                  flex: (hasAssignedRelief || isOpenRedBox || (isEditor && onOpenReliefModal)) ? '1 1 50%' : 1,
                                   minWidth: 0,
-                                  maxWidth: (hasAssignedRelief || isOpenRedBox) ? '50%' : '100%',
+                                  maxWidth: (hasAssignedRelief || isOpenRedBox || (isEditor && onOpenReliefModal)) ? '50%' : '100%',
                                   height: '100%'
                                 }}
                               >
@@ -1417,7 +1417,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                   </div>
                                 </div>
                               ) : isOpenRedBox ? (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                <div style={{ flex: '1 1 50%', minWidth: 0, maxWidth: '50%', height: '100%', display: 'flex', alignItems: 'center', gap: 3 }}>
                                   <button
                                     type="button"
                                     onClick={(e) => {
@@ -1434,6 +1434,9 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                       }
                                     }}
                                     style={{
+                                      flex: 1,
+                                      height: '100%',
+                                      minHeight: 22,
                                       padding: '2px 6px',
                                       borderRadius: 4,
                                       border: '1.5px dashed var(--marker-red, #dc2626)',
@@ -1442,9 +1445,9 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                       fontSize: 10,
                                       fontWeight: 800,
                                       cursor: 'pointer',
-                                      flexShrink: 0,
                                       display: 'flex',
                                       alignItems: 'center',
+                                      justifyContent: 'center',
                                       gap: 3
                                     }}
                                     title="Red Box: Tap to assign relief clinician"
@@ -1493,15 +1496,22 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                       });
                                     }}
                                     style={{
+                                      flex: '1 1 50%',
+                                      minWidth: 0,
+                                      maxWidth: '50%',
+                                      height: '100%',
+                                      minHeight: 22,
                                       padding: '2px 6px',
                                       borderRadius: 4,
-                                      border: '1px dashed var(--border-medium, #cbd5e1)',
-                                      background: 'transparent',
-                                      color: 'var(--text-muted, #64748b)',
+                                      border: '1.5px dashed rgba(239, 68, 68, 0.7)',
+                                      background: 'rgba(239, 68, 68, 0.08)',
+                                      color: 'var(--marker-red, #dc2626)',
                                       fontSize: 10,
-                                      fontWeight: 700,
+                                      fontWeight: 800,
                                       cursor: 'pointer',
-                                      flexShrink: 0
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center'
                                     }}
                                     title="Plan relief for runner"
                                   >

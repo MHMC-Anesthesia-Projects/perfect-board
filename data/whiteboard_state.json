@@ -1729,9 +1729,7 @@
       "timeCategory": "3p"
     }
   ],
-  "roomNotes": {
-    "dept_endo_room_1": "will finish"
-  },
+  "roomNotes": {},
   "latesNotes": "",
   "departments": [
     {
@@ -2808,7 +2806,7 @@
         {
           "id": "dept_endo_room_1",
           "name": "1",
-          "note": "will finish",
+          "note": "",
           "notes": "",
           "slots": [
             {
@@ -2874,6 +2872,7 @@
             {
               "id": "dept_endo_room_4_slot_0",
               "notes": "",
+              "relief": null,
               "staffId": "staff_oneusap_anes_davignont",
               "roleType": "primary",
               "lunchDone": false,
@@ -3019,18 +3018,18 @@
             {
               "id": "dept_ivf_room_1_slot_0",
               "notes": "",
+              "relief": {
+                "time": "3:00 PM",
+                "notes": "",
+                "staffId": "staff_oneusap_doc_martinezrog",
+                "isRedBox": false
+              },
               "staffId": "staff_oneusap_doc_shenoyvik",
               "roleType": "primary",
               "lunchDone": false,
               "lunchTime": null,
               "breakfastDone": true,
-              "breakfastTime": "2026-10-12T14:56:20.402Z",
-              "relief": {
-                "staffId": "staff_oneusap_doc_martinezrog",
-                "time": "3:00 PM",
-                "notes": "",
-                "isRedBox": false
-              }
+              "breakfastTime": "2026-10-12T14:56:20.402Z"
             }
           ],
           "futureTime": null,
@@ -3041,7 +3040,7 @@
       "runnerSlots": []
     }
   ],
-  "lastUpdated": "2026-10-12T19:23:03.484Z",
+  "lastUpdated": "2026-10-12T21:28:24.350Z",
   "magnetNotes": {
     "staff_oneusap_anes_flemmingcin": "1200"
   },
@@ -3395,7 +3394,20 @@
     "autoSyncIntervalMinutes": 15
   },
   "departureNotes": "",
-  "magnetStickers": {},
+  "magnetStickers": {
+    "staff_oneusap_doc_lukey": [
+      "yellow_dot"
+    ],
+    "staff_oneusap_anes_davignont": [
+      "yellow_dot"
+    ],
+    "staff_oneusap_doc_shevchenkoyev": [
+      "vol"
+    ],
+    "staff_oneusap_doc_tallacksondon": [
+      "yellow_dot"
+    ]
+  },
   "bullpenStaffIds": [
     "staff_oneusap_doc_chenkev",
     "staff_oneusap_anes_moodymat",
