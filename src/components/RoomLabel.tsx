@@ -27,11 +27,12 @@ export const RoomLabel: React.FC<RoomLabelProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [popoverPlacement, setPopoverPlacement] = useState<'top' | 'bottom'>('top');
-  const [popoverCoords, setPopoverCoords] = useState<{ left: number; top: number }>({ left: 0, top: 0 });
+  const [popoverCoords, setPopoverCoords] = useState<{ left: number; top: number; arrowLeft: number }>({ left: 8, top: 0, arrowLeft: 20 });
   const [mounted, setMounted] = useState(false);
   const isClosingViaActionRef = useRef(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -50,11 +51,46 @@ export const RoomLabel: React.FC<RoomLabelProps> = ({
     const isCloseToTop = rect.top < 65;
     const placement = isCloseToTop ? 'bottom' : 'top';
     setPopoverPlacement(placement);
+
+    const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 400;
+    const popoverWidth = popoverRef.current?.offsetWidth || Math.min(250, screenWidth - 16);
+    const targetCenterX = rect.left + rect.width / 2;
+
+    // Desired left edge to center the popover over targetCenterX
+    const desiredLeft = targetCenterX - popoverWidth / 2;
+    // Keep popover bounded safely on-screen with an 8px margin on both sides
+    const left = Math.max(8, Math.min(screenWidth - popoverWidth - 8, desiredLeft));
+    // Arrow should point directly to targetCenterX relative to the popover box
+    const arrowLeft = Math.max(14, Math.min(popoverWidth - 14, targetCenterX - left));
+
     setPopoverCoords({
-      left: Math.max(120, Math.min(window.innerWidth - 120, rect.left + rect.width / 2)),
-      top: placement === 'top' ? rect.top - 6 : rect.bottom + 6
+      left,
+      top: placement === 'top' ? rect.top - 6 : rect.bottom + 6,
+      arrowLeft
     });
   };
+
+  useEffect(() => {
+    if (!isEditingNote) return;
+
+    updatePopoverPosition();
+    const handleScrollOrResize = () => {
+      updatePopoverPosition();
+    };
+
+    window.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('resize', handleScrollOrResize);
+
+    const raf = requestAnimationFrame(() => {
+      updatePopoverPosition();
+    });
+
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('resize', handleScrollOrResize);
+      cancelAnimationFrame(raf);
+    };
+  }, [isEditingNote]);
 
   // Expand hover area to the ENTIRE box of the room (.room-row)
   useEffect(() => {
@@ -222,12 +258,13 @@ export const RoomLabel: React.FC<RoomLabelProps> = ({
       {/* Floating Popover: Appears ONLY when typing starts or user clicks to edit */}
       {mounted && isEditingNote && createPortal(
         <div
+          ref={popoverRef}
           className="room-hover-note-popover"
           style={{
             position: 'fixed',
             left: popoverCoords.left,
             top: popoverCoords.top,
-            transform: popoverPlacement === 'top' ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
+            transform: popoverPlacement === 'top' ? 'translateY(-100%)' : 'translateY(0)',
             zIndex: 99999
           }}
           onClick={(e) => e.stopPropagation()}
@@ -303,7 +340,10 @@ export const RoomLabel: React.FC<RoomLabelProps> = ({
               ✕
             </button>
           </div>
-          <div className={popoverPlacement === 'top' ? 'room-hover-note-arrow-down' : 'room-hover-note-arrow-up'} />
+          <div
+            className={popoverPlacement === 'top' ? 'room-hover-note-arrow-down' : 'room-hover-note-arrow-up'}
+            style={{ left: popoverCoords.arrowLeft }}
+          />
         </div>,
         document.body
       )}

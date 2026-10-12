@@ -703,8 +703,9 @@ button {
   border: 1.5px solid var(--marker-blue, #0284c7);
   padding: 3px 6px;
   border-radius: 5px;
-  min-width: 190px;
-  max-width: 260px;
+  width: 250px;
+  max-width: calc(100vw - 20px);
+  box-sizing: border-box;
   box-shadow: 0 0 10px rgba(2, 132, 199, 0.28);
 }
 
