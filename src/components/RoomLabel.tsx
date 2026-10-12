@@ -305,17 +305,19 @@ export const RoomLabel: React.FC<RoomLabelProps> = ({
                   />
                 );
               }
-              if (stId === 'yellow_dot') {
+              if (stId === 'will_finish' || stId === 'yellow_dot') {
                 return (
                   <span
                     key={stId}
-                    className="magnet-sticker-dot yellow"
-                    title="Yellow dot sticker on room (Click to peel off)"
+                    className="magnet-sticker-badge will-finish"
+                    title="WILL FINISH badge (Click to remove)"
                     onClick={(e) => {
                       e.stopPropagation();
                       onToggleSticker?.(room.id, stId);
                     }}
-                  />
+                  >
+                    WILL FINISH
+                  </span>
                 );
               }
               if (stId === 'vol') {
@@ -323,13 +325,29 @@ export const RoomLabel: React.FC<RoomLabelProps> = ({
                   <span
                     key={stId}
                     className="magnet-sticker-badge vol"
-                    title="VOL sticker on room (Click to peel off)"
+                    title="VOLUNTEER badge (Click to remove)"
                     onClick={(e) => {
                       e.stopPropagation();
                       onToggleSticker?.(room.id, stId);
                     }}
                   >
-                    VOL
+                    VOLUNTEER
+                  </span>
+                );
+              }
+              if (stId.startsWith('text:') || stId.startsWith('custom:')) {
+                const label = stId.replace(/^(text:|custom:)/, '');
+                return (
+                  <span
+                    key={stId}
+                    className="magnet-sticker-badge custom-text"
+                    title={`"${label}" magnet (Click to remove)`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleSticker?.(room.id, stId);
+                    }}
+                  >
+                    {label}
                   </span>
                 );
               }

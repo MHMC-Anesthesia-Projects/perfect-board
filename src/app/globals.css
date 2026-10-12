@@ -4439,6 +4439,12 @@ body.dragging-staff .runner-slot-row .relief-slot-target {
   touch-action: none;
 }
 
+.sticker-chip.dot-style {
+  padding: 4px 6px;
+  gap: 0;
+  border-radius: 10px;
+}
+
 .sticker-chip:hover {
   transform: translateY(-1px) scale(1.05);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
@@ -4480,6 +4486,67 @@ body.dragging-staff .runner-slot-row .relief-slot-target {
   font-size: 10px;
   font-weight: 800;
   color: var(--text-secondary);
+}
+
+/* Custom Text Magnet Input & Chip */
+.custom-magnet-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1.5px 4px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: all 0.15s ease;
+}
+
+.custom-magnet-chip:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.4);
+}
+
+.custom-magnet-chip.stamp-active {
+  border-color: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.custom-magnet-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 700;
+  width: 68px;
+  padding: 1px 3px;
+  font-family: inherit;
+  text-transform: uppercase;
+}
+
+.custom-magnet-badge {
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 1.5px 5px;
+  border-radius: 4px;
+  cursor: grab;
+  letter-spacing: 0.4px;
+  user-select: none;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+
+.custom-magnet-badge:hover {
+  transform: scale(1.05);
+}
+
+.custom-magnet-badge:active {
+  cursor: grabbing;
 }
 
 .sticker-clear-all-btn {
@@ -4540,11 +4607,11 @@ body.dragging-staff .runner-slot-row .relief-slot-target {
 }
 
 .magnet-sticker-badge {
-  font-size: 8px;
+  font-size: 7.5px;
   font-weight: 900;
   padding: 0.5px 3.5px;
   border-radius: 3px;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.3px;
   line-height: 1.1;
   cursor: pointer;
   flex-shrink: 0;
@@ -4554,13 +4621,26 @@ body.dragging-staff .runner-slot-row .relief-slot-target {
 }
 
 .magnet-sticker-badge:hover {
-  transform: scale(1.2);
+  transform: scale(1.15);
 }
 
 .magnet-sticker-badge.vol {
   background: #8b5cf6;
   color: #ffffff;
   box-shadow: 0 0 4px rgba(139, 92, 246, 0.7);
+}
+
+.magnet-sticker-badge.will-finish {
+  background: #d97706;
+  color: #ffffff;
+  box-shadow: 0 0 4px rgba(217, 119, 6, 0.7);
+}
+
+.magnet-sticker-badge.custom-text {
+  background: #0f766e;
+  color: #ffffff;
+  box-shadow: 0 0 4px rgba(15, 118, 110, 0.7);
+  letter-spacing: 0.4px;
 }
 
 /* Room Label Sticker Badges */

@@ -282,11 +282,6 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
           onClearAllStickers={onClearAllStickers}
           hasAnyStickers={hasAnyStickers}
         />
-        <div style={{ padding: '6px 12px' }}>
-          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-            {bullpenStaff.length} available &bull; Drag to any department slot
-          </span>
-        </div>
       </div>
     </aside>
   );

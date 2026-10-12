@@ -338,7 +338,7 @@ export const DEFAULT_LAYOUT_CONFIG: BoardLayoutConfig = {
 };
 
 export interface StickerItem {
-  id: string; // 'green_dot' | 'blue_dot' | 'vol' | 'yellow_dot'
+  id: string; // 'green_dot' | 'blue_dot' | 'vol' | 'will_finish'
   label: string;
   color: string;
   type: 'dot' | 'badge';
@@ -348,8 +348,8 @@ export interface StickerItem {
 export const PREDEFINED_STICKERS: StickerItem[] = [
   { id: 'green_dot', label: 'Green Dot', color: '#10b981', type: 'dot', description: 'Green status dot' },
   { id: 'blue_dot', label: 'Blue Dot', color: '#0284c7', type: 'dot', description: 'Blue status dot' },
-  { id: 'vol', label: 'VOL', color: '#8b5cf6', type: 'badge', description: 'Volunteer / Voluntary relief' },
-  { id: 'yellow_dot', label: 'Yellow Dot', color: '#f59e0b', type: 'dot', description: 'Yellow status dot' }
+  { id: 'vol', label: 'VOLUNTEER', color: '#8b5cf6', type: 'badge', description: 'Volunteer / Voluntary relief' },
+  { id: 'will_finish', label: 'WILL FINISH', color: '#d97706', type: 'badge', description: 'Will finish assignment / case' }
 ];
 
 export interface BoardState {

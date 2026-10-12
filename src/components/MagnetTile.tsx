@@ -366,17 +366,19 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
                     />
                   );
                 }
-                if (stId === 'yellow_dot') {
+                if (stId === 'will_finish' || stId === 'yellow_dot') {
                   return (
                     <span
                       key={stId}
-                      className="magnet-sticker-dot yellow"
-                      title="Yellow dot sticker (Click to peel off)"
+                      className="magnet-sticker-badge will-finish"
+                      title="WILL FINISH badge (Click to remove)"
                       onClick={(e) => {
                         e.stopPropagation();
                         onToggleSticker?.(staff.id, stId);
                       }}
-                    />
+                    >
+                      WILL FINISH
+                    </span>
                   );
                 }
                 if (stId === 'vol') {
@@ -384,13 +386,29 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
                     <span
                       key={stId}
                       className="magnet-sticker-badge vol"
-                      title="VOL sticker (Click to peel off)"
+                      title="VOLUNTEER badge (Click to remove)"
                       onClick={(e) => {
                         e.stopPropagation();
                         onToggleSticker?.(staff.id, stId);
                       }}
                     >
-                      VOL
+                      VOLUNTEER
+                    </span>
+                  );
+                }
+                if (stId.startsWith('text:') || stId.startsWith('custom:')) {
+                  const label = stId.replace(/^(text:|custom:)/, '');
+                  return (
+                    <span
+                      key={stId}
+                      className="magnet-sticker-badge custom-text"
+                      title={`"${label}" magnet (Click to remove)`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleSticker?.(staff.id, stId);
+                      }}
+                    >
+                      {label}
                     </span>
                   );
                 }
