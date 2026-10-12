@@ -1080,17 +1080,17 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className="pin-pad-card"
+        className="pin-pad-card admin-modal-card"
         onClick={e => e.stopPropagation()}
         style={{ width: 840, maxWidth: '95vw', height: '85vh', padding: 24, textAlign: 'left', alignItems: 'stretch' }}
       >
         {/* Top Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ background: 'rgba(211, 47, 47, 0.1)', padding: 8, borderRadius: 8, color: 'var(--marker-red)' }}>
+        <div className="admin-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+            <div className="admin-modal-header-icon" style={{ background: 'rgba(211, 47, 47, 0.1)', padding: 8, borderRadius: 8, color: 'var(--marker-red)', flexShrink: 0 }}>
               <ShieldCheck size={24} />
             </div>
-            <div>
+            <div className="admin-modal-header-text" style={{ minWidth: 0 }}>
               <h2 style={{ fontSize: 18, fontWeight: 900, textTransform: 'uppercase' }}>
                 Admin Command Center
               </h2>
@@ -1099,13 +1099,35 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               </p>
             </div>
           </div>
-          <button onClick={onClose} style={{ color: 'var(--text-muted)' }}>
+          <button onClick={onClose} style={{ color: 'var(--text-muted)', flexShrink: 0, padding: 4 }}>
             <X size={20} />
           </button>
         </div>
 
-        {/* Navigation Tabs */}
-        <div style={{ display: 'flex', gap: 8, borderBottom: '2px solid var(--border-light)', paddingBottom: 8, marginBottom: 16 }}>
+        {/* Mobile Navigation Dropdown */}
+        <div className="admin-mobile-tabs admin-mobile-only">
+          <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
+            Admin Section
+          </label>
+          <div className="admin-mobile-dropdown-wrapper">
+            <select
+              className="admin-mobile-dropdown"
+              value={activeTab}
+              onChange={e => setActiveTab(e.target.value as any)}
+            >
+              <option value="users">👤 User Accounts & Roles</option>
+              <option value="staff">🩺 Site Staff Roster ({staff.length})</option>
+              <option value="layout">📐 Board Layout Editor ({layoutDepts.length} Depts)</option>
+              <option value="scraper">🌐 Portal Sync (QGenda/Amion)</option>
+              <option value="unique_schedules">⏰ Unique Schedules ({uniqueRules.filter(r => r.active).length} Active)</option>
+              <option value="messaging">💬 Perfect Call Messaging ({messagingEnabled ? 'ACTIVE' : 'OFF'})</option>
+            </select>
+            <ChevronDown size={16} className="admin-mobile-dropdown-arrow" />
+          </div>
+        </div>
+
+        {/* Desktop Navigation Tabs */}
+        <div className="admin-desktop-tabs admin-desktop-only" style={{ display: 'flex', gap: 8, borderBottom: '2px solid var(--border-light)', paddingBottom: 8, marginBottom: 16 }}>
           <button
             onClick={() => setActiveTab('users')}
             style={{
@@ -1230,7 +1252,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           {/* ===================== TAB 1: USERS ===================== */}
           {activeTab === 'users' && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div className="admin-tab-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <div>
                   <h3 style={{ fontSize: 15, fontWeight: 800 }}>Manage System Users & Permissions</h3>
                   <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
@@ -1290,7 +1312,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       ✕ Cancel
                     </button>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 10 }}>
+                  <div className="admin-user-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 10 }}>
                     <div>
                       <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Display Name</label>
                       <input
@@ -1395,7 +1417,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       ✕ Cancel
                     </button>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 10 }}>
+                  <div className="admin-user-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 10 }}>
                     <div>
                       <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>Display Name</label>
                       <input
@@ -1485,6 +1507,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               )}
 
               {/* Users Table */}
+              <div className="admin-table-scroll">
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: 'var(--surface-hover)', textAlign: 'left', borderBottom: '2px solid var(--border-light)' }}>
@@ -1569,20 +1592,22 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
 
           {/* ===================== TAB 2: STAFF ROSTER ===================== */}
           {activeTab === 'staff' && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div className="admin-tab-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <div>
                   <input
                     type="text"
                     placeholder="Search site staff by name, magnet name, or credential..."
                     value={staffSearch}
                     onChange={e => setStaffSearch(e.target.value)}
-                    style={{ width: 340, padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}
+                    className="admin-staff-search"
+                    style={{ width: 340, maxWidth: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}
                   />
                   <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>
                     Persisted site roster &bull; Built up as daily syncs occur &bull; All members appear as magnets
@@ -1626,7 +1651,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       ✕ Cancel
                     </button>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, marginBottom: 10 }}>
+                  <div className="admin-staff-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, marginBottom: 10 }}>
                     <div>
                       <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>First Name</label>
                       <input
@@ -1723,7 +1748,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               {/* Add Staff Form */}
               {isAddingStaff && (
                 <form onSubmit={handleCreateStaff} style={{ background: 'var(--surface-hover)', padding: 14, borderRadius: 8, marginBottom: 16, border: '1px solid var(--border-light)' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, marginBottom: 10 }}>
+                  <div className="admin-staff-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, marginBottom: 10 }}>
                     <div>
                       <label style={{ fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 4 }}>First Name</label>
                       <input
@@ -1808,7 +1833,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               )}
 
               {/* Staff List */}
-              <div style={{ maxHeight: '55vh', overflowY: 'auto' }}>
+              <div className="admin-table-scroll" style={{ maxHeight: '55vh', overflowY: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ background: 'var(--surface-hover)', textAlign: 'left', borderBottom: '2px solid var(--border-light)' }}>
@@ -1930,7 +1955,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           {activeTab === 'layout' && (
             <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 12 }}>
               {/* Header Controls */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)', paddingBottom: 10 }}>
+              <div className="admin-tab-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)', paddingBottom: 10 }}>
                 <div>
                   <h3 style={{ fontSize: 16, fontWeight: 900, textTransform: 'uppercase' }}>
                     Interactive Board Layout & Architecture
@@ -1963,8 +1988,26 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 </div>
               </div>
 
-              {/* Sub-tab Navigation */}
-              <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border-light)', paddingBottom: 8 }}>
+              {/* Mobile Sub-tab Navigation */}
+              <div className="admin-mobile-layout-subtabs admin-mobile-only" style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
+                  Layout View
+                </label>
+                <div className="admin-mobile-dropdown-wrapper">
+                  <select
+                    className="admin-mobile-dropdown"
+                    value={layoutSubTab}
+                    onChange={e => setLayoutSubTab(e.target.value as any)}
+                  >
+                    <option value="rooms">🏢 Departments & Rooms ({layoutDepts.length})</option>
+                    <option value="features">⚙️ Board Architecture & Features ({boardLayoutConfig.boardMode === 'feed' ? 'FEED ACTIVE' : 'MANUAL'})</option>
+                  </select>
+                  <ChevronDown size={16} className="admin-mobile-dropdown-arrow" />
+                </div>
+              </div>
+
+              {/* Desktop Sub-tab Navigation */}
+              <div className="admin-desktop-layout-subtabs admin-desktop-only" style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border-light)', paddingBottom: 8 }}>
                 <button
                   type="button"
                   onClick={() => setLayoutSubTab('rooms')}
@@ -2036,9 +2079,95 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
               {layoutSubTab === 'rooms' && (
                 /* Master Layout Workspace */
-                <div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 400, overflow: 'hidden' }}>
-                  {/* Left: Department List Selector */}
-                  <div style={{ width: 230, borderRight: '1px solid var(--border-light)', paddingRight: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div className="admin-layout-workspace" style={{ display: 'flex', gap: 16, flex: 1, minHeight: 400, overflow: 'hidden' }}>
+                  {/* Mobile Department Selector & Action Toolbar */}
+                  <div className="admin-mobile-dept-bar admin-mobile-only" style={{ marginBottom: 10, width: '100%' }}>
+                    <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
+                      Select Department ({layoutDepts.length})
+                    </label>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <div className="admin-mobile-dropdown-wrapper" style={{ margin: 0, flex: 1 }}>
+                        <select
+                          className="admin-mobile-dropdown"
+                          value={selectedDeptId}
+                          onChange={e => setSelectedDeptId(e.target.value)}
+                        >
+                          {layoutDepts.map(d => (
+                            <option key={d.id} value={d.id}>
+                              {d.name} ({d.rooms.length} Rooms{d.runnerSlots?.length ? `, ${d.runnerSlots.length} Runners` : ''})
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown size={16} className="admin-mobile-dropdown-arrow" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingDept(prev => !prev)}
+                        className="admin-mobile-btn-action"
+                        style={{ background: 'var(--accent-primary)', color: '#fff', border: 'none', height: 38 }}
+                        title="Add new department"
+                      >
+                        <Plus size={14} />
+                        <span>{isAddingDept ? 'Cancel' : 'Add'}</span>
+                      </button>
+                    </div>
+
+                    {/* Reorder Toolbar for current dept on mobile */}
+                    {(() => {
+                      const currentIdx = layoutDepts.findIndex(d => d.id === selectedDeptId);
+                      if (currentIdx === -1) return null;
+                      return (
+                        <div className="admin-mobile-action-bar">
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Order:</span>
+                          <button
+                            type="button"
+                            disabled={currentIdx === 0}
+                            onClick={() => handleMoveDept(currentIdx, 'up')}
+                            className="admin-mobile-btn-action"
+                            title="Move Department Up"
+                          >
+                            <ChevronUp size={13} />
+                            <span>Move Up</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={currentIdx === layoutDepts.length - 1}
+                            onClick={() => handleMoveDept(currentIdx, 'down')}
+                            className="admin-mobile-btn-action"
+                            title="Move Department Down"
+                          >
+                            <ChevronDown size={13} />
+                            <span>Move Down</span>
+                          </button>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Mobile Add Department Form */}
+                    {isAddingDept && (
+                      <form onSubmit={handleAddDepartment} style={{ marginTop: 8, padding: 8, background: 'var(--surface-hover)', borderRadius: 6, border: '1px solid var(--border-light)' }}>
+                        <input
+                          type="text"
+                          placeholder="Department Name..."
+                          value={newDeptName}
+                          onChange={e => setNewDeptName(e.target.value)}
+                          autoFocus
+                          style={{ width: '100%', padding: '6px 8px', fontSize: 13, borderRadius: 4, border: '1px solid var(--border-light)', marginBottom: 6 }}
+                        />
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button type="submit" style={{ flex: 1, padding: '6px', background: 'var(--accent-primary)', color: '#fff', borderRadius: 4, fontSize: 12, fontWeight: 700, border: 'none' }}>
+                            Create Department
+                          </button>
+                          <button type="button" onClick={() => setIsAddingDept(false)} style={{ padding: '6px 10px', fontSize: 12, borderRadius: 4, background: 'var(--surface-card)', border: '1px solid var(--border-light)' }}>
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+
+                  {/* Left: Department List Selector (Desktop) */}
+                  <div className="admin-desktop-dept-sidebar admin-desktop-only" style={{ width: 230, borderRight: '1px solid var(--border-light)', paddingRight: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                       <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                         Departments ({layoutDepts.length})
@@ -2169,7 +2298,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   if (!currentDept) return null;
 
                   return (
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', paddingRight: 6 }}>
+                    <div className="admin-layout-dept-editor" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', paddingRight: 6 }}>
                       {/* Department Name & Delete Row */}
                       <div style={{
                         background: 'var(--surface-hover)',
@@ -2448,7 +2577,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       </p>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div className="admin-board-mode-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                       {/* Option 1: Feed-Driven */}
                       <div
                         onClick={() => setBoardLayoutConfig(prev => ({ ...prev, boardMode: 'feed' }))}
@@ -2527,7 +2656,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       </p>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                    <div className="admin-features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
                       {/* Toggle: Departure List */}
                       <div style={{
                         padding: 12,
@@ -3146,7 +3275,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
           {/* ===================== TAB 4: SCRAPER / INTEGRATION ===================== */}
           {activeTab === 'scraper' && (
-            <form onSubmit={handleSaveScraperConfig} style={{ maxWidth: 540 }}>
+            <form onSubmit={handleSaveScraperConfig} className="admin-scraper-form" style={{ maxWidth: 540 }}>
               <div style={{ marginBottom: 14 }}>
                 <h3 style={{ fontSize: 15, fontWeight: 800 }}>External Scheduling System Sync</h3>
                 <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
@@ -3235,7 +3364,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     </div>
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div className="admin-scraper-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                     <div>
                       <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Account Username / Email</label>
                       <input
@@ -3287,7 +3416,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   </div>
 
                   {/* Core Active Facilities */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 10 }}>
+                  <div className="admin-facilities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 10 }}>
                     {CORE_FACILITIES.map(fac => {
                       const isSel = selectedFacilities.includes(fac.code);
                       return (
@@ -3528,6 +3657,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               onClick={() => setTestSyncResult(null)}
             >
               <div
+                className="admin-sync-preview-modal"
                 style={{
                   background: 'var(--surface-card)',
                   borderRadius: 12,
@@ -3622,7 +3752,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 </div>
 
                 {/* Metrics Summary Grid */}
-                <div style={{
+                <div className="admin-sync-metrics-grid" style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(4, 1fr)',
                   gap: 10,
@@ -3657,8 +3787,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   </div>
                 </div>
 
-                {/* Sub-tabs Navigation */}
-                <div style={{
+                {/* Sub-tabs Navigation - Desktop Buttons */}
+                <div className="admin-desktop-sync-tabs admin-desktop-only" style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
@@ -3735,12 +3865,33 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   </button>
                 </div>
 
+                {/* Sub-tabs Navigation - Mobile Dropdown */}
+                <div className="admin-mobile-sync-tabs admin-mobile-only" style={{
+                  padding: '8px 12px',
+                  borderBottom: '1px solid var(--border-light)',
+                  background: 'var(--surface-card)'
+                }}>
+                  <div className="admin-mobile-dropdown-wrapper" style={{ margin: 0 }}>
+                    <select
+                      className="admin-mobile-dropdown"
+                      value={testSyncTab}
+                      onChange={(e) => setTestSyncTab(e.target.value as any)}
+                    >
+                      <option value="staff">Working Staff Today ({testSyncResult.workingStaff.length})</option>
+                      <option value="departure">Departure Candidates ({testSyncResult.departureCandidates.length})</option>
+                      <option value="lates">Late Shifts ({testSyncResult.lateCandidates.length})</option>
+                      <option value="callTeam">Call Team ({testSyncResult.callTeamCandidates.length})</option>
+                    </select>
+                    <div className="admin-mobile-dropdown-arrow">▼</div>
+                  </div>
+                </div>
+
                 {/* Tab Content Area */}
                 <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px' }}>
                   {/* 1. Working Staff Roster */}
                   {testSyncTab === 'staff' && (
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                      <div className="admin-tab-header-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
                         <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                           These {testSyncResult.workingStaff.length} providers will populate the <strong>Credentialed Unassigned Staff</strong> pool:
                         </div>
@@ -3749,6 +3900,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           placeholder="Filter name, QGenda ID, room, credential..."
                           value={testStaffFilter}
                           onChange={e => setTestStaffFilter(e.target.value)}
+                          className="admin-staff-search"
                           style={{
                             padding: '4px 10px',
                             borderRadius: 6,
@@ -3759,7 +3911,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         />
                       </div>
 
-                      <div style={{ border: '1px solid var(--border-light)', borderRadius: 8, overflow: 'hidden' }}>
+                      <div className="admin-table-scroll" style={{ border: '1px solid var(--border-light)', borderRadius: 8, overflow: 'hidden' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                           <thead>
                             <tr style={{ background: 'var(--surface-hover)', borderBottom: '1px solid var(--border-light)', textAlign: 'left' }}>
@@ -3876,7 +4028,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
                   {/* 2. Departure Candidates */}
                   {testSyncTab === 'departure' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    <div className="admin-departure-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                       {/* Post-Call List */}
                       <div style={{ border: '1px solid var(--border-light)', borderRadius: 8, padding: 12 }}>
                         <div style={{ fontSize: 13, fontWeight: 900, color: 'var(--marker-red)', marginBottom: 8 }}>
@@ -4034,7 +4186,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   {/* 4. Call Team Preview */}
                   {testSyncTab === 'callTeam' && (
                     <div style={{ maxWidth: 540 }}>
-                      <div style={{ border: '1px solid var(--border-light)', borderRadius: 8, overflow: 'hidden' }}>
+                      <div className="admin-table-scroll" style={{ border: '1px solid var(--border-light)', borderRadius: 8, overflow: 'hidden' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                           <thead>
                             <tr style={{ background: 'var(--surface-hover)', borderBottom: '1px solid var(--border-light)', textAlign: 'left' }}>
@@ -4101,7 +4253,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           {activeTab === 'unique_schedules' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Header Card */}
-              <div style={{
+              <div className="admin-tab-header-row" style={{
                 background: 'var(--surface-color)',
                 border: '1px solid var(--border-light)',
                 borderRadius: 8,
@@ -4134,7 +4286,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   </p>
                 </div>
 
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     onClick={() => {
@@ -4252,7 +4404,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     </button>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                  <div className="admin-unique-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
                     <div>
                       <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 4, color: 'var(--text-secondary)' }}>
                         Provider Last Name *
@@ -4534,7 +4686,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               </div>
 
               {/* Rules List Table */}
-              <div style={{
+              <div className="admin-table-scroll" style={{
                 background: 'var(--surface-color)',
                 border: '1px solid var(--border-light)',
                 borderRadius: 8,
@@ -4732,7 +4884,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           {activeTab === 'messaging' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {/* Header card */}
-              <div style={{
+              <div className="admin-messaging-header" style={{
                 background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 95, 70, 0.05) 100%)',
                 border: '1.5px solid rgba(16, 185, 129, 0.3)',
                 borderRadius: 10,
@@ -4983,7 +5135,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 )}
 
                 {/* Action Buttons */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     onClick={handleTestMessagingConnection}

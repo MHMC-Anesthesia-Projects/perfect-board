@@ -4061,3 +4061,216 @@ body.dragging-staff .magnet-tile * {
   background: var(--border-light);
   margin: 4px 6px;
 }
+
+/* ==========================================================================
+   Admin Command Center Responsive & Mobile Styles
+   ========================================================================== */
+
+.admin-mobile-only {
+  display: none !important;
+}
+
+.admin-desktop-only {
+  display: flex !important;
+}
+
+.admin-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-mobile-dropdown-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.admin-mobile-dropdown {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border: 1.5px solid var(--accent-primary);
+  border-radius: var(--radius-sm, 6px);
+  padding: 10px 36px 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  outline: none;
+  font-family: inherit;
+}
+
+[data-theme='dark'] .admin-mobile-dropdown {
+  background: var(--surface-hover);
+  border-color: rgba(56, 189, 248, 0.6);
+}
+
+.admin-mobile-dropdown-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--accent-primary);
+}
+
+.admin-mobile-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.admin-mobile-btn-action {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 11.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-mobile-btn-action:hover:not(:disabled),
+.admin-mobile-btn-action:active:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.admin-mobile-btn-action:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Mobile view (<= 768px) */
+@media (max-width: 768px) {
+  .admin-mobile-only {
+    display: block !important;
+  }
+
+  .admin-mobile-flex {
+    display: flex !important;
+  }
+
+  .admin-desktop-only {
+    display: none !important;
+  }
+
+  .admin-modal-card {
+    width: 100% !important;
+    max-width: 98vw !important;
+    height: min(95vh, calc(100dvh - 16px)) !important;
+    padding: 12px 10px !important;
+    border-radius: 12px !important;
+  }
+
+  .admin-modal-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .admin-modal-header-icon {
+    padding: 6px !important;
+  }
+
+  .admin-modal-header-text h2 {
+    font-size: 14.5px !important;
+    margin: 0 !important;
+  }
+
+  .admin-modal-header-text p {
+    font-size: 10.5px !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 2px 0 0 0 !important;
+  }
+
+  .admin-user-form-grid,
+  .admin-scraper-grid,
+  .admin-unique-form-grid,
+  .admin-board-mode-grid,
+  .admin-features-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .admin-staff-form-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .admin-layout-workspace {
+    flex-direction: column !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    gap: 10px !important;
+  }
+
+  .admin-tab-header-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .admin-tab-header-row > div:last-child,
+  .admin-tab-header-row > button:last-child {
+    align-self: flex-start !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .admin-staff-search {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .admin-table-scroll table {
+    min-width: 520px;
+  }
+
+  .admin-messaging-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .admin-scraper-form {
+    max-width: 100% !important;
+  }
+
+  .admin-sync-metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    padding: 8px 10px !important;
+    gap: 6px !important;
+  }
+
+  .admin-departure-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .admin-facilities-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-sync-preview-modal {
+    width: 100% !important;
+    max-width: 98vw !important;
+    max-height: 96vh !important;
+  }
+}
