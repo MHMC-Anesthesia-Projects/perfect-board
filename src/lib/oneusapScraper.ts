@@ -73,7 +73,8 @@ const KNOWN_NAME_MAP: Record<string, { lastName: string; firstName: string }> = 
   'floresma.': { lastName: 'Flores', firstName: 'Maria' },
   'floresma': { lastName: 'Flores', firstName: 'Maria' },
   'staesbob': { lastName: 'Staes', firstName: 'Bob' },
-  'flemmingcin': { lastName: 'Flemming', firstName: 'Cindy' }
+  'flemmingcin': { lastName: 'Flemming', firstName: 'Cindy' },
+  'louiskes': { lastName: 'Louis', firstName: 'Kes' }
 };
 
 export function formatProviderName(rawId: string): {
@@ -96,6 +97,21 @@ export function formatProviderName(rawId: string): {
       firstName: k.firstName,
       initials: (k.firstName[0] || '') + (k.lastName[0] || '')
     };
+  }
+
+  // Check for space-separated "First Last" or "Last, First":
+  if (clean.includes(' ')) {
+    const parts = clean.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      const first = parts[0].replace(/,$/, '');
+      const last = parts[parts.length - 1];
+      return {
+        displayName: `${last.toUpperCase()} ${first[0].toUpperCase()}.`,
+        lastName: last,
+        firstName: first,
+        initials: (first[0] || '') + (last[0] || '')
+      };
+    }
   }
 
   // Deconstruct PascalCase: e.g. "CavanaughMar" or "MarketteCha"
@@ -220,6 +236,40 @@ export function is8hMhmcRole(shiftOrRole?: string, facilityStr?: string, rawName
 }
 
 /**
+ * Detects if a shift, role, facility, or task represents the 10-hour MHMC role (10h_MHMC).
+ * By default, this role assigns a CRNA to work at MHMC with a 5p departure (7:00 AM - 5:00 PM).
+ */
+export function is10hMhmcRole(shiftOrRole?: string, facilityStr?: string, rawName?: string): boolean {
+  const s = (shiftOrRole || '').toUpperCase();
+  const f = (facilityStr || '').toUpperCase();
+  const n = (rawName || '').toUpperCase();
+  const combined = `${s} ${f} ${n}`;
+
+  // If another hospital is specified (e.g. 10h_MHKTY, 10h_HMWST, 10H-MHTW), return false
+  if (/10H[-_](?!MHMC\b)[A-Z0-9]+/i.test(combined)) {
+    return false;
+  }
+
+  if (
+    combined.includes('10H_MHMC') ||
+    combined.includes('10H-MHMC') ||
+    /\b10\s*H[-_]MHMC\b/i.test(combined) ||
+    /\b10H_MHMC\b/i.test(combined)
+  ) {
+    return true;
+  }
+  if (/\b10H\b/i.test(s) || /\b10\s*-?\s*H(?:R|OUR)?S?\b/i.test(s) || (rawName && /\b10H\b/i.test(rawName))) {
+    if (/MHKTY|HMWST|MHTW|HMH|MHGH|MHSE|MHSL|MHCH/i.test(combined) && !combined.includes('MHMC')) {
+      return false;
+    }
+    if (combined.includes('MHMC') || !facilityStr || facilityStr.toUpperCase().includes('W: MHMC')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Detects if a shift, role, facility, or task represents the DrWrk_MHMC role.
  * Any doctor with a DrWrk_MHMC role is slotted to work at MHMC today.
  */
@@ -331,7 +381,7 @@ export function is24HourShift(shiftStr?: string, taskStr?: string, roomTag?: str
 
 export function isLateShift(s: string): boolean {
   if (!s) return false;
-  return /3p|4p|5p|7p|8p|9p|night|7p-7a|11a-11p|24h/i.test(s) || is13hShift(s) || isL1MhmcRole(s) || is8hMhmcRole(s) || isWorOrWovMhmcRole(s) || is24HourShift(s);
+  return /3p|4p|5p|7p|8p|9p|night|7p-7a|11a-11p|24h/i.test(s) || is13hShift(s) || isL1MhmcRole(s) || is8hMhmcRole(s) || is10hMhmcRole(s) || isWorOrWovMhmcRole(s) || is24HourShift(s);
 }
 
 export function isPreCallShift(s: string): boolean {
@@ -371,6 +421,7 @@ export function isTargetFacility(facilityStr: string, allowedFacilities: string[
   if (
     upper.includes('L1_MHMC') ||
     upper.includes('8H_MHMC') ||
+    upper.includes('10H_MHMC') ||
     upper.includes('DRWRK_MHMC') ||
     upper.includes('WOR_MHMC') ||
     upper.includes('WOV_MHMC') ||
@@ -409,7 +460,7 @@ export function isOffShift(shiftStr: string): boolean {
   // Remove preNight and preCall strings to check for an accompanying active working shift (e.g. "preCall, 8p")
   const stripped = s.replace(/PRE-?NIGHT/gi, '').replace(/PRE-?CALL/gi, '').trim();
   if (s.includes('PRENIGHT') || s.includes('PRE-NIGHT') || s.includes('PRE NIGHT')) {
-    const hasWorking = /3p|4p|5p|7p|8p|12h|13h|\bnight\b|noct|cih/i.test(stripped) || isL1MhmcRole(stripped) || is8hMhmcRole(stripped) || isWorOrWovMhmcRole(stripped);
+    const hasWorking = /3p|4p|5p|7p|8p|12h|13h|\bnight\b|noct|cih/i.test(stripped) || isL1MhmcRole(stripped) || is8hMhmcRole(stripped) || is10hMhmcRole(stripped) || isWorOrWovMhmcRole(stripped);
     if (!hasWorking) return true;
   }
   if (s === 'PRECALL' || s === 'PRE-CALL' || s === 'PRE CALL') {
@@ -421,7 +472,7 @@ export function isOffShift(shiftStr: string): boolean {
 export function getFriendlyFacilityName(facilityStr: string): string {
   const activeSegment = getActiveFacilityCode(facilityStr);
   const upper = activeSegment.toUpperCase();
-  if (upper.includes('MHMC') || upper.includes('L1_MHMC') || upper.includes('8H_MHMC') || upper.includes('WOR_MHMC') || upper.includes('WOV_MHMC')) return 'MH Memorial City';
+  if (upper.includes('MHMC') || upper.includes('L1_MHMC') || upper.includes('8H_MHMC') || upper.includes('10H_MHMC') || upper.includes('WOR_MHMC') || upper.includes('WOV_MHMC')) return 'MH Memorial City';
   if (upper.includes('MHVIL')) return 'MH Village SC';
   if (upper.includes('HIVF')) return 'Houston IVF';
   if (upper.includes('HMWST')) return 'Methodist West';
@@ -527,7 +578,38 @@ function resolveEffectiveShift(
     return '7p';
   }
 
-  // 1. If someone just has 8h_MHMC (without a late role like L1), they are a regular 3p CRNA at MHMC.
+  // 1. 10h_MHMC role designates a CRNA working until 5p at MHMC (7:00 AM - 5:00 PM).
+  const is10h = is10hMhmcRole(dShift, facilityStr, qgendaAbbr) ||
+    is10hMhmcRole(rTag, facilityStr, qgendaAbbr) ||
+    is10hMhmcRole(tasks, facilityStr, qgendaAbbr);
+
+  if (is10h) {
+    const combinedAll = `${dShift} ${rTag} ${tasks}`.toUpperCase();
+    const lateMatch = combinedAll.match(/\b(7P|8P|NIGHT|7P-7A)\b/i);
+    if (lateMatch) {
+      return lateMatch[1].toLowerCase();
+    }
+    const hasPrecall = isPreCallShift(dShift) || isPreCallShift(rTag) || isPreCallShift(tasks);
+    const precallMatch = combinedAll.match(/\b(pre-?call|pre\s*c[1-4]|pre\s*ob|pre\s*cv)\b/i);
+    let precall = 'preCall';
+    if (precallMatch) {
+      const p = precallMatch[1].toLowerCase().replace(/\s+/g, '');
+      if (p === 'preob') precall = 'preOB';
+      else if (p === 'precv') precall = 'preCV';
+      else if (p.startsWith('prec')) precall = `pre${p.slice(3).toUpperCase()}`;
+      else precall = 'preCall';
+    }
+    const hasPostCall = combinedAll.includes('POSTOB') ? 'postOB' :
+                        combinedAll.includes('POSTC1') ? 'postC1' :
+                        combinedAll.includes('POST') ? 'postCall' : '';
+
+    if (hasPrecall && hasPostCall) return `5p, ${hasPostCall}, ${precall}`;
+    if (hasPrecall) return `5p, ${precall}`;
+    if (hasPostCall) return `5p, ${hasPostCall}`;
+    return '5p';
+  }
+
+  // 1b. If someone just has 8h_MHMC (without a late role like L1), they are a regular 3p CRNA at MHMC.
   // If they have another late shift (e.g. 4p, 5p, 8p), that late shift trumps the 8h default.
   const is8h = is8hMhmcRole(dShift, facilityStr, qgendaAbbr) ||
     is8hMhmcRole(rTag, facilityStr, qgendaAbbr) ||
@@ -865,10 +947,15 @@ export function parseOneUsapHtml(
     } catch {}
   }
 
-  // 3b. Ensure any provider with L1_MHMC or 8h_MHMC role is classified as CRNA (at MHMC)
+  // 3b. Ensure any provider with L1_MHMC, 8h_MHMC, 10h_MHMC, or WOR/WOV role is classified as CRNA (at MHMC)
   for (let i = docEntries.length - 1; i >= 0; i--) {
     const d = docEntries[i];
-    if (isL1MhmcRole(d.shift, d.facility, d.rawName) || is8hMhmcRole(d.shift, d.facility, d.rawName)) {
+    if (
+      isL1MhmcRole(d.shift, d.facility, d.rawName) ||
+      is8hMhmcRole(d.shift, d.facility, d.rawName) ||
+      is10hMhmcRole(d.shift, d.facility, d.rawName) ||
+      isWorOrWovMhmcRole(d.shift, d.facility, d.rawName)
+    ) {
       anesEntries.push(d);
       docEntries.splice(i, 1);
     }
@@ -889,18 +976,24 @@ export function parseOneUsapHtml(
   }
 
   // Extract from modal or container blocks: e.g. "Alexander Yi" ... "Tasks: 8h_MHMC,L1_MHMC"
-  const taskTextRegex = /([A-Za-z0-9_\[\]\s]{3,30})[\s\S]{0,250}?Tasks:\s*([A-Za-z0-9_,\s-]+)/gi;
-  let ttm;
-  while ((ttm = taskTextRegex.exec(htmlContent)) !== null) {
-    const rawSubject = ttm[1].replace(/\[.*?\]/g, '').trim();
-    const tasks = ttm[2].trim();
-    const formatted = formatProviderName(rawSubject);
-    if (formatted.lastName) {
-      providerTasksMap.set(formatted.lastName.toLowerCase(), tasks);
-    }
-    const cleanSubject = rawSubject.toLowerCase().replace(/\s+/g, '');
-    if (cleanSubject) {
-      providerTasksMap.set(cleanSubject, tasks);
+  const taskTextRegexes = [
+    /([A-Za-z][A-Za-z0-9_\[\]\s]{2,30}?)(?:\s*[-–:]\s*|\s+)Tasks:\s*([A-Za-z0-9_,\s-]+)/gi,
+    /(?:>|\n|\r|^)\s*([A-Za-z0-9_\[\]\s]{3,30}?)\s*(?:<|\n|\r|$)[\s\S]{0,250}?Tasks:\s*([A-Za-z0-9_,\s-]+)/gi,
+    /([A-Za-z0-9_\[\]\s]{3,30})[\s\S]{0,250}?Tasks:\s*([A-Za-z0-9_,\s-]+)/gi
+  ];
+  for (const regex of taskTextRegexes) {
+    let ttm;
+    while ((ttm = regex.exec(htmlContent)) !== null) {
+      const rawSubject = ttm[1].replace(/<[^>]*>/g, '').replace(/\[.*?\]/g, '').trim();
+      const tasks = ttm[2].trim();
+      const formatted = formatProviderName(rawSubject);
+      if (formatted.lastName) {
+        providerTasksMap.set(formatted.lastName.toLowerCase(), tasks);
+      }
+      const cleanSubject = rawSubject.toLowerCase().replace(/\s+/g, '');
+      if (cleanSubject) {
+        providerTasksMap.set(cleanSubject, tasks);
+      }
     }
   }
 
@@ -911,6 +1004,7 @@ export function parseOneUsapHtml(
     if (
       s.includes('8h_') || s.includes('L1_') || s.includes('8H_') || s.includes('L1-') || s.includes('8H-') ||
       s.includes('10h_') || s.includes('10H_') || s.includes('10h-') || s.includes('10H-') ||
+      /\b10h\b/i.test(s) || /\b8h\b/i.test(s) ||
       s.includes('OBPM') || s.includes('CIHOBPM') || s.includes('obpm') || s.includes('cihobpm') ||
       s.includes('DrWrk_') || s.includes('DRWRK_') || s.includes('DrWrk-') || s.includes('DRWRK-') ||
       s.includes('WOR') || s.includes('WOV') || s.includes('wor') || s.includes('wov')
@@ -1046,7 +1140,8 @@ export function parseOneUsapHtml(
   // Helper to determine if a provider belongs to the target hospital roster
   const shouldIncludeProvider = (rawName: string, facilityStr: string, shiftStr?: string): boolean => {
     const cleanId = rawName.replace(/\[.*?\]/g, '').toLowerCase().trim();
-    const taskStr = getProviderTasks(rawName);
+    const formatted = formatProviderName(rawName);
+    const taskStr = getProviderTasks(rawName, formatted.lastName);
     const cleanShift = `${shiftStr || ''} ${taskStr}`.toUpperCase();
     const cleanRaw = rawName.toUpperCase();
 
@@ -1059,6 +1154,8 @@ export function parseOneUsapHtml(
       isL1MhmcRole(taskStr, facilityStr, rawName) ||
       is8hMhmcRole(shiftStr, facilityStr, rawName) ||
       is8hMhmcRole(taskStr, facilityStr, rawName) ||
+      is10hMhmcRole(shiftStr, facilityStr, rawName) ||
+      is10hMhmcRole(taskStr, facilityStr, rawName) ||
       isDrWrkMhmcRole(shiftStr, facilityStr, rawName) ||
       isDrWrkMhmcRole(taskStr, facilityStr, rawName) ||
       isWorOrWovMhmcRole(shiftStr, facilityStr, rawName) ||
@@ -1283,28 +1380,34 @@ export function parseOneUsapHtml(
       is8hMhmcRole(roomTag, facility, rawName) ||
       is8hMhmcRole(taskStr, facility, rawName);
 
+    // Recognize 10h_MHMC role: CRNA working until 5p at MHMC (10h)
+    const is10h = is10hMhmcRole(shift, facility, rawName) ||
+      is10hMhmcRole(effectiveShift, facility, rawName) ||
+      is10hMhmcRole(roomTag, facility, rawName) ||
+      is10hMhmcRole(taskStr, facility, rawName);
+
     // Recognize WOR_MHMC or WOV_MHMC role: provider working today, default 3p
     const isWorWov = isWorOrWovMhmcRole(shift, facility, rawName) ||
       isWorOrWovMhmcRole(effectiveShift, facility, rawName) ||
       isWorOrWovMhmcRole(roomTag, facility, rawName) ||
       isWorOrWovMhmcRole(taskStr, facility, rawName);
 
-    const facilityName = (is24h || isL1 || is8h || isWorWov) ? 'MH Memorial City' : getFriendlyFacilityName(facility);
+    const facilityName = (is24h || isL1 || is8h || is10h || isWorWov) ? 'MH Memorial City' : getFriendlyFacilityName(facility);
 
     // Tally facility counts
     const upperFac = getActiveFacilityCode(facility).toUpperCase();
     for (const facCode of activeFacilities) {
-      if (upperFac.includes(facCode.toUpperCase()) || ((is24h || isL1 || is8h || isWorWov) && facCode.toUpperCase().includes('MHMC'))) {
+      if (upperFac.includes(facCode.toUpperCase()) || ((is24h || isL1 || is8h || is10h || isWorWov) && facCode.toUpperCase().includes('MHMC'))) {
         facilityStaffCounts[facCode] = (facilityStaffCounts[facCode] || 0) + 1;
       }
     }
-    if (upperFac.includes('MHMC') || is24h || isL1 || is8h || isWorWov) mhmcCount++;
-    if (upperFac.includes('MHVIL') && !is24h && !isL1 && !is8h && !isWorWov) mhvilCount++;
+    if (upperFac.includes('MHMC') || is24h || isL1 || is8h || is10h || isWorWov) mhmcCount++;
+    if (upperFac.includes('MHVIL') && !is24h && !isL1 && !is8h && !is10h && !isWorWov) mhvilCount++;
 
     const phone = phoneBook.get(qgendaAbbr) || '(555) 000-0000';
 
     let cred: StaffCredential = 'CRNA';
-    if (is24h || isL1 || is8h || isWorWov) cred = 'CRNA';
+    if (is24h || isL1 || is8h || is10h || isWorWov) cred = 'CRNA';
     else if (rawName.includes('[RES]')) cred = 'Resident';
     else if (rawName.includes('[SRNA]')) cred = 'SRNA';
     else if (rawName.includes('[PA]')) cred = 'PA';
@@ -1312,14 +1415,14 @@ export function parseOneUsapHtml(
     // On weekend/holiday split call schedules with no elective rooms running:
     // Exclude phantom weekend CRNAs with standalone departure time (like Bob Staes) who have no weekend hospital role and no rooms
     const isGenericTimeOnly = /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(shift.trim());
-    if (isSplitCallMode && isGenericTimeOnly && (!roomInfo.rooms || roomInfo.rooms.length === 0) && !is24h && !isL1 && !is8h && !isWorWov) {
+    if (isSplitCallMode && isGenericTimeOnly && (!roomInfo.rooms || roomInfo.rooms.length === 0) && !is24h && !isL1 && !is8h && !is10h && !isWorWov) {
       const hasExplicitWeekendRole = upperShift.includes('CIH') || upperShift.includes('OB') || upperShift.includes('NOCT') || upperShift.includes('NIGHT');
       if (!hasExplicitWeekendRole) {
         return;
       }
     }
 
-    // Recognize 24h, L1_MHMC, 8h_MHMC, weekend / holiday, and 12h CRNA shift nomenclature
+    // Recognize 24h, L1_MHMC, 10h_MHMC, 8h_MHMC, WOR/WOV, weekend / holiday, and 12h CRNA shift nomenclature
     if (is24h) {
       effectiveShift = '24h (L1 + OB)';
     } else if (isL1) {
@@ -1334,6 +1437,32 @@ export function parseOneUsapHtml(
       else if (hasPrecall) effectiveShift = '7p, preCall';
       else if (hasPostCall) effectiveShift = `7p, ${hasPostCall}`;
       else effectiveShift = '7p';
+    } else if (is10h) {
+      // 10h CRNA at MHMC (5p default departure)
+      const combinedAll = `${shift} ${roomTag || ''} ${effectiveShift} ${taskStr}`.toUpperCase();
+      const lateMatch = combinedAll.match(/\b(7P|8P|NIGHT|7P-7A)\b/i);
+      if (lateMatch) {
+        effectiveShift = lateMatch[1].toLowerCase();
+      } else {
+        const hasPrecall = isPreCallShift(shift) || isPreCallShift(roomTag || '') || isPreCallShift(effectiveShift) || isPreCallShift(taskStr);
+        const precallMatch = combinedAll.match(/\b(pre-?call|pre\s*c[1-4]|pre\s*ob|pre\s*cv)\b/i);
+        let precall = 'preCall';
+        if (precallMatch) {
+          const p = precallMatch[1].toLowerCase().replace(/\s+/g, '');
+          if (p === 'preob') precall = 'preOB';
+          else if (p === 'precv') precall = 'preCV';
+          else if (p.startsWith('prec')) precall = `pre${p.slice(3).toUpperCase()}`;
+          else precall = 'preCall';
+        }
+        const hasPostCall = combinedAll.includes('POSTOB') ? 'postOB' :
+                            combinedAll.includes('POSTC1') ? 'postC1' :
+                            combinedAll.includes('POST') ? 'postCall' : '';
+
+        if (hasPrecall && hasPostCall) effectiveShift = `5p, ${hasPostCall}, ${precall}`;
+        else if (hasPrecall) effectiveShift = `5p, ${precall}`;
+        else if (hasPostCall) effectiveShift = `5p, ${hasPostCall}`;
+        else effectiveShift = '5p';
+      }
     } else if (is8h) {
       // Standard 8h CRNA at MHMC (3p default departure)
       const combinedAll = `${shift} ${roomTag || ''} ${effectiveShift} ${taskStr}`.toUpperCase();
@@ -1475,7 +1604,7 @@ export function parseOneUsapHtml(
       return;
     }
 
-    // Exclude any 24h, L1_MHMC, 8h_MHMC, or WOR_MHMC/WOV_MHMC provider (these roles strictly designate late shifts at MHMC)
+    // Exclude any 24h, L1_MHMC, 8h_MHMC, 10h_MHMC, or WOR_MHMC/WOV_MHMC provider (these roles strictly designate late shifts at MHMC)
     if (
       is24HourShift(shift, taskStr) ||
       is24HourShift(effectiveShift, taskStr) ||
@@ -1483,6 +1612,8 @@ export function parseOneUsapHtml(
       isL1MhmcRole(effectiveShift, facility, rawName) ||
       is8hMhmcRole(shift, facility, rawName) ||
       is8hMhmcRole(effectiveShift, facility, rawName) ||
+      is10hMhmcRole(shift, facility, rawName) ||
+      is10hMhmcRole(effectiveShift, facility, rawName) ||
       isWorOrWovMhmcRole(shift, facility, rawName) ||
       isWorOrWovMhmcRole(effectiveShift, facility, rawName)
     ) {
@@ -1494,7 +1625,7 @@ export function parseOneUsapHtml(
     const isLateDoc = /3p|4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(upperShift) ||
       upperShift === '3P' || upperShift === '4P' || upperShift === '5P' || upperShift === '7P' || upperShift === '8P' ||
       is13hShift(upperShift) || isL1MhmcRole(upperShift, facility, qgendaAbbr) || is8hMhmcRole(upperShift, facility, qgendaAbbr) ||
-      isWorOrWovMhmcRole(upperShift, facility, qgendaAbbr);
+      is10hMhmcRole(upperShift, facility, qgendaAbbr) || isWorOrWovMhmcRole(upperShift, facility, qgendaAbbr);
     if (!isPostCall && isLateDoc) {
       return;
     }
@@ -1588,19 +1719,25 @@ export function parseOneUsapHtml(
       is8hMhmcRole(roomTag, facility, rawName) ||
       is8hMhmcRole(taskStr, facility, rawName);
 
+    // Recognize 10h_MHMC role: 10h CRNA at MHMC (5p departure)
+    const is10h = is10hMhmcRole(shift, facility, rawName) ||
+      is10hMhmcRole(effectiveShift, facility, rawName) ||
+      is10hMhmcRole(roomTag, facility, rawName) ||
+      is10hMhmcRole(taskStr, facility, rawName);
+
     // Recognize WOR_MHMC or WOV_MHMC role: provider working today, default 3p departure
     const isWorWov = isWorOrWovMhmcRole(shift, facility, rawName) ||
       isWorOrWovMhmcRole(effectiveShift, facility, rawName) ||
       isWorOrWovMhmcRole(roomTag, facility, rawName) ||
       isWorOrWovMhmcRole(taskStr, facility, rawName);
 
-    if ((isL1 || is8h || isWorWov) && role !== 'MD') {
+    if ((isL1 || is8h || is10h || isWorWov) && role !== 'MD') {
       role = 'CRNA';
     }
 
     // Post-call providers (e.g. postOB, postC1, postCV, CIHOBPC) are resting from overnight call and not working a late shift
     const isPostCall = upperShift.includes('POST') || upperShift.includes('PC_') || upperShift.endsWith('PC');
-    if (role === 'CRNA' && isPostCall && !isLateShift(upperShift) && !isL1 && !is8h && !isWorWov) {
+    if (role === 'CRNA' && isPostCall && !isLateShift(upperShift) && !isL1 && !is8h && !is10h && !isWorWov) {
       return;
     }
 
@@ -1613,7 +1750,7 @@ export function parseOneUsapHtml(
       const isGenericTimeOnly = /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(shift.trim());
 
       // Exclude phantom weekend CRNAs with standalone departure time (like Bob Staes) who have no weekend hospital role and no rooms
-      if (isSplitCallMode && isGenericTimeOnly && (!roomInfo.rooms || roomInfo.rooms.length === 0) && !is24h && !isL1 && !is8h && !isWorWov) {
+      if (isSplitCallMode && isGenericTimeOnly && (!roomInfo.rooms || roomInfo.rooms.length === 0) && !is24h && !isL1 && !is8h && !is10h && !isWorWov) {
         const hasExplicitWeekendRole = upperShift.includes('CIH') || upperShift.includes('OB') || upperShift.includes('NOCT') || upperShift.includes('NIGHT');
         if (!hasExplicitWeekendRole) {
           return;
@@ -1635,6 +1772,33 @@ export function parseOneUsapHtml(
         else if (hasPrecall) effectiveShift = '7p, preCall';
         else if (hasPostCall) effectiveShift = `7p, ${hasPostCall}`;
         else effectiveShift = '7p';
+        upperShift = effectiveShift.toUpperCase();
+      } else if (is10h) {
+        // Standard 10h CRNA at MHMC (5p default departure)
+        const combinedAll = `${shift} ${roomTag || ''} ${effectiveShift} ${taskStr}`.toUpperCase();
+        const lateMatch = combinedAll.match(/\b(7P|8P|NIGHT|7P-7A)\b/i);
+        if (lateMatch) {
+          effectiveShift = lateMatch[1].toLowerCase();
+        } else {
+          const hasPrecall = isPreCallShift(shift) || isPreCallShift(roomTag || '') || isPreCallShift(effectiveShift) || isPreCallShift(taskStr);
+          const precallMatch = combinedAll.match(/\b(pre-?call|pre\s*c[1-4]|pre\s*ob|pre\s*cv)\b/i);
+          let precall = 'preCall';
+          if (precallMatch) {
+            const p = precallMatch[1].toLowerCase().replace(/\s+/g, '');
+            if (p === 'preob') precall = 'preOB';
+            else if (p === 'precv') precall = 'preCV';
+            else if (p.startsWith('prec')) precall = `pre${p.slice(3).toUpperCase()}`;
+            else precall = 'preCall';
+          }
+          const hasPostCall = combinedAll.includes('POSTOB') ? 'postOB' :
+                              combinedAll.includes('POSTC1') ? 'postC1' :
+                              combinedAll.includes('POST') ? 'postCall' : '';
+
+          if (hasPrecall && hasPostCall) effectiveShift = `5p, ${hasPostCall}, ${precall}`;
+          else if (hasPrecall) effectiveShift = `5p, ${precall}`;
+          else if (hasPostCall) effectiveShift = `5p, ${hasPostCall}`;
+          else effectiveShift = '5p';
+        }
         upperShift = effectiveShift.toUpperCase();
       } else if (is8h) {
         // Standard 8h CRNA at MHMC (3p default departure)
@@ -1685,7 +1849,7 @@ export function parseOneUsapHtml(
 
     const activeFac = getActiveFacilityCode(facility);
     let facilityLabel = 'MHMC';
-    if (is24h || isL1 || is8h || isWorWov) facilityLabel = 'MHMC';
+    if (is24h || isL1 || is8h || is10h || isWorWov) facilityLabel = 'MHMC';
     else if (activeFac.includes('HIVF')) facilityLabel = 'HIVF';
     else if (activeFac.includes('MHVIL')) facilityLabel = 'Village';
     else if (activeFac.includes('MHMC')) facilityLabel = 'MHMC';
@@ -1719,7 +1883,7 @@ export function parseOneUsapHtml(
       upperShift.includes('OBAM')
     ) {
       timeCat = '7p';
-    } else if (/\b5p\b/i.test(upperShift) || upperShift === '5P') {
+    } else if (is10h || /\b5p\b/i.test(upperShift) || upperShift === '5P') {
       timeCat = '5p';
     } else if (/\b4p\b/i.test(upperShift) || upperShift === '4P') {
       timeCat = '4p';
@@ -1744,7 +1908,8 @@ export function parseOneUsapHtml(
       let precallNote: string | undefined = undefined;
       const precallMatch = effectiveShift.match(/\b(pre-?call|pre\s*c[1-4]|pre\s*ob|wknd)\b/i);
       if (precallMatch) {
-        precallNote = precallMatch[1];
+        const p = precallMatch[1].toLowerCase().replace(/\s+/g, '');
+        precallNote = p === 'preob' ? 'preOB' : p === 'precv' ? 'preCV' : p.startsWith('prec') ? `pre${p.slice(3).toUpperCase()}` : p === 'precall' ? 'preCall' : precallMatch[1];
       } else if (is13h && !upperShift.includes('8P')) {
         precallNote = '13h';
       }
@@ -1776,6 +1941,21 @@ export function parseOneUsapHtml(
           noteVal = `L1, ${precallNote}`;
         } else {
           noteVal = 'L1';
+        }
+      } else if (is10h) {
+        const combinedAll = `${shift} ${roomTag || ''} ${effectiveShift} ${taskStr}`.toUpperCase();
+        const hasPostCall = combinedAll.includes('POSTOB') ? 'postOB' :
+                            combinedAll.includes('POSTC1') ? 'postC1' :
+                            combinedAll.includes('POST') ? 'postCall' : '';
+
+        if (hasPostCall && precallNote) {
+          noteVal = `10h, ${hasPostCall} (${precallNote})`;
+        } else if (hasPostCall) {
+          noteVal = `10h, ${hasPostCall}`;
+        } else if (precallNote) {
+          noteVal = `10h (${precallNote})`;
+        } else {
+          noteVal = '10h';
         }
       } else if (isWorWov) {
         const combinedAll = `${shift} ${roomTag || ''} ${effectiveShift} ${taskStr}`.toUpperCase();
