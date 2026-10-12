@@ -796,7 +796,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, state });
       }
 
-      // 4f. Clear all stickers across board
+      // 4f. Clear all sticker magnets across board
+      case 'REMOVE_ALL_MAGNETS':
       case 'CLEAR_ALL_STICKERS': {
         if (currentUserRole === 'basic_user') {
           return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
@@ -804,6 +805,12 @@ export async function POST(req: NextRequest) {
         state.magnetStickers = {};
         state.roomStickers = {};
         await saveBoardState(state);
+        await recordAuditLog({
+          actionType: 'NOTE_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          details: 'Removed all sticker magnets from whiteboard'
+        });
         broadcastStateChange();
         return NextResponse.json({ success: true, state });
       }

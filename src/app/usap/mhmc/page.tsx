@@ -114,7 +114,7 @@ export default function WhiteboardPage() {
   const [isSyncWarningOpen, setIsSyncWarningOpen] = useState(false);
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);
   const [isCleanBoardModalOpen, setIsCleanBoardModalOpen] = useState(false);
-  const [isClearNotesModalOpen, setIsClearNotesModalOpen] = useState(false);
+  const [isRemoveAllMagnetsModalOpen, setIsRemoveAllMagnetsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeStampStickerId, setActiveStampStickerId] = useState<string | null>(null);
 
@@ -1532,7 +1532,11 @@ export default function WhiteboardPage() {
       setIsLoginModalOpen(true);
       return;
     }
+    const prevMagnetStickers = boardState?.magnetStickers ? JSON.parse(JSON.stringify(boardState.magnetStickers)) : {};
+    const prevRoomStickers = boardState?.roomStickers ? JSON.parse(JSON.stringify(boardState.roomStickers)) : {};
+
     setBoardState(prev => prev ? { ...prev, magnetStickers: {}, roomStickers: {} } : prev);
+    setIsRemoveAllMagnetsModalOpen(false);
     try {
       const res = await fetch(apiUrl('/api/board'), {
         method: 'POST',
@@ -1540,14 +1544,59 @@ export default function WhiteboardPage() {
         body: JSON.stringify({
           action: 'CLEAR_ALL_STICKERS',
           payload: {},
-          user: currentUser
+          user: currentUser || { role: 'admin', displayName: 'Admin' }
         })
       });
       const data = await res.json();
       if (data.state) {
         setBoardState(data.state);
-        setToastMessage('All stickers cleared from board');
+        setToastMessage('✓ All magnets removed from board');
         setTimeout(() => setToastMessage(null), 3000);
+
+        pushUndoAction(
+          'Removed all magnets',
+          async () => {
+            const restorePromises = [];
+            for (const [targetId, stickers] of Object.entries(prevMagnetStickers)) {
+              for (const stickerId of (stickers as string[])) {
+                restorePromises.push(
+                  fetch(apiUrl('/api/board'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      action: 'TOGGLE_STICKER',
+                      payload: { targetType: 'magnet', targetId, stickerId, action: 'add' },
+                      user: currentUser
+                    })
+                  })
+                );
+              }
+            }
+            for (const [targetId, stickers] of Object.entries(prevRoomStickers)) {
+              for (const stickerId of (stickers as string[])) {
+                restorePromises.push(
+                  fetch(apiUrl('/api/board'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      action: 'TOGGLE_STICKER',
+                      payload: { targetType: 'room', targetId, stickerId, action: 'add' },
+                      user: currentUser
+                    })
+                  })
+                );
+              }
+            }
+            await Promise.all(restorePromises);
+            const refreshRes = await fetch(apiUrl('/api/board'));
+            const refreshData = await refreshRes.json();
+            if (refreshData?.state) {
+              setBoardState(refreshData.state);
+              setToastMessage('✓ Magnets restored');
+              setTimeout(() => setToastMessage(null), 3000);
+            }
+          }
+        );
       }
     } catch (err) {
       console.error('Error clearing stickers:', err);
@@ -2522,96 +2571,7 @@ export default function WhiteboardPage() {
     }
   };
 
-  const handleClearAllTextNotes = async () => {
-    if (!isEditor) {
-      setIsLoginModalOpen(true);
-      return;
-    }
-
-    const prevMagnetNotes = boardState?.magnetNotes ? { ...boardState.magnetNotes } : {};
-    const prevRoomNotes = boardState?.roomNotes ? { ...boardState.roomNotes } : {};
-
-    // Optimistic UI update
-    setBoardState(prev => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        magnetNotes: {},
-        roomNotes: {},
-        staff: prev.staff.map(s => ({ ...s, magnetNote: '' })),
-        departments: prev.departments.map(dept => ({
-          ...dept,
-          rooms: dept.rooms.map(rm => ({ ...rm, note: '' }))
-        }))
-      };
-    });
-    setIsClearNotesModalOpen(false);
-
-    try {
-      const res = await fetch(apiUrl('/api/board'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'CLEAR_ALL_TEXT_NOTES',
-          payload: {},
-          user: currentUser || { role: 'admin', displayName: 'Admin' }
-        })
-      });
-      const data = await res.json();
-      if (data?.state) {
-        setBoardState(data.state);
-        setToastMessage('✓ All text notes cleared');
-        setTimeout(() => setToastMessage(null), 3000);
-
-        // Register Quick Undo action
-        pushUndoAction(
-          'Cleared all text notes',
-          async () => {
-            const restorePromises = [];
-            for (const [staffId, note] of Object.entries(prevMagnetNotes)) {
-              restorePromises.push(
-                fetch(apiUrl('/api/board'), {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    action: 'UPDATE_MAGNET_NOTE',
-                    payload: { staffId, note },
-                    user: currentUser
-                  })
-                })
-              );
-            }
-            for (const [roomId, note] of Object.entries(prevRoomNotes)) {
-              restorePromises.push(
-                fetch(apiUrl('/api/board'), {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    action: 'UPDATE_ROOM_NOTE',
-                    payload: { roomId, note },
-                    user: currentUser
-                  })
-                })
-              );
-            }
-            await Promise.all(restorePromises);
-            const refreshRes = await fetch(apiUrl('/api/board'));
-            const refreshData = await refreshRes.json();
-            if (refreshData?.state) {
-              setBoardState(refreshData.state);
-            }
-          }
-        );
-      } else {
-        setToastMessage(`Clear error: ${data.error || 'Failed'}`);
-        setTimeout(() => setToastMessage(null), 3000);
-      }
-    } catch (err) {
-      console.error('Error clearing text notes:', err);
-      setToastMessage('Error clearing text notes.');
-      setTimeout(() => setToastMessage(null), 3000);
-    }
-  };
+  const handleClearAllTextNotes = handleClearAllStickers;
 
   // 8. Superuser Layout actions
   const handleSaveDepartments = async (departments: Department[], layoutConfig?: BoardLayoutConfig) => {
@@ -2765,7 +2725,8 @@ export default function WhiteboardPage() {
           isSyncing={isSyncing}
           lastSyncTime={boardState.scraperConfig.lastSyncTime}
           onCleanWhiteboard={() => setIsCleanBoardModalOpen(true)}
-          onClearAllTextNotes={() => setIsClearNotesModalOpen(true)}
+          onRemoveAllMagnets={() => setIsRemoveAllMagnetsModalOpen(true)}
+          onClearAllTextNotes={() => setIsRemoveAllMagnetsModalOpen(true)}
           onOpenAudit={() => setIsAuditDrawerOpen(true)}
           onOpenAdmin={() => setIsAdminModalOpen(true)}
           magnetStickers={boardState.magnetStickers}
@@ -2793,7 +2754,8 @@ export default function WhiteboardPage() {
             onAutoAssign={handleAutoAssign}
             isAutoAssigning={isAutoAssigning}
             onCleanWhiteboard={() => setIsCleanBoardModalOpen(true)}
-            onClearAllTextNotes={() => setIsClearNotesModalOpen(true)}
+            onRemoveAllMagnets={() => setIsRemoveAllMagnetsModalOpen(true)}
+            onClearAllTextNotes={() => setIsRemoveAllMagnetsModalOpen(true)}
             onUndo={handleExecuteUndo}
             canUndo={undoStack.length > 0}
             undoCount={undoStack.length}
@@ -3160,17 +3122,17 @@ export default function WhiteboardPage() {
         onClose={() => setIsCleanBoardModalOpen(false)}
       />
 
-      {/* Clear All Text Notes Confirmation Modal */}
+      {/* Remove All Magnets Confirmation Modal */}
       <ConfirmDeleteModal
-        isOpen={isClearNotesModalOpen}
-        title="Clear All Text Notes"
-        itemName="All Room & Magnet Text Notes"
-        itemCategory="Text Notes Reset"
-        message="Are you sure you want to clear all text notes across the whiteboard? This will remove all free-text notes from rooms and clinician magnets."
-        confirmButtonText="Clear All Notes"
+        isOpen={isRemoveAllMagnetsModalOpen}
+        title="Remove All Magnets"
+        itemName="All Sticker Magnets"
+        itemCategory="Magnet Reset"
+        message="Are you sure you want to remove all magnets? This will delete all sticker magnets across the whiteboard."
+        confirmButtonText="Remove All Magnets"
         cancelButtonText="Cancel"
-        onConfirm={handleClearAllTextNotes}
-        onClose={() => setIsClearNotesModalOpen(false)}
+        onConfirm={handleClearAllStickers}
+        onClose={() => setIsRemoveAllMagnetsModalOpen(false)}
       />
 
       {/* Complete All Relief Confirmation Modal */}

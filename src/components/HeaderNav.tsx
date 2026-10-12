@@ -7,7 +7,7 @@ import {
   RotateCw, FileSpreadsheet, Settings, 
   Keyboard, Clock, CheckCircle2, Mic, Sparkles,
   Smartphone, Eraser, MessageSquare, CheckCheck, Undo2, FileText,
-  Maximize, Minimize, ChevronDown, Zap
+  Maximize, Minimize, ChevronDown, Zap, Sticker
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -25,6 +25,7 @@ interface HeaderNavProps {
   onAutoAssign?: () => void;
   isAutoAssigning?: boolean;
   onCleanWhiteboard?: () => void;
+  onRemoveAllMagnets?: () => void;
   onClearAllTextNotes?: () => void;
   onUndo?: () => void;
   canUndo?: boolean;
@@ -60,6 +61,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onAutoAssign,
   isAutoAssigning = false,
   onCleanWhiteboard,
+  onRemoveAllMagnets,
   onClearAllTextNotes,
   onUndo,
   canUndo = false,
@@ -564,26 +566,27 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                   Maintenance & History
                 </div>
 
-                {/* 5. Clear All Notes */}
-                {onClearAllTextNotes && (
+                {/* 5. Remove All Magnets */}
+                {(onRemoveAllMagnets || onClearAllTextNotes) && (
                   <button
                     type="button"
                     className="action-dropdown-item"
                     onClick={() => {
-                      onClearAllTextNotes();
+                      if (onRemoveAllMagnets) onRemoveAllMagnets();
+                      else if (onClearAllTextNotes) onClearAllTextNotes();
                       setIsActionMenuOpen(false);
                     }}
-                    title="Clear all free text notes on rooms and magnets across the board"
+                    title="Remove all sticker magnets across the whiteboard"
                   >
                     <div className="action-item-icon">
-                      <FileText size={14} style={{ color: 'var(--text-secondary)' }} />
+                      <Sticker size={14} style={{ color: 'var(--text-secondary)' }} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12.5, fontWeight: 700 }}>
-                        Clear All Notes
+                        Remove All Magnets
                       </div>
                       <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
-                        Clear room & magnet text notes
+                        Delete all sticker magnets
                       </div>
                     </div>
                   </button>

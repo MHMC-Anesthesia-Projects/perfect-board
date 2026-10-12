@@ -41,7 +41,8 @@ import {
   FileSpreadsheet,
   Settings,
   ChevronDown,
-  X
+  X,
+  Sticker
 } from 'lucide-react';
 import { MagnetTile } from './MagnetTile';
 import { RoomLabel } from './RoomLabel';
@@ -95,6 +96,7 @@ interface MobileWhiteboardViewProps {
   isSyncing?: boolean;
   lastSyncTime?: string | null;
   onCleanWhiteboard?: () => void;
+  onRemoveAllMagnets?: () => void;
   onClearAllTextNotes?: () => void;
   onOpenAudit?: () => void;
   onOpenAdmin?: () => void;
@@ -147,6 +149,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   isSyncing = false,
   lastSyncTime,
   onCleanWhiteboard,
+  onRemoveAllMagnets,
   onClearAllTextNotes,
   onOpenAudit,
   onOpenAdmin,
@@ -1130,26 +1133,28 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                     Maintenance & History
                   </div>
 
-                  {/* 5. Clear All Notes */}
-                  {onClearAllTextNotes && (
+                  {/* 5. Remove All Magnets */}
+                  {(onRemoveAllMagnets || onClearAllStickers || onClearAllTextNotes) && (
                     <button
                       type="button"
                       className="action-dropdown-item"
                       onClick={() => {
-                        onClearAllTextNotes();
+                        if (onRemoveAllMagnets) onRemoveAllMagnets();
+                        else if (onClearAllStickers) onClearAllStickers();
+                        else if (onClearAllTextNotes) onClearAllTextNotes();
                         setIsActionMenuOpen(false);
                       }}
-                      title="Clear all free text notes on rooms and magnets across the board"
+                      title="Remove all sticker magnets across the whiteboard"
                     >
                       <div className="action-item-icon">
-                        <FileText size={14} style={{ color: 'var(--text-secondary)' }} />
+                        <Sticker size={14} style={{ color: 'var(--text-secondary)' }} />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 12.5, fontWeight: 700 }}>
-                          Clear All Notes
+                          Remove All Magnets
                         </div>
                         <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
-                          Clear room & magnet text notes
+                          Delete all sticker magnets
                         </div>
                       </div>
                     </button>
