@@ -37,7 +37,7 @@ export const StickerPalette: React.FC<StickerPaletteProps> = ({
   };
 
   const handleDragCustom = (e: React.DragEvent) => {
-    const trimmed = (customText.trim() || 'TEXT').slice(0, 10).toUpperCase();
+    const trimmed = (customText.trim() || 'NOTE').slice(0, 10).toUpperCase();
     const stickerId = `text:${trimmed}`;
     const payloadObj = {
       type: 'sticker',
@@ -63,7 +63,7 @@ export const StickerPalette: React.FC<StickerPaletteProps> = ({
   };
 
   const handleSelectCustomStamp = () => {
-    const trimmed = (customText.trim() || 'TEXT').slice(0, 10).toUpperCase();
+    const trimmed = (customText.trim() || 'NOTE').slice(0, 10).toUpperCase();
     const targetStickerId = `text:${trimmed}`;
     const isAlreadySelected = activeStampStickerId === targetStickerId;
     onSelectStampSticker?.(isAlreadySelected ? null : targetStickerId);
@@ -75,21 +75,6 @@ export const StickerPalette: React.FC<StickerPaletteProps> = ({
     <div className="sticker-palette-bar">
       <div className="sticker-palette-header">
         <span className="sticker-palette-title">MAGNETS</span>
-        {activeStampStickerId && (
-          <span className="sticker-palette-stamp-hint">
-            Stamp: {activeStampStickerId.startsWith('text:')
-              ? `"${activeStampStickerId.replace(/^text:/, '')}"`
-              : (PREDEFINED_STICKERS.find(s => s.id === activeStampStickerId)?.label || 'Active')}
-            <button
-              type="button"
-              className="sticker-cancel-stamp-btn"
-              onClick={() => onSelectStampSticker?.(null)}
-              title="Cancel stamp mode"
-            >
-              Cancel
-            </button>
-          </span>
-        )}
       </div>
 
       <div className="sticker-palette-items">
@@ -106,7 +91,7 @@ export const StickerPalette: React.FC<StickerPaletteProps> = ({
               onClick={() => {
                 onSelectStampSticker?.(isSelected ? null : sticker.id);
               }}
-              title={`${sticker.label} — Drag to magnet or room, or tap to stamp`}
+              title={`${sticker.label} — Drag to magnet or room, or tap to select`}
             >
               {sticker.type === 'dot' ? (
                 <span
@@ -125,18 +110,26 @@ export const StickerPalette: React.FC<StickerPaletteProps> = ({
           );
         })}
 
-        {/* Custom Text Magnet with Free Text Box (max 10 characters) */}
+        {/* Unified Custom Free-Text Magnet (max 10 characters) */}
         <div
-          className={`custom-magnet-chip ${isCustomStampActive ? 'stamp-active' : ''}`}
-          title="Custom free-text magnet (max 10 chars) — Type text, then drag to any magnet/room or tap badge to stamp"
+          className={`custom-text-magnet-pill ${isCustomStampActive ? 'stamp-active' : ''}`}
+          draggable
+          onDragStart={handleDragCustom}
+          onDragEnd={handleDragEnd}
+          onClick={handleSelectCustomStamp}
+          title="Custom Magnet (max 10 chars) — Type text, then drag to any magnet/room or tap to select"
         >
+          <span className="custom-magnet-icon" title="Drag magnet">⋮⋮</span>
           <input
             ref={customInputRef}
             type="text"
-            className="custom-magnet-input"
+            className="custom-magnet-pill-input"
             maxLength={10}
-            placeholder="Max 10 ch..."
+            placeholder="CUSTOM"
             value={customText}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
             onChange={(e) => {
               const val = e.target.value.slice(0, 10);
               setCustomText(val);
@@ -146,20 +139,28 @@ export const StickerPalette: React.FC<StickerPaletteProps> = ({
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
+                customInputRef.current?.blur();
                 handleSelectCustomStamp();
               }
             }}
           />
-          <div
-            className="custom-magnet-badge"
-            draggable
-            onDragStart={handleDragCustom}
-            onDragEnd={handleDragEnd}
-            onClick={handleSelectCustomStamp}
-            title="Drag to magnet or room, or tap to stamp"
-          >
-            {customText.trim() ? customText.trim().toUpperCase() : '+ Text'}
-          </div>
+          {customText && (
+            <button
+              type="button"
+              className="custom-magnet-clear-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setCustomText('');
+                if (isCustomStampActive) {
+                  onSelectStampSticker?.(null);
+                }
+                customInputRef.current?.focus();
+              }}
+              title="Clear text"
+            >
+              ×
+            </button>
+          )}
         </div>
 
         {hasAnyStickers && onClearAllStickers && (
@@ -169,7 +170,7 @@ export const StickerPalette: React.FC<StickerPaletteProps> = ({
             onClick={onClearAllStickers}
             title="Clear all magnets/stickers across the board"
           >
-            Clear Stickers
+            Clear All
           </button>
         )}
       </div>

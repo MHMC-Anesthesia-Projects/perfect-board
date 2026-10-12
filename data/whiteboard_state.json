@@ -3040,7 +3040,7 @@
       "runnerSlots": []
     }
   ],
-  "lastUpdated": "2026-10-12T21:43:40.975Z",
+  "lastUpdated": "2026-10-12T21:56:32.451Z",
   "magnetNotes": {
     "staff_oneusap_anes_flemmingcin": "1200"
   },
@@ -3398,6 +3398,9 @@
     "staff_oneusap_doc_lukey": [
       "yellow_dot"
     ],
+    "staff_oneusap_anes_mateocar": [
+      "green_dot"
+    ],
     "staff_oneusap_doc_shettysha": [
       "green_dot"
     ],
@@ -3410,8 +3413,8 @@
     "staff_oneusap_doc_tallacksondon": [
       "yellow_dot"
     ],
-    "staff_oneusap_anes_mateocar": [
-      "green_dot"
+    "staff_oneusap_anes_spearsall": [
+      "will_finish"
     ]
   },
   "bullpenStaffIds": [
