@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Staff, UserRole } from '@/types/whiteboard';
-import { Search, X, UserCheck, ShieldAlert, LogIn, Clock, Check } from 'lucide-react';
+import { Search, X, ShieldAlert, LogIn, Clock, Check } from 'lucide-react';
 import { ReliefAssignment } from '@/types/whiteboard';
 import { getFutureTimePresets } from '@/lib/dateUtils';
 
@@ -52,7 +52,7 @@ export const SlotAssignModal: React.FC<SlotAssignModalProps> = ({
   const [futureTimeInput, setFutureTimeInput] = useState(currentSlotTime);
   const [isSavedRecently, setIsSavedRecently] = useState(false);
 
-  const futurePresets = useMemo(() => getFutureTimePresets(7), [isOpen, targetSlot?.id]);
+  const futurePresets = useMemo(() => getFutureTimePresets(7), [targetSlot?.id]);
 
   useEffect(() => {
     setFutureTimeInput(currentSlotTime);

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { apiUrl } from '@/lib/api';
 import { Staff, Department, UserRole, ReliefAssignment, ChatMessage } from '@/types/whiteboard';
-import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, Coffee, Utensils, CheckCircle, ShieldCheck, Sparkles, UserCheck, MessageSquare, Send, RefreshCw, Radio, Check, GraduationCap } from 'lucide-react';
+import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, ShieldCheck, Sparkles, MessageSquare, Send, RefreshCw, Check, GraduationCap } from 'lucide-react';
 import { getFutureTimePresets } from '@/lib/dateUtils';
 
 export interface StaffPlacement {
@@ -340,7 +340,6 @@ export const StaffModal: React.FC<StaffModalProps> = ({
     });
   }
 
-  const currentPlacement = allPlacements[0] || null;
   const roomPlacement = allPlacements.find(p => p.type === 'room_slot') || null;
 
   const isFutureTimeSaved = isFutureTimeSavedRecently || Boolean(currentRoomFutureTime && futureTimeInput.trim() === currentRoomFutureTime.trim());
