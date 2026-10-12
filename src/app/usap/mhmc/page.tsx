@@ -116,6 +116,7 @@ export default function WhiteboardPage() {
   const [isCleanBoardModalOpen, setIsCleanBoardModalOpen] = useState(false);
   const [isClearNotesModalOpen, setIsClearNotesModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [activeStampStickerId, setActiveStampStickerId] = useState<string | null>(null);
 
   // Undo / Mistake Resolution System (Layers 1 & 2)
   const [undoStack, setUndoStack] = useState<UndoItem[]>([]);
@@ -1218,52 +1219,49 @@ export default function WhiteboardPage() {
       }
     }
 
-    // Optimistic UI update: Remove from source room and show in bullpen
+    // Optimistic UI update: Assign relief (clinician persists in their current room or runner slot)
     setBoardState(prev => {
       if (!prev) return prev;
       const updated = { ...prev };
 
       updated.departments = updated.departments.map(dept => {
         const d = { ...dept };
-        d.rooms = d.rooms.map(rm => {
-          const r = { ...rm };
-          r.slots = r.slots.map(sl => {
-            const s = { ...sl };
-            if (s.id === targetId) {
-              s.relief = {
-                staffId: reliefStaffId || null,
-                time: reliefTime || s.relief?.time || '3:00 PM',
-                notes: notes !== undefined ? notes : (s.relief?.notes || ''),
-                isRedBox: Boolean(isRedBox || !reliefStaffId)
+        if (targetType === 'room_slot') {
+          d.rooms = d.rooms.map(rm => {
+            const r = { ...rm };
+            r.slots = r.slots.map(sl => {
+              const s = { ...sl };
+              if (s.id === targetId) {
+                s.relief = {
+                  staffId: reliefStaffId || null,
+                  time: reliefTime || s.relief?.time || '3:00 PM',
+                  notes: notes !== undefined ? notes : (s.relief?.notes || ''),
+                  isRedBox: Boolean(isRedBox || !reliefStaffId)
+                };
+              }
+              return s;
+            });
+            return r;
+          });
+        } else if (targetType === 'runner_slot') {
+          d.runnerSlots = (d.runnerSlots || []).map(r => {
+            if (r.id === targetId) {
+              return {
+                ...r,
+                relief: {
+                  staffId: reliefStaffId || null,
+                  time: reliefTime || r.relief?.time || '3:00 PM',
+                  notes: notes !== undefined ? notes : (r.relief?.notes || ''),
+                  isRedBox: Boolean(isRedBox || !reliefStaffId)
+                }
               };
             }
-            if (reliefStaffId && !isSelfRelief) {
-              const isSource = fromSource?.id ? s.id === fromSource.id : (s.staffId === reliefStaffId && s.id !== targetId);
-              if (isSource && s.staffId === reliefStaffId) {
-                s.staffId = null;
-              }
-            }
-            return s;
+            return r;
           });
-          return r;
-        });
-
-        if (reliefStaffId && !isSelfRelief) {
-          const isRunnerSource = fromSource?.type === 'runner_slot' || (!fromSource && d.runnerSlots.some(r => r.staffId === reliefStaffId));
-          if (isRunnerSource) {
-            d.runnerSlots = d.runnerSlots.filter(r => fromSource?.id ? r.id !== fromSource.id : r.staffId !== reliefStaffId);
-          }
         }
         return d;
       });
 
-      if (reliefStaffId && !isSelfRelief) {
-        const nextBullpen = [...(updated.bullpenStaffIds || [])];
-        if (!nextBullpen.includes(reliefStaffId)) {
-          nextBullpen.push(reliefStaffId);
-        }
-        updated.bullpenStaffIds = nextBullpen;
-      }
       return updated;
     });
 
@@ -1470,6 +1468,89 @@ export default function WhiteboardPage() {
       setTimeout(() => setToastMessage(null), 3500);
     } finally {
       setIsCompletingAllReliefs(false);
+    }
+  };
+
+  // Sticker Handlers (Green Dot, Blue Dot, VOL badge, etc.)
+  const handleToggleSticker = async (
+    targetType: 'magnet' | 'room',
+    targetId: string,
+    stickerId: string
+  ) => {
+    if (!isEditor) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    // Optimistic UI update
+    setBoardState(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev };
+      if (targetType === 'magnet') {
+        const nextMagnetStickers = { ...(updated.magnetStickers || {}) };
+        const currentList = nextMagnetStickers[targetId] ? [...nextMagnetStickers[targetId]] : [];
+        if (currentList.includes(stickerId)) {
+          nextMagnetStickers[targetId] = currentList.filter(s => s !== stickerId);
+        } else {
+          nextMagnetStickers[targetId] = [...currentList, stickerId];
+        }
+        updated.magnetStickers = nextMagnetStickers;
+      } else {
+        const nextRoomStickers = { ...(updated.roomStickers || {}) };
+        const currentList = nextRoomStickers[targetId] ? [...nextRoomStickers[targetId]] : [];
+        if (currentList.includes(stickerId)) {
+          nextRoomStickers[targetId] = currentList.filter(s => s !== stickerId);
+        } else {
+          nextRoomStickers[targetId] = [...currentList, stickerId];
+        }
+        updated.roomStickers = nextRoomStickers;
+      }
+      return updated;
+    });
+
+    try {
+      const res = await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'TOGGLE_STICKER',
+          payload: { targetType, targetId, stickerId },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+      }
+    } catch (err) {
+      console.error('Error toggling sticker:', err);
+    }
+  };
+
+  const handleClearAllStickers = async () => {
+    if (!isEditor) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    setBoardState(prev => prev ? { ...prev, magnetStickers: {}, roomStickers: {} } : prev);
+    try {
+      const res = await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'CLEAR_ALL_STICKERS',
+          payload: {},
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+        setToastMessage('All stickers cleared from board');
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error('Error clearing stickers:', err);
     }
   };
 
@@ -2687,6 +2768,12 @@ export default function WhiteboardPage() {
           onClearAllTextNotes={() => setIsClearNotesModalOpen(true)}
           onOpenAudit={() => setIsAuditDrawerOpen(true)}
           onOpenAdmin={() => setIsAdminModalOpen(true)}
+          magnetStickers={boardState.magnetStickers}
+          roomStickers={boardState.roomStickers}
+          onToggleSticker={handleToggleSticker}
+          activeStampStickerId={activeStampStickerId}
+          onSelectStampSticker={setActiveStampStickerId}
+          onClearAllStickers={handleClearAllStickers}
         />
       ) : (
         <div className="whiteboard-container">
@@ -2745,6 +2832,11 @@ export default function WhiteboardPage() {
             unreadCountsByPhone={unreadCountsByPhone}
             magnetNotes={boardState.magnetNotes}
             onUpdateMagnetNote={handleUpdateMagnetNote}
+            magnetStickers={boardState.magnetStickers}
+            onToggleSticker={handleToggleSticker}
+            activeStampStickerId={activeStampStickerId}
+            onSelectStampSticker={setActiveStampStickerId}
+            onClearAllStickers={handleClearAllStickers}
           />
         ) : (
           /* Expand Tab on Left Edge to slide Bullpen back open */
@@ -2818,6 +2910,10 @@ export default function WhiteboardPage() {
           roomNotes={boardState.roomNotes}
           onUpdateRoomNote={handleUpdateRoomNote}
           onOpenLogin={() => setIsLoginModalOpen(true)}
+          magnetStickers={boardState.magnetStickers}
+          roomStickers={boardState.roomStickers}
+          onToggleSticker={handleToggleSticker}
+          activeStampStickerId={activeStampStickerId}
         />
 
         {/* Right 2 Columns: DEPARTURE & LATES (Can be hidden to the right) */}
@@ -2877,6 +2973,11 @@ export default function WhiteboardPage() {
         unreadCountsByPhone={unreadCountsByPhone}
         magnetNotes={boardState.magnetNotes}
         onUpdateMagnetNote={handleUpdateMagnetNote}
+        magnetStickers={boardState.magnetStickers}
+        onToggleSticker={handleToggleSticker}
+        activeStampStickerId={activeStampStickerId}
+        onSelectStampSticker={setActiveStampStickerId}
+        onClearAllStickers={handleClearAllStickers}
       />
       )}
         </div>

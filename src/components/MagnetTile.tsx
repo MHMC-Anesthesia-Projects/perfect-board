@@ -25,6 +25,9 @@ interface MagnetTileProps {
   unreadMessageCount?: number;
   magnetNote?: string;
   onUpdateNote?: (note: string) => void;
+  stickers?: string[];
+  onToggleSticker?: (staffId: string, stickerId: string) => void;
+  activeStampStickerId?: string | null;
 }
 
 export const MagnetTile: React.FC<MagnetTileProps> = ({
@@ -46,7 +49,10 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   hasPendingRelief = false,
   unreadMessageCount = 0,
   magnetNote,
-  onUpdateNote
+  onUpdateNote,
+  stickers,
+  onToggleSticker,
+  activeStampStickerId
 }) => {
   const currentNote = (magnetNote !== undefined ? magnetNote : (staff.magnetNote || '')) || '';
 
@@ -162,6 +168,10 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
 
   const handleTileClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (activeStampStickerId && onToggleSticker) {
+      onToggleSticker(staff.id, activeStampStickerId);
+      return;
+    }
     if (onSelectStaff) {
       onSelectStaff(staff);
     }
@@ -192,6 +202,33 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
     }
   };
 
+  const handleTileDragOver = (e: React.DragEvent) => {
+    if (typeof window !== 'undefined' && (window as any).__activeDraggedSticker) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'copy';
+    }
+  };
+
+  const handleTileDrop = (e: React.DragEvent) => {
+    let stickerId = '';
+    try {
+      const dataStr = e.dataTransfer.getData('application/json') || e.dataTransfer.getData('text');
+      if (dataStr) {
+        const parsed = JSON.parse(dataStr);
+        if (parsed.type === 'sticker') stickerId = parsed.stickerId;
+      }
+    } catch {}
+    if (!stickerId && typeof window !== 'undefined' && (window as any).__activeDraggedSticker) {
+      stickerId = (window as any).__activeDraggedSticker;
+    }
+    if (stickerId && onToggleSticker) {
+      e.preventDefault();
+      e.stopPropagation();
+      onToggleSticker(staff.id, stickerId);
+    }
+  };
+
   return (
     <>
       <div
@@ -200,6 +237,8 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
         draggable={isDraggable}
         onDragStart={handleDrag}
         onDragEnd={handleDragEnd}
+        onDragOver={handleTileDragOver}
+        onDrop={handleTileDrop}
         onClick={handleTileClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -295,6 +334,69 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
             >
               💬{unreadMessageCount > 1 ? unreadMessageCount : ''}
             </span>
+          )}
+
+          {/* Predefined Visual Stickers (green dot, blue dot, VOL badge, etc.) */}
+          {stickers && stickers.length > 0 && (
+            <div className="magnet-stickers-container">
+              {stickers.map((stId) => {
+                if (stId === 'green_dot') {
+                  return (
+                    <span
+                      key={stId}
+                      className="magnet-sticker-dot green"
+                      title="Green dot sticker (Click to peel off)"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleSticker?.(staff.id, stId);
+                      }}
+                    />
+                  );
+                }
+                if (stId === 'blue_dot') {
+                  return (
+                    <span
+                      key={stId}
+                      className="magnet-sticker-dot blue"
+                      title="Blue dot sticker (Click to peel off)"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleSticker?.(staff.id, stId);
+                      }}
+                    />
+                  );
+                }
+                if (stId === 'yellow_dot') {
+                  return (
+                    <span
+                      key={stId}
+                      className="magnet-sticker-dot yellow"
+                      title="Yellow dot sticker (Click to peel off)"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleSticker?.(staff.id, stId);
+                      }}
+                    />
+                  );
+                }
+                if (stId === 'vol') {
+                  return (
+                    <span
+                      key={stId}
+                      className="magnet-sticker-badge vol"
+                      title="VOL sticker (Click to peel off)"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleSticker?.(staff.id, stId);
+                      }}
+                    >
+                      VOL
+                    </span>
+                  );
+                }
+                return null;
+              })}
+            </div>
           )}
         </div>
 

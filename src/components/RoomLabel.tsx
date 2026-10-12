@@ -11,6 +11,9 @@ interface RoomLabelProps {
   onUpdateRoomNote?: (roomId: string, note: string) => void;
   currentUserRole?: UserRole;
   onOpenLogin?: () => void;
+  stickers?: string[];
+  onToggleSticker?: (roomId: string, stickerId: string) => void;
+  activeStampStickerId?: string | null;
 }
 
 export const RoomLabel: React.FC<RoomLabelProps> = ({
@@ -19,7 +22,10 @@ export const RoomLabel: React.FC<RoomLabelProps> = ({
   roomNote,
   onUpdateRoomNote,
   currentUserRole,
-  onOpenLogin
+  onOpenLogin,
+  stickers,
+  onToggleSticker,
+  activeStampStickerId
 }) => {
   const currentNote = (roomNote !== undefined ? roomNote : (room.note || '')) || '';
 
@@ -227,6 +233,31 @@ export const RoomLabel: React.FC<RoomLabelProps> = ({
       <div
         ref={containerRef}
         className={`room-label-container ${isHovered ? 'hovered' : ''}`}
+        onDragOver={(e) => {
+          if (typeof window !== 'undefined' && (window as any).__activeDraggedSticker) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = 'copy';
+          }
+        }}
+        onDrop={(e) => {
+          let stickerId = '';
+          try {
+            const dataStr = e.dataTransfer.getData('application/json') || e.dataTransfer.getData('text');
+            if (dataStr) {
+              const parsed = JSON.parse(dataStr);
+              if (parsed.type === 'sticker') stickerId = parsed.stickerId;
+            }
+          } catch {}
+          if (!stickerId && typeof window !== 'undefined' && (window as any).__activeDraggedSticker) {
+            stickerId = (window as any).__activeDraggedSticker;
+          }
+          if (stickerId && onToggleSticker) {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleSticker(room.id, stickerId);
+          }
+        }}
       >
         {/* Room Number / Identifier */}
         <div
@@ -234,11 +265,78 @@ export const RoomLabel: React.FC<RoomLabelProps> = ({
           title={`Room ${room.name}${deptName ? ` (${deptName})` : ''}${currentNote ? ` • Note: "${currentNote}" (Click to edit)` : ' • Hover & type to add note'}`}
           onClick={(e) => {
             e.stopPropagation();
+            if (activeStampStickerId && onToggleSticker) {
+              onToggleSticker(room.id, activeStampStickerId);
+              return;
+            }
             handleOpenEditor();
           }}
         >
           {room.name}
         </div>
+
+        {/* Room Stickers */}
+        {stickers && stickers.length > 0 && (
+          <div className="room-stickers-container">
+            {stickers.map((stId) => {
+              if (stId === 'green_dot') {
+                return (
+                  <span
+                    key={stId}
+                    className="magnet-sticker-dot green"
+                    title="Green dot sticker on room (Click to peel off)"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleSticker?.(room.id, stId);
+                    }}
+                  />
+                );
+              }
+              if (stId === 'blue_dot') {
+                return (
+                  <span
+                    key={stId}
+                    className="magnet-sticker-dot blue"
+                    title="Blue dot sticker on room (Click to peel off)"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleSticker?.(room.id, stId);
+                    }}
+                  />
+                );
+              }
+              if (stId === 'yellow_dot') {
+                return (
+                  <span
+                    key={stId}
+                    className="magnet-sticker-dot yellow"
+                    title="Yellow dot sticker on room (Click to peel off)"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleSticker?.(room.id, stId);
+                    }}
+                  />
+                );
+              }
+              if (stId === 'vol') {
+                return (
+                  <span
+                    key={stId}
+                    className="magnet-sticker-badge vol"
+                    title="VOL sticker on room (Click to peel off)"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleSticker?.(room.id, stId);
+                    }}
+                  >
+                    VOL
+                  </span>
+                );
+              }
+              return null;
+            })}
+          </div>
+        )}
 
         {/* Small Font Room Note Badge (max 30 characters) */}
         {currentNote && (

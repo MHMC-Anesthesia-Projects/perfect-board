@@ -291,6 +291,8 @@ export function getInitialBoardState(staff: Staff[] = []): BoardState {
     bullpenBreaks: {},
     magnetNotes: {},
     roomNotes: {},
+    magnetStickers: {},
+    roomStickers: {},
     lastBreakResetDate: getLatest1AmThreshold(),
     infrequentStaffIds: [],
     infrequentStaffKeys: [],
@@ -519,6 +521,12 @@ function sanitizeBoardState(loaded: BoardState): BoardState {
   }
   if (!loaded.roomNotes || typeof loaded.roomNotes !== 'object') {
     loaded.roomNotes = {};
+  }
+  if (!loaded.magnetStickers || typeof loaded.magnetStickers !== 'object') {
+    loaded.magnetStickers = {};
+  }
+  if (!loaded.roomStickers || typeof loaded.roomStickers !== 'object') {
+    loaded.roomStickers = {};
   }
   // Ensure room records strictly reflect the authoritative roomNotes dictionary
   if (loaded.departments && Array.isArray(loaded.departments)) {

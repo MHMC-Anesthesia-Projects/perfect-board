@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Staff, UserRole } from '@/types/whiteboard';
 import { MagnetTile } from './MagnetTile';
+import { StickerPalette } from './StickerPalette';
 import { PanelLeftClose, Users, Sparkles } from 'lucide-react';
 
 interface BullpenSidebarProps {
@@ -19,6 +20,12 @@ interface BullpenSidebarProps {
   unreadCountsByPhone?: Record<string, number>;
   magnetNotes?: Record<string, string>;
   onUpdateMagnetNote?: (staffId: string, note: string) => void;
+  magnetStickers?: Record<string, string[]>;
+  onToggleSticker?: (targetType: 'magnet' | 'room', targetId: string, stickerId: string) => void;
+  activeStampStickerId?: string | null;
+  onSelectStampSticker?: (stickerId: string | null) => void;
+  onClearAllStickers?: () => void;
+  hasAnyStickers?: boolean;
 }
 
 const CREDENTIAL_ORDER: Record<string, number> = {
@@ -55,7 +62,13 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
   activeReliefStaffIds,
   unreadCountsByPhone,
   magnetNotes,
-  onUpdateMagnetNote
+  onUpdateMagnetNote,
+  magnetStickers,
+  onToggleSticker,
+  activeStampStickerId,
+  onSelectStampSticker,
+  onClearAllStickers,
+  hasAnyStickers
 }) => {
   const getStaffUnreadCount = (staffMember: Staff | null): number => {
     if (!staffMember?.phone || !unreadCountsByPhone) return 0;
@@ -249,6 +262,9 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
                       onDragStart={(e, staffMember) => handleDragStart(e, staffMember)}
                       onDragEnd={handleDragEnd}
                       onUnassign={() => onMoveStaffToUnassigned(s.id)}
+                      stickers={magnetStickers?.[s.id]}
+                      onToggleSticker={(sId, stId) => onToggleSticker?.('magnet', sId, stId)}
+                      activeStampStickerId={activeStampStickerId}
                     />
                   </div>
                 </div>
@@ -258,11 +274,19 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
         )}
       </div>
 
-      {/* Bullpen Footer Info */}
-      <div className="bullpen-sidebar-footer">
-        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-          {bullpenStaff.length} available &bull; Drag to any department slot
-        </span>
+      {/* Bullpen Footer Info & Stickers */}
+      <div className="bullpen-sidebar-footer" style={{ padding: 0, display: 'flex', flexDirection: 'column' }}>
+        <StickerPalette
+          activeStampStickerId={activeStampStickerId || null}
+          onSelectStampSticker={onSelectStampSticker || (() => {})}
+          onClearAllStickers={onClearAllStickers}
+          hasAnyStickers={hasAnyStickers}
+        />
+        <div style={{ padding: '6px 12px' }}>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+            {bullpenStaff.length} available &bull; Drag to any department slot
+          </span>
+        </div>
       </div>
     </aside>
   );

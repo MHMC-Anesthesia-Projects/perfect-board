@@ -337,6 +337,21 @@ export const DEFAULT_LAYOUT_CONFIG: BoardLayoutConfig = {
   }
 };
 
+export interface StickerItem {
+  id: string; // 'green_dot' | 'blue_dot' | 'vol' | 'yellow_dot'
+  label: string;
+  color: string;
+  type: 'dot' | 'badge';
+  description?: string;
+}
+
+export const PREDEFINED_STICKERS: StickerItem[] = [
+  { id: 'green_dot', label: 'Green Dot', color: '#10b981', type: 'dot', description: 'Green status dot' },
+  { id: 'blue_dot', label: 'Blue Dot', color: '#0284c7', type: 'dot', description: 'Blue status dot' },
+  { id: 'vol', label: 'VOL', color: '#8b5cf6', type: 'badge', description: 'Volunteer / Voluntary relief' },
+  { id: 'yellow_dot', label: 'Yellow Dot', color: '#f59e0b', type: 'dot', description: 'Yellow status dot' }
+];
+
 export interface BoardState {
   version: number;
   lastUpdated: string;
@@ -348,6 +363,8 @@ export interface BoardState {
   bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; breakfastTime?: string | null; lunchTime?: string | null }>;
   magnetNotes?: Record<string, string>;
   roomNotes?: Record<string, string>;
+  magnetStickers?: Record<string, string[]>;
+  roomStickers?: Record<string, string[]>;
   lastBreakResetDate?: string;
   infrequentStaffIds?: string[];
   infrequentStaffKeys?: string[];

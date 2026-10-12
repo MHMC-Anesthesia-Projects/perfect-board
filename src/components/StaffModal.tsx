@@ -340,12 +340,12 @@ export const StaffModal: React.FC<StaffModalProps> = ({
     });
   }
 
-  const roomPlacement = allPlacements.find(p => p.type === 'room_slot') || null;
+  const roomPlacement = allPlacements.find(p => p.type === 'room_slot' || p.type === 'runner_slot') || null;
 
   const isFutureTimeSaved = isFutureTimeSavedRecently || Boolean(currentRoomFutureTime && futureTimeInput.trim() === currentRoomFutureTime.trim());
 
   const handleSaveFutureTime = (timeToSet?: string) => {
-    const roomId = roomPlacement?.roomId || staffRoomPlacement?.id;
+    const roomId = (roomPlacement?.type === 'room_slot' ? roomPlacement?.roomId : undefined) || staffRoomPlacement?.id;
     if (!roomId || !onSetRoomFutureTime) return;
     const finalVal = (timeToSet !== undefined ? timeToSet : futureTimeInput).trim();
     const cleanTime = finalVal ? finalVal.replace(/[^0-9]/g, '').slice(0, 4) : null;
@@ -356,7 +356,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   };
 
   const handleClearFutureTime = () => {
-    const roomId = roomPlacement?.roomId || staffRoomPlacement?.id;
+    const roomId = (roomPlacement?.type === 'room_slot' ? roomPlacement?.roomId : undefined) || staffRoomPlacement?.id;
     if (!roomId || !onSetRoomFutureTime) return;
     onSetRoomFutureTime(roomId, null);
     setFutureTimeInput('');
@@ -1543,7 +1543,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   {onToggleRedBox && !roomPlacement.relief && (
                     <button
                       type="button"
-                      onClick={() => onToggleRedBox('room_slot', roomPlacement.id, true)}
+                      onClick={() => onToggleRedBox((roomPlacement.type as 'room_slot' | 'runner_slot') || 'room_slot', roomPlacement.id, true)}
                       style={{
                         padding: '6px 10px',
                         borderRadius: 6,
@@ -1555,7 +1555,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                         cursor: 'pointer',
                         whiteSpace: 'nowrap'
                       }}
-                      title="Add an open red box to plan relief for this room"
+                      title="Add an open red box to plan relief for this assignment"
                     >
                       🟥 Add Relief Box
                     </button>
@@ -1564,7 +1564,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   {onRemoveRelief && roomPlacement.relief && (
                     <button
                       type="button"
-                      onClick={() => onRemoveRelief('room_slot', roomPlacement.id)}
+                      onClick={() => onRemoveRelief((roomPlacement.type as 'room_slot' | 'runner_slot') || 'room_slot', roomPlacement.id)}
                       style={{
                         padding: '6px 10px',
                         borderRadius: 6,
@@ -1587,7 +1587,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                       onClick={() => {
                         onClose();
                         onOpenReliefModal({
-                          type: 'room_slot',
+                          type: (roomPlacement.type as 'room_slot' | 'runner_slot') || 'room_slot',
                           id: roomPlacement.id,
                           roomName: roomPlacement.roomName || '',
                           departmentName: roomPlacement.departmentName || '',
@@ -1615,7 +1615,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
             )}
 
             {/* Future Case Time for this Room */}
-            {roomPlacement && roomPlacement.roomId && onSetRoomFutureTime && (
+            {roomPlacement && roomPlacement.type === 'room_slot' && roomPlacement.roomId && onSetRoomFutureTime && (
               <div
                 style={{
                   background: 'rgba(239, 68, 68, 0.06)',

@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Staff, Department, UserRole } from '@/types/whiteboard';
 import { MagnetTile } from './MagnetTile';
+import { StickerPalette } from './StickerPalette';
 import { Search, UserPlus, Users, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface BullpenProps {
@@ -22,6 +23,12 @@ interface BullpenProps {
   unreadCountsByPhone?: Record<string, number>;
   magnetNotes?: Record<string, string>;
   onUpdateMagnetNote?: (staffId: string, note: string) => void;
+  magnetStickers?: Record<string, string[]>;
+  onToggleSticker?: (targetType: 'magnet' | 'room', targetId: string, stickerId: string) => void;
+  activeStampStickerId?: string | null;
+  onSelectStampSticker?: (stickerId: string | null) => void;
+  onClearAllStickers?: () => void;
+  hasAnyStickers?: boolean;
 }
 
 const isPhysician = (s: Staff) => {
@@ -53,7 +60,13 @@ export const Bullpen: React.FC<BullpenProps> = ({
   activeReliefStaffIds,
   unreadCountsByPhone,
   magnetNotes,
-  onUpdateMagnetNote
+  onUpdateMagnetNote,
+  magnetStickers,
+  onToggleSticker,
+  activeStampStickerId,
+  onSelectStampSticker,
+  onClearAllStickers,
+  hasAnyStickers
 }) => {
   const getStaffUnreadCount = (staffMember: Staff | null): number => {
     if (!staffMember?.phone || !unreadCountsByPhone) return 0;
@@ -525,6 +538,9 @@ export const Bullpen: React.FC<BullpenProps> = ({
                         onSelectStaff={onSelectStaff}
                         onDragStart={(e) => handleTileDragStart(e, s)}
                         onDragEnd={handleTileDragEnd}
+                        stickers={magnetStickers?.[s.id]}
+                        onToggleSticker={(sId, stId) => onToggleSticker?.('magnet', sId, stId)}
+                        activeStampStickerId={activeStampStickerId}
                       />
                     );
                   })}
@@ -547,6 +563,14 @@ export const Bullpen: React.FC<BullpenProps> = ({
           })}
         </div>
       )}
+
+      {/* Stickers palette tray pinned at the bottom of the bullpen */}
+      <StickerPalette
+        activeStampStickerId={activeStampStickerId || null}
+        onSelectStampSticker={onSelectStampSticker || (() => {})}
+        onClearAllStickers={onClearAllStickers}
+        hasAnyStickers={hasAnyStickers}
+      />
     </footer>
   );
 };

@@ -1,5 +1,45 @@
 [
   {
+    "id": "audit_1791832983635_q06zw",
+    "timestamp": "2026-10-12T19:23:03.635Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Martinez (MD)",
+    "locationName": "IVF Room 1",
+    "details": "Assigned relief: Martinez (MD) relieving Shenoy (MD) in IVF Room 1"
+  },
+  {
+    "id": "audit_1791832979696_dsx87",
+    "timestamp": "2026-10-12T19:22:59.696Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Rogelio Martinez",
+    "locationName": "VILLAGE Room P2",
+    "details": "Assigned to VILLAGE Room P2"
+  },
+  {
+    "id": "audit_1791832959807_x9w30",
+    "timestamp": "2026-10-12T19:22:39.807Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Vikram Shenoy",
+    "locationName": "IVF Room 1",
+    "details": "Assigned to IVF Room 1"
+  },
+  {
+    "id": "audit_1791832946565_qvt35",
+    "timestamp": "2026-10-12T19:22:26.565Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Carvajal (MD)",
+    "locationName": "MAIN OR Room 3",
+    "details": "Carvajal (MD) designated as relieving themselves in MAIN OR Room 3"
+  },
+  {
     "id": "audit_1791810627223_bcq3v",
     "timestamp": "2026-10-12T13:10:27.223Z",
     "actionType": "SCRAPER_SYNCED",

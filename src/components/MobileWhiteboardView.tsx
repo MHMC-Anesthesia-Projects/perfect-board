@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import { MagnetTile } from './MagnetTile';
 import { RoomLabel } from './RoomLabel';
+import { StickerPalette } from './StickerPalette';
 
 interface MobileWhiteboardViewProps {
   boardState: BoardState;
@@ -97,6 +98,12 @@ interface MobileWhiteboardViewProps {
   onClearAllTextNotes?: () => void;
   onOpenAudit?: () => void;
   onOpenAdmin?: () => void;
+  magnetStickers?: Record<string, string[]>;
+  roomStickers?: Record<string, string[]>;
+  onToggleSticker?: (targetType: 'magnet' | 'room', targetId: string, stickerId: string) => void;
+  activeStampStickerId?: string | null;
+  onSelectStampSticker?: (stickerId: string | null) => void;
+  onClearAllStickers?: () => void;
 }
 
 export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
@@ -142,7 +149,13 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   onCleanWhiteboard,
   onClearAllTextNotes,
   onOpenAudit,
-  onOpenAdmin
+  onOpenAdmin,
+  magnetStickers,
+  roomStickers,
+  onToggleSticker,
+  activeStampStickerId,
+  onSelectStampSticker,
+  onClearAllStickers
 }) => {
   const isEditor = currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser';
   const isManualMode = boardState?.layoutConfig?.boardMode === 'manual';
@@ -1291,13 +1304,15 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                         if (!assignedStaff) return null;
                         const reliefStaff = getStaffById(runner.relief?.staffId || null);
                         const hasAssignedRelief = Boolean(runner.relief && reliefStaff);
+                        const isOpenRedBox = Boolean(runner.relief && !runner.relief.staffId && runner.relief.isRedBox);
 
                         return (
                           <div
                             key={runner.id}
-                            className={`runner-slot ${isMultiRunner ? 'multi' : 'single'}`}
+                            className="runner-slot single"
                             style={{
-                              flex: isMultiRunner ? '1 1 0' : '1 1 100%',
+                              width: '100%',
+                              flex: 'none',
                               minWidth: 0,
                               position: 'relative'
                             }}
@@ -1305,9 +1320,9 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                             <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', gap: 4 }}>
                               <div
                                 style={{
-                                  flex: hasAssignedRelief ? '1 1 50%' : 1,
+                                  flex: (hasAssignedRelief || isOpenRedBox) ? '1 1 50%' : 1,
                                   minWidth: 0,
-                                  maxWidth: hasAssignedRelief ? '50%' : '100%',
+                                  maxWidth: (hasAssignedRelief || isOpenRedBox) ? '50%' : '100%',
                                   height: '100%'
                                 }}
                               >
@@ -1325,10 +1340,13 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                   onSelectStaff={onSelectStaff}
                                   isDraggable={false}
                                   hasPendingRelief={hasAssignedRelief}
+                                  stickers={magnetStickers?.[assignedStaff.id] || []}
+                                  onToggleSticker={onToggleSticker ? (sId, stId) => onToggleSticker('magnet', sId, stId) : undefined}
+                                  activeStampStickerId={activeStampStickerId}
                                 />
                               </div>
 
-                              {hasAssignedRelief && reliefStaff && (
+                              {hasAssignedRelief && reliefStaff ? (
                                 <div
                                   style={{
                                     flex: '1 1 50%',
@@ -1398,6 +1416,98 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                     )}
                                   </div>
                                 </div>
+                              ) : isOpenRedBox ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (onOpenReliefModal) {
+                                        onOpenReliefModal({
+                                          type: 'runner_slot',
+                                          id: runner.id,
+                                          roomName: `Runner`,
+                                          departmentName: activeDepartment.name,
+                                          currentStaff: assignedStaff || null,
+                                          currentRelief: runner.relief
+                                        });
+                                      }
+                                    }}
+                                    style={{
+                                      padding: '2px 6px',
+                                      borderRadius: 4,
+                                      border: '1.5px dashed var(--marker-red, #dc2626)',
+                                      background: 'rgba(239, 68, 68, 0.12)',
+                                      color: 'var(--marker-red, #dc2626)',
+                                      fontSize: 10,
+                                      fontWeight: 800,
+                                      cursor: 'pointer',
+                                      flexShrink: 0,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 3
+                                    }}
+                                    title="Red Box: Tap to assign relief clinician"
+                                  >
+                                    <Clock size={10} />
+                                    <span>+ Relief</span>
+                                  </button>
+                                  {isEditor && onRemoveRelief && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onRemoveRelief('runner_slot', runner.id);
+                                      }}
+                                      style={{
+                                        padding: '2px 5px',
+                                        borderRadius: 4,
+                                        border: 'none',
+                                        background: 'rgba(239, 68, 68, 0.15)',
+                                        color: 'var(--marker-red, #dc2626)',
+                                        fontSize: 11,
+                                        fontWeight: 900,
+                                        cursor: 'pointer',
+                                        lineHeight: 1
+                                      }}
+                                      title="Clear red box"
+                                      aria-label="Clear red box"
+                                    >
+                                      ×
+                                    </button>
+                                  )}
+                                </div>
+                              ) : (
+                                isEditor && onOpenReliefModal && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onOpenReliefModal({
+                                        type: 'runner_slot',
+                                        id: runner.id,
+                                        roomName: `Runner`,
+                                        departmentName: activeDepartment.name,
+                                        currentStaff: assignedStaff || null,
+                                        currentRelief: runner.relief
+                                      });
+                                    }}
+                                    style={{
+                                      padding: '2px 6px',
+                                      borderRadius: 4,
+                                      border: '1px dashed var(--border-medium, #cbd5e1)',
+                                      background: 'transparent',
+                                      color: 'var(--text-muted, #64748b)',
+                                      fontSize: 10,
+                                      fontWeight: 700,
+                                      cursor: 'pointer',
+                                      flexShrink: 0
+                                    }}
+                                    title="Plan relief for runner"
+                                  >
+                                    + Relief
+                                  </button>
+                                )
                               )}
                             </div>
                           </div>
@@ -1421,6 +1531,9 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                         onUpdateRoomNote={onUpdateRoomNote}
                         currentUserRole={currentUserRole}
                         onOpenLogin={onOpenLogin}
+                        stickers={roomStickers?.[room.id] || []}
+                        onToggleSticker={onToggleSticker ? (rId, stId) => onToggleSticker('room', rId, stId) : undefined}
+                        activeStampStickerId={activeStampStickerId}
                       />
 
                       {/* Slots inside Room */}
@@ -1476,6 +1589,9 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                       onSelectStaff={onSelectStaff}
                                       isDraggable={false}
                                       hasPendingRelief={hasAssignedRelief}
+                                      stickers={magnetStickers?.[assignedStaff.id] || []}
+                                      onToggleSticker={onToggleSticker ? (sId, stId) => onToggleSticker('magnet', sId, stId) : undefined}
+                                      activeStampStickerId={activeStampStickerId}
                                     />
                                   </div>
                                 ) : (
@@ -2148,12 +2264,24 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                           onToggleBreak={(type, val) => onToggleBreak('bullpen', staffId, type, val)}
                           onSelectStaff={onSelectStaff}
                           isDraggable={false}
+                          stickers={magnetStickers?.[staffMember.id] || []}
+                          onToggleSticker={onToggleSticker ? (sId, stId) => onToggleSticker('magnet', sId, stId) : undefined}
+                          activeStampStickerId={activeStampStickerId}
                         />
                       </div>
                     );
                   })}
                 </div>
               )}
+            </div>
+
+            {/* Sticker Palette at the bottom of the Bullpen screen */}
+            <div style={{ marginTop: 12, padding: '0 4px' }}>
+              <StickerPalette
+                activeStampStickerId={activeStampStickerId}
+                onSelectStampSticker={onSelectStampSticker}
+                onClearAllStickers={onClearAllStickers}
+              />
             </div>
           </div>
         )}
@@ -2206,6 +2334,9 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                             onUpdateNote={onUpdateMagnetNote ? (note) => onUpdateMagnetNote(s.id, note) : undefined}
                             onSelectStaff={onSelectStaff}
                             isDraggable={false}
+                            stickers={magnetStickers?.[s.id] || []}
+                            onToggleSticker={onToggleSticker ? (sId, stId) => onToggleSticker('magnet', sId, stId) : undefined}
+                            activeStampStickerId={activeStampStickerId}
                           />
                         </div>
                       );

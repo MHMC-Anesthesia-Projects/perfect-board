@@ -753,6 +753,61 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, state });
       }
 
+      // 4e. Toggle / set sticker on magnet or room
+      case 'TOGGLE_STICKER': {
+        const { targetType, targetId, stickerId, action } = payload;
+        // targetType: 'magnet' (targetId = staffId) or 'room' (targetId = roomId)
+        if (!targetType || !targetId || !stickerId) {
+          return NextResponse.json({ error: 'Missing targetType, targetId, or stickerId' }, { status: 400 });
+        }
+
+        state.magnetStickers = state.magnetStickers || {};
+        state.roomStickers = state.roomStickers || {};
+
+        const stickerMap = targetType === 'magnet' ? state.magnetStickers : state.roomStickers;
+        const currentList = stickerMap[targetId] || [];
+
+        let nextList: string[];
+        if (action === 'add') {
+          if (!currentList.includes(stickerId)) {
+            nextList = [...currentList, stickerId];
+          } else {
+            nextList = currentList;
+          }
+        } else if (action === 'remove') {
+          nextList = currentList.filter(s => s !== stickerId);
+        } else {
+          // toggle
+          if (currentList.includes(stickerId)) {
+            nextList = currentList.filter(s => s !== stickerId);
+          } else {
+            nextList = [...currentList, stickerId];
+          }
+        }
+
+        if (nextList.length > 0) {
+          stickerMap[targetId] = nextList;
+        } else {
+          delete stickerMap[targetId];
+        }
+
+        await saveBoardState(state);
+        broadcastStateChange();
+        return NextResponse.json({ success: true, state });
+      }
+
+      // 4f. Clear all stickers across board
+      case 'CLEAR_ALL_STICKERS': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied.' }, { status: 403 });
+        }
+        state.magnetStickers = {};
+        state.roomStickers = {};
+        await saveBoardState(state);
+        broadcastStateChange();
+        return NextResponse.json({ success: true, state });
+      }
+
       // 5. Update Departure, Call Team, or Lates lists directly
       case 'UPDATE_LISTS': {
         if (currentUserRole === 'basic_user') {
@@ -876,6 +931,10 @@ export async function POST(req: NextRequest) {
             s.studentName = undefined;
           });
         }
+
+        // Clear stickers for the new day
+        state.magnetStickers = {};
+        state.roomStickers = {};
 
         await saveBoardState(state);
         await recordAuditLog({
@@ -1382,82 +1441,55 @@ export async function POST(req: NextRequest) {
         const incomingStaff = reliefStaffId ? state.staff.find(s => s.id === reliefStaffId) : null;
         if (incomingStaff) incomingStaffName = `${incomingStaff.lastName} (${incomingStaff.credentials})`;
 
-        if (targetType === 'runner_slot') {
-          return NextResponse.json({ error: 'Runners do not support relief assignments.' }, { status: 400 });
-        }
-
-        // room_slot target
         let targetSlot: any = null;
-        for (const dept of state.departments) {
-          for (const room of dept.rooms) {
-            const slot = room.slots.find(s => s.id === targetId);
-            if (slot) {
-              targetSlot = slot;
-              const wasPreviouslyRedBox = Boolean(slot.relief?.isRedBox);
+
+        if (targetType === 'runner_slot') {
+          for (const dept of state.departments) {
+            const runner = dept.runnerSlots?.find(r => r.id === targetId);
+            if (runner) {
+              targetSlot = runner;
+              const wasPreviouslyRedBox = Boolean(runner.relief?.isRedBox);
               const isPlannedRedBox = isRedBox !== undefined ? Boolean(isRedBox) : wasPreviouslyRedBox;
-              slot.relief = {
+              runner.relief = {
                 staffId: reliefStaffId || null,
-                time: reliefTime || slot.relief?.time || '3:00 PM',
-                notes: notes !== undefined ? notes : (slot.relief?.notes || ''),
+                time: reliefTime || runner.relief?.time || '3:00 PM',
+                notes: notes !== undefined ? notes : (runner.relief?.notes || ''),
                 isRedBox: Boolean(isPlannedRedBox || !reliefStaffId)
               };
-              const outgoing = state.staff.find(s => s.id === slot.staffId);
+              const outgoing = state.staff.find(s => s.id === runner.staffId);
               if (outgoing) outgoingStaffName = `${outgoing.lastName} (${outgoing.credentials})`;
-              targetLocation = `${dept.name} Room ${room.name}`;
+              targetLocation = `${dept.name} Runner (${runner.title})`;
               break;
             }
           }
-          if (targetSlot) break;
+        } else {
+          // room_slot target
+          for (const dept of state.departments) {
+            for (const room of dept.rooms) {
+              const slot = room.slots.find(s => s.id === targetId);
+              if (slot) {
+                targetSlot = slot;
+                const wasPreviouslyRedBox = Boolean(slot.relief?.isRedBox);
+                const isPlannedRedBox = isRedBox !== undefined ? Boolean(isRedBox) : wasPreviouslyRedBox;
+                slot.relief = {
+                  staffId: reliefStaffId || null,
+                  time: reliefTime || slot.relief?.time || '3:00 PM',
+                  notes: notes !== undefined ? notes : (slot.relief?.notes || ''),
+                  isRedBox: Boolean(isPlannedRedBox || !reliefStaffId)
+                };
+                const outgoing = state.staff.find(s => s.id === slot.staffId);
+                if (outgoing) outgoingStaffName = `${outgoing.lastName} (${outgoing.credentials})`;
+                targetLocation = `${dept.name} Room ${room.name}`;
+                break;
+              }
+            }
+            if (targetSlot) break;
+          }
         }
 
         const isSelfRelief = Boolean(targetSlot && targetSlot.staffId && targetSlot.staffId === reliefStaffId);
 
-        // If a magnet in a room is dragged/assigned to be relief (and not self-relieving):
-        // Remove the magnet from the room it came from and show it in the bullpen!
-        if (reliefStaffId && !isSelfRelief) {
-          state.bullpenStaffIds = state.bullpenStaffIds || [];
-          state.bullpenBreaks = state.bullpenBreaks || {};
-
-          for (const dept of state.departments) {
-            for (const room of dept.rooms) {
-              for (const slot of room.slots) {
-                const isSource = fromSource?.id ? slot.id === fromSource.id : (slot.staffId === reliefStaffId && slot.id !== targetId);
-                if (isSource && slot.staffId === reliefStaffId) {
-                  slot.staffId = null;
-                  fromLocation = `${dept.name} Room ${room.name}`;
-                  state.bullpenBreaks[reliefStaffId] = {
-                    breakfastDone: slot.breakfastDone,
-                    lunchDone: slot.lunchDone,
-                    breakfastTime: slot.breakfastTime,
-                    lunchTime: slot.lunchTime
-                  };
-                }
-              }
-            }
-
-            // Also check runnerSlots if they came from a runner
-            const isRunnerSource = fromSource?.type === 'runner_slot' || (!fromSource && dept.runnerSlots.some(r => r.staffId === reliefStaffId));
-            if (isRunnerSource) {
-              const rIdx = dept.runnerSlots.findIndex(r => fromSource?.id ? r.id === fromSource.id : r.staffId === reliefStaffId);
-              if (rIdx !== -1) {
-                const r = dept.runnerSlots[rIdx];
-                state.bullpenBreaks[reliefStaffId] = {
-                  breakfastDone: r.breakfastDone,
-                  lunchDone: r.lunchDone,
-                  breakfastTime: r.breakfastTime,
-                  lunchTime: r.lunchTime
-                };
-                fromLocation = `${dept.name} Runner (${r.title})`;
-                dept.runnerSlots.splice(rIdx, 1);
-              }
-            }
-          }
-
-          // Show in the bullpen!
-          if (!state.bullpenStaffIds.includes(reliefStaffId)) {
-            state.bullpenStaffIds.push(reliefStaffId);
-          }
-        }
+        // Clinicians persist in their assigned room or runner slot (do not drag them out!)
 
         await saveBoardState(state);
         const isOpenRedBox = !reliefStaffId;
@@ -1471,9 +1503,7 @@ export async function POST(req: NextRequest) {
             ? `Marked ${targetLocation} for 3 PM Count (Open Red Box awaiting coverage)`
             : isSelfRelief
               ? `${incomingStaffName} designated as relieving themselves in ${targetLocation}`
-              : fromLocation
-                ? `Assigned relief: ${incomingStaffName} relieving ${outgoingStaffName || 'Room'} in ${targetLocation} (moved from ${fromLocation} to bullpen)`
-                : `Assigned relief: ${incomingStaffName} relieving ${outgoingStaffName || 'Room'} in ${targetLocation}`
+              : `Assigned relief: ${incomingStaffName} relieving ${outgoingStaffName || 'Room'} in ${targetLocation}`
         });
 
         broadcastStateChange();

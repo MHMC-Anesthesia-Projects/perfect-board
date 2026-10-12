@@ -1008,39 +1008,25 @@ button {
 
 .runner-slots-group {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
+  flex-direction: column;
   gap: 3px;
   width: 100%;
   align-items: stretch;
-  min-height: 24px;
 }
 
 .runner-slots-group:empty {
   display: none;
 }
 
-.runner-slot {
-  min-width: 0;
-  height: 24px;
-  min-height: 24px;
-  max-height: 26px;
-  background: var(--runner-bg);
-  border: 1px dashed var(--runner-border);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 10.5px;
-  color: var(--runner-text);
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  box-sizing: border-box;
-  padding: 0 4px;
-}
-
-.runner-slot-row {
+.runner-slot,
+.runner-slot.single,
+.runner-slot.multi,
+.runner-slot-row,
+.runner-slot-row.single,
+.runner-slot-row.multi {
+  width: 100%;
+  flex: none;
+  max-width: 100%;
   min-width: 0;
   height: 24px;
   min-height: 24px;
@@ -1052,21 +1038,17 @@ button {
   box-sizing: border-box;
 }
 
-/* 1 runner slot takes full width */
-.runner-slot.single,
-.runner-slot-row.single {
-  width: 100%;
-  flex: 1 1 100%;
-  max-width: 100%;
-}
-
-/* 2 or more runner slots share row horizontally side-by-side without wrapping */
-.runner-slot.multi,
-.runner-slot-row.multi {
-  width: 0;
-  flex: 1 1 0;
-  max-width: 100%;
-  min-width: 0;
+.runner-slot {
+  background: var(--runner-bg);
+  border: 1px dashed var(--runner-border);
+  border-radius: var(--radius-sm);
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--runner-text);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0 4px;
 }
 
 .runner-slot.drag-over,
@@ -4287,3 +4269,327 @@ body.dragging-staff .magnet-tile * {
 .staff-modal-messaging-title {
   white-space: nowrap;
 }
+
+/* ==========================================================================
+   RUNNER RELIEF STYLES (Relief for Department Runners)
+   ========================================================================== */
+
+.runner-slot-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+}
+
+.runner-slot-row .primary-runner-zone {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.runner-slot-row .relief-box {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  min-height: 20px;
+  max-height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  gap: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--marker-red);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: grab;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.4);
+  box-sizing: border-box;
+}
+
+.runner-slot-row .relief-slot-target {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  height: 100%;
+  min-height: 20px;
+  max-height: 24px;
+  min-width: 52px;
+  border-radius: var(--radius-sm);
+  border: 1.5px dashed rgba(239, 68, 68, 0.7);
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--marker-red);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+  user-select: none;
+  box-sizing: border-box;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.runner-slot-row:hover .relief-slot-target {
+  display: flex;
+}
+
+body.dragging-staff .runner-slot-row .relief-slot-target {
+  display: flex;
+}
+
+.runner-slot-row .relief-slot-target:hover {
+  background: rgba(220, 38, 38, 0.18);
+  border-color: var(--marker-red);
+}
+
+.runner-slot-row .relief-slot-target.persistent-red-box {
+  display: flex !important;
+  flex: 1;
+  max-width: 50%;
+  background: rgba(220, 38, 38, 0.22);
+  border: 1.5px solid var(--marker-red);
+}
+
+/* ==========================================================================
+   STICKER PALETTE & STICKER SYSTEM
+   ========================================================================== */
+
+.sticker-palette-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: var(--surface-header);
+  border-top: 1px solid var(--border-light);
+  gap: 10px;
+  flex-shrink: 0;
+  user-select: none;
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.sticker-palette-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sticker-palette-title {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.sticker-palette-stamp-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  animation: pulseStamp 1.8s infinite ease-in-out;
+}
+
+@keyframes pulseStamp {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.sticker-cancel-stamp-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 9.5px;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 0 2px;
+  text-decoration: underline;
+}
+
+.sticker-palette-items {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.sticker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  cursor: grab;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  touch-action: none;
+}
+
+.sticker-chip:hover {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+  border-color: var(--border-medium);
+}
+
+.sticker-chip:active {
+  cursor: grabbing;
+}
+
+.sticker-chip.stamp-active {
+  border-color: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.sticker-dot-visual {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.sticker-badge-visual {
+  font-size: 9.5px;
+  font-weight: 900;
+  color: #ffffff;
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  line-height: 1.1;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.sticker-chip-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+.sticker-clear-all-btn {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: all 0.15s ease;
+}
+
+.sticker-clear-all-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+/* Magnet Sticker Render Badges */
+.magnet-stickers-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 2px;
+  flex-shrink: 0;
+}
+
+.magnet-sticker-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.magnet-sticker-dot:hover {
+  transform: scale(1.3);
+}
+
+.magnet-sticker-dot.green {
+  background: #10b981;
+  box-shadow: 0 0 4px rgba(16, 185, 129, 0.85);
+}
+
+.magnet-sticker-dot.blue {
+  background: #0284c7;
+  box-shadow: 0 0 4px rgba(2, 132, 199, 0.85);
+}
+
+.magnet-sticker-dot.yellow {
+  background: #f59e0b;
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.85);
+}
+
+.magnet-sticker-badge {
+  font-size: 8px;
+  font-weight: 900;
+  padding: 0.5px 3.5px;
+  border-radius: 3px;
+  letter-spacing: 0.4px;
+  line-height: 1.1;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.magnet-sticker-badge:hover {
+  transform: scale(1.2);
+}
+
+.magnet-sticker-badge.vol {
+  background: #8b5cf6;
+  color: #ffffff;
+  box-shadow: 0 0 4px rgba(139, 92, 246, 0.7);
+}
+
+/* Room Label Sticker Badges */
+.room-stickers-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 2.5px;
+  margin-left: 2px;
+  flex-shrink: 0;
+}
+
+.room-stickers-container .magnet-sticker-dot {
+  width: 8px;
+  height: 8px;
+}
+
+.room-stickers-container .magnet-sticker-badge {
+  font-size: 7.5px;
+  padding: 0.5px 2.5px;
+}
+
+/* Dragging Sticker Target Highlights */
+body.dragging-sticker .magnet-tile {
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.6) !important;
+}
+
+body.dragging-sticker .room-row {
+  outline: 1.5px dashed rgba(59, 130, 246, 0.4);
+}
+
