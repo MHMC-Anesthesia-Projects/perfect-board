@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from 'react';
 import { Staff, UserRole } from '@/types/whiteboard';
 import { MagnetTile } from './MagnetTile';
-import { StickerPalette } from './StickerPalette';
 import { PanelLeftClose, Users, Sparkles } from 'lucide-react';
 
 interface BullpenSidebarProps {
@@ -272,16 +271,6 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
             })}
           </div>
         )}
-      </div>
-
-      {/* Bullpen Footer Info & Stickers */}
-      <div className="bullpen-sidebar-footer" style={{ padding: 0, display: 'flex', flexDirection: 'column' }}>
-        <StickerPalette
-          activeStampStickerId={activeStampStickerId || null}
-          onSelectStampSticker={onSelectStampSticker || (() => {})}
-          onClearAllStickers={onClearAllStickers}
-          hasAnyStickers={hasAnyStickers}
-        />
       </div>
     </aside>
   );

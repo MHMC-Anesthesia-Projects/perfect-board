@@ -117,6 +117,50 @@ export default function WhiteboardPage() {
   const [isRemoveAllMagnetsModalOpen, setIsRemoveAllMagnetsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeStampStickerId, setActiveStampStickerId] = useState<string | null>(null);
+  const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
+
+  // Track cursor position when a sticker magnet is selected so it hangs off the mouse pointer
+  useEffect(() => {
+    if (!activeStampStickerId) {
+      if (typeof document !== 'undefined') {
+        document.body.classList.remove('has-active-stamp');
+      }
+      setCursorPos(null);
+      return;
+    }
+
+    if (typeof document !== 'undefined') {
+      document.body.classList.add('has-active-stamp');
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      setCursorPos({ x: e.clientX, y: e.clientY });
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setActiveStampStickerId(null);
+      }
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      setActiveStampStickerId(null);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('contextmenu', handleContextMenu);
+
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.body.classList.remove('has-active-stamp');
+      }
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, [activeStampStickerId]);
 
   // Undo / Mistake Resolution System (Layers 1 & 2)
   const [undoStack, setUndoStack] = useState<UndoItem[]>([]);
@@ -3246,6 +3290,35 @@ export default function WhiteboardPage() {
           >
             ✕
           </button>
+        </div>
+      )}
+
+      {/* Floating Magnet Cursor Follower (hangs off the edge of the mouse pointer) */}
+      {activeStampStickerId && cursorPos && (
+        <div
+          className="sticker-cursor-follower"
+          style={{
+            left: `${cursorPos.x + 12}px`,
+            top: `${cursorPos.y + 12}px`
+          }}
+        >
+          {activeStampStickerId === 'green_dot' && (
+            <span className="magnet-sticker-dot green follower-dot" />
+          )}
+          {activeStampStickerId === 'blue_dot' && (
+            <span className="magnet-sticker-dot blue follower-dot" />
+          )}
+          {activeStampStickerId === 'vol' && (
+            <span className="magnet-sticker-badge vol follower-badge">VOLUNTEER</span>
+          )}
+          {(activeStampStickerId === 'will_finish' || activeStampStickerId === 'yellow_dot') && (
+            <span className="magnet-sticker-badge will-finish follower-badge">WILL FINISH</span>
+          )}
+          {(activeStampStickerId.startsWith('text:') || activeStampStickerId.startsWith('custom:')) && (
+            <span className="magnet-sticker-badge custom-text follower-badge">
+              {activeStampStickerId.replace(/^(text:|custom:)/, '')}
+            </span>
+          )}
         </div>
       )}
     </>

@@ -19,6 +19,78 @@ export const StickerPalette: React.FC<StickerPaletteProps> = ({
   const [customText, setCustomText] = useState('');
   const customInputRef = useRef<HTMLInputElement>(null);
 
+  const createStickerDragGhost = (stickerId: string): HTMLElement => {
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.top = '-9999px';
+    container.style.left = '-9999px';
+    container.style.padding = '12px 0 0 12px';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '999999';
+
+    const badge = document.createElement('span');
+    if (stickerId === 'green_dot') {
+      badge.className = 'magnet-sticker-dot green';
+      badge.style.width = '10px';
+      badge.style.height = '10px';
+      badge.style.borderRadius = '50%';
+      badge.style.backgroundColor = '#10b981';
+      badge.style.border = '1.5px solid white';
+      badge.style.display = 'inline-block';
+      badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.45)';
+    } else if (stickerId === 'blue_dot') {
+      badge.className = 'magnet-sticker-dot blue';
+      badge.style.width = '10px';
+      badge.style.height = '10px';
+      badge.style.borderRadius = '50%';
+      badge.style.backgroundColor = '#0284c7';
+      badge.style.border = '1.5px solid white';
+      badge.style.display = 'inline-block';
+      badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.45)';
+    } else if (stickerId === 'vol') {
+      badge.className = 'magnet-sticker-badge vol';
+      badge.textContent = 'VOLUNTEER';
+      badge.style.backgroundColor = '#8b5cf6';
+      badge.style.color = '#ffffff';
+      badge.style.fontSize = '8.5px';
+      badge.style.fontWeight = '900';
+      badge.style.padding = '1.5px 5px';
+      badge.style.borderRadius = '3px';
+      badge.style.border = '1px solid rgba(255,255,255,0.85)';
+      badge.style.display = 'inline-block';
+      badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.45)';
+    } else if (stickerId === 'will_finish' || stickerId === 'yellow_dot') {
+      badge.className = 'magnet-sticker-badge will-finish';
+      badge.textContent = 'WILL FINISH';
+      badge.style.backgroundColor = '#d97706';
+      badge.style.color = '#ffffff';
+      badge.style.fontSize = '8px';
+      badge.style.fontWeight = '900';
+      badge.style.padding = '1.5px 5px';
+      badge.style.borderRadius = '3px';
+      badge.style.border = '1px solid rgba(255,255,255,0.85)';
+      badge.style.display = 'inline-block';
+      badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.45)';
+    } else if (stickerId.startsWith('text:') || stickerId.startsWith('custom:')) {
+      const text = stickerId.replace(/^(text:|custom:)/, '');
+      badge.className = 'magnet-sticker-badge custom-text';
+      badge.textContent = text;
+      badge.style.backgroundColor = '#0f766e';
+      badge.style.color = '#ffffff';
+      badge.style.fontSize = '8.5px';
+      badge.style.fontWeight = '900';
+      badge.style.padding = '1.5px 5px';
+      badge.style.borderRadius = '3px';
+      badge.style.border = '1px solid rgba(255,255,255,0.85)';
+      badge.style.display = 'inline-block';
+      badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.45)';
+    }
+
+    container.appendChild(badge);
+    document.body.appendChild(container);
+    return container;
+  };
+
   const handleDragStart = (e: React.DragEvent, sticker: StickerItem) => {
     const payloadObj = {
       type: 'sticker',
@@ -29,6 +101,12 @@ export const StickerPalette: React.FC<StickerPaletteProps> = ({
     e.dataTransfer.setData('text/plain', payload);
     e.dataTransfer.setData('text', payload);
     e.dataTransfer.effectAllowed = 'copy';
+
+    if (e.dataTransfer && typeof e.dataTransfer.setDragImage === 'function') {
+      const ghost = createStickerDragGhost(sticker.id);
+      e.dataTransfer.setDragImage(ghost, 0, 0);
+      setTimeout(() => ghost.remove(), 0);
+    }
 
     if (typeof window !== 'undefined') {
       (window as any).__activeDraggedSticker = sticker.id;
@@ -48,6 +126,12 @@ export const StickerPalette: React.FC<StickerPaletteProps> = ({
     e.dataTransfer.setData('text/plain', payload);
     e.dataTransfer.setData('text', payload);
     e.dataTransfer.effectAllowed = 'copy';
+
+    if (e.dataTransfer && typeof e.dataTransfer.setDragImage === 'function') {
+      const ghost = createStickerDragGhost(stickerId);
+      e.dataTransfer.setDragImage(ghost, 0, 0);
+      setTimeout(() => ghost.remove(), 0);
+    }
 
     if (typeof window !== 'undefined') {
       (window as any).__activeDraggedSticker = stickerId;
