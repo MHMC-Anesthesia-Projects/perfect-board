@@ -674,7 +674,7 @@ export async function loadBoardState(): Promise<BoardState> {
 
 /**
  * Normalizes runner slots for each department:
- * 1. Strips any relief functionality (runners do not have relief).
+ * 1. Preserves relief assignments and planned red boxes for runners.
  * 2. Preserves all runner slots (both assigned and empty slots).
  * 3. Enforces Title Case for runner titles ("Runner 1", "Runner 2", etc.) instead of uppercase.
  * 4. Ensures each department has at least 1 runner slot if empty.
@@ -697,16 +697,29 @@ export function normalizeDepartmentRunnerSlots(departments?: Department[], staff
       return true;
     });
 
-    // Normalize occupied runners: ensure Title Case ("Runner 1", "Runner 2"), strip any relief
+    // Normalize occupied runners: ensure Title Case ("Runner 1", "Runner 2"), preserve relief
     dept.runnerSlots = occupied.map((r, idx) => {
       const normalizedTitle = r.title && !r.title.match(/^RUNNER\s*\d*$/i)
         ? r.title.replace(/^RUNNER(\s+\d+)?$/i, (m: string, n?: string) => `Runner${n || ''}`)
         : `Runner ${idx + 1}`;
 
+      let sanitizedRelief = r.relief;
+      if (sanitizedRelief && sanitizedRelief.staffId && validStaffIds && !validStaffIds.has(sanitizedRelief.staffId)) {
+        if (sanitizedRelief.isRedBox) {
+          sanitizedRelief = {
+            ...sanitizedRelief,
+            staffId: null,
+            isRedBox: true
+          };
+        } else {
+          sanitizedRelief = undefined;
+        }
+      }
+
       return {
         ...r,
         title: normalizedTitle,
-        relief: undefined
+        relief: sanitizedRelief
       };
     });
   }
