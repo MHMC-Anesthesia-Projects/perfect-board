@@ -1,5 +1,85 @@
 [
   {
+    "id": "audit_1791922286559_dmome",
+    "timestamp": "2026-10-13T20:11:26.559Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Carvajal (MD)",
+    "locationName": "MAIN OR Room 2",
+    "details": "Carvajal (MD) designated as relieving themselves in MAIN OR Room 2"
+  },
+  {
+    "id": "audit_1791922286392_utxgy",
+    "timestamp": "2026-10-13T20:11:26.392Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Carvajal (MD)",
+    "locationName": "MAIN OR Room 2",
+    "details": "Carvajal (MD) designated as relieving themselves in MAIN OR Room 2"
+  },
+  {
+    "id": "audit_1791922282833_122nr",
+    "timestamp": "2026-10-13T20:11:22.833Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "MAIN OR Room 2",
+    "details": "Marked MAIN OR Room 2 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791921779449_ehbik",
+    "timestamp": "2026-10-13T20:02:59.449Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 2",
+    "details": "Removed relief assignment for WEST PAV Room 2"
+  },
+  {
+    "id": "audit_1791921776345_xufwh",
+    "timestamp": "2026-10-13T20:02:56.345Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "WEST PAV Room 2",
+    "details": "Marked WEST PAV Room 2 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791921773869_c1q4j",
+    "timestamp": "2026-10-13T20:02:53.869Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Room 2",
+    "details": "Removed relief assignment for WEST PAV Room 2"
+  },
+  {
+    "id": "audit_1791921767367_xoo22",
+    "timestamp": "2026-10-13T20:02:47.367Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Rojas (CRNA)",
+    "locationName": "WEST PAV Room 2",
+    "details": "Rojas (CRNA) designated as relieving themselves in WEST PAV Room 2"
+  },
+  {
+    "id": "audit_1791921764310_1by76",
+    "timestamp": "2026-10-13T20:02:44.310Z",
+    "actionType": "STAFF_ASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Rojas (CRNA)",
+    "locationName": "WEST PAV Room 2",
+    "details": "Rojas (CRNA) designated as relieving themselves in WEST PAV Room 2"
+  },
+  {
     "id": "audit_1791917739231_k29mu",
     "timestamp": "2026-10-13T18:55:39.231Z",
     "actionType": "ROOM_UPDATED",
