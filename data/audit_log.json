@@ -1,5 +1,67 @@
 [
   {
+    "id": "audit_1791905463454_2b79i",
+    "timestamp": "2026-10-13T15:31:03.454Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Hung Lam",
+    "locationName": "Credentialed Unassigned Staff",
+    "details": "Moved from ORTHO Room 5 -> Credentialed Unassigned Staff",
+    "metadata": {
+      "fromTargetType": "room_slot",
+      "fromId": "dept_ortho_room_5_slot_0",
+      "toTargetType": "unassigned",
+      "staffId": "staff_oneusap_anes_lamhun",
+      "fromLocation": "ORTHO Room 5",
+      "toLocation": "Credentialed Unassigned Staff"
+    }
+  },
+  {
+    "id": "audit_1791844648384_0cbyn",
+    "timestamp": "2026-10-12T22:37:28.384Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "details": "Removed all sticker magnets from whiteboard"
+  },
+  {
+    "id": "audit_1791844023313_l3aae",
+    "timestamp": "2026-10-12T22:27:03.313Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "locationName": "Entire Whiteboard",
+    "details": "Cleared all text notes (0 room note(s), 0 magnet note(s))"
+  },
+  {
+    "id": "audit_1791843454439_jjm9d",
+    "timestamp": "2026-10-12T22:17:34.439Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "DAvignonT ",
+    "details": "Cleared magnet red note"
+  },
+  {
+    "id": "audit_1791843451155_ps65u",
+    "timestamp": "2026-10-12T22:17:31.155Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "DAvignonT ",
+    "details": "Updated magnet red note: \"jh\""
+  },
+  {
+    "id": "audit_1791843445456_blwlc",
+    "timestamp": "2026-10-12T22:17:25.456Z",
+    "actionType": "NOTE_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "locationName": "Entire Whiteboard",
+    "details": "Cleared all text notes (0 room note(s), 1 magnet note(s))"
+  },
+  {
     "id": "audit_1791840504515_wxkgh",
     "timestamp": "2026-10-12T21:28:24.515Z",
     "actionType": "ROOM_UPDATED",
