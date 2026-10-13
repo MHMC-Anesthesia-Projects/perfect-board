@@ -7,7 +7,11 @@ export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
   const users = await loadUsers();
-  const safeUsers = users.map(u => ({
+  const requesterRole = req.headers.get('x-user-role') || req.nextUrl.searchParams.get('role');
+  const isSuperuser = requesterRole === 'superuser';
+  const visibleUsers = isSuperuser ? users : users.filter(u => u.role !== 'superuser');
+
+  const safeUsers = visibleUsers.map(u => ({
     id: u.id,
     username: u.username,
     email: u.email || (u.username.includes('@') ? u.username : `${u.username}@perfectboard.io`),
@@ -33,6 +37,10 @@ export async function POST(req: NextRequest) {
     const effectiveRole = currentUser?.role || headerRole;
     if (effectiveRole !== 'admin' && effectiveRole !== 'superuser') {
       return NextResponse.json({ error: 'Superuser or Admin permission required.' }, { status: 403 });
+    }
+
+    if (role === 'superuser' && effectiveRole !== 'superuser') {
+      return NextResponse.json({ error: 'Only platform Superusers can create superuser accounts.' }, { status: 403 });
     }
 
     const finalUsername = (username || email || '').trim();
@@ -96,6 +104,10 @@ export async function PUT(req: NextRequest) {
     }
 
     const targetUser = users[userIndex];
+
+    if ((targetUser.role === 'superuser' || role === 'superuser') && effectiveRole !== 'superuser') {
+      return NextResponse.json({ error: 'Superuser accounts can only be managed by platform Superusers.' }, { status: 403 });
+    }
 
     if (username !== undefined && username.trim() !== '' && username.trim().toLowerCase() !== targetUser.username.toLowerCase()) {
       const trimmedUsername = username.trim();
@@ -181,6 +193,10 @@ export async function DELETE(req: NextRequest) {
     const targetUser = users.find(u => u.id === id);
     if (!targetUser) {
       return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+    }
+
+    if (targetUser.role === 'superuser' && currentRole !== 'superuser') {
+      return NextResponse.json({ error: 'Superuser accounts can only be managed by platform Superusers.' }, { status: 403 });
     }
 
     // Protect against deleting the only superuser

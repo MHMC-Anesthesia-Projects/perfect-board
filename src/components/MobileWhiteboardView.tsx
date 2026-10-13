@@ -1495,9 +1495,23 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                       onSetRelief('runner_slot', runner.id, '', '', '', true);
                                     }
                                   }}
-                                  title="Single tap to designate relief (Red Box)"
+                                  style={{
+                                    padding: '2px 5px',
+                                    borderRadius: 4,
+                                    border: '1px dashed rgba(239, 68, 68, 0.5)',
+                                    background: 'rgba(239, 68, 68, 0.05)',
+                                    color: 'var(--marker-red, #dc2626)',
+                                    fontSize: 9.5,
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    flexShrink: 0,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2
+                                  }}
+                                  title="Add Red Box for 3 PM relief count"
                                 >
-                                  <Clock size={10} />
+                                  <Plus size={10} />
                                   <span>Relief</span>
                                 </button>
                               ) : null}

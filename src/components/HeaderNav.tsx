@@ -225,7 +225,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           color: 'var(--text-primary)'
         }}>
           <Lock size={13} style={{ color: 'var(--text-muted)' }} />
-          <span>Basic User: {currentUser.displayName}</span>
+          <span>Staff: {currentUser.displayName}</span>
         </div>
       );
     }

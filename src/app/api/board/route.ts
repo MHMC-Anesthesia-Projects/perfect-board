@@ -1527,10 +1527,20 @@ export async function POST(req: NextRequest) {
 
         if (targetType === 'runner_slot') {
           for (const dept of state.departments) {
-            const runner = dept.runnerSlots.find(r => r.id === targetId);
-            if (runner) {
-              runner.relief = null;
-              targetLocation = `${dept.name} Runner (${runner.title})`;
+            const runner = dept.runnerSlots?.find(r => r.id === targetId);
+            if (runner && runner.relief) {
+              if (!forceDelete && runner.relief.isRedBox && runner.relief.staffId) {
+                runner.relief = {
+                  staffId: null,
+                  time: runner.relief.time || '3:00 PM',
+                  notes: runner.relief.notes || '',
+                  isRedBox: true
+                };
+                targetLocation = `${dept.name} Runner (${runner.title}) (Restored Planned Red Box)`;
+              } else {
+                runner.relief = null;
+                targetLocation = `${dept.name} Runner (${runner.title})`;
+              }
               break;
             }
           }

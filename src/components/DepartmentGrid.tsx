@@ -375,7 +375,6 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                         style={{
                           flex: 1,
                           minWidth: 0,
-                          maxWidth: (hasRunnerRelief || isOpenRunnerRedBox) ? '55%' : undefined,
                           height: '100%'
                         }}
                         onDragEnter={(e) => {
@@ -444,10 +443,20 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                               }
                             }}
                             onDragEnd={handleTileDragEnd}
-                            onDragEnter={handleZoneDragEnter}
-                            onDragOver={handleZoneDragOver}
-                            onDragLeave={handleZoneDragLeave}
+                            onDragEnter={(e) => {
+                              handleZoneDragEnter(e);
+                              activateRoomDragNear(runner.id, Boolean(assignedStaff));
+                            }}
+                            onDragOver={(e) => {
+                              handleZoneDragOver(e);
+                              activateRoomDragNear(runner.id, Boolean(assignedStaff));
+                            }}
+                            onDragLeave={(e) => {
+                              handleZoneDragLeave(e);
+                              scheduleRoomDragLeave(runner.id);
+                            }}
                             onDrop={(e) => {
+                              cancelDragLeaveTimer();
                               handleReliefDrop(e, 'runner_slot', runner.id);
                             }}
                             onClick={(e) => {
