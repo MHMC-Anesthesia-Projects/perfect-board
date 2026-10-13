@@ -512,7 +512,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                             </button>
                           )}
                         </div>
-                      ) : (isEditor && assignedStaff) ? (
+                      ) : (isEditor && assignedStaff && !activeStampStickerId) ? (
                         <div
                           className={`relief-slot-target ${dragOverRoomSlotId === runner.id ? 'drag-near-active' : ''}`}
                           onDragEnter={(e) => {
@@ -820,7 +820,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                               </button>
                             )}
                           </div>
-                        ) : (isEditor && assignedStaff) ? (
+                        ) : (isEditor && assignedStaff && !activeStampStickerId) ? (
                           <div
                             className={`relief-slot-target ${dragOverRoomSlotId === slot.id ? 'drag-near-active' : ''}`}
                             onDragEnter={(e) => {

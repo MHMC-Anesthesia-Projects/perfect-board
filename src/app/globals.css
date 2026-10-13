@@ -3526,9 +3526,18 @@ button {
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
-body.dragging-staff .relief-slot-target:not(.persistent-red-box) {
+body.dragging-staff .relief-slot-target:not(.persistent-red-box),
+body.dragging-sticker .relief-slot-target:not(.persistent-red-box),
+body.has-active-stamp .relief-slot-target:not(.persistent-red-box),
+body.dragging-sticker .room-slot-row:hover .relief-slot-target:not(.persistent-red-box),
+body.dragging-sticker .runner-slot-row:hover .relief-slot-target:not(.persistent-red-box),
+body.has-active-stamp .room-slot-row:hover .relief-slot-target:not(.persistent-red-box),
+body.has-active-stamp .runner-slot-row:hover .relief-slot-target:not(.persistent-red-box),
+body.dragging-sticker .relief-slot-target:hover,
+body.has-active-stamp .relief-slot-target:hover {
   display: none !important;
   opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 body.dragging-staff .room-slot-row.drag-near .relief-slot-target,
@@ -4106,9 +4115,12 @@ body.dragging-staff .magnet-tile * {
   border: 1.5px solid var(--marker-red) !important;
 }
 
-body.dragging-staff .runner-slot-row .relief-slot-target:not(.persistent-red-box) {
+body.dragging-staff .runner-slot-row .relief-slot-target:not(.persistent-red-box),
+body.dragging-sticker .runner-slot-row .relief-slot-target:not(.persistent-red-box),
+body.has-active-stamp .runner-slot-row .relief-slot-target:not(.persistent-red-box) {
   display: none !important;
   opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 body.dragging-staff .runner-slot-row.drag-near .relief-slot-target,
