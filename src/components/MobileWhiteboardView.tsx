@@ -1485,6 +1485,21 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                     </button>
                                   )}
                                 </div>
+                              ) : (isEditor && assignedStaff) ? (
+                                <button
+                                  type="button"
+                                  className="relief-add-trigger"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onSetRelief) {
+                                      onSetRelief('runner_slot', runner.id, '', '', '', true);
+                                    }
+                                  }}
+                                  title="Single tap to designate relief (Red Box)"
+                                >
+                                  <Clock size={10} />
+                                  <span>Relief</span>
+                                </button>
                               ) : null}
                             </div>
                           </div>

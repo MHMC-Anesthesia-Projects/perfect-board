@@ -4111,8 +4111,14 @@ body.dragging-staff .magnet-tile * {
 .runner-slot-row .relief-slot-target.persistent-red-box {
   display: flex !important;
   opacity: 1 !important;
-  background: rgba(220, 38, 38, 0.22) !important;
-  border: 1.5px solid var(--marker-red) !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  border: 1.5px dashed var(--marker-red, #dc2626) !important;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.25);
+}
+
+[data-theme='dark'] .runner-slot-row .relief-slot-target.persistent-red-box {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-color: #f87171 !important;
 }
 
 body.dragging-staff .runner-slot-row .relief-slot-target:not(.persistent-red-box),
