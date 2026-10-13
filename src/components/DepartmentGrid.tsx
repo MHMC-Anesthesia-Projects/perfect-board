@@ -344,7 +344,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                   return (
                     <div
                       key={runner.id}
-                      className="runner-slot-row single"
+                      className={`runner-slot-row single ${dragOverRoomSlotId === runner.id ? 'drag-near-room drag-near' : ''}`}
                       style={{
                         width: '100%',
                         flex: 'none',
@@ -352,10 +352,20 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                         height: '24px',
                         maxHeight: '26px'
                       }}
-                      onDragEnter={handleZoneDragEnter}
-                      onDragOver={handleZoneDragOver}
-                      onDragLeave={handleZoneDragLeave}
+                      onDragEnter={(e) => {
+                        handleZoneDragEnter(e);
+                        activateRoomDragNear(runner.id, Boolean(assignedStaff));
+                      }}
+                      onDragOver={(e) => {
+                        handleZoneDragOver(e);
+                        activateRoomDragNear(runner.id, Boolean(assignedStaff));
+                      }}
+                      onDragLeave={(e) => {
+                        handleZoneDragLeave(e);
+                        scheduleRoomDragLeave(runner.id);
+                      }}
                       onDrop={e => {
+                        cancelDragLeaveTimer();
                         handleDrop(e, 'runner_dept', dept.id);
                       }}
                     >
@@ -365,13 +375,23 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                         style={{
                           flex: 1,
                           minWidth: 0,
-                          maxWidth: (hasRunnerRelief || isOpenRunnerRedBox || (isEditor && assignedStaff)) ? '55%' : '100%',
+                          maxWidth: (hasRunnerRelief || isOpenRunnerRedBox) ? '55%' : undefined,
                           height: '100%'
                         }}
-                        onDragEnter={handleZoneDragEnter}
-                        onDragOver={handleZoneDragOver}
-                        onDragLeave={handleZoneDragLeave}
+                        onDragEnter={(e) => {
+                          handleZoneDragEnter(e);
+                          activateRoomDragNear(runner.id, Boolean(assignedStaff));
+                        }}
+                        onDragOver={(e) => {
+                          handleZoneDragOver(e);
+                          activateRoomDragNear(runner.id, Boolean(assignedStaff));
+                        }}
+                        onDragLeave={(e) => {
+                          handleZoneDragLeave(e);
+                          scheduleRoomDragLeave(runner.id);
+                        }}
                         onDrop={e => {
+                          cancelDragLeaveTimer();
                           handleDrop(e, 'runner_dept', dept.id);
                         }}
                       >
@@ -494,11 +514,21 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                         </div>
                       ) : (isEditor && assignedStaff) ? (
                         <div
-                          className="relief-slot-target"
-                          onDragEnter={handleZoneDragEnter}
-                          onDragOver={handleZoneDragOver}
-                          onDragLeave={handleZoneDragLeave}
+                          className={`relief-slot-target ${dragOverRoomSlotId === runner.id ? 'drag-near-active' : ''}`}
+                          onDragEnter={(e) => {
+                            handleZoneDragEnter(e);
+                            activateRoomDragNear(runner.id, Boolean(assignedStaff));
+                          }}
+                          onDragOver={(e) => {
+                            handleZoneDragOver(e);
+                            activateRoomDragNear(runner.id, Boolean(assignedStaff));
+                          }}
+                          onDragLeave={(e) => {
+                            handleZoneDragLeave(e);
+                            scheduleRoomDragLeave(runner.id);
+                          }}
                           onDrop={(e) => {
+                            cancelDragLeaveTimer();
                             handleReliefDrop(e, 'runner_slot', runner.id);
                           }}
                           onClick={(e) => {

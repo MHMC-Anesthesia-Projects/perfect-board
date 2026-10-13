@@ -1325,9 +1325,9 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                             <div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', gap: 4 }}>
                               <div
                                 style={{
-                                  flex: (hasAssignedRelief || isOpenRedBox || (isEditor && onOpenReliefModal)) ? '1 1 50%' : 1,
+                                  flex: (hasAssignedRelief || isOpenRedBox) ? '1 1 50%' : 1,
                                   minWidth: 0,
-                                  maxWidth: (hasAssignedRelief || isOpenRedBox || (isEditor && onOpenReliefModal)) ? '50%' : '100%',
+                                  maxWidth: (hasAssignedRelief || isOpenRedBox) ? '50%' : '100%',
                                   height: '100%'
                                 }}
                               >
@@ -1485,45 +1485,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                     </button>
                                   )}
                                 </div>
-                              ) : (
-                                isEditor && onOpenReliefModal && (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onOpenReliefModal({
-                                        type: 'runner_slot',
-                                        id: runner.id,
-                                        roomName: `Runner`,
-                                        departmentName: activeDepartment.name,
-                                        currentStaff: assignedStaff || null,
-                                        currentRelief: runner.relief
-                                      });
-                                    }}
-                                    style={{
-                                      flex: '1 1 50%',
-                                      minWidth: 0,
-                                      maxWidth: '50%',
-                                      height: '100%',
-                                      minHeight: 22,
-                                      padding: '2px 6px',
-                                      borderRadius: 4,
-                                      border: '1.5px dashed rgba(239, 68, 68, 0.7)',
-                                      background: 'rgba(239, 68, 68, 0.08)',
-                                      color: 'var(--marker-red, #dc2626)',
-                                      fontSize: 10,
-                                      fontWeight: 800,
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center'
-                                    }}
-                                    title="Plan relief for runner"
-                                  >
-                                    + Relief
-                                  </button>
-                                )
-                              )}
+                              ) : null}
                             </div>
                           </div>
                         );
