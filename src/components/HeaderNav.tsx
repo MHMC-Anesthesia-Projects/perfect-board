@@ -268,21 +268,27 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
       );
     }
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '4px 10px',
-        background: 'rgba(147, 51, 234, 0.12)',
-        border: '1px solid #a855f7',
-        borderRadius: 20,
-        fontSize: 12,
-        fontWeight: 800,
-        color: '#9333ea'
-      }}>
-        <CheckCircle2 size={14} />
-        <span>Superuser: {currentUser.displayName}</span>
-      </div>
+      <a
+        href="/board/super"
+        title="Open Superuser Control Center"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '4px 10px',
+          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2))',
+          border: '1px solid #f59e0b',
+          borderRadius: 20,
+          fontSize: 12,
+          fontWeight: 800,
+          color: '#d97706',
+          textDecoration: 'none',
+          cursor: 'pointer'
+        }}
+      >
+        <Shield size={14} />
+        <span>Superuser Control Center &rarr;</span>
+      </a>
     );
   };
 

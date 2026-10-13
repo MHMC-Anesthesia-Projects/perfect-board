@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
   const safeUsers = users.map(u => ({
     id: u.id,
     username: u.username,
+    email: u.email || (u.username.includes('@') ? u.username : `${u.username}@perfectboard.io`),
     displayName: u.displayName,
     role: u.role,
     pin: u.pin,
@@ -26,28 +27,35 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { username, displayName, role, pin, password, currentUser } = body;
+    const { username, email, displayName, role, pin, password, currentUser } = body;
+    const headerRole = req.headers.get('x-user-role');
 
-    if (!username || !displayName || !role || !pin) {
-      return NextResponse.json({ error: 'Username, display name, role, and PIN are required.' }, { status: 400 });
+    const effectiveRole = currentUser?.role || headerRole;
+    if (effectiveRole !== 'admin' && effectiveRole !== 'superuser') {
+      return NextResponse.json({ error: 'Superuser or Admin permission required.' }, { status: 403 });
     }
 
-    if (currentUser?.role !== 'admin' && currentUser?.role !== 'superuser') {
-      return NextResponse.json({ error: 'Admin permission required to create new system users.' }, { status: 403 });
+    const finalUsername = (username || email || '').trim();
+    if (!finalUsername || !displayName || !role) {
+      return NextResponse.json({ error: 'Username/Email, display name, and role are required.' }, { status: 400 });
     }
 
     const users = await loadUsers();
-    if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-      return NextResponse.json({ error: 'Username already exists.' }, { status: 400 });
+    if (users.some(u => 
+      u.username.toLowerCase() === finalUsername.toLowerCase() ||
+      (email && u.email && u.email.toLowerCase() === email.trim().toLowerCase())
+    )) {
+      return NextResponse.json({ error: 'An account with that username or email already exists.' }, { status: 400 });
     }
 
     const newUser: User = {
       id: `user_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      username: username.trim(),
+      username: finalUsername,
+      email: (email || (finalUsername.includes('@') ? finalUsername : undefined))?.trim(),
       displayName: displayName.trim(),
       role: role as UserRole,
-      pin: pin.trim(),
-      password: password || 'hospital123',
+      pin: (pin || '9999').trim(),
+      password: password || 'superuser@superuser.com',
       active: body.active !== undefined ? Boolean(body.active) : true,
       createdAt: new Date().toISOString()
     };
@@ -55,12 +63,13 @@ export async function POST(req: NextRequest) {
     users.push(newUser);
     await saveUsers(users);
 
+    const performerName = currentUser?.displayName || req.headers.get('x-user-name') || 'Superuser';
     await recordAuditLog({
       actionType: 'USER_CREATED',
-      performedBy: currentUser?.displayName || (currentUser?.role === 'superuser' ? 'Superuser' : 'Admin'),
-      userRole: (currentUser?.role || 'admin') as UserRole,
+      performedBy: performerName,
+      userRole: (effectiveRole || 'superuser') as UserRole,
       targetName: newUser.displayName,
-      details: `Created user ${newUser.username} with role: ${newUser.role} (PIN: ${newUser.pin})`
+      details: `Created user ${newUser.username} (${newUser.email || 'no email'}) with role: ${newUser.role}`
     });
 
     return NextResponse.json({ success: true, user: newUser });
@@ -72,10 +81,12 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, username, displayName, role, pin, password, active, currentUser } = body;
+    const { id, username, email, displayName, role, pin, password, active, currentUser } = body;
+    const headerRole = req.headers.get('x-user-role');
+    const effectiveRole = currentUser?.role || headerRole;
 
-    if (currentUser?.role !== 'admin' && currentUser?.role !== 'superuser') {
-      return NextResponse.json({ error: 'Admin permission required to modify users.' }, { status: 403 });
+    if (effectiveRole !== 'admin' && effectiveRole !== 'superuser') {
+      return NextResponse.json({ error: 'Superuser or Admin permission required to modify users.' }, { status: 403 });
     }
 
     const users = await loadUsers();
@@ -94,13 +105,23 @@ export async function PUT(req: NextRequest) {
       targetUser.username = trimmedUsername;
     }
 
+    if (email !== undefined && email.trim() !== '') {
+      targetUser.email = email.trim();
+    }
+
     if (displayName !== undefined && displayName.trim() !== '') {
       targetUser.displayName = displayName.trim();
     }
 
     if (role !== undefined) {
-      // Prevent demoting the only active admin/superuser
-      if ((targetUser.role === 'admin' || targetUser.role === 'superuser') && role !== 'admin' && role !== 'superuser') {
+      // Prevent demoting the only active superuser or admin
+      if (targetUser.role === 'superuser' && role !== 'superuser') {
+        const activeSupers = users.filter(u => u.id !== id && u.role === 'superuser' && u.active);
+        if (activeSupers.length === 0) {
+          return NextResponse.json({ error: 'Cannot demote the only active superuser account.' }, { status: 400 });
+        }
+      }
+      if (targetUser.role === 'admin' && role !== 'admin' && role !== 'superuser') {
         const activeAdmins = users.filter(u => u.id !== id && (u.role === 'admin' || u.role === 'superuser') && u.active);
         if (activeAdmins.length === 0) {
           return NextResponse.json({ error: 'Cannot demote the only active admin account.' }, { status: 400 });
@@ -118,11 +139,11 @@ export async function PUT(req: NextRequest) {
     }
 
     if (active !== undefined) {
-      // Prevent deactivating the only active admin/superuser
-      if ((targetUser.role === 'admin' || targetUser.role === 'superuser') && active === false) {
-        const activeAdmins = users.filter(u => u.id !== id && (u.role === 'admin' || u.role === 'superuser') && u.active);
-        if (activeAdmins.length === 0) {
-          return NextResponse.json({ error: 'Cannot deactivate the only active admin account.' }, { status: 400 });
+      // Prevent deactivating the only active superuser or admin
+      if (targetUser.role === 'superuser' && active === false) {
+        const activeSupers = users.filter(u => u.id !== id && u.role === 'superuser' && u.active);
+        if (activeSupers.length === 0) {
+          return NextResponse.json({ error: 'Cannot deactivate the only active superuser account.' }, { status: 400 });
         }
       }
       targetUser.active = active;
@@ -130,10 +151,11 @@ export async function PUT(req: NextRequest) {
 
     await saveUsers(users);
 
+    const performerName = currentUser?.displayName || req.headers.get('x-user-name') || 'Superuser';
     await recordAuditLog({
       actionType: 'USER_UPDATED',
-      performedBy: currentUser?.displayName || (currentUser?.role === 'superuser' ? 'Superuser' : 'Admin'),
-      userRole: (currentUser?.role || 'admin') as UserRole,
+      performedBy: performerName,
+      userRole: (effectiveRole || 'superuser') as UserRole,
       targetName: targetUser.displayName,
       details: `Updated user @${targetUser.username} (${targetUser.displayName}): role=${targetUser.role}, PIN=${targetUser.pin}, active=${targetUser.active}`
     });
@@ -149,10 +171,10 @@ export async function DELETE(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     const currentRole = req.headers.get('x-user-role');
-    const currentName = req.headers.get('x-user-name') || 'Admin';
+    const currentName = req.headers.get('x-user-name') || 'Superuser';
 
     if (currentRole !== 'admin' && currentRole !== 'superuser') {
-      return NextResponse.json({ error: 'Admin permission required.' }, { status: 403 });
+      return NextResponse.json({ error: 'Superuser or Admin permission required.' }, { status: 403 });
     }
 
     const users = await loadUsers();
@@ -161,10 +183,18 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'User not found.' }, { status: 404 });
     }
 
+    // Protect against deleting the only superuser
+    if (targetUser.role === 'superuser') {
+      const activeSupers = users.filter(u => u.role === 'superuser' && u.active);
+      if (activeSupers.length <= 1) {
+        return NextResponse.json({ error: 'Cannot delete the only active superuser account.' }, { status: 400 });
+      }
+    }
+
     // Protect against deleting the only admin
     const admins = users.filter(u => (u.role === 'admin' || u.role === 'superuser') && u.active);
     if ((targetUser.role === 'admin' || targetUser.role === 'superuser') && admins.length <= 1) {
-      return NextResponse.json({ error: 'Cannot delete the only active admin account.' }, { status: 400 });
+      return NextResponse.json({ error: 'Cannot delete the only active administrative account.' }, { status: 400 });
     }
 
     const updatedUsers = users.filter(u => u.id !== id);
@@ -173,7 +203,7 @@ export async function DELETE(req: NextRequest) {
     await recordAuditLog({
       actionType: 'USER_UPDATED',
       performedBy: currentName,
-      userRole: (currentRole || 'admin') as UserRole,
+      userRole: (currentRole || 'superuser') as UserRole,
       targetName: targetUser.displayName,
       details: `Deleted user ${targetUser.username}`
     });

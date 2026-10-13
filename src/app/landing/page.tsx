@@ -465,7 +465,7 @@ export default function LandingPage() {
             <div className={styles.featureIcon} style={{ background: '#fee2e2', color: '#dc2626' }}>
               <ShieldCheck size={24} />
             </div>
-            <div className={styles.featureTitle}>HIPAA-Compliant Enterprise Security</div>
+            <div className={styles.featureTitle}>Enterprise Grade System Security</div>
             <div className={styles.featureDesc}>
               High-speed 4-digit PIN system for scrubbed floor runners on wall displays, coupled with enterprise authentication and role-based permissions for practice administrators and directors.
             </div>

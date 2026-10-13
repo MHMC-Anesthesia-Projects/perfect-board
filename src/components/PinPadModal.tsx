@@ -217,6 +217,18 @@ export const PinPadModal: React.FC<PinPadModalProps> = ({ isOpen, onClose, onLog
             >
               <KeyRound size={14} /> Or login with username & password
             </button>
+            <a
+              href="/board/login"
+              style={{
+                marginTop: 8,
+                fontSize: 11,
+                color: 'var(--text-muted)',
+                fontWeight: 600,
+                textDecoration: 'none'
+              }}
+            >
+              Full Portal / Superuser Login &rarr;
+            </a>
           </>
         ) : (
           <form onSubmit={handlePasswordLogin} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>

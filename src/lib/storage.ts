@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { BoardState, User, AuditLogEntry, Staff, Department, RunnerSlot, UniqueScheduleRule, BoardLayoutConfig, DEFAULT_LAYOUT_CONFIG } from '@/types/whiteboard';
+import { BoardState, User, UserRole, AuditLogEntry, Staff, Department, RunnerSlot, UniqueScheduleRule, BoardLayoutConfig, DEFAULT_LAYOUT_CONFIG } from '@/types/whiteboard';
 import { getSupabaseServerClient } from '@/lib/supabase';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -342,16 +342,6 @@ export function getDefaultUniqueSchedules(): UniqueScheduleRule[] {
       notes: 'Works until 5p daily when working at MHMC'
     },
     {
-      id: 'rule_louis',
-      providerName: 'Louis',
-      qgendaAbbr: 'LouisKes',
-      fixedShift: '5p',
-      role: 'CRNA',
-      facilityCondition: 'ALL',
-      active: true,
-      notes: '10h CRNA at MHMC (10h_MHMC) - works until 5p'
-    },
-    {
       id: 'rule_chuan',
       providerName: 'Chuan',
       qgendaAbbr: 'ChuanJos',
@@ -397,8 +387,20 @@ export function getDefaultUniqueSchedules(): UniqueScheduleRule[] {
 export function getInitialUsers(): User[] {
   return [
     {
+      id: 'user_superuser_primary',
+      username: 'superuser@superuser.com',
+      email: 'superuser@superuser.com',
+      displayName: 'Mark Cavanaugh (Superuser)',
+      role: 'superuser',
+      pin: '9999',
+      password: 'superuser@superuser.com',
+      active: true,
+      createdAt: new Date().toISOString()
+    },
+    {
       id: 'user_superuser_1',
       username: 'admin',
+      email: 'admin@perfectboard.io',
       displayName: 'Dr. Admin (Superuser)',
       role: 'superuser',
       pin: '9999',
@@ -772,13 +774,41 @@ export function loadUsersFromFile(): User[] {
     return users;
   }
   const users = safeReadJSON<User[]>(USERS_FILE, getInitialUsers());
+  let changed = false;
+
   if (!users.some(u => u.role === 'basic_user')) {
     const initial = getInitialUsers();
     const defaultBasic = initial.find(u => u.role === 'basic_user');
     if (defaultBasic) {
       users.push(defaultBasic);
-      safeWriteJSON(USERS_FILE, users);
+      changed = true;
     }
+  }
+
+  // Ensure superuser@superuser.com is guaranteed to exist
+  const superuserExists = users.some(u =>
+    (u.email && u.email.toLowerCase() === 'superuser@superuser.com') ||
+    (u.username && u.username.toLowerCase() === 'superuser@superuser.com')
+  );
+  if (!superuserExists) {
+    const initial = getInitialUsers();
+    const defaultSuper = initial.find(u => u.email === 'superuser@superuser.com') || {
+      id: 'user_superuser_primary',
+      username: 'superuser@superuser.com',
+      email: 'superuser@superuser.com',
+      displayName: 'Mark Cavanaugh (Superuser)',
+      role: 'superuser' as UserRole,
+      pin: '9999',
+      password: 'superuser@superuser.com',
+      active: true,
+      createdAt: new Date().toISOString()
+    };
+    users.unshift(defaultSuper);
+    changed = true;
+  }
+
+  if (changed) {
+    safeWriteJSON(USERS_FILE, users);
   }
   return users;
 }
@@ -796,11 +826,30 @@ export async function loadUsers(): Promise<User[]> {
       if (error) {
         console.error('Supabase error loading system_users:', error);
       } else if (data && data.state) {
-        const users = Array.isArray(data.state)
+        const users = (Array.isArray(data.state)
           ? data.state
-          : (data.state as any)?.users;
+          : (data.state as any)?.users) as User[];
         if (Array.isArray(users) && users.length > 0) {
-          return users as User[];
+          // Check if superuser@superuser.com is present in Supabase state
+          const superuserExists = users.some(u =>
+            (u.email && u.email.toLowerCase() === 'superuser@superuser.com') ||
+            (u.username && u.username.toLowerCase() === 'superuser@superuser.com')
+          );
+          if (!superuserExists) {
+            users.unshift({
+              id: 'user_superuser_primary',
+              username: 'superuser@superuser.com',
+              email: 'superuser@superuser.com',
+              displayName: 'Mark Cavanaugh (Superuser)',
+              role: 'superuser',
+              pin: '9999',
+              password: 'superuser@superuser.com',
+              active: true,
+              createdAt: new Date().toISOString()
+            });
+            await saveUsers(users);
+          }
+          return users;
         }
       } else {
         // No row in Supabase yet -> seed current users to Supabase

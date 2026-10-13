@@ -7,7 +7,7 @@ export const revalidate = 0;
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { mode, pin, username, password } = body;
+    const { mode, pin, username, email, password } = body;
     const users = await loadUsers();
 
     // Fast PIN Login (ideal for touchscreen)
@@ -21,28 +21,42 @@ export async function POST(req: NextRequest) {
         user: {
           id: matched.id,
           username: matched.username,
+          email: matched.email || matched.username,
           displayName: matched.displayName,
           role: matched.role
-        }
+        },
+        redirectUrl: matched.role === 'superuser' ? '/super' : (matched.role === 'admin' ? '/usap' : '/usap/mhmc')
       });
     }
 
-    // Username / Password Login
+    // Email / Username & Password Login
     if (mode === 'password') {
-      const matched = users.find(
-        u => u.active && u.username.toLowerCase() === (username || '').toLowerCase()
-      );
-      if (!matched || matched.password !== password) {
-        return NextResponse.json({ error: 'Invalid username or password.' }, { status: 401 });
+      const identifier = (email || username || '').toLowerCase().trim();
+      if (!identifier) {
+        return NextResponse.json({ error: 'Please enter your email or username.' }, { status: 400 });
       }
+
+      const matched = users.find(
+        u => u.active && (
+          (u.email && u.email.toLowerCase() === identifier) ||
+          (u.username && u.username.toLowerCase() === identifier)
+        )
+      );
+
+      if (!matched || matched.password !== password) {
+        return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
+      }
+
       return NextResponse.json({
         success: true,
         user: {
           id: matched.id,
           username: matched.username,
+          email: matched.email || matched.username,
           displayName: matched.displayName,
           role: matched.role
-        }
+        },
+        redirectUrl: matched.role === 'superuser' ? '/super' : (matched.role === 'admin' ? '/usap' : '/usap/mhmc')
       });
     }
 

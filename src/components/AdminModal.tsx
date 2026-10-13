@@ -77,16 +77,6 @@ const DEFAULT_UNIQUE_SCHEDULES: UniqueScheduleRule[] = [
     notes: 'Fixed 5p late doctor; excluded from departure list, routed to 5p late list'
   },
   {
-    id: 'usr_louis',
-    providerName: 'LOUIS',
-    qgendaAbbr: 'LOUISKES',
-    fixedShift: '5p',
-    role: 'CRNA',
-    facilityCondition: 'MHMC',
-    active: true,
-    notes: '10h CRNA at MHMC (10h_MHMC) - works until 5p'
-  },
-  {
     id: 'usr_chuan',
     providerName: 'CHUAN',
     qgendaAbbr: 'CHUA',

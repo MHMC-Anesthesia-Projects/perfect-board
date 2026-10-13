@@ -1,32 +1,43 @@
 [
   {
-    "id": "user_superuser_1",
-    "username": "admin",
-    "displayName": "Admin",
-    "role": "admin",
+    "id": "user_superuser_primary",
     "pin": "9999",
-    "password": "admin",
+    "role": "superuser",
+    "email": "superuser@superuser.com",
     "active": true,
-    "createdAt": "2026-10-01T13:20:55.289Z"
+    "password": "superuser@superuser.com",
+    "username": "superuser@superuser.com",
+    "createdAt": "2026-10-12T22:50:43.647Z",
+    "displayName": "Mark Cavanaugh (Superuser)"
+  },
+  {
+    "id": "user_superuser_1",
+    "pin": "9999",
+    "role": "admin",
+    "active": true,
+    "password": "admin",
+    "username": "admin",
+    "createdAt": "2026-10-01T13:20:55.289Z",
+    "displayName": "MHMC"
   },
   {
     "id": "user_runner_1",
-    "username": "runner",
-    "displayName": "Board Runner",
-    "role": "board_runner",
     "pin": "1234",
-    "password": "runner",
+    "role": "board_runner",
     "active": true,
-    "createdAt": "2026-10-01T13:20:55.289Z"
+    "password": "runner",
+    "username": "runner",
+    "createdAt": "2026-10-01T13:20:55.289Z",
+    "displayName": "Board Runner"
   },
   {
-    "id": "user_basic_1",
-    "username": "staff",
-    "displayName": "Staff",
-    "role": "basic_user",
+    "id": "user_1791233274430_a64d",
     "pin": "0000",
-    "password": "staff",
+    "role": "basic_user",
     "active": true,
-    "createdAt": "2026-10-01T13:20:55.289Z"
+    "password": "hospital123",
+    "username": "staff",
+    "createdAt": "2026-10-05T20:47:54.430Z",
+    "displayName": "Staff"
   }
 ]

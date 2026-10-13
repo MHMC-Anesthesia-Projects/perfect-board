@@ -3,6 +3,7 @@ export type UserRole = 'superuser' | 'admin' | 'board_runner' | 'basic_user' | '
 export interface User {
   id: string;
   username: string;
+  email?: string;
   displayName: string;
   role: UserRole;
   pin: string; // 4-6 digit quick PIN for touchscreens
