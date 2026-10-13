@@ -697,7 +697,7 @@ export function normalizeDepartmentRunnerSlots(departments?: Department[], staff
       return true;
     });
 
-    // Normalize occupied runners: ensure Title Case ("Runner 1", "Runner 2"), strip any relief
+    // Normalize occupied runners: ensure Title Case ("Runner 1", "Runner 2"), preserve relief
     dept.runnerSlots = occupied.map((r, idx) => {
       const normalizedTitle = r.title && !r.title.match(/^RUNNER\s*\d*$/i)
         ? r.title.replace(/^RUNNER(\s+\d+)?$/i, (m: string, n?: string) => `Runner${n || ''}`)
@@ -705,8 +705,7 @@ export function normalizeDepartmentRunnerSlots(departments?: Department[], staff
 
       return {
         ...r,
-        title: normalizedTitle,
-        relief: undefined
+        title: normalizedTitle
       };
     });
   }
