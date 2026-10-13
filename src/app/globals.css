@@ -3695,8 +3695,27 @@ body.dragging-staff .magnet-tile * {
   pointer-events: none !important;
 }
 
-.relief-handoff-btn {
+.relief-handoff-btn,
+.relief-box .relief-quick-clear-btn {
   pointer-events: auto !important;
+}
+
+.relief-box .relief-quick-clear-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.mobile-relief-box .relief-quick-clear-btn {
+  color: #ffffff !important;
+  opacity: 0.85;
+}
+
+.mobile-relief-box .relief-quick-clear-btn:hover,
+.mobile-relief-box .relief-quick-clear-btn:active {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.25);
+  color: #ffffff;
 }
 
 .primary-slot-zone,

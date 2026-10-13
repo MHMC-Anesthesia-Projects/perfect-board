@@ -1326,7 +1326,11 @@ export default function WhiteboardPage() {
         if (assignedStaff) {
           setToastMessage(`Relief assigned: ${assignedStaff.lastName}`);
         } else if (isRedBox) {
-          setToastMessage(`Planned relief for ${targetStaffName}`);
+          if (previousRelief?.staffId) {
+            setToastMessage(`Relief removed • Red Box intact for ${targetStaffName}`);
+          } else {
+            setToastMessage(`Planned relief for ${targetStaffName}`);
+          }
         } else {
           setToastMessage('Relief assigned');
         }
@@ -1336,7 +1340,9 @@ export default function WhiteboardPage() {
         pushUndoAction(
           assignedStaff
             ? `Assigned relief ${assignedStaff.lastName} to ${targetStaffName}`
-            : (isRedBox ? `Planned relief for ${targetStaffName}` : `Relief assigned for ${targetStaffName}`),
+            : (isRedBox
+                ? (previousRelief?.staffId ? `Cleared relief name for ${targetStaffName}` : `Planned relief for ${targetStaffName}`)
+                : `Relief assigned for ${targetStaffName}`),
           async () => {
             if (savedPrevRelief) {
               await handleSetRelief(targetType, targetId, savedPrevRelief.staffId || '', savedPrevRelief.time, savedPrevRelief.notes, savedPrevRelief.isRedBox);

@@ -1419,6 +1419,22 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                         {runner.relief.time}
                                       </span>
                                     )}
+                                    {isEditor && onSetRelief && (
+                                      <button
+                                        type="button"
+                                        className="relief-quick-clear-btn"
+                                        draggable={false}
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          onSetRelief('runner_slot', runner.id, '', '', '', true);
+                                        }}
+                                        title="Clear name (leave Red Box intact)"
+                                        aria-label="Clear name (leave Red Box intact)"
+                                      >
+                                        ×
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
                               ) : isOpenRedBox ? (
@@ -1683,6 +1699,22 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                         >
                                           {slot.relief.time}
                                         </span>
+                                      )}
+                                      {isEditor && onSetRelief && (
+                                        <button
+                                          type="button"
+                                          className="relief-quick-clear-btn"
+                                          draggable={false}
+                                          onMouseDown={(e) => e.stopPropagation()}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            onSetRelief('room_slot', slot.id, '', '', '', true);
+                                          }}
+                                          title="Clear name (leave Red Box intact)"
+                                          aria-label="Clear name (leave Red Box intact)"
+                                        >
+                                          ×
+                                        </button>
                                       )}
                                     </div>
                                   </div>
