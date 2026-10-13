@@ -133,7 +133,13 @@ export default function SuperuserControlCenter() {
     setLoadingUsers(true);
     setUserError('');
     try {
-      const res = await fetch(apiUrl('/api/users'));
+      const res = await fetch(apiUrl(`/api/users?role=superuser&t=${Date.now()}`), {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'x-user-role': 'superuser'
+        }
+      });
       if (!res.ok) throw new Error('Failed to load system accounts');
       const data = await res.json();
       setUsers(data);
