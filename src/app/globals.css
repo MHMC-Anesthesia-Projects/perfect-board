@@ -4056,18 +4056,32 @@ body.dragging-staff .magnet-tile * {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 4px;
-  gap: 3px;
+  gap: 4px;
+  padding: 0 5px;
   border-radius: var(--radius-sm);
-  background: var(--marker-red);
-  color: #ffffff;
+  background: rgba(239, 68, 68, 0.09);
+  border: 1.5px solid var(--marker-red);
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.15);
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
+  color: var(--text-primary);
   cursor: grab;
   user-select: none;
-  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.4);
+  transition: all var(--transition-fast);
   box-sizing: border-box;
+}
+
+[data-theme='dark'] .runner-slot-row .relief-box {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: #f87171;
+  box-shadow: 0 1px 6px rgba(239, 68, 68, 0.25);
+}
+
+.runner-slot-row .relief-box:hover {
+  filter: brightness(1.1);
+  transform: translateY(-0.5px);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 .runner-slot-row .relief-slot-target {
@@ -4075,7 +4089,6 @@ body.dragging-staff .magnet-tile * {
   opacity: 0;
   flex-shrink: 0;
   min-width: 65px;
-  max-width: 45%;
   height: 100%;
   min-height: 20px;
   max-height: 26px;
@@ -4092,6 +4105,12 @@ body.dragging-staff .magnet-tile * {
   box-sizing: border-box;
   font-size: 10px;
   font-weight: 800;
+}
+
+[data-theme='dark'] .runner-slot-row .relief-slot-target {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(248, 113, 113, 0.7);
+  color: #f87171;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -4111,8 +4130,23 @@ body.dragging-staff .magnet-tile * {
 .runner-slot-row .relief-slot-target.persistent-red-box {
   display: flex !important;
   opacity: 1 !important;
-  background: rgba(220, 38, 38, 0.22) !important;
-  border: 1.5px solid var(--marker-red) !important;
+  border: 1.5px dashed var(--marker-red, #dc2626) !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.25) !important;
+}
+
+[data-theme='dark'] .runner-slot-row .relief-slot-target.persistent-red-box {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-color: #f87171 !important;
+}
+
+.runner-slot-row .relief-slot-target.persistent-red-box .relief-slot-label {
+  color: var(--marker-red, #dc2626);
+  font-weight: 900;
+}
+
+[data-theme='dark'] .runner-slot-row .relief-slot-target.persistent-red-box .relief-slot-label {
+  color: #fca5a5;
 }
 
 body.dragging-staff .runner-slot-row .relief-slot-target:not(.persistent-red-box),

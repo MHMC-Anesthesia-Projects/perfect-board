@@ -421,7 +421,7 @@ export function getInitialUsers(): User[] {
     {
       id: 'user_basic_1',
       username: 'staff',
-      displayName: 'Staff (Basic User)',
+      displayName: 'Staff',
       role: 'basic_user',
       pin: '0000',
       password: 'staff',

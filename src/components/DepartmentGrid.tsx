@@ -375,7 +375,6 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                         style={{
                           flex: 1,
                           minWidth: 0,
-                          maxWidth: (hasRunnerRelief || isOpenRunnerRedBox) ? '55%' : undefined,
                           height: '100%'
                         }}
                         onDragEnter={(e) => {
@@ -444,10 +443,20 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                               }
                             }}
                             onDragEnd={handleTileDragEnd}
-                            onDragEnter={handleZoneDragEnter}
-                            onDragOver={handleZoneDragOver}
-                            onDragLeave={handleZoneDragLeave}
+                            onDragEnter={(e) => {
+                              handleZoneDragEnter(e);
+                              activateRoomDragNear(runner.id, Boolean(assignedStaff));
+                            }}
+                            onDragOver={(e) => {
+                              handleZoneDragOver(e);
+                              activateRoomDragNear(runner.id, Boolean(assignedStaff));
+                            }}
+                            onDragLeave={(e) => {
+                              handleZoneDragLeave(e);
+                              scheduleRoomDragLeave(runner.id);
+                            }}
                             onDrop={(e) => {
+                              cancelDragLeaveTimer();
                               handleReliefDrop(e, 'runner_slot', runner.id);
                             }}
                             onClick={(e) => {
@@ -474,15 +483,26 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                       ) : isOpenRunnerRedBox ? (
                         <div
                           className="relief-slot-target persistent-red-box"
-                          onDragEnter={handleZoneDragEnter}
-                          onDragOver={handleZoneDragOver}
-                          onDragLeave={handleZoneDragLeave}
+                          onDragEnter={(e) => {
+                            handleZoneDragEnter(e);
+                            activateRoomDragNear(runner.id, Boolean(assignedStaff));
+                          }}
+                          onDragOver={(e) => {
+                            handleZoneDragOver(e);
+                            activateRoomDragNear(runner.id, Boolean(assignedStaff));
+                          }}
+                          onDragLeave={(e) => {
+                            handleZoneDragLeave(e);
+                            scheduleRoomDragLeave(runner.id);
+                          }}
                           onDrop={(e) => {
+                            cancelDragLeaveTimer();
                             handleReliefDrop(e, 'runner_slot', runner.id);
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (justDroppedRef.current) return;
+                            // PHASE 2: Open modal to assign a clinician
                             if (onOpenReliefModal) {
                               onOpenReliefModal({
                                 type: 'runner_slot',
@@ -534,20 +554,12 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                           onClick={(e) => {
                             e.stopPropagation();
                             if (justDroppedRef.current) return;
-                            if (onOpenReliefModal) {
-                              onOpenReliefModal({
-                                type: 'runner_slot',
-                                id: runner.id,
-                                roomName: displayTitle,
-                                departmentName: dept.name,
-                                currentStaff: assignedStaff || null,
-                                currentRelief: runner.relief
-                              });
-                            } else if (onSetRelief) {
+                            // PHASE 1: DIRECT SINGLE CLICK TO DESIGNATE RED BOX!
+                            if (onSetRelief) {
                               onSetRelief('runner_slot', runner.id, '', '', '', true);
                             }
                           }}
-                          title="Click to assign relief for runner, or drop staff here"
+                          title="Single click / tap to designate relief (Red Box), or drop staff here"
                         >
                           <span className="relief-slot-label">+ Relief</span>
                         </div>
