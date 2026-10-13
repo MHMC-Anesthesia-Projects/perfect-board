@@ -90,7 +90,7 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
     cancelDragLeaveTimer();
     dragLeaveTimerRef.current = setTimeout(() => {
       setDragOverRoomSlotId(prev => (prev === slotId ? null : prev));
-    }, 150);
+    }, 400);
   };
 
   React.useEffect(() => {
@@ -484,18 +484,22 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                         <div
                           className="relief-slot-target persistent-red-box"
                           onDragEnter={(e) => {
+                            e.stopPropagation();
                             handleZoneDragEnter(e);
                             activateRoomDragNear(runner.id, Boolean(assignedStaff));
                           }}
                           onDragOver={(e) => {
+                            e.stopPropagation();
                             handleZoneDragOver(e);
                             activateRoomDragNear(runner.id, Boolean(assignedStaff));
                           }}
                           onDragLeave={(e) => {
+                            e.stopPropagation();
                             handleZoneDragLeave(e);
                             scheduleRoomDragLeave(runner.id);
                           }}
                           onDrop={(e) => {
+                            e.stopPropagation();
                             cancelDragLeaveTimer();
                             handleReliefDrop(e, 'runner_slot', runner.id);
                           }}
@@ -536,18 +540,22 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                         <div
                           className={`relief-slot-target ${dragOverRoomSlotId === runner.id ? 'drag-near-active' : ''}`}
                           onDragEnter={(e) => {
+                            e.stopPropagation();
                             handleZoneDragEnter(e);
                             activateRoomDragNear(runner.id, Boolean(assignedStaff));
                           }}
                           onDragOver={(e) => {
+                            e.stopPropagation();
                             handleZoneDragOver(e);
                             activateRoomDragNear(runner.id, Boolean(assignedStaff));
                           }}
                           onDragLeave={(e) => {
+                            e.stopPropagation();
                             handleZoneDragLeave(e);
                             scheduleRoomDragLeave(runner.id);
                           }}
                           onDrop={(e) => {
+                            e.stopPropagation();
                             cancelDragLeaveTimer();
                             handleReliefDrop(e, 'runner_slot', runner.id);
                           }}
@@ -784,18 +792,22 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                           <div
                             className="relief-slot-target persistent-red-box"
                             onDragEnter={(e) => {
+                              e.stopPropagation();
                               handleZoneDragEnter(e);
                               activateRoomDragNear(slot.id, Boolean(assignedStaff));
                             }}
                             onDragOver={(e) => {
+                              e.stopPropagation();
                               handleZoneDragOver(e);
                               activateRoomDragNear(slot.id, Boolean(assignedStaff));
                             }}
                             onDragLeave={(e) => {
+                              e.stopPropagation();
                               handleZoneDragLeave(e);
                               scheduleRoomDragLeave(slot.id);
                             }}
                             onDrop={(e) => {
+                              e.stopPropagation();
                               cancelDragLeaveTimer();
                               handleReliefDrop(e, 'room_slot', slot.id);
                             }}
@@ -836,18 +848,22 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                           <div
                             className={`relief-slot-target ${dragOverRoomSlotId === slot.id ? 'drag-near-active' : ''}`}
                             onDragEnter={(e) => {
+                              e.stopPropagation();
                               handleZoneDragEnter(e);
                               activateRoomDragNear(slot.id, Boolean(assignedStaff));
                             }}
                             onDragOver={(e) => {
+                              e.stopPropagation();
                               handleZoneDragOver(e);
                               activateRoomDragNear(slot.id, Boolean(assignedStaff));
                             }}
                             onDragLeave={(e) => {
+                              e.stopPropagation();
                               handleZoneDragLeave(e);
                               scheduleRoomDragLeave(slot.id);
                             }}
                             onDrop={(e) => {
+                              e.stopPropagation();
                               cancelDragLeaveTimer();
                               handleReliefDrop(e, 'room_slot', slot.id);
                             }}

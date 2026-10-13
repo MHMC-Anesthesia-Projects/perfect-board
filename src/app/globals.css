@@ -3526,7 +3526,6 @@ button {
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
-body.dragging-staff .relief-slot-target:not(.persistent-red-box),
 body.dragging-sticker .relief-slot-target:not(.persistent-red-box),
 body.has-active-stamp .relief-slot-target:not(.persistent-red-box),
 body.dragging-sticker .room-slot-row:hover .relief-slot-target:not(.persistent-red-box),
@@ -3540,14 +3539,32 @@ body.has-active-stamp .relief-slot-target:hover {
   pointer-events: none !important;
 }
 
+/* While dragging staff, un-activated relief targets stay hidden */
+body.dragging-staff .room-slot-row:not(.drag-near) .relief-slot-target:not(.persistent-red-box):not(.drag-near-active):not(.drag-over),
+body.dragging-staff .runner-slot-row:not(.drag-near) .relief-slot-target:not(.persistent-red-box):not(.drag-near-active):not(.drag-over) {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* When dragging staff near a slot or over the relief box, reveal it as an interactive droppable target */
 body.dragging-staff .room-slot-row.drag-near .relief-slot-target,
-body.dragging-staff .relief-slot-target.drag-near-active {
+body.dragging-staff .runner-slot-row.drag-near .relief-slot-target,
+body.dragging-staff .relief-slot-target.drag-near-active,
+body.dragging-staff .runner-slot-row .relief-slot-target.drag-near-active,
+body.dragging-staff .relief-slot-target.drag-over,
+body.dragging-staff .room-slot-row:hover .relief-slot-target,
+body.dragging-staff .runner-slot-row:hover .relief-slot-target,
+body.dragging-staff .relief-slot-target:hover {
   display: flex !important;
   opacity: 1 !important;
+  pointer-events: auto !important;
+  cursor: copy !important;
   border: 2px dashed var(--marker-red) !important;
   background: rgba(239, 68, 68, 0.22) !important;
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.5) !important;
   min-width: 68px !important;
+  z-index: 10 !important;
   animation: pulseRelief 1.4s infinite ease-in-out;
 }
 
@@ -3614,11 +3631,13 @@ body.dragging-staff .magnet-tile * {
 .relief-slot-target.drag-over,
 .relief-box.drag-over {
   opacity: 1 !important;
+  pointer-events: auto !important;
   background: var(--marker-red) !important;
   border: 2px solid #b91c1c !important;
   box-shadow: 0 0 16px rgba(239, 68, 68, 0.9) !important;
   color: #ffffff !important;
   transform: scale(1.04);
+  z-index: 20 !important;
 }
 
 .relief-slot-target.drag-over .relief-slot-label,
@@ -4149,7 +4168,7 @@ body.dragging-staff .magnet-tile * {
   color: #fca5a5;
 }
 
-body.dragging-staff .runner-slot-row .relief-slot-target:not(.persistent-red-box),
+body.dragging-staff .runner-slot-row:not(.drag-near) .relief-slot-target:not(.persistent-red-box):not(.drag-near-active):not(.drag-over),
 body.dragging-sticker .runner-slot-row .relief-slot-target:not(.persistent-red-box),
 body.has-active-stamp .runner-slot-row .relief-slot-target:not(.persistent-red-box) {
   display: none !important;
@@ -4158,12 +4177,18 @@ body.has-active-stamp .runner-slot-row .relief-slot-target:not(.persistent-red-b
 }
 
 body.dragging-staff .runner-slot-row.drag-near .relief-slot-target,
-body.dragging-staff .runner-slot-row .relief-slot-target.drag-near-active {
+body.dragging-staff .runner-slot-row .relief-slot-target.drag-near-active,
+body.dragging-staff .runner-slot-row .relief-slot-target.drag-over,
+body.dragging-staff .runner-slot-row:hover .relief-slot-target {
   display: flex !important;
   opacity: 1 !important;
+  pointer-events: auto !important;
+  cursor: copy !important;
   border: 2px dashed var(--marker-red) !important;
   background: rgba(239, 68, 68, 0.22) !important;
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.5) !important;
+  min-width: 68px !important;
+  z-index: 10 !important;
 }
 
 /* ==========================================================================
