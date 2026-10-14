@@ -304,16 +304,23 @@ export const Bullpen: React.FC<BullpenProps> = ({
     setHoveredBin(null);
   };
 
-  const handleBinDrop = (e: React.DragEvent, _binKey: 'MD' | 'CRNA' | 'Infrequent') => {
+  const handleBinDrop = (e: React.DragEvent, binKey: 'MD' | 'CRNA' | 'Infrequent') => {
     e.preventDefault();
     e.stopPropagation();
     setHoveredBin(null);
     setIsDragOver(false);
     try {
       const data = extractDragData(e);
-      if (data) {
-        // Accept regardless of which bin dropped on; system automatically sorts to proper pool
-        onDropToBullpen(data);
+      if (data && (data.staffId || data.id)) {
+        const staffId = data.staffId || data.id;
+        // Pass targetGroup explicitly so unassigning places staff in the targeted pool
+        onDropToBullpen({ ...data, staffId, targetGroup: binKey });
+        // Also explicitly update infrequent status if moved to/from Infrequent
+        if (binKey === 'Infrequent') {
+          onSetStaffInfrequent?.(staffId, true);
+        } else if (binKey === 'MD' || binKey === 'CRNA') {
+          onSetStaffInfrequent?.(staffId, false);
+        }
       }
     } catch (err) {
       console.error('Error dropping to bin:', err);
@@ -515,11 +522,15 @@ export const Bullpen: React.FC<BullpenProps> = ({
                   <span className="bullpen-bin-count" style={{ fontWeight: 800, opacity: 0.9 }}>({bin.items.length})</span>
                   {isTarget && (
                     <span style={{ fontSize: 10, fontWeight: 800, marginLeft: 4 }}>
-                      • Drop to unassign
+                      • {bin.key === 'Infrequent' ? 'Drop to move to Infrequent' : 'Drop to move to regular staff'}
                     </span>
                   )}
                 </div>
-                <div className="bullpen-bin-content">
+                <div
+                  className="bullpen-bin-content"
+                  onDragOver={(e) => handleBinDragOver(e, bin.key)}
+                  onDrop={(e) => handleBinDrop(e, bin.key)}
+                >
                   {bin.items.map(s => {
                     const isRelief = Boolean(activeReliefStaffIds?.has(s.id));
                     return (

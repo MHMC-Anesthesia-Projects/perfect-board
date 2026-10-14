@@ -1443,7 +1443,7 @@
       "credentials": "CRNA",
       "displayName": "D'AVIGNON T.",
       "orderNumber": 180,
-      "isInfrequent": false
+      "isInfrequent": true
     },
     {
       "id": "staff_oneusap_doc_cuzickles",
@@ -2009,10 +2009,12 @@
             {
               "id": "dept_main_or_room_1_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_doc_chenkev",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "lunchTime": null,
+              "breakfastDone": true,
+              "breakfastTime": "2026-10-14T14:28:33.052Z"
             }
           ],
           "futureTime": null,
@@ -2121,6 +2123,7 @@
             {
               "id": "dept_main_or_room_7_slot_0",
               "notes": "",
+              "relief": null,
               "staffId": "staff_oneusap_anes_youngkas",
               "roleType": "primary",
               "lunchDone": false,
@@ -2197,13 +2200,15 @@
             {
               "id": "dept_main_or_room_11_slot_0",
               "notes": "",
-              "staffId": null,
+              "staffId": "staff_oneusap_anes_parnacottcli",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "lunchTime": null,
+              "breakfastDone": true,
+              "breakfastTime": "2026-10-14T13:03:21.640Z"
             }
           ],
-          "futureTime": "1300",
+          "futureTime": null,
           "orderIndex": 11
         }
       ],
@@ -2245,7 +2250,8 @@
               "staffId": "staff_oneusap_anes_bearderi",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "breakfastDone": true,
+              "breakfastTime": "2026-10-14T15:02:03.437Z"
             }
           ],
           "futureTime": null,
@@ -2263,7 +2269,8 @@
               "staffId": "staff_oneusap_anes_shawkat",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "breakfastDone": true,
+              "breakfastTime": "2026-10-14T15:02:02.890Z"
             }
           ],
           "futureTime": null,
@@ -2281,7 +2288,8 @@
               "staffId": "staff_oneusap_anes_spearsall",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "breakfastDone": true,
+              "breakfastTime": "2026-10-14T15:02:02.168Z"
             }
           ],
           "futureTime": null,
@@ -2299,7 +2307,8 @@
               "staffId": "staff_oneusap_doc_shevchenkoyev",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "breakfastDone": true,
+              "breakfastTime": "2026-10-14T15:02:01.193Z"
             }
           ],
           "futureTime": null,
@@ -2317,7 +2326,8 @@
               "staffId": "staff_oneusap_doc_cuzickles",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "breakfastDone": true,
+              "breakfastTime": "2026-10-14T15:02:00.109Z"
             }
           ],
           "futureTime": null,
@@ -2353,7 +2363,8 @@
               "staffId": "staff_oneusap_doc_alanizped",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "breakfastDone": true,
+              "breakfastTime": "2026-10-14T15:02:04.405Z"
             }
           ],
           "futureTime": null,
@@ -2371,7 +2382,8 @@
               "staffId": "staff_oneusap_doc_gashlerkyl",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "breakfastDone": true,
+              "breakfastTime": "2026-10-14T15:02:05.041Z"
             }
           ],
           "futureTime": null,
@@ -2439,7 +2451,8 @@
           "title": "Runner 1",
           "staffId": "staff_oneusap_doc_lukey",
           "lunchDone": false,
-          "breakfastDone": false
+          "breakfastDone": true,
+          "breakfastTime": "2026-10-14T15:02:06.569Z"
         }
       ]
     },
@@ -2582,7 +2595,7 @@
             {
               "id": "dept_ortho_room_8_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_songbry",
+              "staffId": "staff_oneusap_anes_songyeu",
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -2652,10 +2665,17 @@
             {
               "id": "dept_village_room_3_slot_0",
               "notes": "",
+              "relief": {
+                "time": "3:00 PM",
+                "notes": "",
+                "staffId": null,
+                "isRedBox": true
+              },
               "staffId": "staff_oneusap_anes_ishamsar",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "breakfastDone": false,
+              "breakfastTime": null
             }
           ],
           "futureTime": null,
@@ -2691,7 +2711,8 @@
               "staffId": "staff_oneusap_anes_crossleylad",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "breakfastDone": false,
+              "breakfastTime": null
             }
           ],
           "futureTime": null,
@@ -2904,7 +2925,7 @@
             {
               "id": "dept_9th_floor_room_IR_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_anes_parnacottcli",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": true,
@@ -2923,12 +2944,12 @@
             {
               "id": "dept_9th_floor_room_NIR_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_doc_carvajaltom",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "lunchTime": null,
-              "breakfastDone": false,
-              "breakfastTime": null
+              "breakfastDone": true,
+              "breakfastTime": "2026-10-14T14:28:01.409Z"
             }
           ],
           "futureTime": null,
@@ -2981,7 +3002,8 @@
               "staffId": "staff_oneusap_anes_tranton",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "breakfastDone": true,
+              "breakfastTime": "2026-10-14T15:02:08.247Z"
             }
           ],
           "futureTime": null,
@@ -3017,7 +3039,8 @@
               "staffId": "staff_oneusap_anes_tekwechr",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "breakfastDone": true,
+              "breakfastTime": "2026-10-14T15:02:09.208Z"
             }
           ],
           "futureTime": null,
@@ -3035,7 +3058,8 @@
               "staffId": "staff_oneusap_anes_moodymat",
               "roleType": "primary",
               "lunchDone": false,
-              "breakfastDone": false
+              "breakfastDone": true,
+              "breakfastTime": "2026-10-14T15:02:10.511Z"
             }
           ],
           "futureTime": null,
@@ -3067,7 +3091,8 @@
           "title": "Runner 1",
           "staffId": "staff_oneusap_doc_taylormat",
           "lunchDone": false,
-          "breakfastDone": false
+          "breakfastDone": true,
+          "breakfastTime": "2026-10-14T15:02:11.328Z"
         }
       ]
     },
@@ -3172,7 +3197,7 @@
             {
               "id": "dept_ivf_room_1_slot_0",
               "notes": "",
-              "staffId": "staff_oneusap_doc_cavanaughmar",
+              "staffId": null,
               "roleType": "primary",
               "lunchDone": false,
               "breakfastDone": false
@@ -3186,7 +3211,7 @@
       "runnerSlots": []
     }
   ],
-  "lastUpdated": "2026-10-14T14:04:22.586Z",
+  "lastUpdated": "2026-10-14T15:45:59.008Z",
   "magnetNotes": {},
   "callTeamList": [
     {
@@ -3313,6 +3338,11 @@
   },
   "roomStickers": {},
   "bullpenBreaks": {
+    "staff_oneusap_doc_lukey": {
+      "lunchDone": false,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T15:02:06.569Z"
+    },
     "staff_oneusap_anes_lamhun": {
       "lunchDone": false,
       "breakfastDone": true,
@@ -3320,22 +3350,68 @@
     },
     "staff_oneusap_doc_chenkev": {
       "lunchDone": false,
+      "lunchTime": null,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T14:28:33.052Z"
+    },
+    "staff_oneusap_anes_shawkat": {
+      "lunchDone": false,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T15:02:02.890Z"
+    },
+    "staff_oneusap_anes_songbry": {
+      "lunchDone": false,
       "breakfastDone": false
+    },
+    "staff_oneusap_anes_tranton": {
+      "lunchDone": false,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T15:02:08.247Z"
     },
     "staff_oneusap_anes_willama": {
       "lunchDone": false,
       "breakfastDone": true,
       "breakfastTime": "2026-10-14T13:41:47.674Z"
     },
+    "staff_oneusap_anes_bearderi": {
+      "lunchDone": false,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T15:02:03.437Z"
+    },
+    "staff_oneusap_anes_ishamsar": {
+      "lunchDone": false,
+      "breakfastDone": false,
+      "breakfastTime": null
+    },
     "staff_oneusap_anes_louiskes": {
       "lunchDone": false,
       "breakfastDone": true,
       "breakfastTime": "2026-10-14T13:41:45.970Z"
     },
+    "staff_oneusap_anes_moodymat": {
+      "lunchDone": false,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T15:02:10.511Z"
+    },
+    "staff_oneusap_anes_tekwechr": {
+      "lunchDone": false,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T15:02:09.208Z"
+    },
     "staff_oneusap_anes_youngkas": {
       "lunchDone": false,
       "breakfastDone": true,
       "breakfastTime": "2026-10-14T13:03:12.983Z"
+    },
+    "staff_oneusap_doc_alanizped": {
+      "lunchDone": false,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T15:02:04.405Z"
+    },
+    "staff_oneusap_doc_cuzickles": {
+      "lunchDone": false,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T15:02:00.109Z"
     },
     "staff_oneusap_doc_hillerken": {
       "lunchDone": false,
@@ -3347,6 +3423,11 @@
       "lunchTime": "2026-10-14T12:55:11.150Z",
       "breakfastDone": true,
       "breakfastTime": "2026-10-14T12:55:10.687Z"
+    },
+    "staff_oneusap_doc_taylormat": {
+      "lunchDone": false,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T15:02:11.328Z"
     },
     "staff_oneusap_anes_hudzikver": {
       "lunchDone": false,
@@ -3363,14 +3444,26 @@
       "breakfastDone": true,
       "breakfastTime": "2026-10-14T13:03:22.651Z"
     },
+    "staff_oneusap_anes_spearsall": {
+      "lunchDone": false,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T15:02:02.168Z"
+    },
     "staff_oneusap_anes_walkernes": {
       "lunchDone": false,
       "breakfastDone": true,
       "breakfastTime": "2026-10-14T13:41:45.430Z"
     },
+    "staff_oneusap_doc_gashlerkyl": {
+      "lunchDone": false,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T15:02:05.041Z"
+    },
     "staff_oneusap_doc_carvajaltom": {
       "lunchDone": false,
-      "breakfastDone": false
+      "lunchTime": null,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T14:28:01.409Z"
     },
     "staff_oneusap_doc_martinezrog": {
       "lunchDone": true,
@@ -3378,10 +3471,24 @@
       "breakfastDone": true,
       "breakfastTime": "2026-10-14T12:55:09.963Z"
     },
+    "staff_oneusap_anes_crossleylad": {
+      "lunchDone": false,
+      "breakfastDone": false,
+      "breakfastTime": null
+    },
+    "staff_oneusap_doc_cavanaughmar": {
+      "lunchDone": false,
+      "breakfastDone": false
+    },
     "staff_oneusap_anes_parnacottcli": {
       "lunchDone": false,
       "breakfastDone": true,
       "breakfastTime": "2026-10-14T13:03:21.640Z"
+    },
+    "staff_oneusap_doc_shevchenkoyev": {
+      "lunchDone": false,
+      "breakfastDone": true,
+      "breakfastTime": "2026-10-14T15:02:01.193Z"
     },
     "staff_oneusap_doc_dwarakanathkis": {
       "lunchDone": false,
@@ -3503,8 +3610,8 @@
     ]
   },
   "bullpenStaffIds": [
-    "staff_oneusap_doc_chenkev",
-    "staff_oneusap_anes_songyeu"
+    "staff_oneusap_doc_carvajaltom",
+    "staff_oneusap_doc_cavanaughmar"
   ],
   "messagingConfig": {
     "enabled": true,
@@ -3578,13 +3685,15 @@
   ],
   "infrequentStaffIds": [
     "staff_oneusap_anes_patagocsun",
-    "staff_oneusap_anes_cliffordste"
+    "staff_oneusap_anes_cliffordste",
+    "staff_oneusap_anes_davignont"
   ],
   "lastBreakResetDate": "2026-10-14",
   "infrequentStaffKeys": [
     "patagocsun",
     "patagoc",
     "cliffordste",
-    "clifford"
+    "clifford",
+    "davignont"
   ]
 }

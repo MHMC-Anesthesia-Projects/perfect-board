@@ -1838,7 +1838,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
 
             {/* Infrequent Staff Grouping Toggle */}
             {onSetStaffInfrequent && (
-              <div style={{ marginTop: 4 }}>
+              <div style={{ marginTop: 6 }}>
                 <button
                   type="button"
                   onClick={() => {
@@ -1847,24 +1847,27 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                   }}
                   style={{
                     width: '100%',
-                    padding: '8px 12px',
+                    padding: '9px 12px',
                     borderRadius: 6,
-                    background: staff.isInfrequent ? 'var(--surface-active, rgba(0,0,0,0.06))' : 'var(--surface-hover)',
-                    border: staff.isInfrequent ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-light)',
-                    color: staff.isInfrequent ? 'var(--accent-primary)' : 'var(--text-primary)',
-                    fontWeight: 700,
-                    fontSize: 12,
+                    background: staff.isInfrequent
+                      ? 'linear-gradient(135deg, rgba(217, 119, 6, 0.15) 0%, rgba(180, 83, 9, 0.22) 100%)'
+                      : 'var(--surface-hover)',
+                    border: staff.isInfrequent ? '1.5px solid #d97706' : '1px solid var(--border-light)',
+                    color: staff.isInfrequent ? '#d97706' : 'var(--text-primary)',
+                    fontWeight: 800,
+                    fontSize: 12.5,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 6,
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
                   }}
                 >
                   <span>
                     {staff.isInfrequent
-                      ? 'Infrequent Staff • Click to return to Regular MD/CRNA'
-                      : 'Move to Infrequent Group (PRN / Occasional)'}
+                      ? '★ Infrequent / PRN Staff • Click to return to Regular Pool'
+                      : 'Move to Infrequent / PRN Pool'}
                   </span>
                 </button>
               </div>

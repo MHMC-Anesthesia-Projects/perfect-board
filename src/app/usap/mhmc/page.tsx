@@ -2169,7 +2169,7 @@ export default function WhiteboardPage() {
     }
   };
 
-  // 4b. Move staff directly to Unassigned Staff (leaving for day)
+  // 4b. Move staff directly to Unassigned Staff (leaving for day or moving between bins)
   const handleMoveStaffToUnassigned = async (
     staffId: string,
     fromData?: { type?: string; id?: string; targetGroup?: 'MD' | 'CRNA' | 'Infrequent' }
@@ -2183,8 +2183,10 @@ export default function WhiteboardPage() {
     const staffName = staff ? (staff.displayName || `${staff.firstName} ${staff.lastName}`).trim() : 'Staff';
     const prevType = fromData?.type || 'bullpen';
     const prevId = fromData?.id;
+    const isTargetInfrequent = fromData?.targetGroup === 'Infrequent';
+    const isTargetRegular = fromData?.targetGroup === 'MD' || fromData?.targetGroup === 'CRNA';
 
-    // IMMEDIATE OPTIMISTIC UPDATE: Clear staff from bullpen, rooms, and runner slots (0ms)
+    // IMMEDIATE OPTIMISTIC UPDATE: Clear staff from bullpen, rooms, and runner slots (0ms), and update isInfrequent!
     setBoardState(prev => {
       if (!prev) return prev;
       const nextBullpenIds = (prev.bullpenStaffIds || []).filter(id => id !== staffId);
@@ -2203,12 +2205,31 @@ export default function WhiteboardPage() {
         }))
       }));
 
+      let nextStaff = prev.staff;
+      let nextInfrequentIds = prev.infrequentStaffIds || [];
+      if (isTargetInfrequent) {
+        nextStaff = prev.staff.map(s => s.id === staffId ? { ...s, isInfrequent: true } : s);
+        if (!nextInfrequentIds.includes(staffId)) nextInfrequentIds = [...nextInfrequentIds, staffId];
+      } else if (isTargetRegular) {
+        nextStaff = prev.staff.map(s => s.id === staffId ? { ...s, isInfrequent: false } : s);
+        nextInfrequentIds = nextInfrequentIds.filter(id => id !== staffId);
+      }
+
       return {
         ...prev,
+        staff: nextStaff,
+        infrequentStaffIds: nextInfrequentIds,
         bullpenStaffIds: nextBullpenIds,
         departments: nextDepts
       };
     });
+
+    setToastMessage(
+      isTargetInfrequent
+        ? `Moved ${staffName} to Infrequent / PRN pool`
+        : `Moved ${staffName} to Available Staff`
+    );
+    setTimeout(() => setToastMessage(null), 3000);
 
     try {
       const res = await fetch(apiUrl('/api/board'), {
@@ -2219,7 +2240,8 @@ export default function WhiteboardPage() {
           payload: {
             fromTargetType: fromData?.type || 'bullpen',
             fromId: fromData?.id,
-            toTargetType: 'unassigned',
+            toTargetType: isTargetInfrequent ? 'infrequent' : 'unassigned',
+            targetGroup: fromData?.targetGroup,
             staffId: staffId
           },
           user: currentUser
@@ -2230,7 +2252,7 @@ export default function WhiteboardPage() {
         setBoardState(data.state);
 
         pushUndoAction(
-          `Moved ${staffName} to Unassigned Staff`,
+          `Moved ${staffName} to ${isTargetInfrequent ? 'Infrequent / PRN' : 'Unassigned Staff'}`,
           async () => {
             const undoRes = await fetch(apiUrl('/api/board'), {
               method: 'POST',
@@ -2257,11 +2279,51 @@ export default function WhiteboardPage() {
   };
 
   // 4c. Set staff infrequent status
-  const handleSetStaffInfrequent = async (staffId: string, isInfrequent: boolean) => {
+  const handleSetStaffInfrequent = async (staffId: string, isInfrequent: boolean, unassignIfAssigned: boolean = true) => {
     if (!isEditor) {
       setIsLoginModalOpen(true);
       return;
     }
+
+    const staffMember = boardState?.staff.find(s => s.id === staffId);
+    const staffName = staffMember ? (staffMember.displayName || `${staffMember.firstName} ${staffMember.lastName}`).trim() : 'Staff';
+
+    // Optimistic UI update: update isInfrequent, and if setting to infrequent, remove from rooms/bullpen so they appear in Infrequent pool!
+    setBoardState(prev => {
+      if (!prev) return prev;
+      let nextInfrequentIds = prev.infrequentStaffIds || [];
+      if (isInfrequent) {
+        if (!nextInfrequentIds.includes(staffId)) nextInfrequentIds = [...nextInfrequentIds, staffId];
+      } else {
+        nextInfrequentIds = nextInfrequentIds.filter(id => id !== staffId);
+      }
+
+      const nextBullpenIds = isInfrequent && unassignIfAssigned
+        ? (prev.bullpenStaffIds || []).filter(id => id !== staffId)
+        : prev.bullpenStaffIds;
+
+      const nextDepts = isInfrequent && unassignIfAssigned
+        ? prev.departments.map(dept => ({
+            ...dept,
+            runnerSlots: (dept.runnerSlots || []).filter(r => r.staffId !== staffId),
+            rooms: dept.rooms.map(rm => ({
+              ...rm,
+              slots: rm.slots.map(s => s.staffId === staffId ? { ...s, staffId: null } : s)
+            }))
+          }))
+        : prev.departments;
+
+      return {
+        ...prev,
+        staff: prev.staff.map(s => s.id === staffId ? { ...s, isInfrequent } : s),
+        infrequentStaffIds: nextInfrequentIds,
+        bullpenStaffIds: nextBullpenIds,
+        departments: nextDepts
+      };
+    });
+
+    setToastMessage(isInfrequent ? `Moved ${staffName} to Infrequent / PRN pool` : `Moved ${staffName} to regular staff pool`);
+    setTimeout(() => setToastMessage(null), 3000);
 
     try {
       const res = await fetch(apiUrl('/api/board'), {
@@ -2269,7 +2331,7 @@ export default function WhiteboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'SET_STAFF_INFREQUENT',
-          payload: { staffId, isInfrequent },
+          payload: { staffId, isInfrequent, unassignIfAssigned },
           user: currentUser
         })
       });

@@ -1323,7 +1323,7 @@ export async function POST(req: NextRequest) {
         if (currentUserRole === 'basic_user') {
           return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
         }
-        const { staffId, isInfrequent } = payload;
+        const { staffId, isInfrequent, unassignIfAssigned } = payload;
         const s = state.staff.find(st => st.id === staffId);
         if (!s) {
           return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
@@ -1348,6 +1348,20 @@ export async function POST(req: NextRequest) {
           if (lastKey && !state.infrequentStaffKeys.includes(lastKey)) {
             state.infrequentStaffKeys.push(lastKey);
           }
+
+          // If moved to infrequent and unassignIfAssigned is true (default), remove from rooms and runner/bullpen slots
+          // so they immediately appear in the Infrequent / PRN unassigned pool!
+          if (unassignIfAssigned !== false) {
+            state.bullpenStaffIds = (state.bullpenStaffIds || []).filter(id => id !== s.id);
+            for (const dept of state.departments) {
+              dept.runnerSlots = (dept.runnerSlots || []).filter(r => r.staffId !== s.id);
+              for (const rm of dept.rooms) {
+                for (const sl of rm.slots) {
+                  if (sl.staffId === s.id) sl.staffId = null;
+                }
+              }
+            }
+          }
         } else {
           state.infrequentStaffIds = state.infrequentStaffIds.filter(id => id !== s.id);
           if (qKey) {
@@ -1369,6 +1383,7 @@ export async function POST(req: NextRequest) {
             : `Moved ${staffName} to regular ${s.credentials === 'MD' ? 'MD' : 'CRNA'} staff group`
         });
 
+        broadcastStateChange();
         return NextResponse.json({ success: true, state });
       }
 

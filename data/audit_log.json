@@ -1,5 +1,153 @@
 [
   {
+    "id": "audit_1791992759326_3s0f7",
+    "timestamp": "2026-10-14T15:45:59.326Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "DAvignonT",
+    "details": "Marked DAvignonT as Infrequent / PRN staff"
+  },
+  {
+    "id": "audit_1791992759180_o0nak",
+    "timestamp": "2026-10-14T15:45:59.180Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "DAvignonT",
+    "locationName": "Infrequent Staff Group",
+    "details": "Moved from Staff Pool -> Infrequent Staff Group",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "infrequent",
+      "staffId": "staff_oneusap_anes_davignont",
+      "fromLocation": "",
+      "toLocation": "Infrequent Staff Group"
+    }
+  },
+  {
+    "id": "audit_1791992380253_pdcaj",
+    "timestamp": "2026-10-14T15:39:40.253Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Michael Bernell",
+    "details": "Moved Michael Bernell to regular MD staff group"
+  },
+  {
+    "id": "audit_1791992346900_f286c",
+    "timestamp": "2026-10-14T15:39:06.900Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Staff",
+    "locationName": "Credentialed Unassigned Staff",
+    "details": "Moved from Staff Pool -> Credentialed Unassigned Staff",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "unassigned",
+      "staffId": "drag",
+      "fromLocation": "",
+      "toLocation": "Credentialed Unassigned Staff"
+    }
+  },
+  {
+    "id": "audit_1791992325816_q7sqf",
+    "timestamp": "2026-10-14T15:38:45.816Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Michael Bernell",
+    "details": "Marked Michael Bernell as Infrequent / PRN staff"
+  },
+  {
+    "id": "audit_1791992274161_0jghu",
+    "timestamp": "2026-10-14T15:37:54.161Z",
+    "actionType": "STAFF_MOVED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Staff",
+    "locationName": "Credentialed Unassigned Staff",
+    "details": "Moved from Staff Pool -> Credentialed Unassigned Staff",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "infrequent",
+      "staffId": "drag",
+      "fromLocation": "",
+      "toLocation": "Credentialed Unassigned Staff"
+    }
+  },
+  {
+    "id": "audit_1791992198061_imm08",
+    "timestamp": "2026-10-14T15:36:38.061Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Michael Bernell",
+    "details": "Moved Michael Bernell to regular MD staff group"
+  },
+  {
+    "id": "audit_1791992167750_jx0xo",
+    "timestamp": "2026-10-14T15:36:07.750Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Michael Bernell",
+    "details": "Marked Michael Bernell as Infrequent / PRN staff"
+  },
+  {
+    "id": "audit_1791991776653_wa65a",
+    "timestamp": "2026-10-14T15:29:36.653Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Michael Bernell",
+    "details": "Moved Michael Bernell to regular MD staff group"
+  },
+  {
+    "id": "audit_1791991768468_izgcm",
+    "timestamp": "2026-10-14T15:29:28.468Z",
+    "actionType": "STAFF_UPDATED",
+    "performedBy": "Board Runner",
+    "userRole": "board_runner",
+    "targetName": "Michael Bernell",
+    "details": "Marked Michael Bernell as Infrequent / PRN staff"
+  },
+  {
+    "id": "audit_1791991326782_r2z3j",
+    "timestamp": "2026-10-14T15:22:06.782Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "DAvignonT",
+    "locationName": "Credentialed Unassigned Staff",
+    "details": "Moved from Staff Pool -> Credentialed Unassigned Staff",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "unassigned",
+      "staffId": "staff_oneusap_anes_davignont",
+      "fromLocation": "",
+      "toLocation": "Credentialed Unassigned Staff"
+    }
+  },
+  {
+    "id": "audit_1791991320715_ov4jd",
+    "timestamp": "2026-10-14T15:22:00.715Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "DAvignonT",
+    "locationName": "Credentialed Unassigned Staff",
+    "details": "Moved from Staff Pool -> Credentialed Unassigned Staff",
+    "metadata": {
+      "fromTargetType": "unassigned",
+      "toTargetType": "unassigned",
+      "staffId": "staff_oneusap_anes_davignont",
+      "fromLocation": "",
+      "toLocation": "Credentialed Unassigned Staff"
+    }
+  },
+  {
     "id": "audit_1791986639692_mdx0b",
     "timestamp": "2026-10-14T14:03:59.692Z",
     "actionType": "STAFF_UNASSIGNED",
