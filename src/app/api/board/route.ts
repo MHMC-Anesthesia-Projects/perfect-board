@@ -1026,7 +1026,7 @@ export async function POST(req: NextRequest) {
             credentials: targetCreds,
             phone: '(555) 000-0000',
             shift,
-            facility: 'MHMC',
+            facility: state.scraperConfig?.selectedFacilities?.[0] || state.staff.find(st => st.facility)?.facility || 'MHMC',
             active: true
           };
           state.staff.push(s);
@@ -1039,10 +1039,10 @@ export async function POST(req: NextRequest) {
         } else {
         // Classify shift: standard late (>= 3p) vs atypical/special (e.g. 2p, 1p, Special) vs post-call vs call team
         const upperShift = (shift || '').toUpperCase().trim();
-        const isL1 = upperShift.includes('L1_MHMC') || upperShift.includes('L1-MHMC') || /\bL1\b/i.test(upperShift);
-        const is10h = upperShift.includes('10H_MHMC') || upperShift.includes('10H-MHMC') || /\b10H\b/i.test(upperShift);
-        const is8h = upperShift.includes('8H_MHMC') || upperShift.includes('8H-MHMC') || /\b8H\b/i.test(upperShift);
-        const isWorWov = upperShift.includes('WOR_MHMC') || upperShift.includes('WOV_MHMC') || /\b(?:WOR|WOV)\b/i.test(upperShift);
+        const isL1 = /\bL1\b/i.test(upperShift) || upperShift.includes('L1-') || upperShift.includes('L1_');
+        const is10h = /\b10H\b/i.test(upperShift) || upperShift.includes('10H-') || upperShift.includes('10H_');
+        const is8h = /\b8H\b/i.test(upperShift) || upperShift.includes('8H-') || upperShift.includes('8H_');
+        const isWorWov = /\b(?:WOR|WOV)\b/i.test(upperShift) || upperShift.includes('WOR_') || upperShift.includes('WOV_');
 
         // Departure badge classifications:
         // 1. Post-call badges (e.g. postCV, postC1, postC2, postOB, post1st, Post-Call)
@@ -1926,7 +1926,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, state });
       }
 
-      // 7. Reset to default photo whiteboard state (Admin & Superuser only)
+      // 7. Reset to default whiteboard layout template (Admin & Superuser only)
+      case 'RESET_BOARD_LAYOUT':
       case 'RESET_TO_PHOTO_DEFAULT': {
         if (currentUserRole !== 'admin' && currentUserRole !== 'superuser') {
           return NextResponse.json({ error: 'Admin permission required.' }, { status: 403 });
@@ -1938,7 +1939,7 @@ export async function POST(req: NextRequest) {
           actionType: 'LAYOUT_CHANGED',
           performedBy: currentUserName,
           userRole: currentUserRole,
-          details: 'Restored board layout and assignments to initial photo default'
+          details: 'Restored board layout and assignments to default layout template'
         });
         return NextResponse.json({ success: true, state: freshBoard });
       }

@@ -55,68 +55,7 @@ const NETWORK_FACILITIES = [
   { code: 'TCPFW', name: 'TCH Pavilion for Women' }
 ];
 
-const DEFAULT_UNIQUE_SCHEDULES: UniqueScheduleRule[] = [
-  {
-    id: 'usr_hirsch',
-    providerName: 'HIRSCH',
-    qgendaAbbr: 'HIRSCH',
-    fixedShift: '5p',
-    role: 'MD',
-    facilityCondition: 'MHMC',
-    active: true,
-    notes: 'Fixed 5p late doctor; excluded from departure list, routed to 5p late list'
-  },
-  {
-    id: 'usr_baerenstecher',
-    providerName: 'BAERENSTECHER',
-    qgendaAbbr: 'BAEREN',
-    fixedShift: '5p',
-    role: 'MD',
-    facilityCondition: 'MHMC',
-    active: true,
-    notes: 'Fixed 5p late doctor; excluded from departure list, routed to 5p late list'
-  },
-  {
-    id: 'usr_chuan',
-    providerName: 'CHUAN',
-    qgendaAbbr: 'CHUA',
-    fixedShift: '4p',
-    role: 'MD',
-    facilityCondition: 'MHMC',
-    active: true,
-    notes: 'Fixed 4p late doctor; excluded from departure list, routed to 4p late list'
-  },
-  {
-    id: 'usr_gunn',
-    providerName: 'GUNN',
-    qgendaAbbr: 'GUNN',
-    fixedShift: '3p',
-    role: 'MD',
-    facilityCondition: 'MHMC',
-    active: true,
-    notes: 'Day doctor works 3p; excluded from departure list, routed to 3p late list'
-  },
-  {
-    id: 'usr_martinez',
-    providerName: 'MARTINEZ R',
-    qgendaAbbr: 'MARTR',
-    fixedShift: '3p',
-    role: 'MD',
-    facilityCondition: 'MHMC',
-    active: true,
-    notes: 'Day doctor works 3p; excluded from departure list, routed to 3p late list'
-  },
-  {
-    id: 'usr_hiller',
-    providerName: 'HILLER',
-    qgendaAbbr: 'HILLER',
-    fixedShift: '3p',
-    role: 'MD',
-    facilityCondition: 'MHMC',
-    active: true,
-    notes: 'Day doctor works 3p; excluded from departure list, routed to 3p late list'
-  }
-];
+const DEFAULT_UNIQUE_SCHEDULES: UniqueScheduleRule[] = [];
 
 export const AdminModal: React.FC<AdminModalProps> = ({
   isOpen,
@@ -257,11 +196,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   };
 
   useEffect(() => {
-    if (uniqueSchedules && uniqueSchedules.length > 0) {
-      setUniqueRules(uniqueSchedules);
-    } else if (isOpen && uniqueRules.length === 0) {
-      setUniqueRules(DEFAULT_UNIQUE_SCHEDULES);
-    }
+    setUniqueRules(uniqueSchedules || []);
   }, [uniqueSchedules, isOpen]);
 
   const handleSaveUniqueRules = async (rulesToSave: UniqueScheduleRule[]) => {
@@ -4292,13 +4227,13 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     onClick={() => {
                       setDeleteModalState({
                         isOpen: true,
-                        title: 'Restore Default Unique Rules',
-                        itemName: 'Default Hospital Shift Rules',
+                        title: 'Clear All Unique Rules',
+                        itemName: 'All Custom Unique Shift Rules',
                         itemCategory: 'Unique Schedules',
-                        message: 'This will reset your rules to the hospital standards (Hirsch 5p, Baerenstecher 5p, Chuan 4p, Gunn 3p, Martinez R 3p, Hiller 3p).',
-                        confirmButtonText: 'Reset to Defaults',
+                        message: 'This will clear all custom unique shift rules for this board.',
+                        confirmButtonText: 'Clear Rules',
                         onConfirm: () => {
-                          handleSaveUniqueRules(DEFAULT_UNIQUE_SCHEDULES);
+                          handleSaveUniqueRules([]);
                           setDeleteModalState(null);
                         }
                       });

@@ -179,7 +179,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
         orderNumber: orderNumber ?? matched.orderNumber,
         shift: matched.shift || shift
       });
-    } else {
+      const defaultFacility = staff.find(s => s.facility)?.facility || 'MHMC';
       const fallbackStaff: Staff = {
         id: id || `staff_roster_${cleanLast.toLowerCase()}`,
         firstName: '',
@@ -187,7 +187,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
         credentials: fallbackCreds,
         phone: '(555) 000-0000',
         shift: shift || 'Day',
-        facility: 'MHMC',
+        facility: defaultFacility,
         active: true,
         orderNumber,
         qgendaAbbr

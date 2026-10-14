@@ -18,11 +18,33 @@ import { BoardState, Department, Room, Staff } from '@/types/whiteboard';
  *   "MHMC OB2" -> { deptKey: 'dept_ob', roomName: '2' }
  *   "Houston IVF" -> { deptKey: 'dept_ivf', roomName: 'LU' }
  */
-export function mapScrapedRoomToDeptAndRoom(rawRoom: string): { deptKey: string; roomName: string } | null {
+export function mapScrapedRoomToDeptAndRoom(rawRoom: string, departments?: Department[]): { deptKey: string; roomName: string } | null {
   if (!rawRoom) return null;
   const clean = rawRoom.trim();
   const upper = clean.toUpperCase();
 
+  // 0. Dynamic matching: If active board departments are supplied, attempt to match directly
+  if (departments && departments.length > 0) {
+    const stripped = upper.replace(/^[A-Za-z0-9_-]+[:\s]+/, '').trim();
+    for (const dept of departments) {
+      const deptNameUpper = dept.name.toUpperCase();
+      const deptIdUpper = dept.id.toUpperCase();
+      const deptWords = deptNameUpper.split(/\s+/).filter(w => w.length > 2);
+      const isDeptMatch = deptWords.some(w => upper.includes(w)) || upper.includes(deptIdUpper);
+
+      if (isDeptMatch) {
+        for (const rm of dept.rooms) {
+          const rmUpper = rm.name.toUpperCase();
+          const regex = new RegExp(`(?:^|\\b|\\s|OR|PROC|P|DS|RM|ROOM)0?${rmUpper}\\b`, 'i');
+          if (regex.test(stripped) || stripped.endsWith(rmUpper) || stripped === rmUpper) {
+            return { deptKey: dept.id, roomName: rm.name };
+          }
+        }
+      }
+    }
+  }
+
+  // Legacy / MHMC specific mappings for guaranteed backward compatibility:
   // 1. VILLAGE (Priority check before generic OR matching):
   // "Village OR1" to "Village OR8", "Village Proc1" / "Proc2", "P1" / "P2"
   if (upper.includes('VILLAGE') || upper.startsWith('VIL')) {
@@ -107,13 +129,14 @@ export function findDepartment(departments: Department[], deptKey: string): Depa
   return departments.find(d => {
     if (d.id === deptKey) return true;
     const nameUpper = d.name.toUpperCase();
+    if (nameUpper === deptKey.toUpperCase()) return true;
     if (deptKey === 'dept_main_or' && nameUpper.includes('MAIN OR')) return true;
     if (deptKey === 'dept_west_pav' && (nameUpper.includes('WEST') || nameUpper.includes('PAV'))) return true;
     if (deptKey === 'dept_ortho' && nameUpper.includes('ORTHO')) return true;
     if (deptKey === 'dept_village' && nameUpper.includes('VILLAGE')) return true;
     if (deptKey === 'dept_9th_floor' && (nameUpper.includes('9TH') || nameUpper.includes('NINTH') || nameUpper.includes('FLOOR'))) return true;
     if (deptKey === 'dept_endo' && nameUpper.includes('ENDO')) return true;
-    if (deptKey === 'dept_ob' && nameUpper.includes('OB')) return true;
+    if (deptKey === 'dept_ob' && (nameUpper.includes('OB') || nameUpper.includes('LABOR') || nameUpper.includes('MATERNITY'))) return true;
     if (deptKey === 'dept_ivf' && nameUpper.includes('IVF')) return true;
     return false;
   });
@@ -243,15 +266,15 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
     assignedStaffIds.add(mdId);
   };
 
-  // 2a. Rule: If a Doc is assigned to OB during the day, assign them as a runner in OB
-  const obDept = findDepartment(departments, 'dept_ob');
+  // 2a. Rule: If a Doc is assigned to OB / Labor & Delivery during the day, assign them as a runner in OB
+  const obDept = findDepartment(departments, 'dept_ob') || departments.find(d => /\b(?:ob|labor|l&d|maternity)\b/i.test(d.name));
   if (obDept) {
     mdStaff.forEach(md => {
       if (assignedStaffIds.has(md.id)) return;
       const rawRooms = getStaffRooms(md);
       const hasObRoom = rawRooms.some(r => {
-        const mapped = mapScrapedRoomToDeptAndRoom(r);
-        return mapped?.deptKey === 'dept_ob' || r.toUpperCase().includes('OB');
+        const mapped = mapScrapedRoomToDeptAndRoom(r, departments);
+        return mapped?.deptKey === 'dept_ob' || (obDept && mapped?.deptKey === obDept.id) || r.toUpperCase().includes('OB');
       });
 
       // If MD has room assignments in another department (e.g. Ortho, West Pav),
@@ -263,9 +286,9 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
       const upperShift = (md.shift || '').toUpperCase();
       const shiftParts = upperShift.split(/[,/]/).map(p => p.trim());
 
-      // Doctors who do NOT have an OB room assignment at MHMC:
+      // Doctors who do NOT have an OB room assignment at the hospital:
       // An overnight call doctor (e.g. C1,OB or Call 1/2/3/CV) or doctor on call at an outside facility (e.g. DrOBPM_HMWST)
-      // or doctor with no daytime rooms at MHMC does NOT have a daytime runner shift at MHMC!
+      // or doctor with no daytime rooms does NOT have a daytime runner shift!
       if (!hasObRoom) {
         const isCallDoc = upperShift.includes('C1') || upperShift.includes('CALL') ||
                           upperShift.includes('NIGHT') || upperShift.includes('PM') ||
@@ -288,7 +311,7 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
     // Map each room to its department
     const deptCount: Record<string, number> = {};
     rawRooms.forEach(r => {
-      const mapped = mapScrapedRoomToDeptAndRoom(r);
+      const mapped = mapScrapedRoomToDeptAndRoom(r, departments);
       if (mapped) {
         deptCount[mapped.deptKey] = (deptCount[mapped.deptKey] || 0) + 1;
       }
@@ -316,7 +339,7 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
 
     // Try each assigned room until placed
     for (const rawRoom of rawRooms) {
-      const mapped = mapScrapedRoomToDeptAndRoom(rawRoom);
+      const mapped = mapScrapedRoomToDeptAndRoom(rawRoom, departments);
       if (!mapped) continue;
 
       const dept = findDepartment(departments, mapped.deptKey);
@@ -338,7 +361,7 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
   const crnaRoomKeys = new Set<string>();
   crnaStaff.forEach(crna => {
     getStaffRooms(crna).forEach(r => {
-      const mapped = mapScrapedRoomToDeptAndRoom(r);
+      const mapped = mapScrapedRoomToDeptAndRoom(r, departments);
       if (mapped) {
         crnaRoomKeys.add(`${mapped.deptKey}::${mapped.roomName.toLowerCase()}`);
       }
@@ -352,12 +375,11 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
     if (rawRooms.length === 0) return;
 
     for (const rawRoom of rawRooms) {
-      const mapped = mapScrapedRoomToDeptAndRoom(rawRoom);
+      const mapped = mapScrapedRoomToDeptAndRoom(rawRoom, departments);
       if (!mapped) continue;
 
       // If a Doc is assigned to OB, assign them as an OB runner rather than in a room
-      if (mapped.deptKey === 'dept_ob') {
-        const obDept = findDepartment(departments, 'dept_ob');
+      if (mapped.deptKey === 'dept_ob' || (obDept && mapped.deptKey === obDept.id)) {
         if (obDept) {
           assignAsRunner(obDept, md.id);
           break;

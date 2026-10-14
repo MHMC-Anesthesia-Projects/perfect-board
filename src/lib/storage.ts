@@ -538,8 +538,8 @@ function sanitizeBoardState(loaded: BoardState): BoardState {
       }
     }
   }
-  if (!loaded.uniqueSchedules || !Array.isArray(loaded.uniqueSchedules) || loaded.uniqueSchedules.length === 0) {
-    loaded.uniqueSchedules = getDefaultUniqueSchedules();
+  if (!loaded.uniqueSchedules || !Array.isArray(loaded.uniqueSchedules)) {
+    loaded.uniqueSchedules = [];
   }
   if (!loaded.infrequentStaffIds || !Array.isArray(loaded.infrequentStaffIds)) {
     loaded.infrequentStaffIds = [];
@@ -600,7 +600,7 @@ export function loadBoardStateFromFile(): BoardState {
   return sanitizeBoardState(loaded);
 }
 
-export async function loadBoardState(): Promise<BoardState> {
+export async function loadBoardState(boardId: string = 'current'): Promise<BoardState> {
   const supabase = getSupabaseServerClient();
 
   if (supabase) {
@@ -608,7 +608,7 @@ export async function loadBoardState(): Promise<BoardState> {
       const { data, error } = await supabase
         .from('board_state')
         .select('state, updated_at')
-        .eq('id', 'current')
+        .eq('id', boardId)
         .maybeSingle();
 
       if (error) {
@@ -622,7 +622,7 @@ export async function loadBoardState(): Promise<BoardState> {
         if (loaded.lastBreakResetDate !== threshold1Am) {
           const wasModified = resetDailyBreaks(loaded);
           loaded.lastBreakResetDate = threshold1Am;
-          await saveBoardState(loaded);
+          await saveBoardState(loaded, boardId);
           if (wasModified) {
             await recordAuditLog({
               actionType: 'BREAKFAST_TOGGLED',
@@ -636,11 +636,11 @@ export async function loadBoardState(): Promise<BoardState> {
 
         return loaded;
       } else {
-        // No row in Supabase yet -> seed current state to Supabase
-        console.log('No board_state found in Supabase. Seeding current state to Supabase...');
+        // No row in Supabase yet -> seed state to Supabase
+        console.log(`No board_state found in Supabase for ${boardId}. Seeding state to Supabase...`);
         const initial = loadBoardStateFromFile();
         normalizeBoardState(initial);
-        await saveBoardState(initial);
+        await saveBoardState(initial, boardId);
         return initial;
       }
     } catch (err) {
@@ -750,12 +750,14 @@ export function normalizeBoardState(state: BoardState): void {
   }
 }
 
-export async function saveBoardState(state: BoardState): Promise<void> {
+export async function saveBoardState(state: BoardState, boardId: string = 'current'): Promise<void> {
   normalizeBoardState(state);
   state.lastUpdated = new Date().toISOString();
 
-  // Save to local file cache as well (if writable)
-  safeWriteJSON(STATE_FILE, state);
+  // Save to local file cache as well (for current board baseline)
+  if (boardId === 'current') {
+    safeWriteJSON(STATE_FILE, state);
+  }
 
   const supabase = getSupabaseServerClient();
   if (supabase) {
@@ -763,7 +765,7 @@ export async function saveBoardState(state: BoardState): Promise<void> {
       const { error } = await supabase
         .from('board_state')
         .upsert({
-          id: 'current',
+          id: boardId,
           state: state,
           updated_at: new Date().toISOString()
         });
