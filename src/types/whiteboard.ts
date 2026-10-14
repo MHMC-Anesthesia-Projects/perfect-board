@@ -377,3 +377,76 @@ export interface BoardState {
   messagingConfig?: MessagingConfig;
   layoutConfig?: BoardLayoutConfig;
 }
+
+// -------------------------------------------------------------
+// PORTAL REFERENCE TABLE & ENGINE TYPES (PHASE 1)
+// -------------------------------------------------------------
+
+export type DepartureCategoryType = 'none' | 'post_call_10a' | 'scheduled_time' | 'non_call_queue' | 'special';
+export type LateCategoryType = 'none' | '3p' | '4p' | '5p' | '7p' | '7p-7a' | '8p' | '24h';
+export type RoomAssignmentStrategy = 'scraped' | 'unassigned_pool' | 'runner';
+export type BoardInclusionStatus = 'include' | 'exclude';
+
+export interface PortalShiftRule {
+  id: string;
+  pattern: string; // e.g. "12h-7p:Noct_MHMC", "Dr8h_MHMC", "10h_*"
+  facilityCode: string; // e.g. "MHMC", "MHKTY", "ALL"
+  roleType: 'MD' | 'CRNA' | 'ANY';
+  shiftHours?: string; // e.g. "7a-3p", "7a-5p", "7p-7a"
+  departureCategory: DepartureCategoryType;
+  departureTimeEstimate?: string; // e.g. "3p", "5p", "10a"
+  lateCategory: LateCategoryType;
+  boardStatus: BoardInclusionStatus;
+  roomAssignmentStrategy: RoomAssignmentStrategy;
+  notes?: string;
+  priority?: number;
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PortalCombinationRule {
+  id: string;
+  name: string; // e.g. "Post-OB at MHMC + Outside Katy Call"
+  primaryPattern: string; // e.g. "CIHOBPC_MHMC"
+  secondaryPattern: string; // e.g. "L1_MHKTY"
+  condition: 'has_both';
+  boardStatus: BoardInclusionStatus;
+  departureCategory: DepartureCategoryType;
+  departureTimeEstimate?: string;
+  lateCategory: LateCategoryType;
+  roomAssignmentStrategy: RoomAssignmentStrategy;
+  notes?: string;
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ScannedRoleItem {
+  token: string;
+  facilityCode?: string;
+  roleType: 'MD' | 'CRNA' | 'ANY';
+  isAffiliatedWithBoard: boolean;
+  sampleProvider?: string;
+  frequency: number;
+  isMapped: boolean;
+  matchedRuleId?: string;
+}
+
+export interface ScannedCombinationItem {
+  pairKey: string;
+  primaryToken: string;
+  secondaryToken: string;
+  sampleProvider: string;
+  isHandled: boolean;
+  matchedRuleId?: string;
+}
+
+export interface PortalSyncSnapshot {
+  id: string;
+  date: string;
+  facility: string;
+  providerCount: number;
+  createdAt: string;
+  rawPayload?: any;
+}
