@@ -1,4 +1,13 @@
-import { ScraperPreviewResult, ScrapedWorkingStaffItem, StaffCredential, UniqueScheduleRule } from '@/types/whiteboard';
+import { 
+  ScraperPreviewResult, 
+  ScrapedWorkingStaffItem, 
+  StaffCredential, 
+  UniqueScheduleRule,
+  PortalShiftRule,
+  PortalCombinationRule
+} from '@/types/whiteboard';
+import { resolveProviderShiftPolicy } from './portalRuleMatcher';
+import { loadPortalRules } from './portalRulesStorage';
 
 // Verified hospital names dictionary for USAP Houston network
 export const KNOWN_FACILITIES: Record<string, { code: string; fullCode: string; name: string }> = {
@@ -1178,7 +1187,9 @@ export function parseOneUsapHtml(
   selectedFacilities: string[] = DEFAULT_FACILITIES,
   uniqueSchedules?: UniqueScheduleRule[],
   existingStaff?: Array<{ qgendaAbbr?: string; credentials?: string; lastName?: string }>,
-  targetDate?: string
+  targetDate?: string,
+  portalRules?: PortalShiftRule[],
+  combinationRules?: PortalCombinationRule[]
 ): ParseOneUsapResult {
   // Normalize selected facilities list
   const activeFacilities = selectedFacilities && selectedFacilities.length > 0
@@ -1677,6 +1688,29 @@ export function parseOneUsapHtml(
     const sanitized = sanitizeProviderShiftAndTasks(shift, roomTag, rawTaskStr, activeFacilities);
     let effectiveShift = resolveEffectiveShift(sanitized.shift, sanitized.roomTag, qgendaAbbr, formatted.lastName, uniqueSchedules, facility, sanitized.taskStr, activeFacilities);
 
+    // Reference Table resolution (single source of truth)
+    const docPolicy = resolveProviderShiftPolicy({
+      rawName,
+      qgendaAbbr,
+      role: 'MD',
+      facility,
+      shift: sanitized.shift,
+      tasks: sanitized.taskStr,
+      roomTag: sanitized.roomTag,
+      assignedRooms: roomInfo.rooms,
+      activeFacilities,
+      portalRules,
+      combinationRules
+    });
+
+    if (portalRules && portalRules.length > 0 && docPolicy.boardStatus === 'exclude') {
+      return;
+    }
+
+    if (docPolicy.effectiveShift && docPolicy.effectiveShift !== 'Day') {
+      effectiveShift = docPolicy.effectiveShift;
+    }
+
     const isCvFacility = facility.trim().toUpperCase() === 'CV' || facility.toUpperCase().includes('CV');
     const isWorWovDoc = isWorOrWovMhmcRole(sanitized.shift, facility, rawName, activeFacilities) ||
       isWorOrWovMhmcRole(effectiveShift, facility, rawName, activeFacilities) ||
@@ -1742,6 +1776,7 @@ export function parseOneUsapHtml(
     if (upperFac.includes('MHMC') || isWorWovDoc) mhmcCount++;
     if (upperFac.includes('MHVIL') && !isWorWovDoc) mhvilCount++;
 
+    const isDocUnassigned = docPolicy.roomAssignmentStrategy === 'unassigned_pool';
     workingStaffMap.set(cleanId, {
       id: `staff_oneusap_doc_${cleanId}`,
       displayName: formatted.displayName,
@@ -1751,9 +1786,9 @@ export function parseOneUsapHtml(
       phone,
       facility: facilityName,
       shift: effectiveShift || shift || 'Day',
-      roomAssignment: roomInfo.roomString || undefined,
-      assignedRooms: roomInfo.rooms.length > 0 ? roomInfo.rooms : undefined,
-      startTime: roomInfo.startTime || undefined,
+      roomAssignment: isDocUnassigned ? undefined : (roomInfo.roomString || undefined),
+      assignedRooms: isDocUnassigned ? undefined : (roomInfo.rooms.length > 0 ? roomInfo.rooms : undefined),
+      startTime: isDocUnassigned ? undefined : (roomInfo.startTime || undefined),
       rawId: rawName,
       qgendaAbbr,
       orderNumber
@@ -1988,6 +2023,29 @@ export function parseOneUsapHtml(
       }
     }
 
+    const crnaPolicy = resolveProviderShiftPolicy({
+      rawName,
+      qgendaAbbr,
+      role: 'CRNA',
+      facility,
+      shift,
+      tasks: taskStr,
+      roomTag,
+      assignedRooms: roomInfo.rooms,
+      activeFacilities,
+      portalRules,
+      combinationRules
+    });
+
+    if (portalRules && portalRules.length > 0 && crnaPolicy.boardStatus === 'exclude') {
+      return;
+    }
+
+    if (crnaPolicy.effectiveShift) {
+      effectiveShift = crnaPolicy.effectiveShift;
+    }
+
+    const isAnesUnassigned = crnaPolicy.roomAssignmentStrategy === 'unassigned_pool';
     workingStaffMap.set(cleanId, {
       id: `staff_oneusap_anes_${cleanId}`,
       displayName: formatted.displayName,
@@ -1997,9 +2055,9 @@ export function parseOneUsapHtml(
       phone,
       facility: facilityName,
       shift: effectiveShift || shift || 'Day',
-      roomAssignment: roomInfo.roomString || undefined,
-      assignedRooms: roomInfo.rooms.length > 0 ? roomInfo.rooms : undefined,
-      startTime: roomInfo.startTime || undefined,
+      roomAssignment: isAnesUnassigned ? undefined : (roomInfo.roomString || undefined),
+      assignedRooms: isAnesUnassigned ? undefined : (roomInfo.rooms.length > 0 ? roomInfo.rooms : undefined),
+      startTime: isAnesUnassigned ? undefined : (roomInfo.startTime || undefined),
       rawId: rawName,
       qgendaAbbr,
       orderNumber
@@ -2118,18 +2176,83 @@ export function parseOneUsapHtml(
       return;
     }
 
+    const depPolicy = resolveProviderShiftPolicy({
+      rawName,
+      qgendaAbbr,
+      role: 'MD',
+      facility,
+      shift: sanitized.shift,
+      tasks: sanitized.taskStr,
+      roomTag: sanitized.roomTag,
+      assignedRooms: roomInfo.rooms,
+      activeFacilities,
+      portalRules,
+      combinationRules
+    });
+
+    if (portalRules && portalRules.length > 0 && (depPolicy.boardStatus === 'exclude' || depPolicy.departureCategory === 'none')) {
+      return;
+    }
+
     // Check for atypical departure time (e.g. 2p, 1p, 1:30p)
     const isAtypicalTime = /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(upperShift) && !isLateDoc;
 
+    let depCategory: 'post_call' | 'special' | 'non_call' = 'non_call';
+    if (depPolicy.departureCategory === 'post_call_10a' || isPostCall) {
+      depCategory = 'post_call';
+    } else if (depPolicy.departureCategory === 'special' || isAtypicalTime) {
+      depCategory = 'special';
+    } else {
+      depCategory = 'non_call';
+    }
+
     rawDepartureCandidates.push({
       name: formatted.lastName.toUpperCase(),
-      category: isPostCall ? 'post_call' : isAtypicalTime ? 'special' : 'non_call',
-      shift: effectiveShift || undefined,
+      category: depCategory,
+      shift: depPolicy.departureTimeEstimate || effectiveShift || undefined,
       facility: facilityLabel,
       qgendaAbbr,
       roomAssignment: roomInfo.roomString || undefined,
       orderNumber
     });
+  });
+
+  // CRNAs on post-call departure policy (e.g. CIHOBPC_MHMC or combination rule)
+  targetAnes.forEach(entry => {
+    const { rawName, facility, shift, orderNumber } = entry;
+    if (isOffShift(shift)) return;
+
+    const formatted = formatProviderName(rawName);
+    const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
+    const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
+    const rawTaskStr = getProviderTasks(rawName, formatted.lastName);
+    const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName, 'CRNA');
+
+    const anesDepPolicy = resolveProviderShiftPolicy({
+      rawName,
+      qgendaAbbr,
+      role: 'CRNA',
+      facility,
+      shift,
+      tasks: rawTaskStr,
+      roomTag,
+      assignedRooms: roomInfo.rooms,
+      activeFacilities,
+      portalRules,
+      combinationRules
+    });
+
+    if (anesDepPolicy.boardStatus !== 'exclude' && anesDepPolicy.departureCategory === 'post_call_10a') {
+      rawDepartureCandidates.push({
+        name: formatted.lastName.toUpperCase(),
+        category: 'post_call',
+        shift: anesDepPolicy.departureTimeEstimate || '10:00 AM',
+        facility: getFriendlyFacilityName(facility) || 'MHMC',
+        qgendaAbbr,
+        roomAssignment: roomInfo.roomString || undefined,
+        orderNumber
+      });
+    }
   });
 
   // Disambiguate duplicate last names on departure list (e.g. CHEN K. and CHEN R.)
@@ -2190,6 +2313,48 @@ export function parseOneUsapHtml(
     // If CRNA is working CIHOBPC_MHMC (post-OB call until 10a at MHMC) with an outside L1 (e.g. L1_MHKTY),
     // their MHMC role is postOB (not a late shift) and their L1 is at another hospital, so exclude from MHMC lates.
     if (role !== 'MD' && isPostObWithOutsideL1(rawName, facility, rawShift, rawRoomTag, rawTaskStr)) {
+      return;
+    }
+
+    const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName, role === 'MD' ? 'MD' : 'CRNA');
+
+    // Reference Table policy check (single source of truth)
+    const latePolicy = resolveProviderShiftPolicy({
+      rawName,
+      qgendaAbbr,
+      role: role === 'MD' ? 'MD' : 'CRNA',
+      facility,
+      shift: rawShift,
+      tasks: rawTaskStr,
+      roomTag: rawRoomTag,
+      assignedRooms: roomInfo.rooms,
+      activeFacilities,
+      portalRules,
+      combinationRules
+    });
+
+    if (portalRules && portalRules.length > 0) {
+      if (latePolicy.boardStatus === 'exclude' || latePolicy.lateCategory === 'none') {
+        return;
+      }
+      const activeFac = getActiveFacilityCode(facility);
+      let facilityLabel = 'MHMC';
+      if (activeFac.includes('HIVF')) facilityLabel = 'HIVF';
+      else if (activeFac.includes('MHVIL')) facilityLabel = 'Village';
+      else if (activeFac.includes('MHMC')) facilityLabel = 'MHMC';
+      else facilityLabel = activeFac.replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/, '').replace(/W:\s*/g, '').trim();
+
+      lateCandidates.push({
+        name: formatted.lastName.toUpperCase(),
+        timeCategory: latePolicy.lateCategory,
+        timeEstimate: latePolicy.departureTimeEstimate || latePolicy.lateCategory,
+        facility: facilityLabel,
+        role: role || 'CRNA',
+        orderNumber,
+        qgendaAbbr,
+        roomAssignment: roomInfo.roomString || undefined,
+        notes: latePolicy.effectiveShift !== latePolicy.lateCategory ? latePolicy.effectiveShift : undefined
+      });
       return;
     }
 
@@ -2618,6 +2783,9 @@ export async function fetchAndScrapeOneUsap(options: {
   facilities?: string[];
   uniqueSchedules?: UniqueScheduleRule[];
   existingStaff?: Array<{ qgendaAbbr?: string; credentials?: string; lastName?: string }>;
+  portalRules?: PortalShiftRule[];
+  combinationRules?: PortalCombinationRule[];
+  boardId?: string;
 }): Promise<ScraperPreviewResult> {
   const targetDate = options.date || getHoustonDateString();
   let targetUrl = options.portalUrl || 'https://www.oneusap.com/assignments';
@@ -2720,7 +2888,26 @@ export async function fetchAndScrapeOneUsap(options: {
     }
 
     const combinedHtml = boardHtml ? `${html}\n<!-- ONEUSAP_BOARD_DATA -->\n${boardHtml}` : html;
-    const parsed = parseOneUsapHtml(combinedHtml, selectedFacilities, options.uniqueSchedules, options.existingStaff, targetDate);
+
+    let activeShiftRules = options.portalRules;
+    let activeCombRules = options.combinationRules;
+    if (!activeShiftRules || activeShiftRules.length === 0) {
+      try {
+        const loaded = await loadPortalRules(options.boardId || 'current');
+        activeShiftRules = loaded.shiftRules;
+        activeCombRules = loaded.combinationRules;
+      } catch {}
+    }
+
+    const parsed = parseOneUsapHtml(
+      combinedHtml, 
+      selectedFacilities, 
+      options.uniqueSchedules, 
+      options.existingStaff, 
+      targetDate,
+      activeShiftRules,
+      activeCombRules
+    );
 
     return {
       success: true,

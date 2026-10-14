@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadBoardState, saveBoardState, recordAuditLog } from '@/lib/storage';
 import { fetchAndScrapeOneUsap, getHoustonDateString } from '@/lib/oneusapScraper';
+import { loadPortalRules } from '@/lib/portalRulesStorage';
 import { DepartureItem, LateShiftItem, CallTeamItem, Staff, UserRole } from '@/types/whiteboard';
 
 export async function POST(req: NextRequest) {
@@ -38,13 +39,17 @@ export async function POST(req: NextRequest) {
       const targetDate = date || getHoustonDateString();
 
       if (activeType === 'oneusap') {
+        const { shiftRules, combinationRules } = await loadPortalRules('current');
         const preview = await fetchAndScrapeOneUsap({
           portalUrl: activeUrl,
           password: activePass,
           date: targetDate,
           facilities: activeFacilities,
           uniqueSchedules: state.uniqueSchedules,
-          existingStaff: state.staff
+          existingStaff: state.staff,
+          portalRules: shiftRules,
+          combinationRules: combinationRules,
+          boardId: 'current'
         });
 
         return NextResponse.json({
@@ -124,13 +129,17 @@ export async function POST(req: NextRequest) {
 
       if (activeType === 'oneusap' && !state.scraperConfig.mockMode) {
         const targetDate = date || getHoustonDateString();
+        const { shiftRules, combinationRules } = await loadPortalRules('current');
         const scraped = await fetchAndScrapeOneUsap({
           portalUrl: state.scraperConfig.portalUrl,
           password: state.scraperConfig.password || '321usap',
           date: targetDate,
           facilities: activeFacilities,
           uniqueSchedules: state.uniqueSchedules,
-          existingStaff: state.staff
+          existingStaff: state.staff,
+          portalRules: shiftRules,
+          combinationRules: combinationRules,
+          boardId: 'current'
         });
 
         if (!scraped.success) {
