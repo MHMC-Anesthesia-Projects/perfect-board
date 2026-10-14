@@ -169,16 +169,29 @@ export function getHoustonDateString(d: Date = new Date()): string {
   }
 }
 
+// Non-facility tokens that might appear after hyphen/underscore in shift names (e.g. 12h-7p, 16h-3p, 12h-7p:Noct)
+const NON_FACILITY_TOKENS = new Set([
+  '7P', '7A', '3P', '4P', '5P', '8P', '9P', '10P', '11P', '12P',
+  '7PM', '7AM', '3PM', '4PM', '5PM', '8PM', '9PM',
+  'NOCT', 'NIGHT', 'DAY', 'CALL', 'POST', 'PRE', 'AM', 'PM',
+  '8H', '10H', '12H', '13H', '16H', '24H'
+]);
+
 /**
- * Extracts explicit facility code from a shift or role string (e.g. "12h_MHKTY" -> "MHKTY", "L1-HMWST" -> "HMWST", "10H_MHMC" -> "MHMC", "DrWrk_MHKTY" -> "MHKTY", "CIHOBPC_MHMC" -> "MHMC", "Dr10h_MHVIL-SC" -> "MHVIL-SC").
+ * Extracts explicit facility code from a shift or role string (e.g. "12h_MHKTY" -> "MHKTY", "L1-HMWST" -> "HMWST", "10H_MHMC" -> "MHMC", "DrWrk_MHKTY" -> "MHKTY", "CIHOBPC_MHMC" -> "MHMC", "Dr10h_MHVIL-SC" -> "MHVIL-SC", "12h-7p:Noct_MHMC" -> "MHMC").
  */
 export function extractFacilityFromShift(shiftOrRole?: string): string | null {
   if (!shiftOrRole) return null;
-  const match = shiftOrRole.match(/(?:^|[\s,;/])(?:[0-9]+[Hh]|L[1-4]|DRWRK|WOR|WOV|C[1-4]|CV|OB|CALL|CIH|HDR|IDR|DR|POST|PRE)[A-Za-z0-9]*[-_]([A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)\b/i);
-  if (match) {
-    return match[1].toUpperCase();
+  const regex = /[-_]([A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)\b/gi;
+  let match;
+  let lastValidFac: string | null = null;
+  while ((match = regex.exec(shiftOrRole)) !== null) {
+    const candidate = match[1].toUpperCase();
+    if (!NON_FACILITY_TOKENS.has(candidate) && !/^[0-9]+[AP]M?$/i.test(candidate) && !/^[0-9]+H$/i.test(candidate)) {
+      lastValidFac = candidate;
+    }
   }
-  return null;
+  return lastValidFac;
 }
 
 /**
@@ -186,13 +199,15 @@ export function extractFacilityFromShift(shiftOrRole?: string): string | null {
  */
 export function extractAllFacilitiesFromShift(shiftOrRole?: string): string[] {
   if (!shiftOrRole) return [];
-  const regex = /(?:^|[\s,;/])(?:[0-9]+[Hh]|L[1-4]|DRWRK|WOR|WOV|C[1-4]|CV|OB|CALL|CIH|HDR|IDR|DR|POST|PRE)[A-Za-z0-9]*[-_]([A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)\b/gi;
+  const regex = /[-_]([A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)\b/gi;
   const facilities: string[] = [];
-  let m;
-  while ((m = regex.exec(shiftOrRole)) !== null) {
-    const fac = m[1].toUpperCase();
-    if (!facilities.includes(fac)) {
-      facilities.push(fac);
+  let match;
+  while ((match = regex.exec(shiftOrRole)) !== null) {
+    const candidate = match[1].toUpperCase();
+    if (!NON_FACILITY_TOKENS.has(candidate) && !/^[0-9]+[AP]M?$/i.test(candidate) && !/^[0-9]+H$/i.test(candidate)) {
+      if (!facilities.includes(candidate)) {
+        facilities.push(candidate);
+      }
     }
   }
   return facilities;
