@@ -84,6 +84,7 @@ export interface Department {
   orderIndex: number;
   runnerSlots: RunnerSlot[];
   rooms: Room[];
+  facility?: string; // Parent facility code e.g. "MHMC", "MHVIL-SC", "HIVF-SC", "MHKTY"
 }
 
 export interface DepartureItem {
