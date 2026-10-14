@@ -325,23 +325,27 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
       const room = findRoom(dept, mapped.roomName);
       if (!room) continue;
 
-      // Assign to primary slot if available
+      // Assign to primary slot if available (never assign two people to one room)
       if (room.slots.length > 0 && !room.slots[0].staffId) {
         room.slots[0].staffId = crna.id;
-        assignedStaffIds.add(crna.id);
-        break;
-      }
-
-      // Or secondary slot if primary is occupied
-      if (room.slots.length > 1 && !room.slots[1].staffId) {
-        room.slots[1].staffId = crna.id;
         assignedStaffIds.add(crna.id);
         break;
       }
     }
   });
 
-  // 4. Assign single-room MDs (who were not assigned as runners)
+  // Build a set of rooms that have a CRNA assigned so MDs sharing a 1:1 room with a CRNA become department runners
+  const crnaRoomKeys = new Set<string>();
+  crnaStaff.forEach(crna => {
+    getStaffRooms(crna).forEach(r => {
+      const mapped = mapScrapedRoomToDeptAndRoom(r);
+      if (mapped) {
+        crnaRoomKeys.add(`${mapped.deptKey}::${mapped.roomName.toLowerCase()}`);
+      }
+    });
+  });
+
+  // 4. Assign remaining MDs (who were not yet assigned as runners)
   mdStaff.forEach(md => {
     if (assignedStaffIds.has(md.id) || runnerMdIds.has(md.id)) return;
     const rawRooms = getStaffRooms(md);
@@ -366,29 +370,18 @@ export function autoAssignBoardState(state: BoardState): AutoAssignResult {
       const room = findRoom(dept, mapped.roomName);
       if (!room) continue;
 
-      // Place in primary slot if empty
-      if (room.slots.length > 0 && !room.slots[0].staffId) {
-        room.slots[0].staffId = md.id;
-        assignedStaffIds.add(md.id);
+      // If this room also has a CRNA assigned to it (or its primary slot is already occupied),
+      // the MD must be assigned as a Runner of the department (never assign two people in one room).
+      const roomKey = `${mapped.deptKey}::${mapped.roomName.toLowerCase()}`;
+      const hasCrnaAssigned = crnaRoomKeys.has(roomKey) || Boolean(room.slots[0]?.staffId);
+      if (hasCrnaAssigned) {
+        assignAsRunner(dept, md.id);
         break;
       }
 
-      // If primary is taken by CRNA, place in secondary slot
-      if (room.slots.length > 1 && !room.slots[1].staffId) {
-        room.slots[1].staffId = md.id;
-        assignedStaffIds.add(md.id);
-        break;
-      } else if (room.slots.length === 1) {
-        // Add secondary slot to accommodate both CRNA and MD
-        const newSlot = {
-          id: `${room.id}_slot_${room.slots.length}_${Date.now()}`,
-          roleType: 'secondary' as const,
-          staffId: md.id,
-          breakfastDone: false,
-          lunchDone: false,
-          notes: ''
-        };
-        room.slots.push(newSlot);
+      // Place in primary slot if solo MD (no CRNA in room) and slot is empty
+      if (room.slots.length > 0 && !room.slots[0].staffId) {
+        room.slots[0].staffId = md.id;
         assignedStaffIds.add(md.id);
         break;
       }
