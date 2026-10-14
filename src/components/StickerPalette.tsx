@@ -114,9 +114,12 @@ export const StickerPalette: React.FC<StickerPaletteProps> = ({
     }
   };
 
+  const displayCustomText = (customText.trim() || 'CUSTOM').slice(0, 10).toUpperCase();
+  const currentCustomStickerId = `text:${displayCustomText}`;
+  const isCustomStampActive = activeStampStickerId === currentCustomStickerId;
+
   const handleDragCustom = (e: React.DragEvent) => {
-    const trimmed = (customText.trim() || 'NOTE').slice(0, 10).toUpperCase();
-    const stickerId = `text:${trimmed}`;
+    const stickerId = currentCustomStickerId;
     const payloadObj = {
       type: 'sticker',
       stickerId
@@ -147,13 +150,25 @@ export const StickerPalette: React.FC<StickerPaletteProps> = ({
   };
 
   const handleSelectCustomStamp = () => {
-    const trimmed = (customText.trim() || 'NOTE').slice(0, 10).toUpperCase();
-    const targetStickerId = `text:${trimmed}`;
-    const isAlreadySelected = activeStampStickerId === targetStickerId;
-    onSelectStampSticker?.(isAlreadySelected ? null : targetStickerId);
+    const isAlreadySelected = activeStampStickerId === currentCustomStickerId;
+    onSelectStampSticker?.(isAlreadySelected ? null : currentCustomStickerId);
   };
 
-  const isCustomStampActive = Boolean(activeStampStickerId?.startsWith('text:'));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.slice(0, 10);
+    setCustomText(val);
+    if (activeStampStickerId?.startsWith('text:') && onSelectStampSticker) {
+      const nextText = (val.trim() || 'CUSTOM').toUpperCase();
+      onSelectStampSticker(`text:${nextText}`);
+    }
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      customInputRef.current?.blur();
+      onSelectStampSticker?.(currentCustomStickerId);
+    }
+  };
 
   return (
     <div className="sticker-palette-bar">
@@ -194,57 +209,55 @@ export const StickerPalette: React.FC<StickerPaletteProps> = ({
           );
         })}
 
-        {/* Unified Custom Free-Text Magnet (max 10 characters) */}
-        <div
-          className={`custom-text-magnet-pill ${isCustomStampActive ? 'stamp-active' : ''}`}
-          draggable
-          onDragStart={handleDragCustom}
-          onDragEnd={handleDragEnd}
-          onClick={handleSelectCustomStamp}
-          title="Custom Magnet (max 10 chars) — Type text, then drag to any magnet/room or tap to select"
-        >
-          <span className="custom-magnet-icon" title="Drag magnet">⋮⋮</span>
-          <input
-            ref={customInputRef}
-            type="text"
-            className="custom-magnet-pill-input"
-            maxLength={10}
-            placeholder="CUSTOM"
-            value={customText}
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            onChange={(e) => {
-              const val = e.target.value.slice(0, 10);
-              setCustomText(val);
-              if (isCustomStampActive && onSelectStampSticker) {
-                onSelectStampSticker(val.trim() ? `text:${val.trim().toUpperCase()}` : null);
-              }
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                customInputRef.current?.blur();
-                handleSelectCustomStamp();
-              }
-            }}
-          />
-          {customText && (
-            <button
-              type="button"
-              className="custom-magnet-clear-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                setCustomText('');
-                if (isCustomStampActive) {
-                  onSelectStampSticker?.(null);
-                }
-                customInputRef.current?.focus();
-              }}
-              title="Clear text"
+        {/* Custom Free-Text Magnet: Type text, then single-click the badge to pick up & drop, or drag */}
+        <div className="custom-magnet-group">
+          <div className="custom-magnet-input-pill">
+            <span className="custom-magnet-pencil-icon" title="Type custom text">✎</span>
+            <input
+              ref={customInputRef}
+              type="text"
+              className="custom-magnet-pill-input"
+              maxLength={10}
+              placeholder="CUSTOM"
+              value={customText}
+              onChange={handleInputChange}
+              onKeyDown={handleInputKeyDown}
+              title="Type custom text (e.g. STAT, PACU, NOTE). Press Enter or click the badge to pick up."
+            />
+            {customText && (
+              <button
+                type="button"
+                className="custom-magnet-clear-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCustomText('');
+                  if (activeStampStickerId?.startsWith('text:')) {
+                    onSelectStampSticker?.(null);
+                  }
+                  customInputRef.current?.focus();
+                }}
+                title="Clear text"
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          <div
+            className={`sticker-chip badge-style custom-text-chip ${isCustomStampActive ? 'stamp-active' : ''}`}
+            draggable
+            onDragStart={handleDragCustom}
+            onDragEnd={handleDragEnd}
+            onClick={handleSelectCustomStamp}
+            title={`Custom Magnet: "${displayCustomText}" — Single click to pick up and drop, or drag to magnet/room`}
+          >
+            <span
+              className="sticker-badge-visual"
+              style={{ backgroundColor: '#0f766e' }}
             >
-              ×
-            </button>
-          )}
+              {displayCustomText}
+            </span>
+          </div>
         </div>
 
         {hasAnyStickers && onClearAllStickers && (

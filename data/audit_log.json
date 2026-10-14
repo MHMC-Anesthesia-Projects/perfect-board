@@ -1,5 +1,55 @@
 [
   {
+    "id": "audit_1791986639692_mdx0b",
+    "timestamp": "2026-10-14T14:03:59.692Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Relief Assignment",
+    "locationName": "VILLAGE Room P2",
+    "details": "Removed relief assignment for VILLAGE Room P2"
+  },
+  {
+    "id": "audit_1791986634868_m798n",
+    "timestamp": "2026-10-14T14:03:54.868Z",
+    "actionType": "ROOM_UPDATED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "3 PM Count (Red Box)",
+    "locationName": "VILLAGE Room P2",
+    "details": "Marked VILLAGE Room P2 for 3 PM Count (Open Red Box awaiting coverage)"
+  },
+  {
+    "id": "audit_1791925279917_37c8h",
+    "timestamp": "2026-10-13T21:01:19.917Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Relief Assignment",
+    "locationName": "ORTHO Room 4",
+    "details": "Removed relief assignment for ORTHO Room 4"
+  },
+  {
+    "id": "audit_1791925274071_7h7yc",
+    "timestamp": "2026-10-13T21:01:14.071Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Relief Assignment",
+    "locationName": "MAIN OR Runner (Runner 1)",
+    "details": "Removed relief assignment for MAIN OR Runner (Runner 1)"
+  },
+  {
+    "id": "audit_1791925267962_9208x",
+    "timestamp": "2026-10-13T21:01:07.962Z",
+    "actionType": "STAFF_UNASSIGNED",
+    "performedBy": "MHMC",
+    "userRole": "admin",
+    "targetName": "Relief Assignment",
+    "locationName": "WEST PAV Runner (Runner 1)",
+    "details": "Removed relief assignment for WEST PAV Runner (Runner 1)"
+  },
+  {
     "id": "audit_1791922286559_dmome",
     "timestamp": "2026-10-13T20:11:26.559Z",
     "actionType": "STAFF_ASSIGNED",

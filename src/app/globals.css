@@ -4319,7 +4319,111 @@ body.dragging-staff .runner-slot-row:hover .relief-slot-target {
   color: var(--text-secondary);
 }
 
-/* Unified Custom Free-Text Magnet Pill */
+/* Custom Free-Text Magnet Group */
+.custom-magnet-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.custom-magnet-input-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3.5px;
+  padding: 1.5px 6px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  height: 20px;
+  box-sizing: border-box;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+}
+
+.custom-magnet-input-pill:focus-within {
+  border-color: #0d9488;
+  box-shadow: 0 0 0 1.5px rgba(13, 148, 136, 0.35);
+}
+
+.custom-magnet-pencil-icon {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  opacity: 0.85;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.custom-magnet-pill-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  width: 58px;
+  padding: 0;
+  margin: 0;
+  text-transform: uppercase;
+  font-family: inherit;
+  line-height: 1;
+}
+
+.custom-magnet-pill-input::placeholder {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 8.5px;
+  opacity: 0.8;
+}
+
+.custom-magnet-clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 0 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.custom-magnet-clear-btn:hover {
+  color: #ef4444;
+  transform: scale(1.2);
+}
+
+/* Custom Text Sticker Chip - exactly matches Volunteer / Will Finish */
+.sticker-chip.custom-text-chip {
+  cursor: grab;
+}
+
+.sticker-chip.custom-text-chip:hover {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 3px 6px rgba(13, 148, 136, 0.3);
+  border-color: #0d9488;
+}
+
+.sticker-chip.custom-text-chip:active {
+  cursor: grabbing;
+}
+
+.sticker-chip.custom-text-chip.stamp-active {
+  border-color: #0d9488;
+  box-shadow: 0 0 0 2px #0d9488, 0 2px 8px rgba(13, 148, 136, 0.5);
+  transform: translateY(-1.5px) scale(1.05);
+  background: rgba(13, 148, 136, 0.15);
+}
+
+.sticker-chip.custom-text-chip .sticker-badge-visual {
+  background-color: #0f766e;
+  color: #ffffff;
+}
+
+/* Legacy fallback for custom-text-magnet-pill if still used elsewhere */
 .custom-text-magnet-pill {
   display: inline-flex;
   align-items: center;
@@ -4335,72 +4439,6 @@ body.dragging-staff .runner-slot-row:hover .relief-slot-target {
   height: 20px;
   box-sizing: border-box;
   user-select: none;
-}
-
-.custom-text-magnet-pill:hover {
-  transform: translateY(-1px) scale(1.03);
-  box-shadow: 0 3px 8px rgba(13, 148, 136, 0.45);
-  border-color: rgba(255, 255, 255, 0.7);
-}
-
-.custom-text-magnet-pill:active {
-  cursor: grabbing;
-}
-
-.custom-text-magnet-pill.stamp-active {
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 2px #38bdf8, 0 2px 8px rgba(56, 189, 248, 0.6);
-  transform: translateY(-1.5px) scale(1.04);
-}
-
-.custom-magnet-icon {
-  font-size: 8px;
-  opacity: 0.75;
-  cursor: grab;
-  line-height: 1;
-  letter-spacing: -1px;
-}
-
-.custom-magnet-pill-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #ffffff;
-  font-size: 9.5px;
-  font-weight: 900;
-  letter-spacing: 0.3px;
-  width: 65px;
-  padding: 0;
-  margin: 0;
-  text-transform: uppercase;
-  font-family: inherit;
-  line-height: 1;
-}
-
-.custom-magnet-pill-input::placeholder {
-  color: rgba(255, 255, 255, 0.55);
-  font-weight: 700;
-  font-size: 8.5px;
-}
-
-.custom-magnet-clear-btn {
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 11px;
-  line-height: 1;
-  font-weight: 900;
-  cursor: pointer;
-  padding: 0 1px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.15s ease, transform 0.15s ease;
-}
-
-.custom-magnet-clear-btn:hover {
-  color: #ffffff;
-  transform: scale(1.2);
 }
 
 .sticker-clear-all-btn {
