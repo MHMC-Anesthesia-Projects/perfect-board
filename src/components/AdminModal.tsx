@@ -14,6 +14,7 @@ import {
   ChevronUp, ChevronDown, Sliders, Layers, Plane, ToggleLeft, ToggleRight
 } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { PortalRulesManager } from './PortalRulesManager';
 
 interface AdminModalProps {
   isOpen: boolean;
@@ -73,7 +74,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   onUpdateCurrentUser,
   onClearAllTextNotes
 }) => {
-  const [activeTab, setActiveTab] = useState<'users' | 'staff' | 'layout' | 'scraper' | 'unique_schedules' | 'messaging'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'staff' | 'layout' | 'scraper' | 'unique_schedules' | 'portal_rules' | 'messaging'>('users');
 
   // --- Unique Schedules State ---
   const [uniqueRules, setUniqueRules] = useState<UniqueScheduleRule[]>([]);
@@ -1056,6 +1057,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               <option value="staff">🩺 Site Staff Roster ({staff.length})</option>
               <option value="layout">📐 Board Layout Editor ({layoutDepts.length} Depts)</option>
               <option value="scraper">🌐 Portal Sync (QGenda/Amion)</option>
+              <option value="portal_rules">🎛️ Shift Reference Table (Rules & Actions)</option>
               <option value="unique_schedules">⏰ Unique Schedules ({uniqueRules.filter(r => r.active).length} Active)</option>
               <option value="messaging">💬 Perfect Call Messaging ({messagingEnabled ? 'ACTIVE' : 'OFF'})</option>
             </select>
@@ -1064,7 +1066,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
         </div>
 
         {/* Desktop Navigation Tabs */}
-        <div className="admin-desktop-tabs admin-desktop-only" style={{ display: 'flex', gap: 8, borderBottom: '2px solid var(--border-light)', paddingBottom: 8, marginBottom: 16 }}>
+        <div className="admin-desktop-tabs admin-desktop-only" style={{ display: 'flex', gap: 8, borderBottom: '2px solid var(--border-light)', paddingBottom: 8, marginBottom: 16, overflowX: 'auto' }}>
           <button
             onClick={() => setActiveTab('users')}
             style={{
@@ -1076,7 +1078,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               background: activeTab === 'users' ? 'var(--accent-primary)' : 'var(--surface-hover)',
               color: activeTab === 'users' ? '#fff' : 'var(--text-primary)',
               fontWeight: 700,
-              fontSize: 13
+              fontSize: 13,
+              whiteSpace: 'nowrap'
             }}
           >
             <Users size={15} />
@@ -1094,7 +1097,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               background: activeTab === 'staff' ? 'var(--accent-primary)' : 'var(--surface-hover)',
               color: activeTab === 'staff' ? '#fff' : 'var(--text-primary)',
               fontWeight: 700,
-              fontSize: 13
+              fontSize: 13,
+              whiteSpace: 'nowrap'
             }}
           >
             <UserCheck size={15} />
@@ -1112,7 +1116,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               background: activeTab === 'layout' ? 'var(--accent-primary)' : 'var(--surface-hover)',
               color: activeTab === 'layout' ? '#fff' : 'var(--text-primary)',
               fontWeight: 700,
-              fontSize: 13
+              fontSize: 13,
+              whiteSpace: 'nowrap'
             }}
           >
             <Layout size={15} />
@@ -1130,11 +1135,31 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               background: activeTab === 'scraper' ? 'var(--accent-primary)' : 'var(--surface-hover)',
               color: activeTab === 'scraper' ? '#fff' : 'var(--text-primary)',
               fontWeight: 700,
-              fontSize: 13
+              fontSize: 13,
+              whiteSpace: 'nowrap'
             }}
           >
             <Globe size={15} />
-            <span>Portal Sync (QGenda/Amion)</span>
+            <span>Portal Sync</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('portal_rules')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 14px',
+              borderRadius: 6,
+              background: activeTab === 'portal_rules' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+              color: activeTab === 'portal_rules' ? '#fff' : 'var(--text-primary)',
+              fontWeight: 700,
+              fontSize: 13,
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <Sliders size={15} />
+            <span>Shift Reference Table</span>
           </button>
 
           <button
@@ -1148,11 +1173,12 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               background: activeTab === 'unique_schedules' ? 'var(--accent-primary)' : 'var(--surface-hover)',
               color: activeTab === 'unique_schedules' ? '#fff' : 'var(--text-primary)',
               fontWeight: 700,
-              fontSize: 13
+              fontSize: 13,
+              whiteSpace: 'nowrap'
             }}
           >
             <Clock size={15} />
-            <span>Unique Schedules ({uniqueRules.filter(r => r.active).length} Active)</span>
+            <span>Unique Schedules ({uniqueRules.filter(r => r.active).length})</span>
           </button>
 
           <button
@@ -1166,7 +1192,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               background: activeTab === 'messaging' ? '#10b981' : 'var(--surface-hover)',
               color: activeTab === 'messaging' ? '#fff' : 'var(--text-primary)',
               fontWeight: 700,
-              fontSize: 13
+              fontSize: 13,
+              whiteSpace: 'nowrap'
             }}
           >
             <MessageSquare size={15} />
@@ -3218,6 +3245,51 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 </p>
               </div>
 
+              <div style={{
+                marginBottom: 16,
+                padding: '10px 14px',
+                borderRadius: 8,
+                background: 'rgba(99, 102, 241, 0.08)',
+                border: '1px solid rgba(99, 102, 241, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+                flexWrap: 'wrap'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Sliders size={18} color="#6366f1" />
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+                      Shift Reference Table & Action Policies
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                      Configure how shift codes (12h-7p, C1, postOB, etc.) map to rooms, late lists, and departures.
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('portal_rules')}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 6,
+                    background: '#6366f1',
+                    color: '#fff',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6
+                  }}
+                >
+                  <span>Open Shift Reference Table</span>
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+
               {scraperMsg && (
                 <div style={{
                   padding: 8,
@@ -4182,6 +4254,15 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 </div>
               </div>
             </div>
+          )}
+
+          {/* ===================== TAB: SHIFT REFERENCE TABLE ===================== */}
+          {activeTab === 'portal_rules' && (
+            <PortalRulesManager
+              boardId="current"
+              activeFacilities={scraperConfig.selectedFacilities || ['MHMC', 'MHVIL-SC', 'HIVF-SC']}
+              currentUser={currentUser}
+            />
           )}
 
           {/* ===================== TAB 5: UNIQUE SCHEDULES ===================== */}
