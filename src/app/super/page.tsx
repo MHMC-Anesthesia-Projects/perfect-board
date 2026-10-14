@@ -10,8 +10,9 @@ import {
   Shield, Building2, Hospital, Database, Key, Users,
   Plus, Edit3, Trash2, RefreshCw, KeyRound, ExternalLink,
   Search, CheckCircle2, AlertCircle, Lock, ArrowRight,
-  LogOut, Activity, Settings, Eye, EyeOff, Radio, Cpu, Check
+  LogOut, Activity, Settings, Eye, EyeOff, Radio, Cpu, Check, Sliders
 } from 'lucide-react';
+import { SuperuserSandbox } from '@/components/SuperuserSandbox';
 
 interface OrgAccount {
   id: string;
@@ -48,7 +49,7 @@ export default function SuperuserControlCenter() {
   const router = useRouter();
   
   // Navigation & Tabs
-  const [activeTab, setActiveTab] = useState<'SUPERUSERS' | 'ORGS' | 'FEEDS' | 'AUDIT'>('SUPERUSERS');
+  const [activeTab, setActiveTab] = useState<'SUPERUSERS' | 'ORGS' | 'FEEDS' | 'SANDBOX' | 'AUDIT'>('SUPERUSERS');
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -582,6 +583,14 @@ export default function SuperuserControlCenter() {
             </button>
             <button
               type="button"
+              className={`${styles.tabBtn} ${activeTab === 'SANDBOX' ? styles.tabBtnActive : ''}`}
+              onClick={() => setActiveTab('SANDBOX')}
+            >
+              <Sliders size={16} />
+              Schedule Sandbox & Rules
+            </button>
+            <button
+              type="button"
               className={`${styles.tabBtn} ${activeTab === 'AUDIT' ? styles.tabBtnActive : ''}`}
               onClick={() => setActiveTab('AUDIT')}
             >
@@ -898,7 +907,7 @@ export default function SuperuserControlCenter() {
                   </div>
                 )}
 
-                <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     className={styles.primaryActionBtn}
@@ -908,6 +917,14 @@ export default function SuperuserControlCenter() {
                     <RefreshCw size={14} className={feedTesting ? 'animate-spin' : ''} />
                     {feedTesting ? 'Testing Connection...' : 'Test Scraper Ingestion'}
                   </button>
+                  <button
+                    type="button"
+                    className={styles.actionIconBtn}
+                    onClick={() => setActiveTab('SANDBOX')}
+                  >
+                    <Sliders size={14} />
+                    Open Schedule Testing Sandbox
+                  </button>
                   <Link href="/usap/mhmc" className={styles.actionIconBtn} style={{ textDecoration: 'none' }}>
                     <ExternalLink size={14} />
                     Inspect Target Live Board
@@ -915,6 +932,11 @@ export default function SuperuserControlCenter() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* TAB: SCHEDULE TESTING SANDBOX & RULES */}
+          {activeTab === 'SANDBOX' && (
+            <SuperuserSandbox currentUser={currentUser} />
           )}
 
           {/* TAB 4: AUDIT LOGS */}
