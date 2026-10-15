@@ -128,8 +128,37 @@ export function classifyTokenFacility(
   };
 }
 
+function tokenMatchesCombinationPattern(token: string, pattern: string): boolean {
+  const tUpper = token.toUpperCase().trim();
+  const pUpper = pattern.toUpperCase().trim();
+
+  // If pattern is looking for active OB call (and not explicitly post-call), do not match post-call tokens
+  if (
+    pUpper.includes('OB') &&
+    !pUpper.includes('POST') &&
+    !pUpper.includes('PC') &&
+    (tUpper.includes('POST') || tUpper.includes('PC'))
+  ) {
+    return false;
+  }
+
+  if (pUpper.includes('*')) {
+    const regexPattern = '^' + pUpper.replace(/[-/\\^$+?.()|[\]{}]/g, '\\$&').replace(/\*/g, '.*') + '$';
+    try {
+      if (new RegExp(regexPattern, 'i').test(tUpper)) return true;
+    } catch {}
+  }
+
+  if (tUpper === pUpper) return true;
+
+  // Prefix match (e.g. pattern "L1" matches "L1_MHMC" or "L1-MHMC")
+  if (tUpper.startsWith(`${pUpper}_`) || tUpper.startsWith(`${pUpper}-`)) return true;
+
+  return false;
+}
+
 /**
- * Matches candidate tokens against combination rules (e.g. CIHOBPC_MHMC + L1_MHKTY).
+ * Matches candidate tokens against combination rules (e.g. CIHOBPC_MHMC + L1_MHKTY, or L1* + *OB*).
  */
 export function matchCombinationPolicy(
   tokens: string[],
@@ -140,14 +169,11 @@ export function matchCombinationPolicy(
   }
 
   const activeRules = combinationRules.filter(r => r.active);
-  const upperTokens = tokens.map(t => t.toUpperCase());
+  const upperTokens = tokens.map(t => t.toUpperCase().trim());
 
   for (const rule of activeRules) {
-    const pUpper = rule.primaryPattern.toUpperCase();
-    const sUpper = rule.secondaryPattern.toUpperCase();
-
-    const hasPrimary = upperTokens.some(t => t === pUpper || t.includes(pUpper));
-    const hasSecondary = upperTokens.some(t => t === sUpper || t.includes(sUpper));
+    const hasPrimary = upperTokens.some(t => tokenMatchesCombinationPattern(t, rule.primaryPattern));
+    const hasSecondary = upperTokens.some(t => tokenMatchesCombinationPattern(t, rule.secondaryPattern));
 
     if (hasPrimary && hasSecondary) {
       return rule;

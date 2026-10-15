@@ -584,6 +584,20 @@ export function getDefaultPortalShiftRules(): PortalShiftRule[] {
       active: true
     },
     {
+      id: 'rule_std_pto',
+      pattern: '*PTO*',
+      facilityCode: 'ALL',
+      roleType: 'ANY',
+      shiftHours: 'Off',
+      departureCategory: 'none',
+      lateCategory: 'none',
+      boardStatus: 'exclude',
+      roomAssignmentStrategy: 'unassigned_pool',
+      notes: 'Staff on PTO / Paid Time Off; excluded from board unless working active shift or call role',
+      priority: 1,
+      active: true
+    },
+    {
       id: 'rule_std_off',
       pattern: 'Off',
       facilityCode: 'ALL',
@@ -630,6 +644,20 @@ export function getDefaultPortalCombinationRules(): PortalCombinationRule[] {
       badgeNote: '24h (L1 + OB)',
       roomAssignmentStrategy: 'scraped',
       notes: 'Provider working daytime L1 shift and overnight OB call at MHMC; place in 24h section',
+      active: true
+    },
+    {
+      id: 'comb_l1_with_ob_generic',
+      name: '24-Hour Continuous Shift: L1 + OB Call (e.g. L1,OB or L1,OB,PTO)',
+      primaryPattern: 'L1*',
+      secondaryPattern: '*OB*',
+      condition: 'has_both',
+      boardStatus: 'include',
+      departureCategory: 'none',
+      lateCategory: '24h',
+      badgeNote: '24h (L1 + OB)',
+      roomAssignmentStrategy: 'scraped',
+      notes: 'Provider working daytime L1 shift and overnight OB call (e.g. L1,OB or L1,OB,PTO); place in 24h section',
       active: true
     }
   ];

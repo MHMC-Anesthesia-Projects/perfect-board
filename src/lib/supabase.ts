@@ -17,6 +17,10 @@ export const isSupabaseConfigured = Boolean(
   supabaseUrl && (supabaseAnonKey || supabaseServiceKey)
 );
 
+if (typeof window === 'undefined' && typeof (globalThis as any).WebSocket === 'undefined') {
+  (globalThis as any).WebSocket = class DummyWebSocket {};
+}
+
 let serverClient: SupabaseClient<any, any, any> | null = null;
 
 /**
@@ -28,15 +32,20 @@ export function getSupabaseServerClient(): SupabaseClient<any, any, any> | null 
 
   if (!serverClient) {
     const key = supabaseServiceKey || supabaseAnonKey;
-    serverClient = createClient(supabaseUrl, key, {
-      db: {
-        schema: PERFECT_BOARD_SCHEMA,
-      },
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    });
+    try {
+      serverClient = createClient(supabaseUrl, key, {
+        db: {
+          schema: PERFECT_BOARD_SCHEMA,
+        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      });
+    } catch (err) {
+      console.warn('Failed to initialize Supabase server client:', err);
+      return null;
+    }
   }
 
   return serverClient;

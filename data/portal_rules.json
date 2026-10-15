@@ -572,6 +572,20 @@
       "lateCategory": "none",
       "departureCategory": "none",
       "roomAssignmentStrategy": "unassigned_pool"
+    },
+    {
+      "id": "rule_std_pto",
+      "notes": "Staff on PTO / Paid Time Off; excluded from board unless working active shift or call role",
+      "active": true,
+      "pattern": "*PTO*",
+      "priority": 1,
+      "roleType": "ANY",
+      "shiftHours": "Off",
+      "boardStatus": "exclude",
+      "facilityCode": "ALL",
+      "lateCategory": "none",
+      "departureCategory": "none",
+      "roomAssignmentStrategy": "unassigned_pool"
     }
   ],
   "combinationRules": [
@@ -601,7 +615,21 @@
       "roomAssignmentStrategy": "scraped",
       "notes": "Provider working daytime L1 shift and overnight OB call at MHMC; place in 24h section",
       "active": true
+    },
+    {
+      "id": "comb_l1_with_ob_generic",
+      "name": "24-Hour Continuous Shift: L1 + OB Call (e.g. L1,OB or L1,OB,PTO)",
+      "primaryPattern": "L1*",
+      "secondaryPattern": "*OB*",
+      "condition": "has_both",
+      "boardStatus": "include",
+      "departureCategory": "none",
+      "lateCategory": "24h",
+      "badgeNote": "24h (L1 + OB)",
+      "roomAssignmentStrategy": "scraped",
+      "notes": "Provider working daytime L1 shift and overnight OB call (e.g. L1,OB or L1,OB,PTO); place in 24h section",
+      "active": true
     }
   ],
-  "lastUpdated": "2026-10-15T00:52:56.837Z"
+  "lastUpdated": "2026-10-15T11:10:00.000Z"
 }

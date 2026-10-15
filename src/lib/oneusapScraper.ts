@@ -650,12 +650,35 @@ export function isTargetFacility(facilityStr: string, allowedFacilities: string[
 export function isOffShift(shiftStr: string): boolean {
   if (!shiftStr) return false;
   const s = shiftStr.toUpperCase().trim();
+
+  // If the shift string includes active working task indicators or combinations, they are not off
+  const hasActiveWorkingRole =
+    s.includes('L1') ||
+    s.includes('8H') ||
+    s.includes('10H') ||
+    s.includes('12H') ||
+    s.includes('13H') ||
+    s.includes('CIH') ||
+    s.includes('DRWRK') ||
+    s.includes('WOR') ||
+    s.includes('WOV') ||
+    s.startsWith('W_PTO') ||
+    s.includes('W_PTO') ||
+    /\b(?:C[123]|CV|OB)\b/i.test(s);
+
+  if (hasActiveWorkingRole) {
+    return false;
+  }
+
   if (
     s.includes('PTO') ||
     s.includes('RDO') ||
     s.includes('VACATION') ||
     s.includes('MEETING') ||
-    s.includes('OFF')
+    s === 'OFF' ||
+    s.startsWith('OFF_') ||
+    s.endsWith('_OFF') ||
+    /\bOFF\b/.test(s)
   ) {
     return true;
   }
@@ -2031,9 +2054,9 @@ export function parseOneUsapHtml(
       qgendaAbbr,
       role: 'CRNA',
       facility,
-      shift,
-      tasks: taskStr,
-      roomTag,
+      shift: rawShift,
+      tasks: rawTaskStr,
+      roomTag: rawRoomTag,
       assignedRooms: roomInfo.rooms,
       activeFacilities,
       portalRules,
@@ -2046,7 +2069,7 @@ export function parseOneUsapHtml(
     }
 
     if (crnaPolicy.effectiveShift) {
-      effectiveShift = crnaPolicy.effectiveShift;
+      effectiveShift = crnaPolicy.badgeNote || crnaPolicy.effectiveShift;
     }
 
     const isAnesUnassigned = crnaPolicy.roomAssignmentStrategy === 'unassigned_pool';
@@ -2277,7 +2300,6 @@ export function parseOneUsapHtml(
     role: string,
     orderNumber: number
   ) => {
-    if (isOffShift(rawShift)) return;
     const formatted = formatProviderName(rawName);
     const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
 
@@ -2301,22 +2323,22 @@ export function parseOneUsapHtml(
     const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName, role === 'MD' ? 'MD' : 'CRNA');
 
     // Reference Table policy check (single source of truth)
-    const latePolicy = resolveProviderShiftPolicy({
-      rawName,
-      qgendaAbbr,
-      role: role === 'MD' ? 'MD' : 'CRNA',
-      facility,
-      shift: rawShift,
-      tasks: rawTaskStr,
-      roomTag: rawRoomTag,
-      assignedRooms: roomInfo.rooms,
-      activeFacilities,
-      portalRules,
-      combinationRules,
-      uniqueSchedules
-    });
-
     if (portalRules && portalRules.length > 0) {
+      const latePolicy = resolveProviderShiftPolicy({
+        rawName,
+        qgendaAbbr,
+        role: role === 'MD' ? 'MD' : 'CRNA',
+        facility,
+        shift: rawShift,
+        tasks: rawTaskStr,
+        roomTag: rawRoomTag,
+        assignedRooms: roomInfo.rooms,
+        activeFacilities,
+        portalRules,
+        combinationRules,
+        uniqueSchedules
+      });
+
       if (latePolicy.boardStatus === 'exclude' || latePolicy.lateCategory === 'none') {
         return;
       }
@@ -2345,6 +2367,8 @@ export function parseOneUsapHtml(
       });
       return;
     }
+
+    if (isOffShift(rawShift)) return;
 
     const sanitized = sanitizeProviderShiftAndTasks(rawShift, rawRoomTag, rawTaskStr, activeFacilities);
     let shift = sanitized.shift;
