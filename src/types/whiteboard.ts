@@ -416,6 +416,7 @@ export interface PortalCombinationRule {
   boardStatus: BoardInclusionStatus;
   departureCategory: DepartureCategoryType;
   departureTimeEstimate?: string;
+  badgeNote?: string;
   lateCategory: LateCategoryType;
   roomAssignmentStrategy: RoomAssignmentStrategy;
   notes?: string;

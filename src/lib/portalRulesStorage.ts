@@ -617,6 +617,20 @@ export function getDefaultPortalCombinationRules(): PortalCombinationRule[] {
       roomAssignmentStrategy: 'scraped',
       notes: 'Keep provider in morning room at Memorial City; suppress outside Katy late call from MHMC board',
       active: true
+    },
+    {
+      id: 'comb_l1_mhmc_with_cihobpm_mhmc',
+      name: '24-Hour Continuous Shift: L1 Day Shift + OB Night Call',
+      primaryPattern: 'L1_MHMC',
+      secondaryPattern: 'CIHOBPM_MHMC',
+      condition: 'has_both',
+      boardStatus: 'include',
+      departureCategory: 'none',
+      lateCategory: '24h',
+      badgeNote: '24h (L1 + OB)',
+      roomAssignmentStrategy: 'scraped',
+      notes: 'Provider working daytime L1 shift and overnight OB call at MHMC; place in 24h section',
+      active: true
     }
   ];
 }

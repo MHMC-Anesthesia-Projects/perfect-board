@@ -873,7 +873,7 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                         {comb.boardStatus === 'include' ? 'Include on Board' : 'Exclude from Board'}
                       </div>
                       <div style={{ color: 'var(--text-secondary)', fontSize: 11 }}>
-                        Dep: {comb.departureCategory} | Late: {comb.lateCategory}
+                        Dep: {comb.departureCategory} | Late: {comb.lateCategory}{comb.badgeNote ? ` | Badge: [${comb.badgeNote}]` : ''}
                       </div>
                     </div>
 
@@ -1659,10 +1659,13 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                       }}
                     >
                       <option value="none">None (Suppress Outside Late)</option>
+                      <option value="3p">3p Late</option>
+                      <option value="4p">4p Late</option>
+                      <option value="5p">5p Late</option>
                       <option value="7p">7p Late</option>
                       <option value="7p-7a">7p-7a (Night Nocturnist)</option>
-                      <option value="3p">3p Late</option>
-                      <option value="5p">5p Late</option>
+                      <option value="8p">8p Late</option>
+                      <option value="24h">24h Shift</option>
                     </select>
                   </div>
 
@@ -1687,6 +1690,31 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                       <option value="runner">Assign as Department Runner</option>
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>
+                    Adjacent Badge / Note (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 24h (L1 + OB), postOB, WOR"
+                    value={editingCombRule.badgeNote || ''}
+                    onChange={e => setEditingCombRule(prev => ({ ...prev, badgeNote: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: 6,
+                      border: '1px solid var(--border-light)',
+                      background: 'var(--surface-hover)',
+                      color: 'var(--text-primary)',
+                      fontSize: 12,
+                      marginTop: 4
+                    }}
+                  />
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                    Displayed as a small operational tag next to the provider&apos;s name (e.g. [24h (L1 + OB)]).
+                  </span>
                 </div>
               </div>
 
