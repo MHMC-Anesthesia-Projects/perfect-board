@@ -1860,7 +1860,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                           />
                         )}
                         <span>{item.name}</span>
-                        {item.notes && (
+                        {item.notes && !/works until|daily when working|fixed departure|rotation|day doctor/i.test(item.notes) && item.notes.length <= 20 && (
                           <span
                             style={{
                               fontSize: 9,

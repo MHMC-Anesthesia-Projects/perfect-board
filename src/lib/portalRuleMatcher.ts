@@ -278,7 +278,7 @@ export function resolveProviderShiftPolicy(
         roomAssignmentStrategy: 'scraped',
         departureCategory: isLateTime ? 'none' : 'scheduled_time',
         departureTimeEstimate: fixedShift,
-        badgeNote: matchedUnique.notes,
+        badgeNote: undefined,
         lateCategory: isLateTime ? (fixedShift as LateCategoryType) : 'none',
         effectiveShift: fixedShift,
         isCombination: false,
