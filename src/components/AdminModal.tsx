@@ -381,6 +381,79 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     }
   }, [scraperConfig]);
 
+  const handleSortStaff = (field: 'name' | 'displayName' | 'role' | 'phone' | 'shift') => {
+    if (staffSortField === field) {
+      setStaffSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setStaffSortField(field);
+      setStaffSortDirection('asc');
+    }
+  };
+
+  const sortedAndFilteredStaff = useMemo(() => {
+    const rawQ = (staffSearch || '').trim().toLowerCase();
+    const collapsedQ = rawQ.replace(/(.)\1+/g, '$1');
+
+    const staffList = staff || [];
+    const filtered = staffList.filter(s => {
+      if (!rawQ) return true;
+      const last = (s.lastName || '').toLowerCase();
+      const first = (s.firstName || '').toLowerCase();
+      const display = (s.displayName || '').toLowerCase();
+      const cred = (s.credentials || '').toLowerCase();
+      const phoneDigits = (s.phone || '').replace(/\D/g, '');
+      const rawPhone = (s.phone || '').toLowerCase();
+      const qgenda = (s.qgendaAbbr || '').toLowerCase();
+      const facility = (s.facility || '').toLowerCase();
+
+      // Standard substring matching
+      if (last.includes(rawQ) || first.includes(rawQ) || `${last}, ${first}`.includes(rawQ) || `${first} ${last}`.includes(rawQ)) return true;
+      if (display.includes(rawQ)) return true;
+      if (cred.includes(rawQ)) return true;
+      if (rawPhone.includes(rawQ) || (rawQ.replace(/\D/g, '') && phoneDigits.includes(rawQ.replace(/\D/g, '')))) return true;
+      if (qgenda.includes(rawQ)) return true;
+      if (facility.includes(rawQ)) return true;
+
+      // Fuzzy matching for repeated letters (e.g. Villareal vs Villarreal)
+      if (collapsedQ.length >= 3) {
+        const collapsedLast = last.replace(/(.)\1+/g, '$1');
+        const collapsedDisplay = display.replace(/(.)\1+/g, '$1');
+        if (collapsedLast.includes(collapsedQ) || collapsedDisplay.includes(collapsedQ)) return true;
+      }
+
+      return false;
+    });
+
+    return [...filtered].sort((a, b) => {
+      let comp = 0;
+      if (staffSortField === 'name') {
+        const lastA = (a.lastName || '').toLowerCase();
+        const lastB = (b.lastName || '').toLowerCase();
+        comp = lastA.localeCompare(lastB);
+        if (comp === 0) {
+          comp = (a.firstName || '').toLowerCase().localeCompare((b.firstName || '').toLowerCase());
+        }
+      } else if (staffSortField === 'displayName') {
+        const dA = (a.displayName || `${a.lastName} ${a.firstName}`).toLowerCase();
+        const dB = (b.displayName || `${b.lastName} ${b.firstName}`).toLowerCase();
+        comp = dA.localeCompare(dB);
+      } else if (staffSortField === 'role') {
+        comp = (a.credentials || '').localeCompare(b.credentials || '');
+        if (comp === 0) {
+          comp = (a.lastName || '').toLowerCase().localeCompare((b.lastName || '').toLowerCase());
+        }
+      } else if (staffSortField === 'phone') {
+        comp = (a.phone || '').localeCompare(b.phone || '');
+      } else if (staffSortField === 'shift') {
+        comp = (a.shift || '').localeCompare(b.shift || '');
+        if (comp === 0) {
+          comp = (a.lastName || '').toLowerCase().localeCompare((b.lastName || '').toLowerCase());
+        }
+      }
+      return staffSortDirection === 'asc' ? comp : -comp;
+    });
+  }, [staff, staffSearch, staffSortField, staffSortDirection]);
+
   const fetchUsers = async () => {
     try {
       const res = await fetch(apiUrl(`/api/users?t=${Date.now()}`), {
@@ -399,8 +472,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       console.error('Failed to fetch users:', err);
     }
   };
-
-  if (!isOpen) return null;
 
   // --- Handlers for User Management ---
   const resetAddUserForm = () => {
@@ -653,79 +724,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       onConfirm: () => executeDeleteStaff(s.id)
     });
   };
-
-  const handleSortStaff = (field: 'name' | 'displayName' | 'role' | 'phone' | 'shift') => {
-    if (staffSortField === field) {
-      setStaffSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setStaffSortField(field);
-      setStaffSortDirection('asc');
-    }
-  };
-
-  const sortedAndFilteredStaff = useMemo(() => {
-    const rawQ = (staffSearch || '').trim().toLowerCase();
-    const collapsedQ = rawQ.replace(/(.)\1+/g, '$1');
-
-    const staffList = staff || [];
-    const filtered = staffList.filter(s => {
-      if (!rawQ) return true;
-      const last = (s.lastName || '').toLowerCase();
-      const first = (s.firstName || '').toLowerCase();
-      const display = (s.displayName || '').toLowerCase();
-      const cred = (s.credentials || '').toLowerCase();
-      const phoneDigits = (s.phone || '').replace(/\D/g, '');
-      const rawPhone = (s.phone || '').toLowerCase();
-      const qgenda = (s.qgendaAbbr || '').toLowerCase();
-      const facility = (s.facility || '').toLowerCase();
-
-      // Standard substring matching
-      if (last.includes(rawQ) || first.includes(rawQ) || `${last}, ${first}`.includes(rawQ) || `${first} ${last}`.includes(rawQ)) return true;
-      if (display.includes(rawQ)) return true;
-      if (cred.includes(rawQ)) return true;
-      if (rawPhone.includes(rawQ) || (rawQ.replace(/\D/g, '') && phoneDigits.includes(rawQ.replace(/\D/g, '')))) return true;
-      if (qgenda.includes(rawQ)) return true;
-      if (facility.includes(rawQ)) return true;
-
-      // Fuzzy matching for repeated letters (e.g. Villareal vs Villarreal)
-      if (collapsedQ.length >= 3) {
-        const collapsedLast = last.replace(/(.)\1+/g, '$1');
-        const collapsedDisplay = display.replace(/(.)\1+/g, '$1');
-        if (collapsedLast.includes(collapsedQ) || collapsedDisplay.includes(collapsedQ)) return true;
-      }
-
-      return false;
-    });
-
-    return [...filtered].sort((a, b) => {
-      let comp = 0;
-      if (staffSortField === 'name') {
-        const lastA = (a.lastName || '').toLowerCase();
-        const lastB = (b.lastName || '').toLowerCase();
-        comp = lastA.localeCompare(lastB);
-        if (comp === 0) {
-          comp = (a.firstName || '').toLowerCase().localeCompare((b.firstName || '').toLowerCase());
-        }
-      } else if (staffSortField === 'displayName') {
-        const dA = (a.displayName || `${a.lastName} ${a.firstName}`).toLowerCase();
-        const dB = (b.displayName || `${b.lastName} ${b.firstName}`).toLowerCase();
-        comp = dA.localeCompare(dB);
-      } else if (staffSortField === 'role') {
-        comp = (a.credentials || '').localeCompare(b.credentials || '');
-        if (comp === 0) {
-          comp = (a.lastName || '').toLowerCase().localeCompare((b.lastName || '').toLowerCase());
-        }
-      } else if (staffSortField === 'phone') {
-        comp = (a.phone || '').localeCompare(b.phone || '');
-      } else if (staffSortField === 'shift') {
-        comp = (a.shift || '').localeCompare(b.shift || '');
-        if (comp === 0) {
-          comp = (a.lastName || '').toLowerCase().localeCompare((b.lastName || '').toLowerCase());
-        }
-      }
-      return staffSortDirection === 'asc' ? comp : -comp;
-    });
-  }, [staff, staffSearch, staffSortField, staffSortDirection]);
 
   // --- Handlers for Scraper Config ---
   const toggleFacility = (facCode: string) => {
@@ -1091,6 +1089,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setLayoutSaveMsg('Layout & configuration saved and live on the whiteboard!');
     setTimeout(() => setLayoutSaveMsg(''), 3500);
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
