@@ -466,7 +466,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <h2 style={{ fontSize: 18, fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>
-                {staff.lastName}, {staff.firstName || ''}
+                {staff.lastName}{staff.firstName ? `, ${staff.firstName}` : ''}
               </h2>
               <span className={`magnet-cred cred-${staff.credentials}`} style={{ fontSize: 11, padding: '2px 6px' }}>
                 {staff.credentials}

@@ -296,6 +296,12 @@ export async function POST(req: NextRequest) {
             if (ws.phone && (!existing.phone || existing.phone.includes('000-0000') || existing.phone.trim() === '')) {
               existing.phone = ws.phone;
             }
+            if (ws.firstName && (!existing.firstName || existing.firstName.length < ws.firstName.length || existing.firstName === '')) {
+              existing.firstName = ws.firstName;
+            }
+            if (ws.lastName && (!existing.lastName || existing.lastName.toLowerCase() === existing.qgendaAbbr?.toLowerCase())) {
+              existing.lastName = ws.lastName;
+            }
             if (ws.shift) existing.shift = ws.shift;
             if (ws.facility) existing.facility = ws.facility;
             existing.assignedRoom = ws.roomAssignment || undefined;
@@ -303,9 +309,8 @@ export async function POST(req: NextRequest) {
             if (ws.qgendaAbbr) existing.qgendaAbbr = ws.qgendaAbbr;
             if (ws.orderNumber) existing.orderNumber = ws.orderNumber;
 
-            // PRESERVE user customizations:
-            // Custom magnet display name is retained
-            if (!existing.displayName && ws.displayName) {
+            // Update display name if missing or previously equal to raw QGenda abbreviation
+            if (ws.displayName && (!existing.displayName || existing.displayName.toLowerCase() === existing.qgendaAbbr?.toLowerCase() || !existing.displayName.includes(' '))) {
               existing.displayName = ws.displayName;
             }
             // Infrequent status is retained

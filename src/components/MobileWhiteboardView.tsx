@@ -47,6 +47,7 @@ import {
 import { MagnetTile } from './MagnetTile';
 import { RoomLabel } from './RoomLabel';
 import { StickerPalette } from './StickerPalette';
+import { formatProviderName } from '@/lib/providerNameUtils';
 
 interface MobileWhiteboardViewProps {
   boardState: BoardState;
@@ -2127,11 +2128,14 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                       );
                       if (matched) {
                         onSelectStaff(matched);
+                      } else {
+                        const parsed = formatProviderName(item.qgendaAbbr || item.doctorName);
                         const defaultFacility = boardState?.scraperConfig?.selectedFacilities?.[0] || (boardState?.staff || []).find(s => s.facility)?.facility || 'MHMC';
                         onSelectStaff({
                           id: item.id || `staff_call_${item.doctorName.toLowerCase()}`,
-                          firstName: '',
-                          lastName: item.doctorName.toUpperCase(),
+                          firstName: parsed.firstName || '',
+                          lastName: parsed.lastName || item.doctorName.toUpperCase(),
+                          displayName: parsed.displayName,
                           credentials: 'MD',
                           phone: '(555) 000-0000',
                           shift: item.role,

@@ -35,114 +35,12 @@ export const KNOWN_FACILITIES: Record<string, { code: string; fullCode: string; 
 
 export const DEFAULT_FACILITIES = ['MHMC', 'MHVIL-SC', 'HIVF-SC'];
 
-// Known special-case deconstructions for compound/irregular QGenda IDs
-const KNOWN_NAME_MAP: Record<string, { lastName: string; firstName: string }> = {
-  'cavanaughmar': { lastName: 'Cavanaugh', firstName: 'Mark' },
-  'tallacksondon': { lastName: 'Tallackson', firstName: 'Donald' },
-  'shenoyvik': { lastName: 'Shenoy', firstName: 'Vikram' },
-  'bernellmic': { lastName: 'Bernell', firstName: 'Michael' },
-  'alanizped': { lastName: 'Alaniz', firstName: 'Pedro' },
-  'taylormat': { lastName: 'Taylor', firstName: 'Matthew' },
-  'changale': { lastName: 'Chang', firstName: 'Alex' },
-  'chuanjos': { lastName: 'Chuan', firstName: 'Joseph' },
-  'hillerken': { lastName: 'Hiller', firstName: 'Kenneth' },
-  'hirschdou': { lastName: 'Hirsch', firstName: 'Douglas' },
-  'jeffcoatshe': { lastName: 'Jeffcoat', firstName: 'Sherwood' },
-  'lukey': { lastName: 'Lu', firstName: 'Key' },
-  'mankariousram': { lastName: 'Mankarious', firstName: 'Ramy' },
-  'dwarakanathkis': { lastName: 'Dwarakanath', firstName: 'Kishore' },
-  'rameshrek': { lastName: 'Ramesh', firstName: 'Rekha' },
-  'shevchenkoyev': { lastName: 'Shevchenko', firstName: 'Yevgeniy' },
-  'gunncli': { lastName: 'Gunn', firstName: 'Clinton' },
-  'martinezrog': { lastName: 'Martinez', firstName: 'Rogelio' },
-  'patelpur': { lastName: 'Patel', firstName: 'Purnal' },
-  'broussardmic': { lastName: 'Broussard', firstName: 'Michael' },
-  'riveraliz': { lastName: 'Rivera', firstName: 'Liz' },
-  'atagasas': { lastName: 'Ataga', firstName: 'Sasa' },
-  'hartsgrovemar': { lastName: 'Hartsgrove', firstName: 'Mark' },
-  'holtonjac': { lastName: 'Holton', firstName: 'Jacqueline' },
-  'hughesabi': { lastName: 'Hughes', firstName: 'Abigail' },
-  'lamhun': { lastName: 'Lam', firstName: 'Hung' },
-  'litin': { lastName: 'Li', firstName: 'Tina' },
-  'lowelei': { lastName: 'Lowe', firstName: 'Leila' },
-  'markettecha': { lastName: 'Markette', firstName: 'Charles' },
-  'mateocar': { lastName: 'Mateo', firstName: 'Carmen' },
-  'mcguiremeg': { lastName: 'McGuire', firstName: 'Megan' },
-  'normandken': { lastName: 'Normand', firstName: 'Kenneth' },
-  'pateljin': { lastName: 'Patel', firstName: 'Jinal' },
-  'rojasart': { lastName: 'Rojas', firstName: 'Arthur' },
-  'schroedtertim': { lastName: 'Schroedter', firstName: 'Timothy' },
-  'tamtom': { lastName: 'Tam', firstName: 'Tommy' },
-  'townechr': { lastName: 'Towne', firstName: 'Christopher' },
-  'shirakmic': { lastName: 'Shirak', firstName: 'Mic' },
-  'vuan': { lastName: 'Vu', firstName: 'An' },
-  'vuand': { lastName: 'Vu', firstName: 'An' },
-  'yiale': { lastName: 'Yi', firstName: 'Alex' },
-  'zemraulud': { lastName: 'Zemrau', firstName: 'Ludwig' },
-  'floresma.': { lastName: 'Flores', firstName: 'Maria' },
-  'floresma': { lastName: 'Flores', firstName: 'Maria' },
-  'staesbob': { lastName: 'Staes', firstName: 'Bob' },
-  'flemmingcin': { lastName: 'Flemming', firstName: 'Cindy' },
-  'louiskes': { lastName: 'Louis', firstName: 'Kes' }
-};
-
-export function formatProviderName(rawId: string): {
-  displayName: string;
-  lastName: string;
-  firstName: string;
-  initials: string;
-} {
-  // Strip annotations like [P], [C], [RES], [SRNA], [L]
-  const clean = rawId.replace(/\[.*?\]/g, '').trim();
-  const lower = clean.toLowerCase();
-
-  // Check known name map
-  if (KNOWN_NAME_MAP[lower]) {
-    const k = KNOWN_NAME_MAP[lower];
-    const initial = k.firstName ? `${k.firstName[0]}.` : '';
-    return {
-      displayName: `${k.lastName.toUpperCase()} ${initial}`.trim(),
-      lastName: k.lastName,
-      firstName: k.firstName,
-      initials: (k.firstName[0] || '') + (k.lastName[0] || '')
-    };
-  }
-
-  // Check for space-separated "First Last" or "Last, First":
-  if (clean.includes(' ')) {
-    const parts = clean.split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) {
-      const first = parts[0].replace(/,$/, '');
-      const last = parts[parts.length - 1];
-      return {
-        displayName: `${last.toUpperCase()} ${first[0].toUpperCase()}.`,
-        lastName: last,
-        firstName: first,
-        initials: (first[0] || '') + (last[0] || '')
-      };
-    }
-  }
-
-  // Deconstruct PascalCase: e.g. "CavanaughMar" or "MarketteCha"
-  const matches = clean.match(/^[A-Z][a-z]+([A-Z][a-z]*)$/);
-  if (matches) {
-    const first = matches[1];
-    const last = clean.substring(0, clean.length - first.length);
-    return {
-      displayName: `${last.toUpperCase()} ${first[0]}.`,
-      lastName: last,
-      firstName: first,
-      initials: first[0] + last[0]
-    };
-  }
-
-  return {
-    displayName: clean.toUpperCase(),
-    lastName: clean,
-    firstName: '',
-    initials: clean.substring(0, 2).toUpperCase()
-  };
-}
+export {
+  KNOWN_NAME_MAP,
+  COMMON_FIRST_NAME_MAP,
+  formatProviderName
+} from './providerNameUtils';
+import { formatProviderName } from './providerNameUtils';
 
 export function formatPhoneNumber(rawPhone: string): string {
   const digits = rawPhone.replace(/\D/g, '');
@@ -179,19 +77,20 @@ export function getHoustonDateString(d: Date = new Date()): string {
 }
 
 /**
- * Extracts explicit facility code from a shift or role string (e.g. "12h_MHKTY" -> "MHKTY", "L1-HMWST" -> "HMWST", "10H_MHMC" -> "MHMC", "DrWrk_MHKTY" -> "MHKTY", "CIHOBPC_MHMC" -> "MHMC", "Dr10h_MHVIL-SC" -> "MHVIL-SC").
+ * Extracts explicit facility code from a shift or role string (e.g. "12h_MHKTY" -> "MHKTY", "L1-HMWST" -> "HMWST", "10H_MHMC" -> "MHMC", "DrWrk_MHKTY" -> "MHKTY", "CIHOBPC_MHMC" -> "MHMC", "Dr10h_MHVIL-SC" -> "MHVIL-SC", "Dr8h_MHFC_SC" -> "MHFC-SC").
  */
 export function extractFacilityFromShift(shiftOrRole?: string): string | null {
   if (!shiftOrRole) return null;
-  // Match facility codes following an underscore, e.g. "12h-7p:Noct_MHMC" -> "MHMC", "L1_MHKTY" -> "MHKTY"
-  const underMatch = shiftOrRole.match(/_([A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)\b/);
+  // Match facility codes following an underscore, e.g. "12h-7p:Noct_MHMC" -> "MHMC", "Dr8h_MHFC_SC" -> "MHFC-SC", "L1_MHKTY" -> "MHKTY"
+  const underMatch = shiftOrRole.match(/_([A-Za-z0-9]+(?:[-_]SC)?)\b/i);
   if (underMatch) {
-    return underMatch[1].toUpperCase();
+    const fac = underMatch[1].replace(/_/g, '-').toUpperCase();
+    if (fac !== 'SC') return fac;
   }
-  const match = shiftOrRole.match(/(?:^|[\s,;/])(?:[0-9]+[Hh]|L[1-4]|DRWRK|WOR|WOV|C[1-4]|CV|OB|CALL|CIH|HDR|IDR|DR|POST|PRE)[A-Za-z0-9]*[-_]([A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)\b/i);
+  const match = shiftOrRole.match(/(?:^|[\s,;/])(?:[0-9]+[Hh]|L[1-4]|DRWRK|WOR|WOV|C[1-4]|CV|OB|CALL|CIH|HDR|IDR|DR|POST|PRE)[A-Za-z0-9]*[-_]([A-Za-z0-9]+(?:[-_]SC)?)\b/i);
   if (match) {
-    const fac = match[1].toUpperCase();
-    if (!fac.endsWith('P') && !fac.endsWith('A')) {
+    const fac = match[1].replace(/_/g, '-').toUpperCase();
+    if (!fac.endsWith('P') && !fac.endsWith('A') && fac !== 'SC') {
       return fac;
     }
   }
@@ -204,21 +103,21 @@ export function extractFacilityFromShift(shiftOrRole?: string): string | null {
 export function extractAllFacilitiesFromShift(shiftOrRole?: string): string[] {
   if (!shiftOrRole) return [];
   const facilities: string[] = [];
-  // Match facility codes following an underscore, e.g. "12h-7p:Noct_MHMC" -> "MHMC", "L1_MHKTY" -> "MHKTY"
-  const regex = /_([A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)\b/gi;
+  // Match facility codes following an underscore, e.g. "12h-7p:Noct_MHMC" -> "MHMC", "Dr8h_MHFC_SC" -> "MHFC-SC", "L1_MHKTY" -> "MHKTY"
+  const regex = /_([A-Za-z0-9]+(?:[-_]SC)?)\b/gi;
   let m;
   while ((m = regex.exec(shiftOrRole)) !== null) {
-    const fac = m[1].toUpperCase();
-    if (!facilities.includes(fac)) {
+    const fac = m[1].replace(/_/g, '-').toUpperCase();
+    if (fac !== 'SC' && !facilities.includes(fac)) {
       facilities.push(fac);
     }
   }
   // Fallback for hyphen-delimited facility if no underscore found and not a time like 7p
   if (facilities.length === 0) {
-    const fallbackRegex = /[-]([A-Za-z]{2,10}(?:-[A-Za-z0-9]+)?)\b/gi;
+    const fallbackRegex = /[-]([A-Za-z]{2,10}(?:[-_]SC)?)\b/gi;
     while ((m = fallbackRegex.exec(shiftOrRole)) !== null) {
-      const fac = m[1].toUpperCase();
-      if (!fac.endsWith('P') && !fac.endsWith('A') && !facilities.includes(fac)) {
+      const fac = m[1].replace(/_/g, '-').toUpperCase();
+      if (!fac.endsWith('P') && !fac.endsWith('A') && fac !== 'SC' && !facilities.includes(fac)) {
         facilities.push(fac);
       }
     }
@@ -677,10 +576,20 @@ export function isActiveCallShift(shiftStr?: string, taskStr?: string): boolean 
   });
 }
 
+export function normalizeFacilityCode(code: string): string {
+  return code
+    .replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/i, '')
+    .replace(/[-_]SC$/i, '')
+    .trim()
+    .toUpperCase();
+}
+
 // Facility filter check matching any selected facility code against the active working facility
 export function isTargetFacility(facilityStr: string, allowedFacilities: string[] = DEFAULT_FACILITIES): boolean {
   if (!facilityStr || allowedFacilities.length === 0) return false;
   const upper = facilityStr.toUpperCase().trim();
+  if (upper === 'SC') return false;
+
   // QGenda uses CCRM as the task suffix for Houston IVF (HIVF-SC)
   if (upper === 'CCRM' || upper.endsWith('_CCRM') || upper.endsWith('-CCRM')) {
     return allowedFacilities.some(fac => fac.toUpperCase().includes('HIVF') || fac.toUpperCase().includes('CCRM'));
@@ -708,19 +617,28 @@ export function isTargetFacility(facilityStr: string, allowedFacilities: string[
     return allowedFacilities.some(fac => fac.toUpperCase().includes('MHMC'));
   }
 
-  // Check if facilityStr explicitly specifies a hospital via shift/role suffix (e.g. 12h_MHKTY, L1_MHKTY, DrWrk_HMWST)
-  const shiftFac = extractFacilityFromShift(facilityStr);
-  const testCode = (shiftFac || getActiveFacilityCode(facilityStr)).toUpperCase();
-  if (testCode === 'CCRM') {
-    return allowedFacilities.some(fac => fac.toUpperCase().includes('HIVF') || fac.toUpperCase().includes('CCRM'));
-  }
+  // Support comma-separated multi-facility entries (e.g. "W: MHMC,W: MHKTY")
+  const segments = facilityStr.split(',').map(s => s.trim()).filter(Boolean);
+  const allowedBases = allowedFacilities.map(af => normalizeFacilityCode(af));
 
-  return allowedFacilities.some(fac => {
-    const facUpper = fac.toUpperCase();
-    if (testCode.includes(facUpper) || facUpper.includes(testCode)) return true;
+  return segments.some(seg => {
+    const shiftFac = extractFacilityFromShift(seg);
+    const testCode = (shiftFac || getActiveFacilityCode(seg)).toUpperCase().trim();
+    if (!testCode || testCode === 'SC') return false;
+    if (testCode === 'CCRM') {
+      return allowedFacilities.some(fac => fac.toUpperCase().includes('HIVF') || fac.toUpperCase().includes('CCRM'));
+    }
+    const testBase = normalizeFacilityCode(testCode);
+    if (!testBase || testBase === 'SC') return false;
+
+    if (allowedBases.includes(testBase)) return true;
+
+    // Check KNOWN_FACILITIES dictionary mappings
     for (const [k, info] of Object.entries(KNOWN_FACILITIES)) {
-      if (facUpper.includes(k) || k.includes(facUpper) || facUpper.includes(info.name.toUpperCase())) {
-        if (testCode.includes(k) || testCode.includes(info.name.toUpperCase()) || (info.fullCode && testCode.includes(info.fullCode.toUpperCase()))) {
+      const kBase = normalizeFacilityCode(k);
+      const nameUpper = info.name.toUpperCase();
+      if (allowedBases.includes(kBase) || allowedFacilities.some(af => af.toUpperCase().includes(nameUpper))) {
+        if (testBase === kBase || testCode.includes(nameUpper) || (info.fullCode && testCode.includes(info.fullCode.toUpperCase()))) {
           return true;
         }
       }

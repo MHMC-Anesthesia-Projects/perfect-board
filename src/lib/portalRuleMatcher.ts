@@ -100,23 +100,29 @@ export function classifyTokenFacility(
   token: string, 
   activeFacilities: string[]
 ): { isAffiliated: boolean; facilityCode?: string; isOutside: boolean } {
-  const normActive = activeFacilities.map(f => f.toUpperCase());
+  const normActiveBases = activeFacilities.map(af => 
+    af.toUpperCase().replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/i, '').replace(/[-_]SC$/i, '')
+  );
 
-  // Extract facility suffix e.g. "_MHMC", "_MHKTY", "_MHVIL-SC", "_HMWST"
-  const facMatch = token.match(/[-_]([A-Za-z0-9-]+)$/);
+  // Extract facility suffix e.g. "_MHMC", "_MHKTY", "_MHVIL-SC", "_HMWST", "_MHFC_SC", "_MHRIC_SC"
+  const facMatch = token.match(/_([A-Za-z0-9]+(?:[-_]SC)?)$/i) || token.match(/[-]([A-Za-z]{2,10}(?:[-_]SC)?)$/i);
   if (facMatch) {
     const rawFac = facMatch[1].toUpperCase();
-    const isAffil = normActive.some(af => af.includes(rawFac) || rawFac.includes(af));
-    return {
-      isAffiliated: isAffil,
-      facilityCode: rawFac,
-      isOutside: !isAffil
-    };
+    if (rawFac !== 'SC') {
+      const normCode = rawFac.replace(/_/g, '-');
+      const baseCode = normCode.replace(/[-_]SC$/i, '');
+      const isAffil = normActiveBases.includes(baseCode) || (baseCode === 'CCRM' && normActiveBases.includes('HIVF'));
+      return {
+        isAffiliated: isAffil,
+        facilityCode: normCode,
+        isOutside: !isAffil
+      };
+    }
   }
 
   // Token does not have explicit facility suffix (e.g. "3p", "5p", "C1", "postOB")
   return {
-    isAffiliated: true,
+    isAffiliated: false,
     facilityCode: undefined,
     isOutside: false
   };
@@ -299,7 +305,7 @@ export function resolveProviderShiftPolicy(
     const classification = classifyTokenFacility(token, activeFacilities);
     if (classification.isOutside) {
       outsideTokens.push(token);
-    } else {
+    } else if (classification.isAffiliated) {
       affiliatedTokens.push(token);
     }
   }
@@ -333,11 +339,22 @@ export function resolveProviderShiftPolicy(
   const candidateTokens = affiliatedTokens.length > 0 ? affiliatedTokens : rawTokens;
 
   // 2b. EXCLUSION OF PURELY OUTSIDE FACILITY PROVIDERS:
-  // If provider has NO affiliated tokens for this board, has outside tokens,
-  // their facility is outside, and they have NO rooms assigned at this board:
-  const normActive = activeFacilities.map(f => f.toUpperCase());
-  const isTargetFacility = normActive.some(af => af.includes(facility.toUpperCase()) || facility.toUpperCase().includes(af));
-  if (affiliatedTokens.length === 0 && outsideTokens.length > 0 && !isTargetFacility && assignedRooms.length === 0) {
+  // If provider has NO affiliated tokens for this board, their home facility is outside,
+  // and they have NO rooms assigned at this board:
+  const normActiveBases = activeFacilities.map(af => 
+    af.toUpperCase().replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/i, '').replace(/[-_]SC$/i, '')
+  );
+  const facSegments = facility.split(',').map(s => s.trim()).filter(Boolean);
+  const isTargetHomeFac = facSegments.some(seg => {
+    const base = seg.toUpperCase().replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/i, '').replace(/[-_]SC$/i, '');
+    return normActiveBases.includes(base) || (base === 'CCRM' && normActiveBases.includes('HIVF'));
+  });
+  const hasTargetRooms = assignedRooms.length > 0 && assignedRooms.some(r => {
+    const rBase = r.toUpperCase().replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/i, '').replace(/[-_]SC$/i, '');
+    return normActiveBases.some(ab => rBase.includes(ab) || ab.includes(rBase));
+  });
+
+  if (affiliatedTokens.length === 0 && !isTargetHomeFac && !hasTargetRooms) {
     return {
       boardStatus: 'exclude',
       roomAssignmentStrategy: 'scraped',

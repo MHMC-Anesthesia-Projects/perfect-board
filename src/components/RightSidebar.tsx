@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { DepartureItem, LateShiftItem, CallTeamItem, UserRole, Staff, Department } from '@/types/whiteboard';
 import { Plus, Trash2, Mic, StickyNote, X, ChevronRight, Check } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { formatProviderName } from '@/lib/providerNameUtils';
 
 interface RightSidebarProps {
   departureList: DepartureItem[];
@@ -146,8 +147,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     if (!matched) {
       matched = staff.find(s => {
         const sLast = s.lastName.toUpperCase();
+        const sDisplay = (s.displayName || '').toUpperCase();
         const isLastMatch = sLast === cleanLast ||
+          sLast.replace(/\s+/g, '') === cleanLast.replace(/\s+/g, '') ||
           cleanLast.startsWith(sLast + ' ') ||
+          sLast.startsWith(cleanLast + ' ') ||
+          sDisplay.startsWith(cleanLast) ||
           (cleanLast === 'KD' && (sLast.includes('DWARAK') || s.qgendaAbbr?.toUpperCase().includes('DWARAK'))) ||
           (cleanLast === 'TALL' && (sLast.includes('TALLACK') || s.qgendaAbbr?.toUpperCase().includes('TALLACK')));
 
@@ -166,8 +171,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     if (!matched) {
       matched = staff.find(s => {
         const sLast = s.lastName.toUpperCase();
+        const sDisplay = (s.displayName || '').toUpperCase();
         return sLast === cleanLast ||
+          sLast.replace(/\s+/g, '') === cleanLast.replace(/\s+/g, '') ||
           cleanLast.startsWith(sLast + ' ') ||
+          sLast.startsWith(cleanLast + ' ') ||
+          sDisplay.startsWith(cleanLast) ||
           (cleanLast === 'KD' && (sLast.includes('DWARAK') || s.qgendaAbbr?.toUpperCase().includes('DWARAK'))) ||
           (cleanLast === 'TALL' && (sLast.includes('TALLACK') || s.qgendaAbbr?.toUpperCase().includes('TALLACK')));
       });
@@ -179,11 +188,14 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
         orderNumber: orderNumber ?? matched.orderNumber,
         shift: matched.shift || shift
       });
+    } else {
+      const parsed = formatProviderName(qgendaAbbr || lastName);
       const defaultFacility = staff.find(s => s.facility)?.facility || 'MHMC';
       const fallbackStaff: Staff = {
         id: id || `staff_roster_${cleanLast.toLowerCase()}`,
-        firstName: '',
-        lastName: cleanLast,
+        firstName: parsed.firstName || '',
+        lastName: parsed.lastName || cleanLast,
+        displayName: parsed.displayName,
         credentials: fallbackCreds,
         phone: '(555) 000-0000',
         shift: shift || 'Day',
