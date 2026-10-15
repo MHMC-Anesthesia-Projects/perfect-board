@@ -293,7 +293,7 @@ export async function POST(req: NextRequest) {
             matchedExistingIds.add(existing.id);
 
             // Update dynamic schedule data for today
-            if (ws.phone && (!existing.phone || existing.phone.includes('000-0000'))) {
+            if (ws.phone && (!existing.phone || existing.phone.includes('000-0000') || existing.phone.trim() === '')) {
               existing.phone = ws.phone;
             }
             if (ws.shift) existing.shift = ws.shift;
@@ -321,7 +321,7 @@ export async function POST(req: NextRequest) {
               lastName: ws.lastName,
               displayName: ws.displayName || `${ws.lastName.toUpperCase()} ${ws.firstName ? ws.firstName[0] + '.' : ''}`.trim(),
               credentials: ws.credentials,
-              phone: ws.phone || '(555) 000-0000',
+              phone: ws.phone || '',
               shift: ws.shift || '07:00 - 15:30',
               facility: ws.facility,
               assignedRoom: ws.roomAssignment || undefined,

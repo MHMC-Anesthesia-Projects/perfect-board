@@ -1471,14 +1471,43 @@ export function parseOneUsapHtml(
       '';
   };
 
-  // 4. Extract phone numbers and bracketed shift tags from SMS links across the entire HTML
+  // 4. Extract phone numbers and bracketed shift tags from docPhoneList and SMS links across HTML
   const phoneBook = new Map<string, string>();
   const providerRoomShifts = new Map<string, string>();
-  const linkRegex = /<a[^>]*href=["\x27]sms:([^"\x27]*)["\x27][^>]*><font[^>]*color=["\x27]([^"\x27]*)["\x27]>([\s\S]*?)<\/font><\/a>/gi;
+
+  const addPhoneEntry = (rawKey: string, rawPhone: string) => {
+    if (!rawKey || !rawPhone) return;
+    const digits = rawPhone.replace(/\D/g, '');
+    if (digits.length < 10) return;
+    const formatted = formatPhoneNumber(rawPhone);
+    const cleanKey = rawKey.replace(/\[.*?\]/g, '').trim();
+    if (!cleanKey) return;
+
+    phoneBook.set(cleanKey, formatted);
+    phoneBook.set(cleanKey.toLowerCase(), formatted);
+
+    const formattedName = formatProviderName(cleanKey);
+    if (formattedName.lastName) {
+      const last = formattedName.lastName.toLowerCase();
+      if (!phoneBook.has(last)) {
+        phoneBook.set(last, formatted);
+      }
+    }
+  };
+
+  // 4a. Extract from docPhoneList in OneUSAP /board (e.g. docPhoneList["AhsanFar"] = "8325309617";)
+  const docPhoneRegex = /docPhoneList\[["\x27]([^"\x27]+)["\x27]\]\s*=\s*["\x27]([^"\x27]*)["\x27]/g;
+  let dpm;
+  while ((dpm = docPhoneRegex.exec(htmlContent)) !== null) {
+    addPhoneEntry(dpm[1], dpm[2]);
+  }
+
+  // 4b. Extract from SMS links across assignments & board tables
+  const linkRegex = /<a[^>]*href=["\x27]sms:([^"\x27\s]*)["\x27][^>]*>([\s\S]*?)<\/a>/gi;
   let lm;
   while ((lm = linkRegex.exec(htmlContent)) !== null) {
     const phone = lm[1].trim();
-    const cleanFont = lm[3].replace(/<[^>]+>/g, '').trim();
+    const cleanFont = lm[2].replace(/<[^>]+>/g, '').trim();
     // Match e.g. "HirschDou [5p]", "ChuanJos [3p]", "CrossleyLad[P] [3p]", "BernellMic [postNICU]"
     const match = cleanFont.match(/^([A-Za-z0-9_]+(?:\[[A-Za-z0-9_]+\])?)\s*\[(.*?)\]$/);
     const rawId = match ? match[1] : cleanFont;
@@ -1486,7 +1515,7 @@ export function parseOneUsapHtml(
     const shiftTag = match ? match[2].trim() : null;
 
     if (phone && baseId) {
-      phoneBook.set(baseId, formatPhoneNumber(phone));
+      addPhoneEntry(baseId, phone);
     }
     if (shiftTag && baseId) {
       const existingTag = providerRoomShifts.get(baseId.toLowerCase());
@@ -1499,6 +1528,21 @@ export function parseOneUsapHtml(
       }
     }
   }
+
+  // Helper to look up phone with fallback strategies
+  const findPhone = (abbr?: string, lastName?: string): string => {
+    if (!abbr && !lastName) return '';
+    const cleanAbbr = (abbr || '').replace(/\[.*?\]/g, '').trim();
+    if (cleanAbbr) {
+      if (phoneBook.has(cleanAbbr)) return phoneBook.get(cleanAbbr)!;
+      if (phoneBook.has(cleanAbbr.toLowerCase())) return phoneBook.get(cleanAbbr.toLowerCase())!;
+    }
+    if (lastName) {
+      const cleanLast = lastName.trim().toLowerCase();
+      if (phoneBook.has(cleanLast)) return phoneBook.get(cleanLast)!;
+    }
+    return '';
+  };
 
   // 5. Extract active room assignments and track provider sites from HTML rows
   const roomAssignments: Array<{ facility: string; room: string; time: string; doc: string; anes: string }> = [];
@@ -1721,7 +1765,7 @@ export function parseOneUsapHtml(
     const cleanId = rawName.replace(/\[.*?\]/g, '').toLowerCase();
     const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
 
-    const phone = phoneBook.get(qgendaAbbr) || '(555) 000-0000';
+    const phone = findPhone(qgendaAbbr, formatted.lastName);
     const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName, 'MD');
     const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
     const rawTaskStr = getProviderTasks(rawName, formatted.lastName);
@@ -1961,7 +2005,7 @@ export function parseOneUsapHtml(
     if (upperFac.includes('MHMC') || is24h || isL1 || is8h || is10h || isWorWov) mhmcCount++;
     if (upperFac.includes('MHVIL') && !is24h && !isL1 && !is8h && !is10h && !isWorWov) mhvilCount++;
 
-    const phone = phoneBook.get(qgendaAbbr) || '(555) 000-0000';
+    const phone = findPhone(qgendaAbbr, formatted.lastName);
 
     let cred: StaffCredential = 'CRNA';
     if (is24h || isL1 || is8h || is10h || isWorWov) cred = 'CRNA';
