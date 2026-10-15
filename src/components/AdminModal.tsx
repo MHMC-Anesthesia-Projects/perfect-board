@@ -1,7 +1,7 @@
 'use client';
 
 import { apiUrl } from '@/lib/api';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   User, Staff, Department, ScraperConfig, UserRole, StaffCredential, RunnerSlot, 
   ScraperPreviewResult, UniqueScheduleRule, MessagingConfig,
@@ -11,7 +11,8 @@ import {
   Users, UserCheck, UserPlus, ShieldCheck, Layout, Globe, 
   Plus, Trash2, Edit2, Key, RefreshCw, X, Check, RotateCcw, AlertTriangle,
   Eye, EyeOff, Search, Phone, Building2, CheckCircle2, ChevronRight, Sparkles, Clock, MessageSquare, Send, Radio,
-  ChevronUp, ChevronDown, Sliders, Layers, Plane, ToggleLeft, ToggleRight
+  ChevronUp, ChevronDown, Sliders, Layers, Plane, ToggleLeft, ToggleRight,
+  ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { PortalRulesManager } from './PortalRulesManager';
@@ -314,6 +315,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [editShift, setEditShift] = useState('');
   const [editIsInfrequent, setEditIsInfrequent] = useState(false);
   const [staffSaving, setStaffSaving] = useState(false);
+  const [staffSortField, setStaffSortField] = useState<'name' | 'displayName' | 'role' | 'phone' | 'shift'>('name');
+  const [staffSortDirection, setStaffSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // --- Scraper Settings State ---
   const [portalType, setPortalType] = useState(scraperConfig.portalType);
@@ -642,13 +645,86 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const promptDeleteStaff = (s: Staff) => {
     setDeleteModalState({
       isOpen: true,
-      title: 'Remove Staff from Roster',
-      itemName: `${s.lastName}, ${s.firstName} (${s.credentials})`,
-      itemCategory: 'Master Roster',
+      title: 'Remove Staff from Board & Credentialed List',
+      itemName: `${s.lastName}, ${s.firstName || ''} (${s.credentials})`,
+      itemCategory: 'Site Staff Roster',
       confirmButtonText: 'Remove Staff',
+      message: 'This will completely remove this staff member from the Site Staff Roster, the Credentialed Unassigned Staff list, and any active room or runner slots on the board.',
       onConfirm: () => executeDeleteStaff(s.id)
     });
   };
+
+  const handleSortStaff = (field: 'name' | 'displayName' | 'role' | 'phone' | 'shift') => {
+    if (staffSortField === field) {
+      setStaffSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setStaffSortField(field);
+      setStaffSortDirection('asc');
+    }
+  };
+
+  const sortedAndFilteredStaff = useMemo(() => {
+    const rawQ = (staffSearch || '').trim().toLowerCase();
+    const collapsedQ = rawQ.replace(/(.)\1+/g, '$1');
+
+    const filtered = staff.filter(s => {
+      if (!rawQ) return true;
+      const last = (s.lastName || '').toLowerCase();
+      const first = (s.firstName || '').toLowerCase();
+      const display = (s.displayName || '').toLowerCase();
+      const cred = (s.credentials || '').toLowerCase();
+      const phoneDigits = (s.phone || '').replace(/\D/g, '');
+      const rawPhone = (s.phone || '').toLowerCase();
+      const qgenda = (s.qgendaAbbr || '').toLowerCase();
+      const facility = (s.facility || '').toLowerCase();
+
+      // Standard substring matching
+      if (last.includes(rawQ) || first.includes(rawQ) || `${last}, ${first}`.includes(rawQ) || `${first} ${last}`.includes(rawQ)) return true;
+      if (display.includes(rawQ)) return true;
+      if (cred.includes(rawQ)) return true;
+      if (rawPhone.includes(rawQ) || (rawQ.replace(/\D/g, '') && phoneDigits.includes(rawQ.replace(/\D/g, '')))) return true;
+      if (qgenda.includes(rawQ)) return true;
+      if (facility.includes(rawQ)) return true;
+
+      // Fuzzy matching for repeated letters (e.g. Villareal vs Villarreal)
+      if (collapsedQ.length >= 3) {
+        const collapsedLast = last.replace(/(.)\1+/g, '$1');
+        const collapsedDisplay = display.replace(/(.)\1+/g, '$1');
+        if (collapsedLast.includes(collapsedQ) || collapsedDisplay.includes(collapsedQ)) return true;
+      }
+
+      return false;
+    });
+
+    return [...filtered].sort((a, b) => {
+      let comp = 0;
+      if (staffSortField === 'name') {
+        const lastA = (a.lastName || '').toLowerCase();
+        const lastB = (b.lastName || '').toLowerCase();
+        comp = lastA.localeCompare(lastB);
+        if (comp === 0) {
+          comp = (a.firstName || '').toLowerCase().localeCompare((b.firstName || '').toLowerCase());
+        }
+      } else if (staffSortField === 'displayName') {
+        const dA = (a.displayName || `${a.lastName} ${a.firstName}`).toLowerCase();
+        const dB = (b.displayName || `${b.lastName} ${b.firstName}`).toLowerCase();
+        comp = dA.localeCompare(dB);
+      } else if (staffSortField === 'role') {
+        comp = (a.credentials || '').localeCompare(b.credentials || '');
+        if (comp === 0) {
+          comp = (a.lastName || '').toLowerCase().localeCompare((b.lastName || '').toLowerCase());
+        }
+      } else if (staffSortField === 'phone') {
+        comp = (a.phone || '').localeCompare(b.phone || '');
+      } else if (staffSortField === 'shift') {
+        comp = (a.shift || '').localeCompare(b.shift || '');
+        if (comp === 0) {
+          comp = (a.lastName || '').toLowerCase().localeCompare((b.lastName || '').toLowerCase());
+        }
+      }
+      return staffSortDirection === 'asc' ? comp : -comp;
+    });
+  }, [staff, staffSearch, staffSortField, staffSortDirection]);
 
   // --- Handlers for Scraper Config ---
   const toggleFacility = (facCode: string) => {
@@ -1563,16 +1639,54 @@ export const AdminModal: React.FC<AdminModalProps> = ({
             <div>
               <div className="admin-tab-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <div>
-                  <input
-                    type="text"
-                    placeholder="Search site staff by name, magnet name, or credential..."
-                    value={staffSearch}
-                    onChange={e => setStaffSearch(e.target.value)}
-                    className="admin-staff-search"
-                    style={{ width: 340, maxWidth: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ position: 'relative', width: 340, maxWidth: '100%' }}>
+                      <input
+                        type="text"
+                        placeholder="Search site staff by name, magnet name, or credential..."
+                        value={staffSearch}
+                        onChange={e => setStaffSearch(e.target.value)}
+                        className="admin-staff-search"
+                        style={{ width: '100%', padding: '6px 28px 6px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}
+                      />
+                      {staffSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setStaffSearch('')}
+                          style={{
+                            position: 'absolute',
+                            right: 8,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--text-muted)',
+                            cursor: 'pointer',
+                            padding: 2,
+                            display: 'flex'
+                          }}
+                          title="Clear search"
+                        >
+                          <X size={13} />
+                        </button>
+                      )}
+                    </div>
+                    <span style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      padding: '3px 8px',
+                      borderRadius: 12,
+                      background: 'var(--surface-hover)',
+                      border: '1px solid var(--border-light)',
+                      color: 'var(--text-secondary)',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {sortedAndFilteredStaff.length} {sortedAndFilteredStaff.length === 1 ? 'member' : 'members'}
+                      {staffSearch.trim() && ` (of ${staff.length})`}
+                    </span>
+                  </div>
                   <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>
-                    Persisted site roster &bull; Built up as daily syncs occur &bull; All members appear as magnets
+                    Persisted site roster &bull; Click &ldquo;Staff Name&rdquo; to sort A-Z / Z-A &bull; Members appear in Credentialed Unassigned pool unless assigned
                   </div>
                 </div>
                 <button
@@ -1799,28 +1913,125 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ background: 'var(--surface-hover)', textAlign: 'left', borderBottom: '2px solid var(--border-light)' }}>
-                      <th style={{ padding: '8px 10px' }}>Staff Name</th>
-                      <th style={{ padding: '8px 10px' }}>Magnet Display Name</th>
-                      <th style={{ padding: '8px 10px' }}>Group / Role</th>
-                      <th style={{ padding: '8px 10px' }}>Cell Phone</th>
-                      <th style={{ padding: '8px 10px' }}>Shift</th>
+                      <th
+                        onClick={() => handleSortStaff('name')}
+                        style={{
+                          padding: '8px 10px',
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          color: staffSortField === 'name' ? 'var(--accent-primary)' : 'inherit',
+                          fontWeight: staffSortField === 'name' ? 800 : 700
+                        }}
+                        title="Click to sort by Staff Name (A-Z / Z-A)"
+                      >
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          <span>Staff Name</span>
+                          {staffSortField === 'name' ? (
+                            staffSortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                          ) : (
+                            <ArrowUpDown size={13} style={{ opacity: 0.35 }} />
+                          )}
+                        </div>
+                      </th>
+                      <th
+                        onClick={() => handleSortStaff('displayName')}
+                        style={{
+                          padding: '8px 10px',
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          color: staffSortField === 'displayName' ? 'var(--accent-primary)' : 'inherit',
+                          fontWeight: staffSortField === 'displayName' ? 800 : 700
+                        }}
+                        title="Click to sort by Magnet Display Name"
+                      >
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          <span>Magnet Display Name</span>
+                          {staffSortField === 'displayName' ? (
+                            staffSortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                          ) : (
+                            <ArrowUpDown size={13} style={{ opacity: 0.35 }} />
+                          )}
+                        </div>
+                      </th>
+                      <th
+                        onClick={() => handleSortStaff('role')}
+                        style={{
+                          padding: '8px 10px',
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          color: staffSortField === 'role' ? 'var(--accent-primary)' : 'inherit',
+                          fontWeight: staffSortField === 'role' ? 800 : 700
+                        }}
+                        title="Click to sort by Group / Role"
+                      >
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          <span>Group / Role</span>
+                          {staffSortField === 'role' ? (
+                            staffSortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                          ) : (
+                            <ArrowUpDown size={13} style={{ opacity: 0.35 }} />
+                          )}
+                        </div>
+                      </th>
+                      <th
+                        onClick={() => handleSortStaff('phone')}
+                        style={{
+                          padding: '8px 10px',
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          color: staffSortField === 'phone' ? 'var(--accent-primary)' : 'inherit',
+                          fontWeight: staffSortField === 'phone' ? 800 : 700
+                        }}
+                        title="Click to sort by Phone"
+                      >
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          <span>Cell Phone</span>
+                          {staffSortField === 'phone' ? (
+                            staffSortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                          ) : (
+                            <ArrowUpDown size={13} style={{ opacity: 0.35 }} />
+                          )}
+                        </div>
+                      </th>
+                      <th
+                        onClick={() => handleSortStaff('shift')}
+                        style={{
+                          padding: '8px 10px',
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          color: staffSortField === 'shift' ? 'var(--accent-primary)' : 'inherit',
+                          fontWeight: staffSortField === 'shift' ? 800 : 700
+                        }}
+                        title="Click to sort by Shift"
+                      >
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          <span>Shift</span>
+                          {staffSortField === 'shift' ? (
+                            staffSortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                          ) : (
+                            <ArrowUpDown size={13} style={{ opacity: 0.35 }} />
+                          )}
+                        </div>
+                      </th>
                       <th style={{ padding: '8px 10px', textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {staff
-                      .filter(s => {
-                        if (!staffSearch.trim()) return true;
-                        const q = staffSearch.toLowerCase();
-                        return (
-                          (s.displayName && s.displayName.toLowerCase().includes(q)) ||
-                          s.lastName.toLowerCase().includes(q) ||
-                          s.firstName.toLowerCase().includes(q) ||
-                          s.credentials.toLowerCase().includes(q) ||
-                          s.phone.includes(q)
-                        );
-                      })
-                      .map(s => {
+                    {sortedAndFilteredStaff.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)' }}>
+                          {staffSearch.trim() ? (
+                            <div>
+                              <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>No staff matching &ldquo;{staffSearch}&rdquo;</div>
+                              <div style={{ fontSize: 11 }}>Try checking spelling or clear search filter</div>
+                            </div>
+                          ) : (
+                            <div>No staff currently in site roster. Click &ldquo;Add Staff to Site&rdquo; to add a member.</div>
+                          )}
+                        </td>
+                      </tr>
+                    ) : (
+                      sortedAndFilteredStaff.map(s => {
                         const magnetLabel = s.displayName || `${s.lastName.toUpperCase()}${s.firstName ? ` ${s.firstName[0]}.` : ''}`;
                         return (
                           <tr key={s.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
@@ -1898,7 +2109,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                                   type="button"
                                   onClick={() => promptDeleteStaff(s)}
                                   style={{ color: 'var(--marker-red)', padding: 4 }}
-                                  title="Delete staff member"
+                                  title="Delete staff member and remove from credentialed list"
                                 >
                                   <Trash2 size={14} />
                                 </button>
@@ -1906,7 +2117,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                             </td>
                           </tr>
                         );
-                      })}
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>

@@ -268,21 +268,6 @@
       ]
     },
     {
-      "id": "staff_oneusap_doc_villarrealter",
-      "phone": "(713) 907-8995",
-      "shift": "3p",
-      "active": true,
-      "facility": "MHRIC-SC",
-      "lastName": "Villarreal",
-      "firstName": "Ter",
-      "magnetNote": "",
-      "qgendaAbbr": "VillarrealTer",
-      "credentials": "MD",
-      "displayName": "VILLARREAL T.",
-      "orderNumber": 184,
-      "isInfrequent": false
-    },
-    {
       "id": "staff_oneusap_doc_hirschdou",
       "phone": "(281) 546-0992",
       "shift": "5p",

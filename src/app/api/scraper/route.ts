@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadBoardState, saveBoardState, recordAuditLog } from '@/lib/storage';
-import { fetchAndScrapeOneUsap, getHoustonDateString } from '@/lib/oneusapScraper';
+import { fetchAndScrapeOneUsap, getHoustonDateString, isTargetFacility } from '@/lib/oneusapScraper';
 import { loadPortalRules } from '@/lib/portalRulesStorage';
 import { DepartureItem, LateShiftItem, CallTeamItem, Staff, UserRole } from '@/types/whiteboard';
 
@@ -344,8 +344,17 @@ export async function POST(req: NextRequest) {
         });
 
         // For existing credentialed staff who are NOT scheduled on today's portal list:
-        // KEEP THEM ACTIVE in the Site Staff Roster and unassigned magnets pool, but clear room assignment
-        existingStaffList.forEach(s => {
+        // KEEP THEM ACTIVE in the Site Staff Roster and unassigned magnets pool, but clear room assignment.
+        // PRUNE any staff member whose recorded facility is explicitly outside this board's active facilities.
+        const retainedStaffList = existingStaffList.filter(s => {
+          if (matchedExistingIds.has(s.id)) return true;
+          if (s.facility && !isTargetFacility(s.facility, activeFacilities)) {
+            return false;
+          }
+          return true;
+        });
+
+        retainedStaffList.forEach(s => {
           if (!matchedExistingIds.has(s.id)) {
             s.active = true;
             s.assignedRoom = undefined;
@@ -353,7 +362,7 @@ export async function POST(req: NextRequest) {
           }
         });
 
-        state.staff = existingStaffList;
+        state.staff = retainedStaffList;
       }
 
       state.scraperConfig.lastSyncTime = new Date().toISOString();
