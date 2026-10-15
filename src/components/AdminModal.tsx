@@ -300,7 +300,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [staffLast, setStaffLast] = useState('');
   const [staffDisplayName, setStaffDisplayName] = useState('');
   const [staffCred, setStaffCred] = useState<StaffCredential>('CRNA');
-  const [staffPhone, setStaffPhone] = useState('(555) ');
+  const [staffPhone, setStaffPhone] = useState('');
   const [staffShift, setStaffShift] = useState('07:00 - 15:30');
   const [staffIsInfrequent, setStaffIsInfrequent] = useState(false);
 
@@ -613,7 +613,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
         setStaffFirst('');
         setStaffLast('');
         setStaffDisplayName('');
-        setStaffPhone('(555) ');
+        setStaffPhone('');
         setStaffIsInfrequent(false);
         onRefreshData();
       }

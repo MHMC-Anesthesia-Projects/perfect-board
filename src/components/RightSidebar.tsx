@@ -191,13 +191,17 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     } else {
       const parsed = formatProviderName(qgendaAbbr || lastName);
       const defaultFacility = staff.find(s => s.facility)?.facility || 'MHMC';
+      const existingPhone = staff.find(s =>
+        (cleanQ && s.qgendaAbbr?.toUpperCase() === cleanQ && s.phone && !s.phone.includes('000-0000')) ||
+        (cleanLast && s.lastName.toUpperCase() === cleanLast && s.phone && !s.phone.includes('000-0000'))
+      )?.phone || '';
       const fallbackStaff: Staff = {
         id: id || `staff_roster_${cleanLast.toLowerCase()}`,
         firstName: parsed.firstName || '',
         lastName: parsed.lastName || cleanLast,
         displayName: parsed.displayName,
         credentials: fallbackCreds,
-        phone: '(555) 000-0000',
+        phone: existingPhone,
         shift: shift || 'Day',
         facility: defaultFacility,
         active: true,

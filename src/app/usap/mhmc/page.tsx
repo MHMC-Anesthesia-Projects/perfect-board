@@ -1968,6 +1968,52 @@ export default function WhiteboardPage() {
     }
   };
 
+  // 3b-2. Set staff cell phone number
+  const handleUpdateStaffPhone = async (staffId: string, phone: string) => {
+    if (currentUserRole === 'view_only') {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    const staff = boardState?.staff.find(s => s.id === staffId);
+    const prevPhone = staff?.phone || '';
+    try {
+      const res = await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_STAFF_PHONE',
+          payload: { staffId, phone },
+          user: currentUser
+        })
+      });
+      const data = await res.json();
+      if (data.state) {
+        setBoardState(data.state);
+        setSelectedStaff(prev => {
+          if (!prev) return null;
+          if (prev.id === staffId) {
+            return { ...prev, phone };
+          }
+          return prev;
+        });
+        setToastMessage(`✓ Updated cell phone number to "${phone || 'None'}"`);
+        setTimeout(() => setToastMessage(null), 3000);
+
+        const savedPrevPhone = prevPhone;
+        pushUndoAction(
+          `Updated cell phone to "${phone || 'None'}"`,
+          async () => {
+            await handleUpdateStaffPhone(staffId, savedPrevPhone);
+          }
+        );
+      }
+    } catch (err) {
+      console.error('Error updating staff phone:', err);
+      setToastMessage('Error updating cell phone.');
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
+
   // 3c. Set staff student info
   const handleUpdateStaffStudent = async (
     staffId: string,
@@ -3084,6 +3130,7 @@ export default function WhiteboardPage() {
           handleUpdateStaffShift(staffId, newShift, lastName, credentials, undefined, isCallTeam);
         }}
         onUpdateDisplayName={handleUpdateStaffDisplayName}
+        onUpdatePhone={handleUpdateStaffPhone}
         onUpdateStudent={handleUpdateStaffStudent}
         onSetStaffInfrequent={handleSetStaffInfrequent}
         onOpenLogin={() => setIsLoginModalOpen(true)}

@@ -1024,7 +1024,7 @@ export async function POST(req: NextRequest) {
             firstName: '',
             lastName: targetLastName.toUpperCase(),
             credentials: targetCreds,
-            phone: '(555) 000-0000',
+            phone: '',
             shift,
             facility: state.scraperConfig?.selectedFacilities?.[0] || state.staff.find(st => st.facility)?.facility || 'MHMC',
             active: true
@@ -1408,6 +1408,42 @@ export async function POST(req: NextRequest) {
           userRole: currentUserRole,
           targetName: `${s.firstName} ${s.lastName}`.trim(),
           details: `Updated magnet display name from "${oldName}" to "${s.displayName || 'Default'}"`
+        });
+
+        return NextResponse.json({ success: true, state });
+      }
+
+      // 6c-2b. Update staff mobile / cell phone
+      case 'UPDATE_STAFF_PHONE': {
+        if (currentUserRole === 'basic_user') {
+          return NextResponse.json({ error: 'Permission denied. Board Runner or Superuser login required.' }, { status: 403 });
+        }
+        const { staffId, phone } = payload;
+        let s = state.staff.find(st => st.id === staffId);
+        if (!s && payload.lastName) {
+          s = state.staff.find(st => st.lastName.toUpperCase() === payload.lastName.toUpperCase());
+        }
+        if (!s) {
+          return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
+        }
+
+        const digits = (phone || '').replace(/\D/g, '');
+        let formatted = (phone || '').trim();
+        if (digits.length === 10) {
+          formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+        } else if (digits.length === 11 && digits.startsWith('1')) {
+          formatted = `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+        }
+        const oldPhone = s.phone || 'None';
+        s.phone = formatted;
+
+        await saveBoardState(state);
+        await recordAuditLog({
+          actionType: 'STAFF_UPDATED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          targetName: `${s.firstName || ''} ${s.lastName}`.trim(),
+          details: `Updated cell phone number from "${oldPhone}" to "${formatted || 'None'}"`
         });
 
         return NextResponse.json({ success: true, state });

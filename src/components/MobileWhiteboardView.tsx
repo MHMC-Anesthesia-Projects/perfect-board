@@ -2131,13 +2131,17 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                       } else {
                         const parsed = formatProviderName(item.qgendaAbbr || item.doctorName);
                         const defaultFacility = boardState?.scraperConfig?.selectedFacilities?.[0] || (boardState?.staff || []).find(s => s.facility)?.facility || 'MHMC';
+                        const existingPhone = (boardState.staff || []).find(s =>
+                          (item.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === item.qgendaAbbr.toUpperCase() && s.phone && !s.phone.includes('000-0000')) ||
+                          (s.lastName.toUpperCase() === item.doctorName.toUpperCase() && s.phone && !s.phone.includes('000-0000'))
+                        )?.phone || '';
                         onSelectStaff({
                           id: item.id || `staff_call_${item.doctorName.toLowerCase()}`,
                           firstName: parsed.firstName || '',
                           lastName: parsed.lastName || item.doctorName.toUpperCase(),
                           displayName: parsed.displayName,
                           credentials: 'MD',
-                          phone: '(555) 000-0000',
+                          phone: existingPhone,
                           shift: item.role,
                           facility: defaultFacility,
                           active: true,

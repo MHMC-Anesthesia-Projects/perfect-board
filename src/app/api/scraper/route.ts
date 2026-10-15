@@ -293,8 +293,10 @@ export async function POST(req: NextRequest) {
             matchedExistingIds.add(existing.id);
 
             // Update dynamic schedule data for today
-            if (ws.phone && (!existing.phone || existing.phone.includes('000-0000') || existing.phone.trim() === '')) {
+            if (ws.phone && ws.phone.trim() !== '' && !ws.phone.includes('000-0000')) {
               existing.phone = ws.phone;
+            } else if (existing.phone && existing.phone.includes('000-0000')) {
+              existing.phone = '';
             }
             if (ws.firstName && (!existing.firstName || existing.firstName.length < ws.firstName.length || existing.firstName === '')) {
               existing.firstName = ws.firstName;
@@ -326,7 +328,7 @@ export async function POST(req: NextRequest) {
               lastName: ws.lastName,
               displayName: ws.displayName || `${ws.lastName.toUpperCase()} ${ws.firstName ? ws.firstName[0] + '.' : ''}`.trim(),
               credentials: ws.credentials,
-              phone: ws.phone || '',
+              phone: (ws.phone && !ws.phone.includes('000-0000')) ? ws.phone : '',
               shift: ws.shift || '07:00 - 15:30',
               facility: ws.facility,
               assignedRoom: ws.roomAssignment || undefined,

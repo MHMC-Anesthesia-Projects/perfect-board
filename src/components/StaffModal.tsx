@@ -58,6 +58,7 @@ interface StaffModalProps {
   unreadCount?: number;
   magnetNotes?: Record<string, string>;
   onUpdateMagnetNote?: (staffId: string, note: string) => void;
+  onUpdatePhone?: (staffId: string, phone: string) => void;
 }
 
 export const StaffModal: React.FC<StaffModalProps> = ({
@@ -85,7 +86,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   onRemoveRelief,
   unreadCount = 0,
   magnetNotes,
-  onUpdateMagnetNote
+  onUpdateMagnetNote,
+  onUpdatePhone
 }) => {
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [isEditingShift, setIsEditingShift] = useState(false);
@@ -93,6 +95,23 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   const [isCallTeamSelected, setIsCallTeamSelected] = useState(false);
   const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
   const [displayNameInput, setDisplayNameInput] = useState(staff?.displayName || '');
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+
+  // Resolve effective phone: fallback to allStaff if missing or dummy (555) 000-0000
+  const cleanPhone = (staff?.phone || '').trim();
+  const isDummyPhone = !cleanPhone || cleanPhone.includes('000-0000') || cleanPhone === '(555) 000-0000';
+  const matchedFromAllStaff = (isDummyPhone && allStaff && staff) ? allStaff.find(s => 
+    (staff.qgendaAbbr && s.qgendaAbbr?.toUpperCase() === staff.qgendaAbbr.toUpperCase() && s.phone && !s.phone.includes('000-0000')) ||
+    (s.lastName.toUpperCase() === staff.lastName.toUpperCase() && s.credentials === staff.credentials && s.phone && !s.phone.includes('000-0000'))
+  ) : undefined;
+  const effectivePhone = !isDummyPhone ? cleanPhone : (matchedFromAllStaff?.phone || '');
+  const [phoneInput, setPhoneInput] = useState(effectivePhone);
+
+  useEffect(() => {
+    setIsEditingPhone(false);
+    setPhoneInput(effectivePhone);
+  }, [staff?.id, effectivePhone]);
+
   const currentMagnetNote = (staff?.id && magnetNotes && magnetNotes[staff.id] !== undefined)
     ? magnetNotes[staff.id]
     : (staff?.magnetNote || '');
@@ -644,19 +663,115 @@ export const StaffModal: React.FC<StaffModalProps> = ({
               </div>
             </div>
           )}
-          {/* Phone */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
-              <Phone size={15} style={{ color: 'var(--accent-primary)' }} />
-              <span style={{ fontWeight: 600 }}>Cell Phone:</span>
-              <a
-                href={`tel:${staff.phone}`}
-                style={{ fontWeight: 800, color: 'var(--accent-primary)', textDecoration: 'underline' }}
-              >
-                {staff.phone}
-              </a>
+          {/* Phone (View and Edit) */}
+          {!isEditingPhone ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
+                <Phone size={15} style={{ color: 'var(--accent-primary)' }} />
+                <span style={{ fontWeight: 600 }}>Cell Phone:</span>
+                {effectivePhone ? (
+                  <a
+                    href={`tel:${effectivePhone}`}
+                    style={{ fontWeight: 800, color: 'var(--accent-primary)', textDecoration: 'underline' }}
+                  >
+                    {effectivePhone}
+                  </a>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: 12 }}>
+                    No cell phone on file
+                  </span>
+                )}
+              </div>
+              {isEditor && onUpdatePhone && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhoneInput(effectivePhone);
+                    setIsEditingPhone(true);
+                  }}
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--accent-primary)',
+                    background: 'transparent',
+                    border: 'none',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {effectivePhone ? 'Edit Phone' : '+ Add Phone'}
+                </button>
+              )}
             </div>
-          </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Phone size={14} style={{ color: 'var(--accent-primary)' }} />
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>
+                  Cell Phone Number:
+                </label>
+              </div>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', width: '100%', boxSizing: 'border-box' }}>
+                <input
+                  type="tel"
+                  placeholder="e.g. (832) 555-1234"
+                  value={phoneInput}
+                  onChange={e => setPhoneInput(e.target.value)}
+                  style={{
+                    flex: '1 1 0',
+                    minWidth: 0,
+                    padding: '6px 8px',
+                    borderRadius: 4,
+                    border: '1px solid var(--border-light)',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    boxSizing: 'border-box'
+                  }}
+                />
+                <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onUpdatePhone && staff) {
+                        onUpdatePhone(staff.id, phoneInput.trim());
+                      }
+                      setIsEditingPhone(false);
+                    }}
+                    style={{
+                      padding: '6px 12px',
+                      background: 'var(--accent-primary)',
+                      color: '#fff',
+                      borderRadius: 4,
+                      fontWeight: 700,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      border: 'none',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhoneInput(effectivePhone);
+                      setIsEditingPhone(false);
+                    }}
+                    style={{
+                      padding: '6px 10px',
+                      background: 'transparent',
+                      border: '1px solid var(--border-light)',
+                      borderRadius: 4,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Shift (View and Edit) */}
           {!isEditingShift ? (
