@@ -383,7 +383,7 @@ export interface BoardState {
 // PORTAL REFERENCE TABLE & ENGINE TYPES (PHASE 1)
 // -------------------------------------------------------------
 
-export type DepartureCategoryType = 'none' | 'post_call_10a' | 'scheduled_time' | 'non_call_queue' | 'special';
+export type DepartureCategoryType = 'none' | 'post_call' | 'post_call_10a' | 'scheduled_time' | 'non_call_queue' | 'special';
 export type LateCategoryType = 'none' | '3p' | '4p' | '5p' | '7p' | '7p-7a' | '8p' | '24h';
 export type RoomAssignmentStrategy = 'scraped' | 'unassigned_pool' | 'runner';
 export type BoardInclusionStatus = 'include' | 'exclude';
@@ -395,7 +395,8 @@ export interface PortalShiftRule {
   roleType: 'MD' | 'CRNA' | 'ANY';
   shiftHours?: string; // e.g. "7a-3p", "7a-5p", "7p-7a"
   departureCategory: DepartureCategoryType;
-  departureTimeEstimate?: string; // e.g. "3p", "5p", "10a"
+  departureTimeEstimate?: string; // e.g. "3p", "5p" (for scheduled_time)
+  badgeNote?: string; // Optional adjacent badge note (e.g. "postC1", "preCV", "WOR", "WOV")
   lateCategory: LateCategoryType;
   boardStatus: BoardInclusionStatus;
   roomAssignmentStrategy: RoomAssignmentStrategy;

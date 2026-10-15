@@ -183,9 +183,17 @@ export function getHoustonDateString(d: Date = new Date()): string {
  */
 export function extractFacilityFromShift(shiftOrRole?: string): string | null {
   if (!shiftOrRole) return null;
+  // Match facility codes following an underscore, e.g. "12h-7p:Noct_MHMC" -> "MHMC", "L1_MHKTY" -> "MHKTY"
+  const underMatch = shiftOrRole.match(/_([A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)\b/);
+  if (underMatch) {
+    return underMatch[1].toUpperCase();
+  }
   const match = shiftOrRole.match(/(?:^|[\s,;/])(?:[0-9]+[Hh]|L[1-4]|DRWRK|WOR|WOV|C[1-4]|CV|OB|CALL|CIH|HDR|IDR|DR|POST|PRE)[A-Za-z0-9]*[-_]([A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)\b/i);
   if (match) {
-    return match[1].toUpperCase();
+    const fac = match[1].toUpperCase();
+    if (!fac.endsWith('P') && !fac.endsWith('A')) {
+      return fac;
+    }
   }
   return null;
 }
@@ -195,13 +203,24 @@ export function extractFacilityFromShift(shiftOrRole?: string): string | null {
  */
 export function extractAllFacilitiesFromShift(shiftOrRole?: string): string[] {
   if (!shiftOrRole) return [];
-  const regex = /(?:^|[\s,;/])(?:[0-9]+[Hh]|L[1-4]|DRWRK|WOR|WOV|C[1-4]|CV|OB|CALL|CIH|HDR|IDR|DR|POST|PRE)[A-Za-z0-9]*[-_]([A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)\b/gi;
   const facilities: string[] = [];
+  // Match facility codes following an underscore, e.g. "12h-7p:Noct_MHMC" -> "MHMC", "L1_MHKTY" -> "MHKTY"
+  const regex = /_([A-Za-z0-9]+(?:-[A-Za-z0-9]+)?)\b/gi;
   let m;
   while ((m = regex.exec(shiftOrRole)) !== null) {
     const fac = m[1].toUpperCase();
     if (!facilities.includes(fac)) {
       facilities.push(fac);
+    }
+  }
+  // Fallback for hyphen-delimited facility if no underscore found and not a time like 7p
+  if (facilities.length === 0) {
+    const fallbackRegex = /[-]([A-Za-z]{2,10}(?:-[A-Za-z0-9]+)?)\b/gi;
+    while ((m = fallbackRegex.exec(shiftOrRole)) !== null) {
+      const fac = m[1].toUpperCase();
+      if (!fac.endsWith('P') && !fac.endsWith('A') && !facilities.includes(fac)) {
+        facilities.push(fac);
+      }
     }
   }
   return facilities;
@@ -1377,6 +1396,27 @@ export function parseOneUsapHtml(
     }
   }
 
+  // 3ba. Extract provider shift roles and tasks from <tr class="siteProviders" ...> rows (e.g. 12h-7p:Noct_MHMC, DrWOR_MHMC)
+  const siteProviderRegex = /<tr[^>]+class=["\x27][^"\x27]*siteProviders[^"\x27]*["\x27][^>]*data-shiftroles=["\x27]([^"\x27]*)["\x27][^>]*>([\s\S]*?)<\/tr>/gi;
+  let spm;
+  while ((spm = siteProviderRegex.exec(htmlContent)) !== null) {
+    const shiftRoles = (spm[1] || '').trim();
+    const trContent = spm[2];
+    const tdMatches = [...trContent.matchAll(/<td[^>]*>([^<]*)<\/td>/gi)].map(td => td[1].trim());
+    const rawSubject = tdMatches[0] || '';
+    if (rawSubject && shiftRoles) {
+      const cleanId = rawSubject.replace(/\[.*?\]/g, '').toLowerCase().trim();
+      const existing = providerTasksMap.get(cleanId);
+      providerTasksMap.set(cleanId, existing ? `${existing}, ${shiftRoles}` : shiftRoles);
+      const formatted = formatProviderName(rawSubject);
+      if (formatted.lastName) {
+        const lastKey = formatted.lastName.toLowerCase();
+        const existingLast = providerTasksMap.get(lastKey);
+        providerTasksMap.set(lastKey, existingLast ? `${existingLast}, ${shiftRoles}` : shiftRoles);
+      }
+    }
+  }
+
   // Extract from modal or container blocks: e.g. "Alexander Yi" ... "Tasks: 8h_MHMC,L1_MHMC"
   const taskTextRegexes = [
     /([A-Za-z][A-Za-z0-9_\[\]\s]{2,30}?)(?:\s*[-–:]\s*|\s+)Tasks:\s*([A-Za-z0-9_,\s-]+)/gi,
@@ -1700,7 +1740,8 @@ export function parseOneUsapHtml(
       assignedRooms: roomInfo.rooms,
       activeFacilities,
       portalRules,
-      combinationRules
+      combinationRules,
+      uniqueSchedules
     });
 
     if (portalRules && portalRules.length > 0 && docPolicy.boardStatus === 'exclude') {
@@ -2034,7 +2075,8 @@ export function parseOneUsapHtml(
       assignedRooms: roomInfo.rooms,
       activeFacilities,
       portalRules,
-      combinationRules
+      combinationRules,
+      uniqueSchedules
     });
 
     if (portalRules && portalRules.length > 0 && crnaPolicy.boardStatus === 'exclude') {
@@ -2187,7 +2229,8 @@ export function parseOneUsapHtml(
       assignedRooms: roomInfo.rooms,
       activeFacilities,
       portalRules,
-      combinationRules
+      combinationRules,
+      uniqueSchedules
     });
 
     if (portalRules && portalRules.length > 0 && (depPolicy.boardStatus === 'exclude' || depPolicy.departureCategory === 'none')) {
@@ -2198,7 +2241,7 @@ export function parseOneUsapHtml(
     const isAtypicalTime = /^[0-9]{1,2}(?::[0-9]{2})?\s*(?:A|P|AM|PM)$/i.test(upperShift) && !isLateDoc;
 
     let depCategory: 'post_call' | 'special' | 'non_call' = 'non_call';
-    if (depPolicy.departureCategory === 'post_call_10a' || isPostCall) {
+    if (depPolicy.departureCategory === 'post_call' || depPolicy.departureCategory === 'post_call_10a' || isPostCall) {
       depCategory = 'post_call';
     } else if (depPolicy.departureCategory === 'special' || isAtypicalTime) {
       depCategory = 'special';
@@ -2206,53 +2249,30 @@ export function parseOneUsapHtml(
       depCategory = 'non_call';
     }
 
+    // Calculate adjacent badge note (e.g. postC1, postC2, postCV, preC2, preC3, preCV)
+    let departureBadge: string | undefined = undefined;
+    if (depCategory === 'post_call') {
+      const rawCompositeMatch = (sanitized.shift || '').match(/\b(post(?:C[123]|CV|OB)(?:,\s*pre(?:C[123]|CV|OB))?)\b/i) ||
+                                (shift || '').match(/\b(post(?:C[123]|CV|OB)(?:,\s*pre(?:C[123]|CV|OB))?)\b/i);
+      departureBadge = rawCompositeMatch ? rawCompositeMatch[1] : (depPolicy.badgeNote || (isPostCall ? 'postOB' : undefined));
+    } else if (depCategory === 'non_call') {
+      const rawPreMatch = (sanitized.shift || '').match(/\b(pre(?:C[123]|CV|OB))\b/i) ||
+                          (shift || '').match(/\b(pre(?:C[123]|CV|OB))\b/i) ||
+                          (sanitized.roomTag || '').match(/\b(pre(?:C[123]|CV|OB))\b/i);
+      departureBadge = rawPreMatch ? rawPreMatch[1] : depPolicy.badgeNote;
+    } else if (depCategory === 'special') {
+      departureBadge = depPolicy.departureTimeEstimate || effectiveShift;
+    }
+
     rawDepartureCandidates.push({
       name: formatted.lastName.toUpperCase(),
       category: depCategory,
-      shift: depPolicy.departureTimeEstimate || effectiveShift || undefined,
+      shift: departureBadge, // Displays as adjacent badge note next to name (e.g. postC1, preCV)
       facility: facilityLabel,
       qgendaAbbr,
       roomAssignment: roomInfo.roomString || undefined,
       orderNumber
     });
-  });
-
-  // CRNAs on post-call departure policy (e.g. CIHOBPC_MHMC or combination rule)
-  targetAnes.forEach(entry => {
-    const { rawName, facility, shift, orderNumber } = entry;
-    if (isOffShift(shift)) return;
-
-    const formatted = formatProviderName(rawName);
-    const qgendaAbbr = rawName.replace(/\[.*?\]/g, '').trim();
-    const roomTag = providerRoomShifts.get(qgendaAbbr.toLowerCase());
-    const rawTaskStr = getProviderTasks(rawName, formatted.lastName);
-    const roomInfo = findAssignedRooms(qgendaAbbr, formatted.lastName, 'CRNA');
-
-    const anesDepPolicy = resolveProviderShiftPolicy({
-      rawName,
-      qgendaAbbr,
-      role: 'CRNA',
-      facility,
-      shift,
-      tasks: rawTaskStr,
-      roomTag,
-      assignedRooms: roomInfo.rooms,
-      activeFacilities,
-      portalRules,
-      combinationRules
-    });
-
-    if (anesDepPolicy.boardStatus !== 'exclude' && anesDepPolicy.departureCategory === 'post_call_10a') {
-      rawDepartureCandidates.push({
-        name: formatted.lastName.toUpperCase(),
-        category: 'post_call',
-        shift: anesDepPolicy.departureTimeEstimate || '10:00 AM',
-        facility: getFriendlyFacilityName(facility) || 'MHMC',
-        qgendaAbbr,
-        roomAssignment: roomInfo.roomString || undefined,
-        orderNumber
-      });
-    }
   });
 
   // Disambiguate duplicate last names on departure list (e.g. CHEN K. and CHEN R.)
@@ -2330,7 +2350,8 @@ export function parseOneUsapHtml(
       assignedRooms: roomInfo.rooms,
       activeFacilities,
       portalRules,
-      combinationRules
+      combinationRules,
+      uniqueSchedules
     });
 
     if (portalRules && portalRules.length > 0) {
@@ -2344,6 +2365,11 @@ export function parseOneUsapHtml(
       else if (activeFac.includes('MHMC')) facilityLabel = 'MHMC';
       else facilityLabel = activeFac.replace(/^(?:W|SE|MC|NNE|NW|SWSL):\s*/, '').replace(/W:\s*/g, '').trim();
 
+      const lateNote = latePolicy.badgeNote ||
+        (rawShift.toUpperCase().includes('WOR') || rawTaskStr.toUpperCase().includes('WOR') ? 'WOR' : undefined) ||
+        (rawShift.toUpperCase().includes('WOV') || rawTaskStr.toUpperCase().includes('WOV') ? 'WOV' : undefined) ||
+        (latePolicy.effectiveShift !== latePolicy.lateCategory ? latePolicy.effectiveShift : undefined);
+
       lateCandidates.push({
         name: formatted.lastName.toUpperCase(),
         timeCategory: latePolicy.lateCategory,
@@ -2353,7 +2379,7 @@ export function parseOneUsapHtml(
         orderNumber,
         qgendaAbbr,
         roomAssignment: roomInfo.roomString || undefined,
-        notes: latePolicy.effectiveShift !== latePolicy.lateCategory ? latePolicy.effectiveShift : undefined
+        notes: lateNote
       });
       return;
     }

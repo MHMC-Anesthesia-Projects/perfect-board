@@ -4,7 +4,8 @@ import {
   DepartureCategoryType, 
   LateCategoryType, 
   RoomAssignmentStrategy, 
-  BoardInclusionStatus 
+  BoardInclusionStatus,
+  UniqueScheduleRule
 } from '@/types/whiteboard';
 
 export interface ProviderShiftContext {
@@ -19,6 +20,7 @@ export interface ProviderShiftContext {
   activeFacilities: string[];
   portalRules?: PortalShiftRule[];
   combinationRules?: PortalCombinationRule[];
+  uniqueSchedules?: UniqueScheduleRule[];
 }
 
 export interface ResolvedShiftPolicy {
@@ -28,6 +30,7 @@ export interface ResolvedShiftPolicy {
   roomAssignmentStrategy: RoomAssignmentStrategy;
   departureCategory: DepartureCategoryType;
   departureTimeEstimate?: string;
+  badgeNote?: string;
   lateCategory: LateCategoryType;
   effectiveShift: string;
   isCombination: boolean;
@@ -240,8 +243,51 @@ export function resolveProviderShiftPolicy(
     assignedRooms = [],
     activeFacilities,
     portalRules = [],
-    combinationRules = []
+    combinationRules = [],
+    uniqueSchedules = []
   } = ctx;
+
+  // 0. CHECK EXPLICIT USER CONFIGURED UNIQUE SCHEDULES (e.g. Chuan 4p, Hirsch 5p, Baerenstecher 5p)
+  if (uniqueSchedules && uniqueSchedules.length > 0) {
+    const cleanAbbr = (qgendaAbbr || rawName).replace(/\[.*?\]/g, '').toLowerCase().trim();
+    const cleanLast = rawName.replace(/\[.*?\]/g, '').replace(/^[A-Za-z0-9_-]+[:\s]+/, '').toLowerCase().trim();
+    const facilityStr = facility || '';
+
+    const matchedUnique = uniqueSchedules.find(rule => {
+      if (!rule.active) return false;
+      if (rule.facilityCondition && rule.facilityCondition !== 'ALL') {
+        const ruleFac = rule.facilityCondition.toUpperCase();
+        const targetFac = facilityStr.toUpperCase();
+        if (!targetFac.includes(ruleFac)) return false;
+      }
+      const rName = (rule.providerName || '').toLowerCase().trim();
+      const rAbbr = (rule.qgendaAbbr || '').replace(/\[.*?\]/g, '').toLowerCase().trim();
+      return (
+        (rAbbr && cleanAbbr.includes(rAbbr)) ||
+        (rName && (cleanLast.includes(rName) || cleanAbbr.includes(rName)))
+      );
+    });
+
+    if (matchedUnique) {
+      const fixedShift = matchedUnique.fixedShift.toLowerCase().trim();
+      const isLateTime = ['3p', '4p', '5p', '7p', '7p-7a', '8p', '24h'].includes(fixedShift);
+      return {
+        matchedRuleId: matchedUnique.id,
+        matchedPattern: `Unique Schedule: ${matchedUnique.providerName} (${matchedUnique.fixedShift})`,
+        boardStatus: 'include',
+        roomAssignmentStrategy: 'scraped',
+        departureCategory: isLateTime ? 'none' : 'scheduled_time',
+        departureTimeEstimate: fixedShift,
+        badgeNote: matchedUnique.notes,
+        lateCategory: isLateTime ? (fixedShift as LateCategoryType) : 'none',
+        effectiveShift: fixedShift,
+        isCombination: false,
+        rawTokens: [matchedUnique.fixedShift],
+        affiliatedTokens: [matchedUnique.fixedShift],
+        outsideTokens: []
+      };
+    }
+  }
 
   const rawTokens = extractTokensFromContext(shift, tasks, roomTag, rawName);
 
@@ -262,15 +308,17 @@ export function resolveProviderShiftPolicy(
   const matchedCombination = matchCombinationPolicy(rawTokens, combinationRules);
   if (matchedCombination) {
     const action = matchedCombination;
+    const isPostCallComb = action.departureCategory === 'post_call' || action.departureCategory === 'post_call_10a';
     return {
       matchedRuleId: action.id,
       matchedPattern: `${action.primaryPattern} + ${action.secondaryPattern}`,
       boardStatus: action.boardStatus,
       roomAssignmentStrategy: action.roomAssignmentStrategy,
-      departureCategory: action.departureCategory,
-      departureTimeEstimate: action.departureTimeEstimate,
+      departureCategory: isPostCallComb ? 'post_call' : action.departureCategory,
+      departureTimeEstimate: isPostCallComb ? undefined : action.departureTimeEstimate,
+      badgeNote: isPostCallComb ? 'postOB' : undefined,
       lateCategory: action.lateCategory,
-      effectiveShift: action.notes || (action.departureCategory === 'post_call_10a' ? 'postOB' : 'Day'),
+      effectiveShift: action.notes || (isPostCallComb ? 'postOB' : 'Day'),
       isCombination: true,
       combinationRuleId: action.id,
       rawTokens,
@@ -326,8 +374,8 @@ export function resolveProviderShiftPolicy(
       displayShift = bestRule.departureTimeEstimate;
     } else if (bestRule.lateCategory && bestRule.lateCategory !== 'none') {
       displayShift = bestRule.lateCategory;
-    } else if (bestRule.departureCategory === 'post_call_10a') {
-      displayShift = 'postOB';
+    } else if (bestRule.departureCategory === 'post_call' || bestRule.departureCategory === 'post_call_10a') {
+      displayShift = bestRule.badgeNote || 'postOB';
     } else if (bestRule.pattern.toLowerCase().includes('noct')) {
       displayShift = '12h-7p:Noct';
     } else {
@@ -339,20 +387,23 @@ export function resolveProviderShiftPolicy(
     const hasPrecall = upperTokens.some(t => t.includes('PRECALL') || t.includes('PRE-CALL') || t.includes('PREOB') || t.includes('PREC1'));
     const hasPostcall = upperTokens.some(t => t.includes('POSTOB') || t.includes('POST-OB') || t.includes('POSTC1') || t.includes('POST-C1'));
 
-    if (hasPrecall && !displayShift.toLowerCase().includes('precall')) {
+    if (hasPrecall && !displayShift.toLowerCase().includes('precall') && !displayShift.toLowerCase().includes('prec')) {
       displayShift = `${displayShift}, preCall`;
     }
     if (hasPostcall && !displayShift.toLowerCase().includes('post')) {
       displayShift = `${displayShift}, postOB`;
     }
 
+    const isPostCall = bestRule.departureCategory === 'post_call' || bestRule.departureCategory === 'post_call_10a';
+
     return {
       matchedRuleId: bestRule.id,
       matchedPattern: bestRule.pattern,
       boardStatus: bestRule.boardStatus,
       roomAssignmentStrategy: bestRule.roomAssignmentStrategy,
-      departureCategory: bestRule.departureCategory,
-      departureTimeEstimate: bestRule.departureTimeEstimate,
+      departureCategory: isPostCall ? 'post_call' : bestRule.departureCategory,
+      departureTimeEstimate: isPostCall ? undefined : bestRule.departureTimeEstimate,
+      badgeNote: bestRule.badgeNote,
       lateCategory: bestRule.lateCategory,
       effectiveShift: displayShift,
       isCombination: false,
@@ -377,7 +428,7 @@ export function resolveProviderShiftPolicy(
   else if (combinedRaw.includes('3P') || combinedRaw.includes('8H')) fallbackLate = '3p';
 
   let fallbackDep: DepartureCategoryType = 'none';
-  if (isPostCall) fallbackDep = 'post_call_10a';
+  if (isPostCall) fallbackDep = 'post_call';
   else if (role === 'MD' && !isLate) fallbackDep = 'non_call_queue';
   else if (fallbackLate !== 'none') fallbackDep = 'scheduled_time';
 
@@ -385,7 +436,8 @@ export function resolveProviderShiftPolicy(
     boardStatus: 'include',
     roomAssignmentStrategy: fallbackLate === '7p-7a' ? 'unassigned_pool' : 'scraped',
     departureCategory: fallbackDep,
-    departureTimeEstimate: fallbackLate !== 'none' ? fallbackLate : (isPostCall ? '10:00 AM' : undefined),
+    departureTimeEstimate: fallbackLate !== 'none' ? fallbackLate : undefined,
+    badgeNote: isPostCall ? 'postOB' : undefined,
     lateCategory: fallbackLate,
     effectiveShift: fallbackLate !== 'none' ? fallbackLate : (isPostCall ? 'postOB' : 'Day'),
     isCombination: false,

@@ -628,6 +628,7 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                   <th style={{ padding: '10px 14px' }}>Hours</th>
                   <th style={{ padding: '10px 14px' }}>Departure Queue</th>
                   <th style={{ padding: '10px 14px' }}>Late List Bucket</th>
+                  <th style={{ padding: '10px 14px' }}>Badge Note</th>
                   <th style={{ padding: '10px 14px' }}>Board Status</th>
                   <th style={{ padding: '10px 14px', textAlign: 'right' }}>Actions</th>
                 </tr>
@@ -635,7 +636,7 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
               <tbody>
                 {filteredShiftRules.length === 0 ? (
                   <tr>
-                    <td colSpan={8} style={{ padding: 32, textAlign: 'center', color: 'var(--text-secondary)' }}>
+                    <td colSpan={9} style={{ padding: 32, textAlign: 'center', color: 'var(--text-secondary)' }}>
                       No shift rules match your search or filter.
                     </td>
                   </tr>
@@ -681,7 +682,7 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                       <td style={{ padding: '10px 14px' }}>
                         <span style={{ fontWeight: 600 }}>
                           {rule.departureCategory === 'scheduled_time' ? `Scheduled (${rule.departureTimeEstimate || 'Clock'})` :
-                           rule.departureCategory === 'post_call_10a' ? 'Post-Call (10:00 AM)' :
+                           (rule.departureCategory === 'post_call' || rule.departureCategory === 'post_call_10a') ? 'Post-Call Priority' :
                            rule.departureCategory === 'non_call_queue' ? 'Non-Call Queue' :
                            rule.departureCategory === 'special' ? 'Special Departure' : 'None'}
                         </span>
@@ -697,6 +698,23 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                         }}>
                           {rule.lateCategory !== 'none' ? rule.lateCategory : 'None'}
                         </span>
+                      </td>
+                      <td style={{ padding: '10px 14px' }}>
+                        {rule.badgeNote ? (
+                          <span style={{
+                            padding: '2px 6px',
+                            borderRadius: 4,
+                            fontSize: 10,
+                            fontWeight: 800,
+                            background: 'rgba(16, 185, 129, 0.12)',
+                            color: '#059669',
+                            border: '1px solid rgba(16, 185, 129, 0.25)'
+                          }}>
+                            {rule.badgeNote}
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>—</span>
+                        )}
                       </td>
                       <td style={{ padding: '10px 14px' }}>
                         <span style={{
@@ -1296,7 +1314,8 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                     >
                       <option value="scheduled_time">Scheduled Time (e.g. 3p, 5p, 7p)</option>
                       <option value="non_call_queue">Order of Departure (Non-Call Queue)</option>
-                      <option value="post_call_10a">Post-Call Priority (10:00 AM)</option>
+                      <option value="post_call">Post-Call Priority</option>
+                      <option value="post_call_10a">Post-Call Priority (Legacy 10a)</option>
                       <option value="special">Special / Atypical Departure</option>
                       <option value="none">None (Do Not Add to Departures)</option>
                     </select>
@@ -1352,6 +1371,29 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                     />
                   </div>
                 )}
+              </div>
+
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>Adjacent Badge / Note (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. postC1, postCV, preC2, preCV, WOR, WOV"
+                  value={editingShiftRule.badgeNote || ''}
+                  onChange={e => setEditingShiftRule(prev => ({ ...prev, badgeNote: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: 6,
+                    border: '1px solid var(--border-light)',
+                    background: 'var(--surface-hover)',
+                    color: 'var(--text-primary)',
+                    fontSize: 12,
+                    marginTop: 4
+                  }}
+                />
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                  Custom badge displayed next to provider name (green badge on Departure list, orange badge on Late list).
+                </div>
               </div>
 
               <div>
@@ -1590,7 +1632,8 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                         marginTop: 4
                       }}
                     >
-                      <option value="post_call_10a">Post-Call Priority (10:00 AM)</option>
+                      <option value="post_call">Post-Call Priority</option>
+                      <option value="post_call_10a">Post-Call Priority (Legacy 10a)</option>
                       <option value="scheduled_time">Scheduled Time Departure</option>
                       <option value="non_call_queue">Order of Departure Queue</option>
                       <option value="none">None (Suppress from Departures)</option>
