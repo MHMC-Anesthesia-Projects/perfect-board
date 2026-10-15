@@ -7,7 +7,8 @@ import {
 } from '@/types/whiteboard';
 import { 
   Search, Plus, Trash2, Edit2, RefreshCw, CheckCircle2, AlertTriangle, 
-  Layers, Clock, Sliders, Filter, Sparkles, X, Check, Eye, HelpCircle, ShieldAlert
+  Layers, Clock, Sliders, Filter, Sparkles, X, Check, Eye, HelpCircle, ShieldAlert,
+  ChevronDown, ChevronUp
 } from 'lucide-react';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { apiUrl } from '@/lib/api';
@@ -42,6 +43,7 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
   // Edit / Add Combination Rule Modal
   const [isCombModalOpen, setIsCombModalOpen] = useState(false);
   const [editingCombRule, setEditingCombRule] = useState<Partial<PortalCombinationRule> | null>(null);
+  const [showCombWildcardGuide, setShowCombWildcardGuide] = useState(true);
 
   // Delete modal state
   const [deleteModal, setDeleteModal] = useState<{
@@ -828,6 +830,129 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
             </button>
           </div>
 
+          {/* Asterisk Wildcard Educational Guide Card */}
+          <div style={{
+            background: 'var(--surface-card)',
+            border: '1px solid var(--border-light)',
+            borderRadius: 8,
+            padding: '14px 18px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10
+          }}>
+            <div
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+              onClick={() => setShowCombWildcardGuide(prev => !prev)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{
+                  background: 'rgba(59, 130, 246, 0.1)',
+                  color: 'var(--accent-primary)',
+                  padding: 7,
+                  borderRadius: 6,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
+                  <HelpCircle size={17} />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontWeight: 800, fontSize: 13 }}>
+                      Multi-Role Combinations & Asterisk (<code>*</code>) Wildcard Guide
+                    </span>
+                    <span style={{
+                      background: 'rgba(59, 130, 246, 0.12)',
+                      color: 'var(--accent-primary)',
+                      border: '1px solid rgba(59, 130, 246, 0.25)',
+                      borderRadius: 4,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      padding: '1px 6px'
+                    }}>
+                      Pattern Matching Rules
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 11.5, color: 'var(--text-secondary)' }}>
+                    How the reference engine resolves providers holding compound shifts or 3+ roles (e.g. L1 + OB + PTO)
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowCombWildcardGuide(prev => !prev);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  background: 'var(--surface-hover)',
+                  border: '1px solid var(--border-light)',
+                  borderRadius: 4,
+                  padding: '4px 10px',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer'
+                }}
+              >
+                <span>{showCombWildcardGuide ? 'Collapse Guide' : 'Expand Guide'}</span>
+                {showCombWildcardGuide ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            </div>
+
+            {showCombWildcardGuide && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 10, borderTop: '1px solid var(--border-light)' }}>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  In QGenda / OneUSAP, staff frequently have multiple active roles at once—such as working a daytime room shift, being on overnight call, or having a PTO token attached. Instead of hardcoding scraper logic, combination rules evaluate each provider&apos;s role tokens to deterministically assign board inclusion, departure queue, and late list sections.
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+                  <div style={{ background: 'var(--surface-hover)', borderRadius: 6, padding: '10px 12px', border: '1px solid var(--border-light)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent-primary)', padding: '1px 6px', borderRadius: 4, fontFamily: 'monospace', fontWeight: 800, fontSize: 11 }}>
+                        L1*
+                      </span>
+                      <span style={{ fontWeight: 800, fontSize: 12 }}>Prefix Matching</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                      Matches any token starting with <code>L1</code> (e.g. <code>L1</code>, <code>L1_MHMC</code>, <code>L1-MHMC</code>). Use when the role can have hospital-specific suffixes.
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'var(--surface-hover)', borderRadius: 6, padding: '10px 12px', border: '1px solid var(--border-light)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', padding: '1px 6px', borderRadius: 4, fontFamily: 'monospace', fontWeight: 800, fontSize: 11 }}>
+                        *OB*
+                      </span>
+                      <span style={{ fontWeight: 800, fontSize: 12 }}>Contains Matching</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                      Matches any token containing <code>OB</code> (e.g. <code>OB</code>, <code>CIHOBPM_MHMC</code>, <code>OBPM</code>). The engine automatically excludes post-call (<code>POSTOB</code> / <code>CIHOBPC</code>).
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'var(--surface-hover)', borderRadius: 6, padding: '10px 12px', border: '1px solid var(--border-light)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '1px 6px', borderRadius: 4, fontFamily: 'monospace', fontWeight: 800, fontSize: 11 }}>
+                        CIHOBPC_MHMC
+                      </span>
+                      <span style={{ fontWeight: 800, fontSize: 12 }}>Exact Matching</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                      No asterisk means strict exact token matching. Use when handling facility-specific conflicts like suppressing outside call (e.g. <code>L1_MHKTY</code>) at MHMC.
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ background: 'rgba(16, 185, 129, 0.06)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: 6, padding: '8px 12px', fontSize: 11.5, color: 'var(--text-secondary)' }}>
+                  <b style={{ color: '#10b981' }}>Example: 3-Role Scenario (McGuire with L1 + OB + PTO):</b> Matching with <code style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>L1*</code> and <code style={{ color: '#f59e0b', fontWeight: 700 }}>*OB*</code> successfully pairs the daytime L1 and overnight call roles into the <b>24h section</b> on the Late List, while standalone PTO rules exclude off-duty staff.
+                </div>
+              </div>
+            )}
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {combinationRules.length === 0 ? (
               <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-secondary)', background: 'var(--surface-card)', borderRadius: 8 }}>
@@ -850,7 +975,22 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                   }}
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <div style={{ fontWeight: 800, fontSize: 14 }}>{comb.name}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <div style={{ fontWeight: 800, fontSize: 14 }}>{comb.name}</div>
+                      {(comb.primaryPattern.includes('*') || comb.secondaryPattern.includes('*')) && (
+                        <span style={{
+                          background: 'rgba(59, 130, 246, 0.1)',
+                          color: 'var(--accent-primary)',
+                          border: '1px solid rgba(59, 130, 246, 0.3)',
+                          borderRadius: 4,
+                          fontSize: 9.5,
+                          fontWeight: 800,
+                          padding: '1px 5px'
+                        }}>
+                          * Wildcard Rule
+                        </span>
+                      )}
+                    </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
                       <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--accent-primary)' }}>
                         [{comb.primaryPattern}]
@@ -1535,12 +1675,155 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                 />
               </div>
 
+              {/* Asterisk Wildcard Educational Guide & Quick Presets */}
+              <div style={{
+                background: 'rgba(59, 130, 246, 0.04)',
+                border: '1px solid rgba(59, 130, 246, 0.25)',
+                borderRadius: 8,
+                padding: '12px 14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 12, color: 'var(--accent-primary)' }}>
+                    <Sparkles size={14} />
+                    <span>How to Use the Asterisk (*) Wildcard for Multi-Role Scenarios</span>
+                  </div>
+                  <span style={{ fontSize: 10, background: 'rgba(59, 130, 246, 0.12)', color: 'var(--accent-primary)', border: '1px solid rgba(59, 130, 246, 0.25)', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>
+                    Wildcard Engine Active
+                  </span>
+                </div>
+
+                <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                  When providers hold 3 or more simultaneous roles (such as <b>L1, OB, PTO</b>), the scraper extracts each token individually. Use <code>*</code> as a wildcard so your policy captures role variations without getting blocked by extra roles like PTO or facility suffixes:
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, fontSize: 11 }}>
+                  <div style={{ background: 'var(--surface-hover)', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <code style={{ fontWeight: 800, color: 'var(--accent-primary)', fontSize: 11.5 }}>PATTERN*</code>
+                      <span style={{ fontWeight: 700 }}>Begins With</span>
+                    </div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 10.5 }}>
+                      e.g. <code>L1*</code> matches <code>L1</code>, <code>L1_MHMC</code>, <code>L1-MHMC</code>.
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'var(--surface-hover)', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <code style={{ fontWeight: 800, color: '#f59e0b', fontSize: 11.5 }}>*PATTERN*</code>
+                      <span style={{ fontWeight: 700 }}>Contains Anywhere</span>
+                    </div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 10.5 }}>
+                      e.g. <code>*OB*</code> matches <code>OB</code>, <code>CIHOBPM_MHMC</code> (safe from post-call).
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'var(--surface-hover)', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <code style={{ fontWeight: 800, color: '#10b981', fontSize: 11.5 }}>EXACT</code>
+                      <span style={{ fontWeight: 700 }}>Exact Match Only</span>
+                    </div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 10.5 }}>
+                      e.g. <code>CIHOBPC_MHMC</code> matches only that specific facility token.
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', paddingTop: 6, borderTop: '1px dashed var(--border-light)' }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-secondary)' }}>Click to fill preset:</span>
+                  <button
+                    type="button"
+                    onClick={() => setEditingCombRule(prev => ({
+                      ...prev,
+                      name: prev?.name || '24h Continuous Shift: L1 Day Shift + OB Night Call (e.g. L1,OB or L1,OB,PTO)',
+                      primaryPattern: 'L1*',
+                      secondaryPattern: '*OB*',
+                      lateCategory: '24h',
+                      badgeNote: '24h (L1 + OB)',
+                      departureCategory: 'none',
+                      boardStatus: 'include',
+                      roomAssignmentStrategy: 'scraped'
+                    }))}
+                    style={{
+                      fontSize: 10.5,
+                      padding: '3px 8px',
+                      borderRadius: 4,
+                      background: 'var(--surface-card)',
+                      border: '1px solid var(--border-light)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                    title="Fill 24h combination preset (L1* + *OB*)"
+                  >
+                    💡 24h Shift: <code style={{ color: 'var(--accent-primary)' }}>L1*</code> + <code style={{ color: '#f59e0b' }}>*OB*</code>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditingCombRule(prev => ({
+                      ...prev,
+                      name: prev?.name || 'Post-OB at Local Board + Outside Hospital Call',
+                      primaryPattern: 'CIHOBPC_MHMC',
+                      secondaryPattern: 'L1_MHKTY',
+                      lateCategory: 'none',
+                      departureCategory: 'post_call',
+                      boardStatus: 'include',
+                      roomAssignmentStrategy: 'scraped'
+                    }))}
+                    style={{
+                      fontSize: 10.5,
+                      padding: '3px 8px',
+                      borderRadius: 4,
+                      background: 'var(--surface-card)',
+                      border: '1px solid var(--border-light)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                    title="Fill Outside Call suppression preset"
+                  >
+                    💡 Outside Call: <code style={{ color: 'var(--accent-primary)' }}>CIHOBPC_MHMC</code> + <code style={{ color: '#f59e0b' }}>L1_MHKTY</code>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditingCombRule(prev => ({
+                      ...prev,
+                      name: prev?.name || '24h Continuous Shift: 8h Day Shift + OB Night Call',
+                      primaryPattern: '8h*',
+                      secondaryPattern: '*OB*',
+                      lateCategory: '24h',
+                      badgeNote: '24h (8h + OB)',
+                      departureCategory: 'none',
+                      boardStatus: 'include',
+                      roomAssignmentStrategy: 'scraped'
+                    }))}
+                    style={{
+                      fontSize: 10.5,
+                      padding: '3px 8px',
+                      borderRadius: 4,
+                      background: 'var(--surface-card)',
+                      border: '1px solid var(--border-light)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                    title="Fill 8h + OB combination preset"
+                  >
+                    💡 8h + OB: <code style={{ color: 'var(--accent-primary)' }}>8h*</code> + <code style={{ color: '#f59e0b' }}>*OB*</code>
+                  </button>
+                </div>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div>
                   <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>Primary Role Pattern</label>
                   <input
                     type="text"
-                    placeholder="e.g. CIHOBPC_MHMC"
+                    placeholder="e.g. L1*, CIHOBPC_MHMC"
                     value={editingCombRule.primaryPattern || ''}
                     onChange={e => setEditingCombRule(prev => ({ ...prev, primaryPattern: e.target.value }))}
                     style={{
@@ -1556,13 +1839,16 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                       marginTop: 4
                     }}
                   />
+                  <div style={{ fontSize: 10.5, color: 'var(--text-secondary)', marginTop: 3 }}>
+                    Use <code>L1*</code> for daytime L1 shifts, <code>*PTO*</code> for leave, or exact code like <code>CIHOBPC_MHMC</code>.
+                  </div>
                 </div>
 
                 <div>
                   <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>Secondary Role Pattern</label>
                   <input
                     type="text"
-                    placeholder="e.g. L1_MHKTY"
+                    placeholder="e.g. *OB*, L1_MHKTY"
                     value={editingCombRule.secondaryPattern || ''}
                     onChange={e => setEditingCombRule(prev => ({ ...prev, secondaryPattern: e.target.value }))}
                     style={{
@@ -1578,6 +1864,9 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                       marginTop: 4
                     }}
                   />
+                  <div style={{ fontSize: 10.5, color: 'var(--text-secondary)', marginTop: 3 }}>
+                    Use <code>*OB*</code> for overnight OB call (safe from post-call), or specific outside call token.
+                  </div>
                 </div>
               </div>
 
