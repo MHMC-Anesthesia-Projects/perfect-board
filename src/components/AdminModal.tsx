@@ -667,7 +667,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     const rawQ = (staffSearch || '').trim().toLowerCase();
     const collapsedQ = rawQ.replace(/(.)\1+/g, '$1');
 
-    const filtered = staff.filter(s => {
+    const staffList = staff || [];
+    const filtered = staffList.filter(s => {
       if (!rawQ) return true;
       const last = (s.lastName || '').toLowerCase();
       const first = (s.firstName || '').toLowerCase();
@@ -1130,11 +1131,11 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               onChange={e => setActiveTab(e.target.value as any)}
             >
               <option value="users">👤 User Accounts & Roles</option>
-              <option value="staff">🩺 Site Staff Roster ({staff.length})</option>
+              <option value="staff">🩺 Site Staff Roster ({(staff || []).length})</option>
               <option value="layout">📐 Board Layout Editor ({layoutDepts.length} Depts)</option>
               <option value="scraper">🌐 Portal Sync (QGenda/Amion)</option>
               <option value="portal_rules">🎛️ Shift Reference Table (Rules & Actions)</option>
-              <option value="unique_schedules">⏰ Unique Schedules ({uniqueRules.filter(r => r.active).length} Active)</option>
+              <option value="unique_schedules">⏰ Unique Schedules ({(uniqueRules || []).filter(r => r.active).length} Active)</option>
               <option value="messaging">💬 Perfect Call Messaging ({messagingEnabled ? 'ACTIVE' : 'OFF'})</option>
             </select>
             <ChevronDown size={16} className="admin-mobile-dropdown-arrow" />
@@ -1178,7 +1179,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
             }}
           >
             <UserCheck size={15} />
-            <span>Site Staff Roster ({staff.length})</span>
+            <span>Site Staff Roster ({(staff || []).length})</span>
           </button>
 
           <button
@@ -1682,7 +1683,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       whiteSpace: 'nowrap'
                     }}>
                       {sortedAndFilteredStaff.length} {sortedAndFilteredStaff.length === 1 ? 'member' : 'members'}
-                      {staffSearch.trim() && ` (of ${staff.length})`}
+                      {staffSearch.trim() && ` (of ${(staff || []).length})`}
                     </span>
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>

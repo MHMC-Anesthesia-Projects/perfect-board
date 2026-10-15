@@ -3232,12 +3232,12 @@ export default function WhiteboardPage() {
         isOpen={isAdminModalOpen}
         onClose={() => setIsAdminModalOpen(false)}
         currentUser={currentUser || { id: 'admin', username: 'admin', displayName: 'Admin', role: 'superuser' }}
-        departments={boardState.departments}
-        staff={boardState.staff}
-        scraperConfig={boardState.scraperConfig}
-        uniqueSchedules={boardState.uniqueSchedules || []}
-        messagingConfig={boardState.messagingConfig}
-        layoutConfig={boardState.layoutConfig}
+        departments={boardState?.departments || []}
+        staff={boardState?.staff || []}
+        scraperConfig={boardState?.scraperConfig || {} as any}
+        uniqueSchedules={boardState?.uniqueSchedules || []}
+        messagingConfig={boardState?.messagingConfig}
+        layoutConfig={boardState?.layoutConfig}
         onSaveDepartments={handleSaveDepartments}
         onResetToPhotoDefault={handleResetToPhotoDefault}
         onClearAllTextNotes={handleClearAllTextNotes}
