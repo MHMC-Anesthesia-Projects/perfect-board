@@ -3299,7 +3299,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                               </div>
                             </div>
                             <div style={{ fontSize: 9.5, color: 'var(--text-muted)', marginTop: 4 }}>
-                              * After 8:00 PM break buttons hide until 7:00 AM or next board clean. Completed breaks [✓] always remain visible.
+                              * After 8:00 PM break buttons hide until 7:00 AM or next board clean.
                             </div>
                           </div>
 

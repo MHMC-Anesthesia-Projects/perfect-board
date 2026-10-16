@@ -65,14 +65,14 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
     : (currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser'));
 
   const isBreaksConfigEnabled = breakDisplay ? (breakDisplay.enabled ?? true) : true;
-  const showB = (breakDisplay ? (breakDisplay.showBreakfast ?? true) : true) || Boolean(breakfastDone);
-  const showL = (breakDisplay ? (breakDisplay.showLunch ?? true) : true) || Boolean(lunchDone);
-  const showD = (breakDisplay ? (breakDisplay.showDinner ?? false) : false) || Boolean(dinnerDone);
+  const showB = isBreaksConfigEnabled && (breakDisplay ? (breakDisplay.showBreakfast ?? true) : true);
+  const showL = isBreaksConfigEnabled && (breakDisplay ? (breakDisplay.showLunch ?? true) : true);
+  const showD = isBreaksConfigEnabled && (breakDisplay ? (breakDisplay.showDinner ?? false) : false);
   const hasAnyBreakVisible = showB || showL || showD;
 
-  const canShowBreaks = !hasPendingRelief && isBreaksConfigEnabled && hasAnyBreakVisible && (showBreaks !== undefined
+  const canShowBreaks = !hasPendingRelief && hasAnyBreakVisible && (showBreaks !== undefined
     ? showBreaks
-    : (slotType !== 'unassigned' && (Boolean(onToggleBreak) || breakfastDone || lunchDone || dinnerDone)));
+    : (slotType !== 'unassigned' && (Boolean(onToggleBreak) || currentUserRole === 'view_only')));
 
   const handleTileClick = (e: React.MouseEvent) => {
     e.stopPropagation();

@@ -339,7 +339,7 @@ export const BreakManagementModal: React.FC<BreakManagementModalProps> = ({
             </div>
           </div>
           <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
-            * After 8:00 PM break buttons hide until 7:00 AM or next board clean. Completed breaks [✓] always remain visible.
+            * After 8:00 PM break buttons hide until 7:00 AM or next board clean.
           </div>
         </div>
 
