@@ -2,7 +2,7 @@
 
 import { apiUrl } from '@/lib/api';
 import { getBrowserSupabase, getPublicBrowserSupabase, PERFECT_BOARD_SCHEMA } from '@/lib/supabase';
-import { getHoustonDateString } from '@/lib/dateUtils';
+import { getHoustonDateString, getAutomatedBreakDisplay } from '@/lib/dateUtils';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { BoardState, Staff, Department, RoomSlot, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential, ReliefAssignment, AuditLogEntry, BoardLayoutConfig, DEFAULT_LAYOUT_CONFIG, BreakDisplayConfig } from '@/types/whiteboard';
 import { HeaderNav } from '@/components/HeaderNav';
@@ -431,7 +431,7 @@ export default function WhiteboardPage() {
                   ...DEFAULT_LAYOUT_CONFIG,
                   ...(incoming.layoutConfig || {}),
                   breakDisplay: {
-                    ...(DEFAULT_LAYOUT_CONFIG.breakDisplay || { enabled: true, showBreakfast: true, showLunch: true, showDinner: false }),
+                    ...(DEFAULT_LAYOUT_CONFIG.breakDisplay || { enabled: true, showBreakfast: true, showLunch: true, showDinner: false, autoBreakSchedule: false }),
                     ...(incoming.layoutConfig?.breakDisplay || {})
                   }
                 }
@@ -577,7 +577,7 @@ export default function WhiteboardPage() {
             ...DEFAULT_LAYOUT_CONFIG,
             ...(data.layoutConfig || {}),
             breakDisplay: {
-              ...(DEFAULT_LAYOUT_CONFIG.breakDisplay || { enabled: true, showBreakfast: true, showLunch: true, showDinner: false }),
+              ...(DEFAULT_LAYOUT_CONFIG.breakDisplay || { enabled: true, showBreakfast: true, showLunch: true, showDinner: false, autoBreakSchedule: false }),
               ...(data.layoutConfig?.breakDisplay || {})
             }
           }
@@ -700,14 +700,43 @@ export default function WhiteboardPage() {
     return (boardState?.bullpenStaffIds || []).filter(id => !activeRunnerStaffIds.has(id));
   }, [boardState?.bullpenStaffIds, activeRunnerStaffIds]);
 
-  // Board state with filtered bullpen for child components
+  // 15-second clock tick to automatically update Automated Break Labels in real-time across all devices without refresh
+  const [clockTick, setClockTick] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setClockTick(Date.now());
+    }, 15000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Compute effective BreakDisplayConfig taking Automated Break Labels schedule into account
+  const effectiveBreakDisplay = useMemo<BreakDisplayConfig | undefined>(() => {
+    const raw = boardState?.layoutConfig?.breakDisplay;
+    if (!raw) return undefined;
+    if (!raw.enabled) return raw;
+    if (!raw.autoBreakSchedule) return raw;
+
+    const auto = getAutomatedBreakDisplay(new Date(clockTick));
+    return {
+      ...raw,
+      showBreakfast: auto.showBreakfast,
+      showLunch: auto.showLunch,
+      showDinner: auto.showDinner
+    };
+  }, [boardState?.layoutConfig?.breakDisplay, clockTick]);
+
+  // Board state with filtered bullpen and effective break schedule for child components
   const effectiveBoardState = useMemo(() => {
     if (!boardState) return boardState;
     return {
       ...boardState,
-      bullpenStaffIds: effectiveBullpenStaffIds
+      bullpenStaffIds: effectiveBullpenStaffIds,
+      layoutConfig: {
+        ...(boardState.layoutConfig || DEFAULT_LAYOUT_CONFIG),
+        breakDisplay: effectiveBreakDisplay
+      }
     };
-  }, [boardState, effectiveBullpenStaffIds]);
+  }, [boardState, effectiveBullpenStaffIds, effectiveBreakDisplay]);
 
   // Count total scheduled reliefs across all department room slots
   const totalScheduledReliefsCount = useMemo(() => {
@@ -3025,7 +3054,7 @@ export default function WhiteboardPage() {
             onMoveStaffToUnassigned={handleMoveStaffToUnassigned}
             onToggleCollapse={() => setIsBullpenOpen(false)}
             onToggleBreak={(breakType, staffId, currentValue) => handleToggleBreak('bullpen', staffId, breakType, currentValue)}
-            breakDisplay={boardState?.layoutConfig?.breakDisplay}
+            breakDisplay={effectiveBreakDisplay}
             unreadCountsByPhone={unreadCountsByPhone}
             magnetNotes={boardState.magnetNotes}
             onUpdateMagnetNote={handleUpdateMagnetNote}
@@ -3076,7 +3105,7 @@ export default function WhiteboardPage() {
           departments={boardState.departments}
           staff={boardState.staff}
           currentUserRole={currentUserRole}
-          breakDisplay={boardState?.layoutConfig?.breakDisplay}
+          breakDisplay={effectiveBreakDisplay}
           activeReliefStaffIds={activeReliefStaffIds}
           onToggleBreak={handleToggleBreak}
           onSelectStaff={handleSelectStaff}
@@ -3220,7 +3249,7 @@ export default function WhiteboardPage() {
         unreadCount={selectedStaff?.phone ? (unreadCountsByPhone[selectedStaff.phone.replace(/\D/g, '').slice(-10)] || 0) : 0}
         magnetNotes={boardState?.magnetNotes}
         onUpdateMagnetNote={handleUpdateMagnetNote}
-        breakDisplay={boardState?.layoutConfig?.breakDisplay}
+        breakDisplay={effectiveBreakDisplay}
       />
 
       <SlotAssignModal

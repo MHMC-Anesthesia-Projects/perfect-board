@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { BoardState, User, UserRole, AuditLogEntry, Staff, Department, RunnerSlot, UniqueScheduleRule, BoardLayoutConfig, DEFAULT_LAYOUT_CONFIG } from '@/types/whiteboard';
 import { getSupabaseServerClient } from '@/lib/supabase';
+import { getAutomatedBreakDisplay } from '@/lib/dateUtils';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const STATE_FILE = path.join(DATA_DIR, 'whiteboard_state.json');
@@ -566,10 +567,22 @@ function sanitizeBoardState(loaded: BoardState): BoardState {
     loaded.layoutConfig = {
       ...DEFAULT_LAYOUT_CONFIG,
       ...loaded.layoutConfig,
-      breakDisplay: {
-        ...(DEFAULT_LAYOUT_CONFIG.breakDisplay || { enabled: true, showBreakfast: true, showLunch: true, showDinner: false }),
-        ...(loaded.layoutConfig.breakDisplay || {})
-      },
+      breakDisplay: (() => {
+        const base = {
+          ...(DEFAULT_LAYOUT_CONFIG.breakDisplay || { enabled: true, showBreakfast: true, showLunch: true, showDinner: false, autoBreakSchedule: false }),
+          ...(loaded.layoutConfig.breakDisplay || {})
+        };
+        if (base.autoBreakSchedule) {
+          const auto = getAutomatedBreakDisplay();
+          return {
+            ...base,
+            showBreakfast: auto.showBreakfast,
+            showLunch: auto.showLunch,
+            showDinner: auto.showDinner
+          };
+        }
+        return base;
+      })(),
       manualDepartureConfig: loaded.layoutConfig.manualDepartureConfig || DEFAULT_LAYOUT_CONFIG.manualDepartureConfig,
       manualLateConfig: loaded.layoutConfig.manualLateConfig || DEFAULT_LAYOUT_CONFIG.manualLateConfig
     };

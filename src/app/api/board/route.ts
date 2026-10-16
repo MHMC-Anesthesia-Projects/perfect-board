@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loadBoardState, saveBoardState, recordAuditLog, loadAuditLog, getInitialBoardState, resetDailyBreaks, broadcastStateChange } from '@/lib/storage';
 import { UserRole, RunnerSlot, DEFAULT_LAYOUT_CONFIG } from '@/types/whiteboard';
 import { autoAssignBoardState } from '@/lib/autoAssign';
-import { getHoustonDateString } from '@/lib/dateUtils';
+import { getHoustonDateString, getAutomatedBreakDisplay } from '@/lib/dateUtils';
 
 export async function GET() {
   const state = await loadBoardState();
@@ -971,6 +971,21 @@ export async function POST(req: NextRequest) {
         // Clear stickers for the new day
         state.magnetStickers = {};
         state.roomStickers = {};
+
+        // If Automated Break Labels is enabled, default active break buttons to the current clean window
+        const currentBreakCfg = state.layoutConfig?.breakDisplay || DEFAULT_LAYOUT_CONFIG.breakDisplay;
+        if (currentBreakCfg?.autoBreakSchedule) {
+          const autoSchedule = getAutomatedBreakDisplay();
+          state.layoutConfig = {
+            ...(state.layoutConfig || DEFAULT_LAYOUT_CONFIG),
+            breakDisplay: {
+              ...currentBreakCfg,
+              showBreakfast: autoSchedule.showBreakfast,
+              showLunch: autoSchedule.showLunch,
+              showDinner: autoSchedule.showDinner
+            }
+          };
+        }
 
         await saveBoardState(state);
         await recordAuditLog({
@@ -2008,11 +2023,12 @@ export async function POST(req: NextRequest) {
         await saveBoardState(state);
         const b = bDisplay;
         const bList = [b?.showBreakfast && 'B', b?.showLunch && 'L', b?.showDinner && 'D'].filter(Boolean).join(', ');
+        const autoScheduleNote = b?.autoBreakSchedule ? ' (Automated Break Labels Active: 7a-11a B, 10a-3p L, 3p-8p D)' : '';
         await recordAuditLog({
           actionType: 'LAYOUT_CHANGED',
           performedBy: currentUserName,
           userRole: effectiveRole,
-          details: `Updated break buttons: ${b?.enabled ? `Showing [${bList}]` : 'Hidden'}`
+          details: `Updated break buttons: ${b?.enabled ? `Showing [${bList}]${autoScheduleNote}` : 'Hidden'}`
         });
         broadcastStateChange();
         return NextResponse.json({ success: true, state });

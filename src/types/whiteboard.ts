@@ -309,6 +309,7 @@ export interface BreakDisplayConfig {
   showBreakfast: boolean;
   showLunch: boolean;
   showDinner: boolean;
+  autoBreakSchedule?: boolean;
 }
 
 export interface BoardLayoutConfig {
@@ -336,7 +337,8 @@ export const DEFAULT_LAYOUT_CONFIG: BoardLayoutConfig = {
     enabled: true,
     showBreakfast: true,
     showLunch: true,
-    showDinner: false
+    showDinner: false,
+    autoBreakSchedule: false
   },
   manualDepartureConfig: {
     sections: [
