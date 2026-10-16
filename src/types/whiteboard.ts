@@ -49,8 +49,10 @@ export interface RoomSlot {
   staffId: string | null;
   breakfastDone: boolean;
   lunchDone: boolean;
+  dinnerDone?: boolean;
   breakfastTime?: string | null;
   lunchTime?: string | null;
+  dinnerTime?: string | null;
   notes?: string;
   relief?: ReliefAssignment | null;
 }
@@ -72,8 +74,10 @@ export interface RunnerSlot {
   staffId: string | null;
   breakfastDone: boolean;
   lunchDone: boolean;
+  dinnerDone?: boolean;
   breakfastTime?: string | null;
   lunchTime?: string | null;
+  dinnerTime?: string | null;
   notes?: string;
   relief?: ReliefAssignment | null;
 }
@@ -134,6 +138,7 @@ export interface AuditLogEntry {
     | 'STAFF_MOVED'
     | 'BREAKFAST_TOGGLED' 
     | 'LUNCH_TOGGLED' 
+    | 'DINNER_TOGGLED' 
     | 'NOTE_UPDATED' 
     | 'RUNNER_ASSIGNED'
     | 'RUNNER_SLOT_ADDED'
@@ -299,12 +304,20 @@ export interface ManualLateSection {
   orderIndex: number;
 }
 
+export interface BreakDisplayConfig {
+  enabled: boolean;
+  showBreakfast: boolean;
+  showLunch: boolean;
+  showDinner: boolean;
+}
+
 export interface BoardLayoutConfig {
   boardMode: 'feed' | 'manual';
   enableDepartureList: boolean;
   enableLateList: boolean;
   enableBullpen: boolean;
   enableUnassignedStaff?: boolean;
+  breakDisplay?: BreakDisplayConfig;
   manualDepartureConfig?: {
     sections: ManualDepartureSection[];
   };
@@ -319,6 +332,12 @@ export const DEFAULT_LAYOUT_CONFIG: BoardLayoutConfig = {
   enableLateList: true,
   enableBullpen: true,
   enableUnassignedStaff: true,
+  breakDisplay: {
+    enabled: true,
+    showBreakfast: true,
+    showLunch: true,
+    showDinner: false
+  },
   manualDepartureConfig: {
     sections: [
       { id: 'sec_post_call', label: 'Post-Call', orderIndex: 0, callTypes: ['CV', 'Call 3', 'Call 2', 'Call 1', 'OB'] },
@@ -362,7 +381,7 @@ export interface BoardState {
   departureList: DepartureItem[];
   callTeamList: CallTeamItem[];
   bullpenStaffIds?: string[];
-  bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; breakfastTime?: string | null; lunchTime?: string | null }>;
+  bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; dinnerDone?: boolean; breakfastTime?: string | null; lunchTime?: string | null; dinnerTime?: string | null }>;
   magnetNotes?: Record<string, string>;
   roomNotes?: Record<string, string>;
   magnetStickers?: Record<string, string[]>;

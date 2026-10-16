@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { apiUrl } from '@/lib/api';
-import { Staff, Department, UserRole, ReliefAssignment, ChatMessage } from '@/types/whiteboard';
+import { Staff, Department, UserRole, ReliefAssignment, ChatMessage, BreakDisplayConfig } from '@/types/whiteboard';
 import { Phone, Clock, MapPin, X, ArrowRight, CornerDownLeft, ShieldCheck, Sparkles, MessageSquare, Send, RefreshCw, Check, GraduationCap } from 'lucide-react';
 import { getFutureTimePresets } from '@/lib/dateUtils';
 
@@ -17,6 +17,7 @@ export interface StaffPlacement {
   futureTime?: string | null;
   breakfastDone: boolean;
   lunchDone: boolean;
+  dinnerDone?: boolean;
   relief?: ReliefAssignment | null;
 }
 
@@ -25,7 +26,7 @@ interface StaffModalProps {
   departments: Department[];
   allStaff?: Staff[];
   bullpenStaffIds?: string[];
-  bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; breakfastTime?: string | null; lunchTime?: string | null }>;
+  bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; dinnerDone?: boolean; breakfastTime?: string | null; lunchTime?: string | null; dinnerTime?: string | null }>;
   currentUserRole: UserRole;
   onClose: () => void;
   onAssignToSlot: (targetType: 'room_slot' | 'runner_slot', targetId: string, staffId: string) => void;
@@ -37,7 +38,7 @@ interface StaffModalProps {
     staffId?: string
   ) => Promise<void> | void;
   onMoveToBullpen?: (staffId: string) => void;
-  onToggleBreak: (targetType: 'room_slot' | 'runner_slot' | 'bullpen', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
+  onToggleBreak: (targetType: 'room_slot' | 'runner_slot' | 'bullpen', targetId: string, breakType: 'breakfast' | 'lunch' | 'dinner', value: boolean) => void;
   onUpdateShift?: (staffId: string, newShift: string, lastName?: string, credentials?: Staff['credentials'], isCallTeam?: boolean) => void;
   onUpdateDisplayName?: (staffId: string, displayName: string) => void;
   onSetStaffInfrequent?: (staffId: string, isInfrequent: boolean) => void;
@@ -59,6 +60,7 @@ interface StaffModalProps {
   magnetNotes?: Record<string, string>;
   onUpdateMagnetNote?: (staffId: string, note: string) => void;
   onUpdatePhone?: (staffId: string, phone: string) => void;
+  breakDisplay?: BreakDisplayConfig;
 }
 
 export const StaffModal: React.FC<StaffModalProps> = ({
@@ -87,7 +89,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   unreadCount = 0,
   magnetNotes,
   onUpdateMagnetNote,
-  onUpdatePhone
+  onUpdatePhone,
+  breakDisplay
 }) => {
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [isEditingShift, setIsEditingShift] = useState(false);
@@ -322,6 +325,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
           locationName: `${dept.name} Runner (${r.title})`,
           breakfastDone: r.breakfastDone,
           lunchDone: r.lunchDone,
+          dinnerDone: r.dinnerDone,
           relief: r.relief
         });
       }
@@ -341,6 +345,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
             locationName: `${dept.name} Room ${room.name}`,
             breakfastDone: slot.breakfastDone,
             lunchDone: slot.lunchDone,
+            dinnerDone: slot.dinnerDone,
             relief: slot.relief
           });
         }
@@ -355,7 +360,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
       id: staff.id,
       locationName: 'Bullpen (Available Staff)',
       breakfastDone: b?.breakfastDone ?? false,
-      lunchDone: b?.lunchDone ?? false
+      lunchDone: b?.lunchDone ?? false,
+      dinnerDone: b?.dinnerDone ?? false
     });
   }
 
@@ -385,6 +391,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   // Synced break statuses across all active placements
   const isBreakfastDone = allPlacements.some(p => p.breakfastDone) || Boolean(bullpenBreaks[staff.id]?.breakfastDone);
   const isLunchDone = allPlacements.some(p => p.lunchDone) || Boolean(bullpenBreaks[staff.id]?.lunchDone);
+  const isDinnerDone = allPlacements.some(p => p.dinnerDone) || Boolean(bullpenBreaks[staff.id]?.dinnerDone);
 
   // Available room & runner slots for quick reassignment
   const availableSlots: Array<{ id: string; type: 'room_slot' | 'runner_slot'; label: string }> = [];
@@ -442,6 +449,16 @@ export const StaffModal: React.FC<StaffModalProps> = ({
       });
     } else {
       onToggleBreak('bullpen', staff.id, 'lunch', !isLunchDone);
+    }
+  };
+
+  const handleToggleDinner = () => {
+    if (allPlacements.length > 0) {
+      allPlacements.forEach(p => {
+        onToggleBreak(p.type, p.id, 'dinner', !isDinnerDone);
+      });
+    } else {
+      onToggleBreak('bullpen', staff.id, 'dinner', !isDinnerDone);
     }
   };
 
@@ -1515,106 +1532,160 @@ export const StaffModal: React.FC<StaffModalProps> = ({
         </div>
 
         {/* Break Management Status (Accessible to ALL users, including Basic User!) */}
-        {allPlacements.length > 0 && (
-          <div style={{
-            background: 'var(--surface-card)',
-            borderRadius: 8,
-            padding: '12px 14px',
-            border: '1.5px solid var(--border-light)',
-            marginBottom: 16
-          }}>
+        {allPlacements.length > 0 && (!breakDisplay || breakDisplay.enabled || isBreakfastDone || isLunchDone || isDinnerDone) && (() => {
+          const showB = !breakDisplay || (breakDisplay.enabled && breakDisplay.showBreakfast);
+          const showL = !breakDisplay || (breakDisplay.enabled && breakDisplay.showLunch);
+          const showD = breakDisplay ? (breakDisplay.enabled && breakDisplay.showDinner) : isDinnerDone;
+
+          const visibleCount = (showB ? 1 : 0) + (showL ? 1 : 0) + (showD ? 1 : 0);
+          if (visibleCount === 0) return null;
+
+          const gridCols = visibleCount === 3 ? 'repeat(3, 1fr)' : visibleCount === 2 ? 'repeat(2, 1fr)' : '1fr';
+
+          return (
             <div style={{
-              fontSize: 12,
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              color: 'var(--text-secondary)',
-              marginBottom: 10,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
+              background: 'var(--surface-card)',
+              borderRadius: 8,
+              padding: '12px 14px',
+              border: '1.5px solid var(--border-light)',
+              marginBottom: 16
             }}>
-              <span>Daily Meal & Rest Breaks</span>
-              <span style={{ fontSize: 10, color: 'var(--marker-green)' }}>● Zero-Login Access</span>
-            </div>
+              <div style={{
+                fontSize: 12,
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+                color: 'var(--text-secondary)',
+                marginBottom: 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}>
+                <span>Daily Meal & Rest Breaks</span>
+                <span style={{ fontSize: 10, color: 'var(--marker-green)' }}>● Zero-Login Access</span>
+              </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {/* Breakfast Break Toggle */}
-              <button
-                type="button"
-                onClick={handleToggleBreakfast}
-                style={{
-                  padding: '10px 12px',
-                  borderRadius: 6,
-                  border: isBreakfastDone ? '1.5px solid var(--break-done-border)' : '1px solid var(--border-light)',
-                  background: isBreakfastDone ? 'rgba(46, 160, 67, 0.12)' : 'var(--surface-hover)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  textAlign: 'left'
-                }}
-              >
-                <div style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 4,
-                  background: isBreakfastDone ? 'var(--break-done-bg)' : 'var(--break-empty-bg)',
-                  color: isBreakfastDone ? '#fff' : 'var(--text-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 800,
-                  fontSize: 12
-                }}>
-                  {isBreakfastDone ? '✓' : 'B'}
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)' }}>Breakfast</div>
-                  <div style={{ fontSize: 10, color: isBreakfastDone ? 'var(--break-done-border)' : 'var(--text-muted)' }}>
-                    {isBreakfastDone ? 'Completed [✓]' : 'Pending'}
-                  </div>
-                </div>
-              </button>
+              <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 10 }}>
+                {/* Breakfast Break Toggle */}
+                {showB && (
+                  <button
+                    type="button"
+                    onClick={handleToggleBreakfast}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: 6,
+                      border: isBreakfastDone ? '1.5px solid var(--break-done-border)' : '1px solid var(--border-light)',
+                      background: isBreakfastDone ? 'rgba(46, 160, 67, 0.12)' : 'var(--surface-hover)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      textAlign: 'left'
+                    }}
+                  >
+                    <div style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 4,
+                      background: isBreakfastDone ? 'var(--break-done-bg)' : 'var(--break-empty-bg)',
+                      color: isBreakfastDone ? '#fff' : 'var(--text-secondary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: 12
+                    }}>
+                      {isBreakfastDone ? '✓' : 'B'}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)' }}>Breakfast</div>
+                      <div style={{ fontSize: 10, color: isBreakfastDone ? 'var(--break-done-border)' : 'var(--text-muted)' }}>
+                        {isBreakfastDone ? 'Completed [✓]' : 'Pending'}
+                      </div>
+                    </div>
+                  </button>
+                )}
 
-              {/* Lunch Break Toggle */}
-              <button
-                type="button"
-                onClick={handleToggleLunch}
-                style={{
-                  padding: '10px 12px',
-                  borderRadius: 6,
-                  border: isLunchDone ? '1.5px solid var(--break-done-border)' : '1px solid var(--border-light)',
-                  background: isLunchDone ? 'rgba(46, 160, 67, 0.12)' : 'var(--surface-hover)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  textAlign: 'left'
-                }}
-              >
-                <div style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 4,
-                  background: isLunchDone ? 'var(--break-done-bg)' : 'var(--break-empty-bg)',
-                  color: isLunchDone ? '#fff' : 'var(--text-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 800,
-                  fontSize: 12
-                }}>
-                  {isLunchDone ? '✓' : 'L'}
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)' }}>Lunch</div>
-                  <div style={{ fontSize: 10, color: isLunchDone ? 'var(--break-done-border)' : 'var(--text-muted)' }}>
-                    {isLunchDone ? 'Completed [✓]' : 'Pending'}
-                  </div>
-                </div>
-              </button>
+                {/* Lunch Break Toggle */}
+                {showL && (
+                  <button
+                    type="button"
+                    onClick={handleToggleLunch}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: 6,
+                      border: isLunchDone ? '1.5px solid var(--break-done-border)' : '1px solid var(--border-light)',
+                      background: isLunchDone ? 'rgba(46, 160, 67, 0.12)' : 'var(--surface-hover)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      textAlign: 'left'
+                    }}
+                  >
+                    <div style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 4,
+                      background: isLunchDone ? 'var(--break-done-bg)' : 'var(--break-empty-bg)',
+                      color: isLunchDone ? '#fff' : 'var(--text-secondary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: 12
+                    }}>
+                      {isLunchDone ? '✓' : 'L'}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)' }}>Lunch</div>
+                      <div style={{ fontSize: 10, color: isLunchDone ? 'var(--break-done-border)' : 'var(--text-muted)' }}>
+                        {isLunchDone ? 'Completed [✓]' : 'Pending'}
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Dinner Break Toggle */}
+                {showD && (
+                  <button
+                    type="button"
+                    onClick={handleToggleDinner}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: 6,
+                      border: isDinnerDone ? '1.5px solid var(--break-done-border)' : '1px solid var(--border-light)',
+                      background: isDinnerDone ? 'rgba(46, 160, 67, 0.12)' : 'var(--surface-hover)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      textAlign: 'left'
+                    }}
+                  >
+                    <div style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 4,
+                      background: isDinnerDone ? 'var(--break-done-bg)' : 'var(--break-empty-bg)',
+                      color: isDinnerDone ? '#fff' : 'var(--text-secondary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: 12
+                    }}>
+                      {isDinnerDone ? '✓' : 'D'}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)' }}>Dinner</div>
+                      <div style={{ fontSize: 10, color: isDinnerDone ? 'var(--break-done-border)' : 'var(--text-muted)' }}>
+                        {isDinnerDone ? 'Completed [✓]' : 'Pending'}
+                      </div>
+                    </div>
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Board Runner / Superuser Assignment Controls */}
         {isEditor ? (

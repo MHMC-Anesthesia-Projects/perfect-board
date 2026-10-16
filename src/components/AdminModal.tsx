@@ -362,6 +362,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       setBoardLayoutConfig(layoutConfig ? {
         ...DEFAULT_LAYOUT_CONFIG,
         ...JSON.parse(JSON.stringify(layoutConfig)),
+        breakDisplay: {
+          ...(DEFAULT_LAYOUT_CONFIG.breakDisplay || { enabled: true, showBreakfast: true, showLunch: true, showDinner: false }),
+          ...(layoutConfig.breakDisplay || {})
+        },
         enableUnassignedStaff: layoutConfig.enableUnassignedStaff ?? true
       } : DEFAULT_LAYOUT_CONFIG);
     }
@@ -3103,6 +3107,313 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           {(boardLayoutConfig.enableUnassignedStaff ?? true) ? 'MODULE ENABLED' : 'DISABLED'}
                         </span>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Break Buttons Display (B / L / D) */}
+                  <div style={{
+                    background: 'var(--surface-hover)',
+                    borderRadius: 8,
+                    padding: 16,
+                    border: '1px solid var(--border-light)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            Break Buttons Display (B / L / D)
+                          </span>
+                          <span style={{
+                            fontSize: 10,
+                            fontWeight: 800,
+                            padding: '2px 6px',
+                            borderRadius: 4,
+                            background: (boardLayoutConfig.breakDisplay?.enabled ?? true) ? 'rgba(46,160,67,0.15)' : 'var(--surface-card)',
+                            color: (boardLayoutConfig.breakDisplay?.enabled ?? true) ? 'var(--marker-green)' : 'var(--text-muted)'
+                          }}>
+                            {(boardLayoutConfig.breakDisplay?.enabled ?? true) ? 'BUTTONS ACTIVE' : 'HIDDEN'}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                          Configure which meal and rest break buttons appear on staff magnets across the live whiteboard.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentEnabled = boardLayoutConfig.breakDisplay?.enabled ?? true;
+                          setBoardLayoutConfig(prev => ({
+                            ...prev,
+                            breakDisplay: {
+                              enabled: !currentEnabled,
+                              showBreakfast: prev.breakDisplay?.showBreakfast ?? true,
+                              showLunch: prev.breakDisplay?.showLunch ?? true,
+                              showDinner: prev.breakDisplay?.showDinner ?? false
+                            }
+                          }));
+                        }}
+                        style={{
+                          border: 'none',
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          padding: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          color: (boardLayoutConfig.breakDisplay?.enabled ?? true) ? 'var(--marker-green)' : 'var(--text-muted)'
+                        }}
+                        title="Toggle all break buttons on/off"
+                      >
+                        {(boardLayoutConfig.breakDisplay?.enabled ?? true) ? <ToggleRight size={30} /> : <ToggleLeft size={30} />}
+                      </button>
+                    </div>
+
+                    {/* Presets */}
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', alignSelf: 'center', marginRight: 4 }}>
+                        Presets:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBoardLayoutConfig(prev => ({
+                            ...prev,
+                            breakDisplay: { enabled: true, showBreakfast: true, showLunch: true, showDinner: true }
+                          }));
+                        }}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: 6,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          background: 'var(--surface-card)',
+                          border: '1px solid var(--border-light)',
+                          color: 'var(--text-primary)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        All (B, L, D)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBoardLayoutConfig(prev => ({
+                            ...prev,
+                            breakDisplay: { enabled: true, showBreakfast: true, showLunch: true, showDinner: false }
+                          }));
+                        }}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: 6,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          background: 'var(--surface-card)',
+                          border: '1px solid var(--border-light)',
+                          color: 'var(--text-primary)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Breakfast &amp; Lunch (B, L)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBoardLayoutConfig(prev => ({
+                            ...prev,
+                            breakDisplay: { enabled: true, showBreakfast: false, showLunch: true, showDinner: false }
+                          }));
+                        }}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: 6,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          background: 'var(--surface-card)',
+                          border: '1px solid var(--border-light)',
+                          color: 'var(--text-primary)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Lunch Only (L)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBoardLayoutConfig(prev => ({
+                            ...prev,
+                            breakDisplay: { enabled: false, showBreakfast: false, showLunch: false, showDinner: false }
+                          }));
+                        }}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: 6,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          background: 'var(--surface-card)',
+                          border: '1px solid var(--border-light)',
+                          color: 'var(--marker-red)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Hide All Breaks
+                      </button>
+                    </div>
+
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, 1fr)',
+                      gap: 12,
+                      opacity: (boardLayoutConfig.breakDisplay?.enabled ?? true) ? 1 : 0.45,
+                      pointerEvents: (boardLayoutConfig.breakDisplay?.enabled ?? true) ? 'auto' : 'none'
+                    }}>
+                      {/* Breakfast [B] */}
+                      <label style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '12px 14px',
+                        borderRadius: 8,
+                        background: 'var(--surface-card)',
+                        border: (boardLayoutConfig.breakDisplay?.showBreakfast ?? true) ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                        cursor: 'pointer'
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={boardLayoutConfig.breakDisplay?.showBreakfast ?? true}
+                          onChange={e => {
+                            const val = e.target.checked;
+                            setBoardLayoutConfig(prev => ({
+                              ...prev,
+                              breakDisplay: {
+                                enabled: prev.breakDisplay?.enabled ?? true,
+                                showBreakfast: val,
+                                showLunch: prev.breakDisplay?.showLunch ?? true,
+                                showDinner: prev.breakDisplay?.showDinner ?? false
+                              }
+                            }));
+                          }}
+                          style={{ width: 18, height: 18, accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+                        />
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 13 }}>
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: 20,
+                              height: 20,
+                              borderRadius: 4,
+                              background: 'var(--break-empty-bg)',
+                              color: 'var(--text-secondary)',
+                              fontSize: 11,
+                              fontWeight: 800
+                            }}>B</span>
+                            <span>Breakfast</span>
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
+                            Morning relief / breakfast break
+                          </div>
+                        </div>
+                      </label>
+
+                      {/* Lunch [L] */}
+                      <label style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '12px 14px',
+                        borderRadius: 8,
+                        background: 'var(--surface-card)',
+                        border: (boardLayoutConfig.breakDisplay?.showLunch ?? true) ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                        cursor: 'pointer'
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={boardLayoutConfig.breakDisplay?.showLunch ?? true}
+                          onChange={e => {
+                            const val = e.target.checked;
+                            setBoardLayoutConfig(prev => ({
+                              ...prev,
+                              breakDisplay: {
+                                enabled: prev.breakDisplay?.enabled ?? true,
+                                showBreakfast: prev.breakDisplay?.showBreakfast ?? true,
+                                showLunch: val,
+                                showDinner: prev.breakDisplay?.showDinner ?? false
+                              }
+                            }));
+                          }}
+                          style={{ width: 18, height: 18, accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+                        />
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 13 }}>
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: 20,
+                              height: 20,
+                              borderRadius: 4,
+                              background: 'var(--break-empty-bg)',
+                              color: 'var(--text-secondary)',
+                              fontSize: 11,
+                              fontWeight: 800
+                            }}>L</span>
+                            <span>Lunch</span>
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
+                            Midday lunch meal break
+                          </div>
+                        </div>
+                      </label>
+
+                      {/* Dinner [D] */}
+                      <label style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '12px 14px',
+                        borderRadius: 8,
+                        background: 'var(--surface-card)',
+                        border: (boardLayoutConfig.breakDisplay?.showDinner ?? false) ? '1.5px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                        cursor: 'pointer'
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={boardLayoutConfig.breakDisplay?.showDinner ?? false}
+                          onChange={e => {
+                            const val = e.target.checked;
+                            setBoardLayoutConfig(prev => ({
+                              ...prev,
+                              breakDisplay: {
+                                enabled: prev.breakDisplay?.enabled ?? true,
+                                showBreakfast: prev.breakDisplay?.showBreakfast ?? true,
+                                showLunch: prev.breakDisplay?.showLunch ?? true,
+                                showDinner: val
+                              }
+                            }));
+                          }}
+                          style={{ width: 18, height: 18, accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+                        />
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 13 }}>
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: 20,
+                              height: 20,
+                              borderRadius: 4,
+                              background: 'var(--break-empty-bg)',
+                              color: 'var(--text-secondary)',
+                              fontSize: 11,
+                              fontWeight: 800
+                            }}>D</span>
+                            <span>Dinner</span>
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
+                            Evening / late shift dinner break
+                          </div>
+                        </div>
+                      </label>
                     </div>
                   </div>
 

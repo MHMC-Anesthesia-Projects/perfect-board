@@ -42,7 +42,8 @@ import {
   Settings,
   ChevronDown,
   X,
-  Sticker
+  Sticker,
+  Coffee
 } from 'lucide-react';
 import { MagnetTile } from './MagnetTile';
 import { RoomLabel } from './RoomLabel';
@@ -57,7 +58,7 @@ interface MobileWhiteboardViewProps {
   onToggleTheme: () => void;
   onOpenLogin: () => void;
   onLogout: () => void;
-  onToggleBreak: (targetType: 'room_slot' | 'runner_slot' | 'bullpen', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
+  onToggleBreak: (targetType: 'room_slot' | 'runner_slot' | 'bullpen', targetId: string, breakType: 'breakfast' | 'lunch' | 'dinner', value: boolean) => void;
   onSelectStaff: (staff: Staff) => void;
   onSelectEmptySlot: (targetType: 'room_slot' | 'runner_slot' | 'runner_dept', targetId: string, label: string, roomId?: string, currentFutureTime?: string | null) => void;
   onToggleDepartureStruck: (id: string) => void;
@@ -97,6 +98,7 @@ interface MobileWhiteboardViewProps {
   isSyncing?: boolean;
   lastSyncTime?: string | null;
   onCleanWhiteboard?: () => void;
+  onOpenBreakManagement?: () => void;
   onRemoveAllMagnets?: () => void;
   onClearAllTextNotes?: () => void;
   onOpenAudit?: () => void;
@@ -150,6 +152,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   isSyncing = false,
   lastSyncTime,
   onCleanWhiteboard,
+  onOpenBreakManagement,
   onRemoveAllMagnets,
   onClearAllTextNotes,
   onOpenAudit,
@@ -1186,6 +1189,31 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                     </button>
                   )}
 
+                  {/* 6b. Break Management (Board Runner & Admin) */}
+                  {Boolean(currentUser && (currentUser.role === 'board_runner' || currentUser.role === 'admin' || currentUser.role === 'superuser') && onOpenBreakManagement) && (
+                    <button
+                      type="button"
+                      className="action-dropdown-item"
+                      onClick={() => {
+                        onOpenBreakManagement!();
+                        setIsActionMenuOpen(false);
+                      }}
+                      title="Manage meal and rest break buttons (B / L / D) on the live board"
+                    >
+                      <div className="action-item-icon">
+                        <Coffee size={14} style={{ color: 'var(--text-secondary)' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                          Break Management
+                        </div>
+                        <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                          Show or hide B, L, D break buttons
+                        </div>
+                      </div>
+                    </button>
+                  )}
+
                   {/* 7. Audit Log */}
                   {onOpenAudit && (
                     <button
@@ -1338,6 +1366,8 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                   slotType="runner_slot"
                                   breakfastDone={runner.breakfastDone}
                                   lunchDone={runner.lunchDone}
+                                  dinnerDone={runner.dinnerDone}
+                                  breakDisplay={boardState?.layoutConfig?.breakDisplay}
                                   currentUserRole={currentUserRole}
                                   unreadMessageCount={getStaffUnreadCount(assignedStaff)}
                                   magnetNote={boardState?.magnetNotes?.[assignedStaff.id] ?? assignedStaff.magnetNote ?? ''}
@@ -1604,6 +1634,8 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                                       slotType="room_slot"
                                       breakfastDone={slot.breakfastDone}
                                       lunchDone={slot.lunchDone}
+                                      dinnerDone={slot.dinnerDone}
+                                      breakDisplay={boardState?.layoutConfig?.breakDisplay}
                                       currentUserRole={currentUserRole}
                                       unreadMessageCount={getStaffUnreadCount(assignedStaff)}
                                       magnetNote={boardState?.magnetNotes?.[assignedStaff.id] ?? assignedStaff.magnetNote ?? ''}
@@ -2293,7 +2325,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                   {(boardState.bullpenStaffIds || []).map(staffId => {
                     const staffMember = getStaffById(staffId);
                     if (!staffMember) return null;
-                    const breakStatus = boardState.bullpenBreaks?.[staffId] || { breakfastDone: false, lunchDone: false };
+                    const breakStatus = boardState.bullpenBreaks?.[staffId] || { breakfastDone: false, lunchDone: false, dinnerDone: false };
 
                     return (
                       <div key={staffId} style={{ height: 26, minHeight: 26, touchAction: 'pan-y' }}>
@@ -2303,6 +2335,8 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                           slotType="bullpen"
                           breakfastDone={breakStatus.breakfastDone}
                           lunchDone={breakStatus.lunchDone}
+                          dinnerDone={breakStatus.dinnerDone}
+                          breakDisplay={boardState?.layoutConfig?.breakDisplay}
                           currentUserRole={currentUserRole}
                           unreadMessageCount={getStaffUnreadCount(staffMember)}
                           magnetNote={boardState?.magnetNotes?.[staffMember.id] ?? staffMember.magnetNote ?? ''}

@@ -7,7 +7,7 @@ import {
   RotateCw, FileSpreadsheet, Settings, 
   Keyboard, Clock, CheckCircle2, Mic, Sparkles,
   Smartphone, Eraser, MessageSquare, CheckCheck, Undo2, FileText,
-  Maximize, Minimize, ChevronDown, Zap, Sticker
+  Maximize, Minimize, ChevronDown, Zap, Sticker, Coffee
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -25,6 +25,7 @@ interface HeaderNavProps {
   onAutoAssign?: () => void;
   isAutoAssigning?: boolean;
   onCleanWhiteboard?: () => void;
+  onOpenBreakManagement?: () => void;
   onRemoveAllMagnets?: () => void;
   onClearAllTextNotes?: () => void;
   onUndo?: () => void;
@@ -61,6 +62,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onAutoAssign,
   isAutoAssigning = false,
   onCleanWhiteboard,
+  onOpenBreakManagement,
   onRemoveAllMagnets,
   onClearAllTextNotes,
   onUndo,
@@ -618,6 +620,31 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                       </div>
                       <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
                         Clear magnets for a fresh day
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* 6b. Break Management (Board Runner & Admin) */}
+                {Boolean(currentUser && (currentUser.role === 'board_runner' || currentUser.role === 'admin' || currentUser.role === 'superuser') && onOpenBreakManagement) && (
+                  <button
+                    type="button"
+                    className="action-dropdown-item"
+                    onClick={() => {
+                      onOpenBreakManagement!();
+                      setIsActionMenuOpen(false);
+                    }}
+                    title="Manage meal and rest break buttons (B / L / D) on the live board"
+                  >
+                    <div className="action-item-icon">
+                      <Coffee size={14} style={{ color: 'var(--text-secondary)' }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                        Break Management
+                      </div>
+                      <div style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                        Show or hide B, L, D break buttons
                       </div>
                     </div>
                   </button>

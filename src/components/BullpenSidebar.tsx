@@ -1,20 +1,21 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Staff, UserRole } from '@/types/whiteboard';
+import { Staff, UserRole, BreakDisplayConfig } from '@/types/whiteboard';
 import { MagnetTile } from './MagnetTile';
 import { PanelLeftClose, Users, Sparkles } from 'lucide-react';
 
 interface BullpenSidebarProps {
   bullpenStaffIds: string[];
-  bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; breakfastTime?: string | null; lunchTime?: string | null }>;
+  bullpenBreaks?: Record<string, { breakfastDone: boolean; lunchDone: boolean; dinnerDone?: boolean; breakfastTime?: string | null; lunchTime?: string | null; dinnerTime?: string | null }>;
   staff: Staff[];
   currentUserRole: UserRole;
   onSelectStaff: (staff: Staff) => void;
   onDropToBullpen: (data: { staffId: string; type: string; id?: string }) => void;
   onMoveStaffToUnassigned: (staffId: string) => void;
   onToggleCollapse: () => void;
-  onToggleBreak?: (breakType: 'breakfast' | 'lunch', staffId: string, currentValue: boolean) => void;
+  onToggleBreak?: (breakType: 'breakfast' | 'lunch' | 'dinner', staffId: string, currentValue: boolean) => void;
+  breakDisplay?: BreakDisplayConfig;
   activeReliefStaffIds?: Set<string>;
   unreadCountsByPhone?: Record<string, number>;
   magnetNotes?: Record<string, string>;
@@ -67,7 +68,8 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
   activeStampStickerId,
   onSelectStampSticker,
   onClearAllStickers,
-  hasAnyStickers
+  hasAnyStickers,
+  breakDisplay
 }) => {
   const getStaffUnreadCount = (staffMember: Staff | null): number => {
     if (!staffMember?.phone || !unreadCountsByPhone) return 0;
@@ -246,6 +248,8 @@ export const BullpenSidebar: React.FC<BullpenSidebarProps> = ({
                       slotType="bullpen"
                       breakfastDone={b?.breakfastDone ?? false}
                       lunchDone={b?.lunchDone ?? false}
+                      dinnerDone={b?.dinnerDone ?? false}
+                      breakDisplay={breakDisplay}
                       currentUserRole={currentUserRole}
                       unreadMessageCount={getStaffUnreadCount(s)}
                       magnetNote={magnetNotes?.[s.id] ?? s.magnetNote ?? ''}

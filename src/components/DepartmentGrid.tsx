@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Department, Staff, UserRole, ReliefAssignment, RunnerSlot } from '@/types/whiteboard';
+import { Department, Staff, UserRole, ReliefAssignment, RunnerSlot, BreakDisplayConfig } from '@/types/whiteboard';
 import { MagnetTile } from './MagnetTile';
 import { RoomLabel } from './RoomLabel';
 import { Plus } from 'lucide-react';
@@ -10,7 +10,8 @@ interface DepartmentGridProps {
   departments: Department[];
   staff: Staff[];
   currentUserRole: UserRole;
-  onToggleBreak: (targetType: 'room_slot' | 'runner_slot', targetId: string, breakType: 'breakfast' | 'lunch', value: boolean) => void;
+  onToggleBreak: (targetType: 'room_slot' | 'runner_slot', targetId: string, breakType: 'breakfast' | 'lunch' | 'dinner', value: boolean) => void;
+  breakDisplay?: BreakDisplayConfig;
   onSelectStaff: (staff: Staff) => void;
   onSelectEmptySlot: (targetType: 'room_slot' | 'runner_slot' | 'runner_dept', targetId: string, label: string, roomId?: string, currentFutureTime?: string | null) => void;
   onDropStaff: (fromData: { staffId: string; type: string; id?: string }, targetType: 'room_slot' | 'runner_slot' | 'runner_dept', targetId: string) => void;
@@ -67,7 +68,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
   magnetStickers,
   roomStickers,
   onToggleSticker,
-  activeStampStickerId
+  activeStampStickerId,
+  breakDisplay
 }) => {
   const [dragOverRoomSlotId, setDragOverRoomSlotId] = useState<string | null>(null);
   const dragLeaveTimerRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -400,6 +402,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                           slotType="runner_slot"
                           breakfastDone={runner.breakfastDone}
                           lunchDone={runner.lunchDone}
+                          dinnerDone={runner.dinnerDone}
+                          breakDisplay={breakDisplay}
                           currentUserRole={currentUserRole}
                           unreadMessageCount={getStaffUnreadCount(assignedStaff)}
                           magnetNote={magnetNotes?.[assignedStaff.id] ?? assignedStaff.magnetNote ?? ''}
@@ -685,6 +689,8 @@ export const DepartmentGrid: React.FC<DepartmentGridProps> = ({
                               slotType="room_slot"
                               breakfastDone={slot.breakfastDone}
                               lunchDone={slot.lunchDone}
+                              dinnerDone={slot.dinnerDone}
+                              breakDisplay={breakDisplay}
                               currentUserRole={currentUserRole}
                               unreadMessageCount={getStaffUnreadCount(assignedStaff)}
                               magnetNote={magnetNotes?.[assignedStaff.id] ?? assignedStaff.magnetNote ?? ''}

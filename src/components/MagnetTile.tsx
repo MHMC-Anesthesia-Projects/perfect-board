@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { Staff, UserRole } from '@/types/whiteboard';
+import { Staff, UserRole, BreakDisplayConfig } from '@/types/whiteboard';
 import { LogOut } from 'lucide-react';
 
 interface MagnetTileProps {
@@ -10,9 +10,11 @@ interface MagnetTileProps {
   slotType?: 'room_slot' | 'runner_slot' | 'bullpen' | 'unassigned';
   breakfastDone?: boolean;
   lunchDone?: boolean;
+  dinnerDone?: boolean;
   currentUserRole: UserRole;
   showBreaks?: boolean;
-  onToggleBreak?: (breakType: 'breakfast' | 'lunch', currentValue: boolean) => void;
+  breakDisplay?: BreakDisplayConfig;
+  onToggleBreak?: (breakType: 'breakfast' | 'lunch' | 'dinner', currentValue: boolean) => void;
   onSelectStaff?: (staff: Staff) => void;
   onDragStart?: (e: React.DragEvent, staff: Staff, source: { type: string; id?: string }) => void;
   onDragEnd?: (e: React.DragEvent) => void;
@@ -35,8 +37,10 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
   slotType = 'bullpen',
   breakfastDone = false,
   lunchDone = false,
+  dinnerDone = false,
   currentUserRole,
   showBreaks,
+  breakDisplay,
   onToggleBreak,
   onSelectStaff,
   onDragStart,
@@ -60,9 +64,15 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
     ? propIsDraggable 
     : (currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser'));
 
-  const canShowBreaks = !hasPendingRelief && (showBreaks !== undefined
+  const isBreaksConfigEnabled = breakDisplay ? (breakDisplay.enabled ?? true) : true;
+  const showB = breakDisplay ? (breakDisplay.showBreakfast ?? true) : true;
+  const showL = breakDisplay ? (breakDisplay.showLunch ?? true) : true;
+  const showD = breakDisplay ? (breakDisplay.showDinner ?? false) : false;
+  const hasAnyBreakVisible = showB || showL || showD;
+
+  const canShowBreaks = !hasPendingRelief && isBreaksConfigEnabled && hasAnyBreakVisible && (showBreaks !== undefined
     ? showBreaks
-    : (slotType !== 'unassigned' && (Boolean(onToggleBreak) || breakfastDone || lunchDone)));
+    : (slotType !== 'unassigned' && (Boolean(onToggleBreak) || breakfastDone || lunchDone || dinnerDone)));
 
   const handleTileClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -75,7 +85,7 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
     }
   };
 
-  const handleBreakClick = (e: React.MouseEvent, type: 'breakfast' | 'lunch', current: boolean) => {
+  const handleBreakClick = (e: React.MouseEvent, type: 'breakfast' | 'lunch' | 'dinner', current: boolean) => {
     e.stopPropagation();
     if (onToggleBreak) {
       onToggleBreak(type, !current);
@@ -147,34 +157,53 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
         WebkitUserSelect: 'none'
       }}
     >
-      {/* Breakfast & Lunch Checkboxes */}
+      {/* Breakfast, Lunch & Dinner Checkboxes */}
       {canShowBreaks && (
         <div className="break-controls">
           {/* Breakfast Checkbox [B] */}
-          <button
-            type="button"
-            className={`break-toggle-btn ${breakfastDone ? 'done' : ''}`}
-            onClick={(e) => handleBreakClick(e, 'breakfast', breakfastDone)}
-            disabled={!onToggleBreak}
-            title={currentUserRole === 'view_only'
-              ? 'Login required to toggle breakfast break'
-              : `Breakfast Break: ${breakfastDone ? 'Completed (Tap to undo)' : 'Pending (Tap to mark done)'}`}
-          >
-            {breakfastDone ? '✓' : 'B'}
-          </button>
+          {showB && (
+            <button
+              type="button"
+              className={`break-toggle-btn ${breakfastDone ? 'done' : ''}`}
+              onClick={(e) => handleBreakClick(e, 'breakfast', breakfastDone)}
+              disabled={!onToggleBreak}
+              title={currentUserRole === 'view_only'
+                ? 'Login required to toggle breakfast break'
+                : `Breakfast Break: ${breakfastDone ? 'Completed (Tap to undo)' : 'Pending (Tap to mark done)'}`}
+            >
+              {breakfastDone ? '✓' : 'B'}
+            </button>
+          )}
 
           {/* Lunch Checkbox [L] */}
-          <button
-            type="button"
-            className={`break-toggle-btn ${lunchDone ? 'done' : ''}`}
-            onClick={(e) => handleBreakClick(e, 'lunch', lunchDone)}
-            disabled={!onToggleBreak}
-            title={currentUserRole === 'view_only'
-              ? 'Login required to toggle lunch break'
-              : `Lunch Break: ${lunchDone ? 'Completed (Tap to undo)' : 'Pending (Tap to mark done)'}`}
-          >
-            {lunchDone ? '✓' : 'L'}
-          </button>
+          {showL && (
+            <button
+              type="button"
+              className={`break-toggle-btn ${lunchDone ? 'done' : ''}`}
+              onClick={(e) => handleBreakClick(e, 'lunch', lunchDone)}
+              disabled={!onToggleBreak}
+              title={currentUserRole === 'view_only'
+                ? 'Login required to toggle lunch break'
+                : `Lunch Break: ${lunchDone ? 'Completed (Tap to undo)' : 'Pending (Tap to mark done)'}`}
+            >
+              {lunchDone ? '✓' : 'L'}
+            </button>
+          )}
+
+          {/* Dinner Checkbox [D] */}
+          {showD && (
+            <button
+              type="button"
+              className={`break-toggle-btn ${dinnerDone ? 'done' : ''}`}
+              onClick={(e) => handleBreakClick(e, 'dinner', dinnerDone)}
+              disabled={!onToggleBreak}
+              title={currentUserRole === 'view_only'
+                ? 'Login required to toggle dinner break'
+                : `Dinner Break: ${dinnerDone ? 'Completed (Tap to undo)' : 'Pending (Tap to mark done)'}`}
+            >
+              {dinnerDone ? '✓' : 'D'}
+            </button>
+          )}
         </div>
       )}
 

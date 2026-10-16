@@ -15,7 +15,7 @@ interface BullpenProps {
   onSelectStaff: (staff: Staff) => void;
   onOpenAddStaff: () => void;
   onDropToBullpen: (data: { staffId: string; type: string; id?: string; targetGroup?: 'MD' | 'CRNA' | 'Infrequent' }) => void;
-  onToggleBreak?: (breakType: 'breakfast' | 'lunch', staffId: string, currentValue: boolean) => void;
+  onToggleBreak?: (breakType: 'breakfast' | 'lunch' | 'dinner', staffId: string, currentValue: boolean) => void;
   onSetStaffInfrequent?: (staffId: string, isInfrequent: boolean) => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;

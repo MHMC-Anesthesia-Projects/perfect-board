@@ -4,7 +4,7 @@ import { apiUrl } from '@/lib/api';
 import { getBrowserSupabase, getPublicBrowserSupabase, PERFECT_BOARD_SCHEMA } from '@/lib/supabase';
 import { getHoustonDateString } from '@/lib/dateUtils';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { BoardState, Staff, Department, RoomSlot, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential, ReliefAssignment, AuditLogEntry, BoardLayoutConfig, DEFAULT_LAYOUT_CONFIG } from '@/types/whiteboard';
+import { BoardState, Staff, Department, RoomSlot, UserRole, User, CallTeamItem, DepartureItem, LateShiftItem, StaffCredential, ReliefAssignment, AuditLogEntry, BoardLayoutConfig, DEFAULT_LAYOUT_CONFIG, BreakDisplayConfig } from '@/types/whiteboard';
 import { HeaderNav } from '@/components/HeaderNav';
 import { DepartmentGrid } from '@/components/DepartmentGrid';
 import { RightSidebar } from '@/components/RightSidebar';
@@ -20,6 +20,7 @@ import { ReliefTextModal } from '@/components/ReliefTextModal';
 import { VoiceNoteModal } from '@/components/VoiceNoteModal';
 import { VirtualKeyboard } from '@/components/VirtualKeyboard';
 import { AdminModal } from '@/components/AdminModal';
+import { BreakManagementModal } from '@/components/BreakManagementModal';
 import { AuditDrawer } from '@/components/AuditDrawer';
 import { ConfirmDeleteModal } from '@/components/ConfirmDeleteModal';
 import { MobileWhiteboardView } from '@/components/MobileWhiteboardView';
@@ -69,7 +70,7 @@ export default function WhiteboardPage() {
   // Deferred action when prompting auth for view_only users
   const [pendingAction, setPendingAction] = useState<
     | { type: 'select_staff'; staff: Staff }
-    | { type: 'toggle_break'; targetType: 'room_slot' | 'runner_slot' | 'bullpen'; targetId: string; breakType: 'breakfast' | 'lunch'; value: boolean }
+    | { type: 'toggle_break'; targetType: 'room_slot' | 'runner_slot' | 'bullpen'; targetId: string; breakType: 'breakfast' | 'lunch' | 'dinner'; value: boolean }
     | null
   >(null);
   const [slotAssignTarget, setSlotAssignTarget] = useState<{
@@ -114,6 +115,7 @@ export default function WhiteboardPage() {
   const [isSyncWarningOpen, setIsSyncWarningOpen] = useState(false);
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);
   const [isCleanBoardModalOpen, setIsCleanBoardModalOpen] = useState(false);
+  const [isBreakManagementModalOpen, setIsBreakManagementModalOpen] = useState(false);
   const [isRemoveAllMagnetsModalOpen, setIsRemoveAllMagnetsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeStampStickerId, setActiveStampStickerId] = useState<string | null>(null);
@@ -704,7 +706,7 @@ export default function WhiteboardPage() {
   const executeToggleBreak = async (
     targetType: 'room_slot' | 'runner_slot' | 'bullpen',
     targetId: string,
-    breakType: 'breakfast' | 'lunch',
+    breakType: 'breakfast' | 'lunch' | 'dinner',
     value: boolean,
     actingUser = currentUser
   ) => {
@@ -713,14 +715,16 @@ export default function WhiteboardPage() {
       if (!prev) return prev;
       const updated = { ...prev };
       if (targetType === 'bullpen') {
-        const existing = updated.bullpenBreaks?.[targetId] || { breakfastDone: false, lunchDone: false };
+        const existing = updated.bullpenBreaks?.[targetId] || { breakfastDone: false, lunchDone: false, dinnerDone: false };
         updated.bullpenBreaks = {
           ...(updated.bullpenBreaks || {}),
           [targetId]: {
             ...existing,
             ...(breakType === 'breakfast'
               ? { breakfastDone: value, breakfastTime: value ? new Date().toISOString() : null }
-              : { lunchDone: value, lunchTime: value ? new Date().toISOString() : null })
+              : breakType === 'lunch'
+              ? { lunchDone: value, lunchTime: value ? new Date().toISOString() : null }
+              : { dinnerDone: value, dinnerTime: value ? new Date().toISOString() : null })
           }
         };
         return updated;
@@ -729,16 +733,19 @@ export default function WhiteboardPage() {
         if (targetType === 'runner_slot') {
           const r = dept.runnerSlots.find(slot => slot.id === targetId);
           if (r) {
-            if (breakType === 'breakfast') r.breakfastDone = value;
-            if (breakType === 'lunch') r.lunchDone = value;
+            if (breakType === 'breakfast') { r.breakfastDone = value; r.breakfastTime = value ? new Date().toISOString() : null; }
+            if (breakType === 'lunch') { r.lunchDone = value; r.lunchTime = value ? new Date().toISOString() : null; }
+            if (breakType === 'dinner') { r.dinnerDone = value; r.dinnerTime = value ? new Date().toISOString() : null; }
             if (r.staffId) {
               updated.bullpenBreaks = {
                 ...(updated.bullpenBreaks || {}),
                 [r.staffId]: {
                   breakfastDone: r.breakfastDone,
                   lunchDone: r.lunchDone,
+                  dinnerDone: r.dinnerDone,
                   breakfastTime: r.breakfastTime,
-                  lunchTime: r.lunchTime
+                  lunchTime: r.lunchTime,
+                  dinnerTime: r.dinnerTime
                 }
               };
             }
@@ -748,16 +755,19 @@ export default function WhiteboardPage() {
           for (const room of dept.rooms) {
             const s = room.slots.find(slot => slot.id === targetId);
             if (s) {
-              if (breakType === 'breakfast') s.breakfastDone = value;
-              if (breakType === 'lunch') s.lunchDone = value;
+              if (breakType === 'breakfast') { s.breakfastDone = value; s.breakfastTime = value ? new Date().toISOString() : null; }
+              if (breakType === 'lunch') { s.lunchDone = value; s.lunchTime = value ? new Date().toISOString() : null; }
+              if (breakType === 'dinner') { s.dinnerDone = value; s.dinnerTime = value ? new Date().toISOString() : null; }
               if (s.staffId) {
                 updated.bullpenBreaks = {
                   ...(updated.bullpenBreaks || {}),
                   [s.staffId]: {
                     breakfastDone: s.breakfastDone,
                     lunchDone: s.lunchDone,
+                    dinnerDone: s.dinnerDone,
                     breakfastTime: s.breakfastTime,
-                    lunchTime: s.lunchTime
+                    lunchTime: s.lunchTime,
+                    dinnerTime: s.dinnerTime
                   }
                 };
               }
@@ -822,7 +832,7 @@ export default function WhiteboardPage() {
   const handleToggleBreak = async (
     targetType: 'room_slot' | 'runner_slot' | 'bullpen',
     targetId: string,
-    breakType: 'breakfast' | 'lunch',
+    breakType: 'breakfast' | 'lunch' | 'dinner',
     value: boolean
   ) => {
     if (currentUserRole === 'view_only') {
@@ -837,6 +847,39 @@ export default function WhiteboardPage() {
       return;
     }
     await executeToggleBreak(targetType, targetId, breakType, value, currentUser);
+  };
+
+  const handleUpdateBreakDisplay = async (breakDisplay: BreakDisplayConfig) => {
+    try {
+      setBoardState(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          layoutConfig: {
+            ...DEFAULT_LAYOUT_CONFIG,
+            ...(prev.layoutConfig || {}),
+            breakDisplay
+          }
+        };
+      });
+
+      const res = await fetch(apiUrl('/api/board'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_BREAK_DISPLAY',
+          breakDisplay,
+          userRole: currentUserRole
+        })
+      });
+
+      if (res.ok) {
+        const updated = await res.json();
+        setBoardState(updated);
+      }
+    } catch (err) {
+      console.error('Failed to update break display:', err);
+    }
   };
 
   const handleUpdateMagnetNote = async (staffId: string, note: string) => {
@@ -2883,6 +2926,7 @@ export default function WhiteboardPage() {
           isSyncing={isSyncing}
           lastSyncTime={boardState.scraperConfig.lastSyncTime}
           onCleanWhiteboard={() => setIsCleanBoardModalOpen(true)}
+          onOpenBreakManagement={() => setIsBreakManagementModalOpen(true)}
           onRemoveAllMagnets={() => setIsRemoveAllMagnetsModalOpen(true)}
           onClearAllTextNotes={() => setIsRemoveAllMagnetsModalOpen(true)}
           onOpenAudit={() => setIsAuditDrawerOpen(true)}
@@ -2912,6 +2956,7 @@ export default function WhiteboardPage() {
             onAutoAssign={handleAutoAssign}
             isAutoAssigning={isAutoAssigning}
             onCleanWhiteboard={() => setIsCleanBoardModalOpen(true)}
+            onOpenBreakManagement={() => setIsBreakManagementModalOpen(true)}
             onRemoveAllMagnets={() => setIsRemoveAllMagnetsModalOpen(true)}
             onClearAllTextNotes={() => setIsRemoveAllMagnetsModalOpen(true)}
             onUndo={handleExecuteUndo}
@@ -2949,6 +2994,7 @@ export default function WhiteboardPage() {
             onMoveStaffToUnassigned={handleMoveStaffToUnassigned}
             onToggleCollapse={() => setIsBullpenOpen(false)}
             onToggleBreak={(breakType, staffId, currentValue) => handleToggleBreak('bullpen', staffId, breakType, currentValue)}
+            breakDisplay={boardState?.layoutConfig?.breakDisplay}
             unreadCountsByPhone={unreadCountsByPhone}
             magnetNotes={boardState.magnetNotes}
             onUpdateMagnetNote={handleUpdateMagnetNote}
@@ -2999,6 +3045,7 @@ export default function WhiteboardPage() {
           departments={boardState.departments}
           staff={boardState.staff}
           currentUserRole={currentUserRole}
+          breakDisplay={boardState?.layoutConfig?.breakDisplay}
           activeReliefStaffIds={activeReliefStaffIds}
           onToggleBreak={handleToggleBreak}
           onSelectStaff={handleSelectStaff}
@@ -3142,6 +3189,7 @@ export default function WhiteboardPage() {
         unreadCount={selectedStaff?.phone ? (unreadCountsByPhone[selectedStaff.phone.replace(/\D/g, '').slice(-10)] || 0) : 0}
         magnetNotes={boardState?.magnetNotes}
         onUpdateMagnetNote={handleUpdateMagnetNote}
+        breakDisplay={boardState?.layoutConfig?.breakDisplay}
       />
 
       <SlotAssignModal
@@ -3243,6 +3291,14 @@ export default function WhiteboardPage() {
         onClearAllTextNotes={handleClearAllTextNotes}
         onRefreshData={() => fetchBoardState(false)}
         onUpdateCurrentUser={(updated) => setCurrentUser(prev => prev ? { ...prev, ...updated } : updated)}
+      />
+
+      <BreakManagementModal
+        isOpen={isBreakManagementModalOpen}
+        onClose={() => setIsBreakManagementModalOpen(false)}
+        currentConfig={boardState?.layoutConfig?.breakDisplay}
+        onSave={handleUpdateBreakDisplay}
+        currentUserRole={currentUserRole}
       />
 
       <AuditDrawer

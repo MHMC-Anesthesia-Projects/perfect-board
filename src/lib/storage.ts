@@ -458,21 +458,25 @@ export function resetDailyBreaks(state: BoardState): boolean {
 
   for (const dept of state.departments || []) {
     for (const runner of dept.runnerSlots || []) {
-      if (runner.breakfastDone || runner.lunchDone || runner.breakfastTime || runner.lunchTime) {
+      if (runner.breakfastDone || runner.lunchDone || runner.dinnerDone || runner.breakfastTime || runner.lunchTime || runner.dinnerTime) {
         runner.breakfastDone = false;
         runner.lunchDone = false;
+        runner.dinnerDone = false;
         runner.breakfastTime = null;
         runner.lunchTime = null;
+        runner.dinnerTime = null;
         modified = true;
       }
     }
     for (const room of dept.rooms || []) {
       for (const slot of room.slots || []) {
-        if (slot.breakfastDone || slot.lunchDone || slot.breakfastTime || slot.lunchTime) {
+        if (slot.breakfastDone || slot.lunchDone || slot.dinnerDone || slot.breakfastTime || slot.lunchTime || slot.dinnerTime) {
           slot.breakfastDone = false;
           slot.lunchDone = false;
+          slot.dinnerDone = false;
           slot.breakfastTime = null;
           slot.lunchTime = null;
+          slot.dinnerTime = null;
           modified = true;
         }
       }

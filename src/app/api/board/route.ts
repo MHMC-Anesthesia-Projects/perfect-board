@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadBoardState, saveBoardState, recordAuditLog, loadAuditLog, getInitialBoardState, resetDailyBreaks, broadcastStateChange } from '@/lib/storage';
-import { UserRole, RunnerSlot } from '@/types/whiteboard';
+import { UserRole, RunnerSlot, DEFAULT_LAYOUT_CONFIG } from '@/types/whiteboard';
 import { autoAssignBoardState } from '@/lib/autoAssign';
 import { getHoustonDateString } from '@/lib/dateUtils';
 
@@ -49,14 +49,19 @@ export async function POST(req: NextRequest) {
               } else if (breakType === 'lunch') {
                 runner.lunchDone = value;
                 runner.lunchTime = value ? new Date().toISOString() : null;
+              } else if (breakType === 'dinner') {
+                runner.dinnerDone = value;
+                runner.dinnerTime = value ? new Date().toISOString() : null;
               }
               if (runner.staffId) {
                 state.bullpenBreaks = state.bullpenBreaks || {};
                 state.bullpenBreaks[runner.staffId] = {
                   breakfastDone: runner.breakfastDone,
                   lunchDone: runner.lunchDone,
+                  dinnerDone: runner.dinnerDone ?? false,
                   breakfastTime: runner.breakfastTime,
-                  lunchTime: runner.lunchTime
+                  lunchTime: runner.lunchTime,
+                  dinnerTime: runner.dinnerTime
                 };
                 // Sync break status across other runner & room slots for this staff member
                 for (const otherDept of state.departments) {
@@ -64,8 +69,10 @@ export async function POST(req: NextRequest) {
                     if (r.staffId === runner.staffId) {
                       r.breakfastDone = runner.breakfastDone;
                       r.lunchDone = runner.lunchDone;
+                      r.dinnerDone = runner.dinnerDone;
                       r.breakfastTime = runner.breakfastTime;
                       r.lunchTime = runner.lunchTime;
+                      r.dinnerTime = runner.dinnerTime;
                     }
                   }
                   for (const rm of otherDept.rooms || []) {
@@ -73,8 +80,10 @@ export async function POST(req: NextRequest) {
                       if (s.staffId === runner.staffId) {
                         s.breakfastDone = runner.breakfastDone;
                         s.lunchDone = runner.lunchDone;
+                        s.dinnerDone = runner.dinnerDone;
                         s.breakfastTime = runner.breakfastTime;
                         s.lunchTime = runner.lunchTime;
+                        s.dinnerTime = runner.dinnerTime;
                       }
                     }
                   }
@@ -99,14 +108,19 @@ export async function POST(req: NextRequest) {
                 } else if (breakType === 'lunch') {
                   slot.lunchDone = value;
                   slot.lunchTime = value ? new Date().toISOString() : null;
+                } else if (breakType === 'dinner') {
+                  slot.dinnerDone = value;
+                  slot.dinnerTime = value ? new Date().toISOString() : null;
                 }
                 if (slot.staffId) {
                   state.bullpenBreaks = state.bullpenBreaks || {};
                   state.bullpenBreaks[slot.staffId] = {
                     breakfastDone: slot.breakfastDone,
                     lunchDone: slot.lunchDone,
+                    dinnerDone: slot.dinnerDone ?? false,
                     breakfastTime: slot.breakfastTime,
-                    lunchTime: slot.lunchTime
+                    lunchTime: slot.lunchTime,
+                    dinnerTime: slot.dinnerTime
                   };
                   // Sync break status across other runner & room slots for this staff member
                   for (const otherDept of state.departments) {
@@ -114,8 +128,10 @@ export async function POST(req: NextRequest) {
                       if (r.staffId === slot.staffId) {
                         r.breakfastDone = slot.breakfastDone;
                         r.lunchDone = slot.lunchDone;
+                        r.dinnerDone = slot.dinnerDone;
                         r.breakfastTime = slot.breakfastTime;
                         r.lunchTime = slot.lunchTime;
+                        r.dinnerTime = slot.dinnerTime;
                       }
                     }
                     for (const rm of otherDept.rooms || []) {
@@ -123,8 +139,10 @@ export async function POST(req: NextRequest) {
                         if (s.staffId === slot.staffId) {
                           s.breakfastDone = slot.breakfastDone;
                           s.lunchDone = slot.lunchDone;
+                          s.dinnerDone = slot.dinnerDone;
                           s.breakfastTime = slot.breakfastTime;
                           s.lunchTime = slot.lunchTime;
+                          s.dinnerTime = slot.dinnerTime;
                         }
                       }
                     }
@@ -136,7 +154,7 @@ export async function POST(req: NextRequest) {
           }
         } else if (targetType === 'bullpen') {
           state.bullpenBreaks = state.bullpenBreaks || {};
-          const existing = state.bullpenBreaks[targetId] || { breakfastDone: false, lunchDone: false };
+          const existing = state.bullpenBreaks[targetId] || { breakfastDone: false, lunchDone: false, dinnerDone: false };
           const s = state.staff.find(st => st.id === targetId);
           if (s) staffName = `${s.firstName} ${s.lastName}`.trim();
           locationName = 'Bullpen (Available Staff)';
@@ -145,13 +163,15 @@ export async function POST(req: NextRequest) {
             ...existing,
             ...(breakType === 'breakfast'
               ? { breakfastDone: value, breakfastTime: value ? new Date().toISOString() : null }
-              : { lunchDone: value, lunchTime: value ? new Date().toISOString() : null })
+              : breakType === 'lunch'
+              ? { lunchDone: value, lunchTime: value ? new Date().toISOString() : null }
+              : { dinnerDone: value, dinnerTime: value ? new Date().toISOString() : null })
           };
         }
 
         await saveBoardState(state);
         await recordAuditLog({
-          actionType: breakType === 'breakfast' ? 'BREAKFAST_TOGGLED' : 'LUNCH_TOGGLED',
+          actionType: breakType === 'breakfast' ? 'BREAKFAST_TOGGLED' : (breakType === 'dinner' ? 'DINNER_TOGGLED' : 'LUNCH_TOGGLED'),
           performedBy: currentUserName,
           userRole: currentUserRole,
           targetName: staffName,
@@ -1962,6 +1982,28 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, state });
       }
 
+      // 9b. Update Break Display (Board Runner, Admin, and Superuser allowed)
+      case 'UPDATE_BREAK_DISPLAY': {
+        if (currentUserRole !== 'admin' && currentUserRole !== 'superuser' && currentUserRole !== 'board_runner') {
+          return NextResponse.json({ error: 'Board Runner or Admin permission required.' }, { status: 403 });
+        }
+        state.layoutConfig = {
+          ...(state.layoutConfig || DEFAULT_LAYOUT_CONFIG),
+          breakDisplay: payload.breakDisplay
+        };
+        await saveBoardState(state);
+        const b = payload.breakDisplay;
+        const bList = [b?.showBreakfast && 'B', b?.showLunch && 'L', b?.showDinner && 'D'].filter(Boolean).join(', ');
+        await recordAuditLog({
+          actionType: 'LAYOUT_CHANGED',
+          performedBy: currentUserName,
+          userRole: currentUserRole,
+          details: `Updated break buttons: ${b?.enabled ? `Showing [${bList}]` : 'Hidden'}`
+        });
+        broadcastStateChange();
+        return NextResponse.json({ success: true, state });
+      }
+
       // 7. Reset to default whiteboard layout template (Admin & Superuser only)
       case 'RESET_BOARD_LAYOUT':
       case 'RESET_TO_PHOTO_DEFAULT': {
@@ -2033,6 +2075,7 @@ export async function POST(req: NextRequest) {
           const isAllowedForBasic = 
             logEntry.actionType === 'BREAKFAST_TOGGLED' || 
             logEntry.actionType === 'LUNCH_TOGGLED' || 
+            logEntry.actionType === 'DINNER_TOGGLED' || 
             (logEntry.actionType === 'STAFF_UPDATED' && logEntry.details.toLowerCase().includes('student'));
           if (!isAllowedForBasic) {
             return NextResponse.json({ error: 'Permission denied. Board runner or admin access required.' }, { status: 403 });
@@ -2044,8 +2087,9 @@ export async function POST(req: NextRequest) {
 
         switch (logEntry.actionType) {
           case 'BREAKFAST_TOGGLED':
-          case 'LUNCH_TOGGLED': {
-            const breakType = logEntry.actionType === 'BREAKFAST_TOGGLED' ? 'breakfast' : 'lunch';
+          case 'LUNCH_TOGGLED':
+          case 'DINNER_TOGGLED': {
+            const breakType = logEntry.actionType === 'BREAKFAST_TOGGLED' ? 'breakfast' : (logEntry.actionType === 'DINNER_TOGGLED' ? 'dinner' : 'lunch');
             const wasDone = logEntry.details.includes('DONE [✓]') || meta.breakValue === true;
             const newRevertedValue = !wasDone;
 
@@ -2055,7 +2099,8 @@ export async function POST(req: NextRequest) {
                 const r = dept.runnerSlots?.find(s => s.id === meta.targetId);
                 if (r) {
                   if (breakType === 'breakfast') { r.breakfastDone = newRevertedValue; r.breakfastTime = newRevertedValue ? new Date().toISOString() : null; }
-                  else { r.lunchDone = newRevertedValue; r.lunchTime = newRevertedValue ? new Date().toISOString() : null; }
+                  else if (breakType === 'lunch') { r.lunchDone = newRevertedValue; r.lunchTime = newRevertedValue ? new Date().toISOString() : null; }
+                  else { r.dinnerDone = newRevertedValue; r.dinnerTime = newRevertedValue ? new Date().toISOString() : null; }
                   applied = true;
                   break;
                 }
@@ -2066,7 +2111,8 @@ export async function POST(req: NextRequest) {
                   const s = rm.slots.find(slot => slot.id === meta.targetId);
                   if (s) {
                     if (breakType === 'breakfast') { s.breakfastDone = newRevertedValue; s.breakfastTime = newRevertedValue ? new Date().toISOString() : null; }
-                    else { s.lunchDone = newRevertedValue; s.lunchTime = newRevertedValue ? new Date().toISOString() : null; }
+                    else if (breakType === 'lunch') { s.lunchDone = newRevertedValue; s.lunchTime = newRevertedValue ? new Date().toISOString() : null; }
+                    else { s.dinnerDone = newRevertedValue; s.dinnerTime = newRevertedValue ? new Date().toISOString() : null; }
                     applied = true;
                     break;
                   }
@@ -2081,26 +2127,30 @@ export async function POST(req: NextRequest) {
               );
               if (staff) {
                 state.bullpenBreaks = state.bullpenBreaks || {};
-                const existing = state.bullpenBreaks[staff.id] || { breakfastDone: false, lunchDone: false };
+                const existing = state.bullpenBreaks[staff.id] || { breakfastDone: false, lunchDone: false, dinnerDone: false };
                 state.bullpenBreaks[staff.id] = {
                   ...existing,
                   ...(breakType === 'breakfast'
                     ? { breakfastDone: newRevertedValue, breakfastTime: newRevertedValue ? new Date().toISOString() : null }
-                    : { lunchDone: newRevertedValue, lunchTime: newRevertedValue ? new Date().toISOString() : null })
+                    : breakType === 'lunch'
+                    ? { lunchDone: newRevertedValue, lunchTime: newRevertedValue ? new Date().toISOString() : null }
+                    : { dinnerDone: newRevertedValue, dinnerTime: newRevertedValue ? new Date().toISOString() : null })
                 };
 
                 for (const dept of state.departments) {
                   for (const r of dept.runnerSlots || []) {
                     if (r.staffId === staff.id) {
                       if (breakType === 'breakfast') { r.breakfastDone = newRevertedValue; r.breakfastTime = newRevertedValue ? new Date().toISOString() : null; }
-                      else { r.lunchDone = newRevertedValue; r.lunchTime = newRevertedValue ? new Date().toISOString() : null; }
+                      else if (breakType === 'lunch') { r.lunchDone = newRevertedValue; r.lunchTime = newRevertedValue ? new Date().toISOString() : null; }
+                      else { r.dinnerDone = newRevertedValue; r.dinnerTime = newRevertedValue ? new Date().toISOString() : null; }
                     }
                   }
                   for (const rm of dept.rooms || []) {
                     for (const s of rm.slots || []) {
                       if (s.staffId === staff.id) {
                         if (breakType === 'breakfast') { s.breakfastDone = newRevertedValue; s.breakfastTime = newRevertedValue ? new Date().toISOString() : null; }
-                        else { s.lunchDone = newRevertedValue; s.lunchTime = newRevertedValue ? new Date().toISOString() : null; }
+                        else if (breakType === 'lunch') { s.lunchDone = newRevertedValue; s.lunchTime = newRevertedValue ? new Date().toISOString() : null; }
+                        else { s.dinnerDone = newRevertedValue; s.dinnerTime = newRevertedValue ? new Date().toISOString() : null; }
                       }
                     }
                   }
