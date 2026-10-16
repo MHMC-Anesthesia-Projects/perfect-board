@@ -1097,10 +1097,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       <div
         className="pin-pad-card admin-modal-card"
         onClick={e => e.stopPropagation()}
-        style={{ width: 840, maxWidth: '95vw', height: '85vh', padding: 24, textAlign: 'left', alignItems: 'stretch' }}
+        style={{ width: 1040, maxWidth: '96vw', height: '88vh', padding: 24, textAlign: 'left', alignItems: 'stretch' }}
       >
         {/* Top Header */}
-        <div className="admin-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div className="admin-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
             <div className="admin-modal-header-icon" style={{ background: 'rgba(211, 47, 47, 0.1)', padding: 8, borderRadius: 8, color: 'var(--marker-red)', flexShrink: 0 }}>
               <ShieldCheck size={24} />
@@ -1119,173 +1119,243 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           </button>
         </div>
 
-        {/* Mobile Navigation Dropdown */}
-        <div className="admin-mobile-tabs admin-mobile-only">
-          <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
-            Admin Section
-          </label>
-          <div className="admin-mobile-dropdown-wrapper">
-            <select
-              className="admin-mobile-dropdown"
-              value={activeTab}
-              onChange={e => setActiveTab(e.target.value as any)}
-            >
-              <option value="users">👤 User Accounts & Roles</option>
-              <option value="staff">🩺 Site Staff Roster ({(staff || []).length})</option>
-              <option value="layout">📐 Board Layout Editor ({layoutDepts.length} Depts)</option>
-              <option value="scraper">🌐 Portal Sync (QGenda/Amion)</option>
-              <option value="portal_rules">🎛️ Shift Reference Table (Rules & Actions)</option>
-              <option value="unique_schedules">⏰ Unique Schedules ({(uniqueRules || []).filter(r => r.active).length} Active)</option>
-              <option value="messaging">💬 Perfect Call Messaging ({messagingEnabled ? 'ACTIVE' : 'OFF'})</option>
-            </select>
-            <ChevronDown size={16} className="admin-mobile-dropdown-arrow" />
+        {/* Top Navigation: Prominent Section Selector Dropdown + Wrapped Non-Scrolling Pills */}
+        <div style={{
+          borderBottom: '2px solid var(--border-light)',
+          paddingBottom: 12,
+          marginBottom: 16,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10
+        }}>
+          {/* Admin Page Dropdown Selector */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            background: 'var(--surface-hover)',
+            padding: '8px 12px',
+            borderRadius: 8,
+            border: '1px solid var(--border-light)',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Sliders size={15} style={{ color: 'var(--accent-primary)' }} />
+              <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary)' }}>
+                Admin Page Selector:
+              </span>
+            </div>
+            <div style={{ position: 'relative', flex: '1 1 280px', maxWidth: 420 }}>
+              <select
+                aria-label="Select Admin Page"
+                value={activeTab}
+                onChange={e => setActiveTab(e.target.value as any)}
+                style={{
+                  width: '100%',
+                  padding: '7px 32px 7px 12px',
+                  borderRadius: 6,
+                  border: '1.5px solid var(--accent-primary)',
+                  background: 'var(--surface-primary, #fff)',
+                  color: 'var(--text-primary)',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  appearance: 'none',
+                  WebkitAppearance: 'none'
+                }}
+              >
+                <option value="users">👤 User Accounts & Roles</option>
+                <option value="staff">🩺 Site Staff Roster ({(staff || []).length})</option>
+                <option value="layout">📐 Board Layout Editor ({layoutDepts.length} Depts)</option>
+                <option value="scraper">🌐 Portal Sync (QGenda/Amion)</option>
+                <option value="portal_rules">🎛️ Shift Reference Table (Rules & Actions)</option>
+                <option value="unique_schedules">⏰ Unique Schedules ({(uniqueRules || []).filter(r => r.active).length} Active)</option>
+                <option value="messaging">💬 Perfect Call Messaging ({messagingEnabled ? 'ACTIVE' : 'OFF'})</option>
+              </select>
+              <ChevronDown size={15} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--accent-primary)' }} />
+            </div>
           </div>
-        </div>
 
-        {/* Desktop Navigation Tabs */}
-        <div className="admin-desktop-tabs admin-desktop-only" style={{ display: 'flex', gap: 8, borderBottom: '2px solid var(--border-light)', paddingBottom: 8, marginBottom: 16, overflowX: 'auto' }}>
-          <button
-            onClick={() => setActiveTab('users')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 14px',
-              borderRadius: 6,
-              background: activeTab === 'users' ? 'var(--accent-primary)' : 'var(--surface-hover)',
-              color: activeTab === 'users' ? '#fff' : 'var(--text-primary)',
-              fontWeight: 700,
-              fontSize: 13,
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <Users size={15} />
-            <span>User Accounts & Roles</span>
-          </button>
+          {/* Desktop & Tablet Navigation: Non-scrolling Wrapped Pills (No lateral scrolling) */}
+          <div className="admin-desktop-only" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={() => setActiveTab('users')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 6,
+                background: activeTab === 'users' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                color: activeTab === 'users' ? '#fff' : 'var(--text-primary)',
+                fontWeight: 700,
+                fontSize: 12.5,
+                border: activeTab === 'users' ? '1px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                cursor: 'pointer'
+              }}
+            >
+              <Users size={14} />
+              <span>User Accounts & Roles</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('staff')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 14px',
-              borderRadius: 6,
-              background: activeTab === 'staff' ? 'var(--accent-primary)' : 'var(--surface-hover)',
-              color: activeTab === 'staff' ? '#fff' : 'var(--text-primary)',
-              fontWeight: 700,
-              fontSize: 13,
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <UserCheck size={15} />
-            <span>Site Staff Roster ({(staff || []).length})</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('staff')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 6,
+                background: activeTab === 'staff' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                color: activeTab === 'staff' ? '#fff' : 'var(--text-primary)',
+                fontWeight: 700,
+                fontSize: 12.5,
+                border: activeTab === 'staff' ? '1px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                cursor: 'pointer'
+              }}
+            >
+              <UserCheck size={14} />
+              <span>Site Staff Roster</span>
+              <span style={{
+                fontSize: 10,
+                padding: '1px 6px',
+                borderRadius: 10,
+                fontWeight: 800,
+                background: activeTab === 'staff' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.08)',
+                color: activeTab === 'staff' ? '#fff' : 'var(--text-secondary)'
+              }}>
+                {(staff || []).length}
+              </span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('layout')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 14px',
-              borderRadius: 6,
-              background: activeTab === 'layout' ? 'var(--accent-primary)' : 'var(--surface-hover)',
-              color: activeTab === 'layout' ? '#fff' : 'var(--text-primary)',
-              fontWeight: 700,
-              fontSize: 13,
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <Layout size={15} />
-            <span>Board Layout Editor</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('layout')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 6,
+                background: activeTab === 'layout' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                color: activeTab === 'layout' ? '#fff' : 'var(--text-primary)',
+                fontWeight: 700,
+                fontSize: 12.5,
+                border: activeTab === 'layout' ? '1px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                cursor: 'pointer'
+              }}
+            >
+              <Layout size={14} />
+              <span>Board Layout Editor</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('scraper')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 14px',
-              borderRadius: 6,
-              background: activeTab === 'scraper' ? 'var(--accent-primary)' : 'var(--surface-hover)',
-              color: activeTab === 'scraper' ? '#fff' : 'var(--text-primary)',
-              fontWeight: 700,
-              fontSize: 13,
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <Globe size={15} />
-            <span>Portal Sync</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('scraper')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 6,
+                background: activeTab === 'scraper' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                color: activeTab === 'scraper' ? '#fff' : 'var(--text-primary)',
+                fontWeight: 700,
+                fontSize: 12.5,
+                border: activeTab === 'scraper' ? '1px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                cursor: 'pointer'
+              }}
+            >
+              <Globe size={14} />
+              <span>Portal Sync</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('portal_rules')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 14px',
-              borderRadius: 6,
-              background: activeTab === 'portal_rules' ? 'var(--accent-primary)' : 'var(--surface-hover)',
-              color: activeTab === 'portal_rules' ? '#fff' : 'var(--text-primary)',
-              fontWeight: 700,
-              fontSize: 13,
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <Sliders size={15} />
-            <span>Shift Reference Table</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('portal_rules')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 6,
+                background: activeTab === 'portal_rules' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                color: activeTab === 'portal_rules' ? '#fff' : 'var(--text-primary)',
+                fontWeight: 700,
+                fontSize: 12.5,
+                border: activeTab === 'portal_rules' ? '1px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                cursor: 'pointer'
+              }}
+            >
+              <Sliders size={14} />
+              <span>Shift Reference Table</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('unique_schedules')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 14px',
-              borderRadius: 6,
-              background: activeTab === 'unique_schedules' ? 'var(--accent-primary)' : 'var(--surface-hover)',
-              color: activeTab === 'unique_schedules' ? '#fff' : 'var(--text-primary)',
-              fontWeight: 700,
-              fontSize: 13,
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <Clock size={15} />
-            <span>Unique Schedules ({uniqueRules.filter(r => r.active).length})</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('unique_schedules')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 6,
+                background: activeTab === 'unique_schedules' ? 'var(--accent-primary)' : 'var(--surface-hover)',
+                color: activeTab === 'unique_schedules' ? '#fff' : 'var(--text-primary)',
+                fontWeight: 700,
+                fontSize: 12.5,
+                border: activeTab === 'unique_schedules' ? '1px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                cursor: 'pointer'
+              }}
+            >
+              <Clock size={14} />
+              <span>Unique Schedules</span>
+              <span style={{
+                fontSize: 10,
+                padding: '1px 6px',
+                borderRadius: 10,
+                fontWeight: 800,
+                background: activeTab === 'unique_schedules' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.08)',
+                color: activeTab === 'unique_schedules' ? '#fff' : 'var(--text-secondary)'
+              }}>
+                {(uniqueRules || []).filter(r => r.active).length}
+              </span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('messaging')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 14px',
-              borderRadius: 6,
-              background: activeTab === 'messaging' ? '#10b981' : 'var(--surface-hover)',
-              color: activeTab === 'messaging' ? '#fff' : 'var(--text-primary)',
-              fontWeight: 700,
-              fontSize: 13,
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <MessageSquare size={15} />
-            <span>Perfect Call Messaging</span>
-            <span style={{
-              fontSize: 10,
-              padding: '1px 6px',
-              borderRadius: 10,
-              fontWeight: 800,
-              background: messagingEnabled ? '#059669' : '#6b7280',
-              color: '#fff'
-            }}>
-              {messagingEnabled ? 'ACTIVE' : 'OFF'}
-            </span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('messaging')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 6,
+                background: activeTab === 'messaging' ? '#10b981' : 'var(--surface-hover)',
+                color: activeTab === 'messaging' ? '#fff' : 'var(--text-primary)',
+                fontWeight: 700,
+                fontSize: 12.5,
+                border: activeTab === 'messaging' ? '1px solid #10b981' : '1px solid var(--border-light)',
+                cursor: 'pointer'
+              }}
+            >
+              <MessageSquare size={14} />
+              <span>Perfect Call Messaging</span>
+              <span style={{
+                fontSize: 10,
+                padding: '1px 6px',
+                borderRadius: 10,
+                fontWeight: 800,
+                background: messagingEnabled ? '#059669' : '#6b7280',
+                color: '#fff'
+              }}>
+                {messagingEnabled ? 'ACTIVE' : 'OFF'}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Tab Contents */}
@@ -1921,7 +1991,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           cursor: 'pointer',
                           userSelect: 'none',
                           color: staffSortField === 'name' ? 'var(--accent-primary)' : 'inherit',
-                          fontWeight: staffSortField === 'name' ? 800 : 700
+                          fontWeight: staffSortField === 'name' ? 800 : 700,
+                          whiteSpace: 'nowrap'
                         }}
                         title="Click to sort by Staff Name (A-Z / Z-A)"
                       >
@@ -1941,7 +2012,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           cursor: 'pointer',
                           userSelect: 'none',
                           color: staffSortField === 'displayName' ? 'var(--accent-primary)' : 'inherit',
-                          fontWeight: staffSortField === 'displayName' ? 800 : 700
+                          fontWeight: staffSortField === 'displayName' ? 800 : 700,
+                          whiteSpace: 'nowrap'
                         }}
                         title="Click to sort by Magnet Display Name"
                       >
@@ -1961,7 +2033,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           cursor: 'pointer',
                           userSelect: 'none',
                           color: staffSortField === 'role' ? 'var(--accent-primary)' : 'inherit',
-                          fontWeight: staffSortField === 'role' ? 800 : 700
+                          fontWeight: staffSortField === 'role' ? 800 : 700,
+                          whiteSpace: 'nowrap'
                         }}
                         title="Click to sort by Group / Role"
                       >
@@ -1981,7 +2054,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           cursor: 'pointer',
                           userSelect: 'none',
                           color: staffSortField === 'phone' ? 'var(--accent-primary)' : 'inherit',
-                          fontWeight: staffSortField === 'phone' ? 800 : 700
+                          fontWeight: staffSortField === 'phone' ? 800 : 700,
+                          whiteSpace: 'nowrap'
                         }}
                         title="Click to sort by Phone"
                       >
@@ -2001,7 +2075,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           cursor: 'pointer',
                           userSelect: 'none',
                           color: staffSortField === 'shift' ? 'var(--accent-primary)' : 'inherit',
-                          fontWeight: staffSortField === 'shift' ? 800 : 700
+                          fontWeight: staffSortField === 'shift' ? 800 : 700,
+                          whiteSpace: 'nowrap'
                         }}
                         title="Click to sort by Shift"
                       >
@@ -2014,7 +2089,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           )}
                         </div>
                       </th>
-                      <th style={{ padding: '8px 10px', textAlign: 'right' }}>Actions</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'right', whiteSpace: 'nowrap' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2036,10 +2111,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         const magnetLabel = s.displayName || `${s.lastName.toUpperCase()}${s.firstName ? ` ${s.firstName[0]}.` : ''}`;
                         return (
                           <tr key={s.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                            <td style={{ padding: '8px 10px', fontWeight: 800, textTransform: 'uppercase' }}>
+                            <td style={{ padding: '8px 10px', fontWeight: 800, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                               {s.lastName}, {s.firstName || ''}
                             </td>
-                            <td style={{ padding: '8px 10px' }}>
+                            <td style={{ padding: '8px 10px', whiteSpace: 'nowrap' }}>
                               <span style={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
@@ -2052,12 +2127,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                                 fontSize: 12
                               }}>
                                 {magnetLabel}
-                                {s.displayName && (
-                                  <span style={{ fontSize: 9, color: 'var(--accent-primary)', fontWeight: 800 }}>[CUSTOM]</span>
-                                )}
                               </span>
                             </td>
-                            <td style={{ padding: '8px 10px' }}>
+                            <td style={{ padding: '8px 10px', whiteSpace: 'nowrap' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <span className={`magnet-cred cred-${s.credentials}`} style={{ fontSize: 11 }}>
                                   {s.credentials}
@@ -2077,11 +2149,11 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                                 )}
                               </div>
                             </td>
-                            <td style={{ padding: '8px 10px' }}>
-                              <a href={`tel:${s.phone}`} style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>{s.phone}</a>
+                            <td style={{ padding: '8px 10px', whiteSpace: 'nowrap' }}>
+                              <a href={`tel:${s.phone}`} style={{ color: 'var(--accent-primary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{s.phone}</a>
                             </td>
-                            <td style={{ padding: '8px 10px', color: 'var(--text-secondary)' }}>{s.shift || '07:00 - 15:30'}</td>
-                            <td style={{ padding: '8px 10px', textAlign: 'right' }}>
+                            <td style={{ padding: '8px 10px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{s.shift || '07:00 - 15:30'}</td>
+                            <td style={{ padding: '8px 10px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                                 <button
                                   type="button"
