@@ -321,6 +321,14 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [customFacilityCode, setCustomFacilityCode] = useState('');
   const [scraperSaving, setScraperSaving] = useState(false);
   const [scraperMsg, setScraperMsg] = useState('');
+  const [portalApiKey, setPortalApiKey] = useState(scraperConfig?.apiKey || scraperConfig?.companyKey || '');
+  const [isTestingQgenda, setIsTestingQgenda] = useState(false);
+  const [qgendaTestResult, setQgendaTestResult] = useState<{
+    success: boolean;
+    message: string;
+    details?: string;
+    companies?: Array<{ name: string; key: string }>;
+  } | null>(null);
 
   // --- Test Sync State ---
   const [isTestSyncing, setIsTestSyncing] = useState(false);
@@ -366,12 +374,14 @@ export const AdminModal: React.FC<AdminModalProps> = ({
         setPortalUrl(scraperConfig.portalUrl);
         setPortalUser(scraperConfig.username);
         setPortalPass(scraperConfig.password);
+        setPortalApiKey(scraperConfig.apiKey || scraperConfig.companyKey || '');
         setAutoSyncMins(scraperConfig.autoSyncIntervalMinutes);
         setMockMode(scraperConfig.mockMode);
         if (scraperConfig.selectedFacilities) {
           setSelectedFacilities(scraperConfig.selectedFacilities);
         }
       }
+      setQgendaTestResult(null);
 
       if (messagingConfig) {
         setMessagingEnabled(messagingConfig.enabled);
@@ -756,6 +766,12 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setScraperSaving(true);
     setScraperMsg('');
     try {
+      const resolvedPortalUrl = portalType === 'oneusap' && (!portalUrl || !portalUrl.includes('oneusap'))
+        ? 'https://www.oneusap.com/assignments'
+        : (portalType === 'qgenda' && (!portalUrl || portalUrl.includes('oneusap'))
+          ? 'https://api.qgenda.com/v2'
+          : portalUrl);
+
       const res = await fetch(apiUrl('/api/scraper'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -764,9 +780,11 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           currentUser,
           config: {
             portalType,
-            portalUrl: portalType === 'oneusap' && (!portalUrl || !portalUrl.includes('oneusap')) ? 'https://www.oneusap.com/assignments' : portalUrl,
+            portalUrl: resolvedPortalUrl,
             username: portalType === 'oneusap' ? '' : portalUser,
             password: portalPass,
+            apiKey: portalApiKey,
+            companyKey: portalApiKey,
             autoSyncIntervalMinutes: Number(autoSyncMins),
             mockMode,
             selectedFacilities
@@ -775,7 +793,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       });
       const data = await res.json();
       if (res.ok) {
-        setScraperMsg('Portal configuration saved successfully!');
+        setScraperMsg(portalType === 'qgenda' ? 'QGenda credentials and settings saved successfully!' : 'Portal configuration saved successfully!');
         onRefreshData();
       } else {
         setScraperMsg(data.error || 'Failed to update config');
@@ -784,6 +802,63 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       setScraperMsg('Connection error');
     } finally {
       setScraperSaving(false);
+    }
+  };
+
+  const handleTestQgendaConnection = async () => {
+    setIsTestingQgenda(true);
+    setQgendaTestResult(null);
+    setTestSyncError('');
+    try {
+      const res = await fetch(apiUrl('/api/scraper'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'TEST_QGENDA_AUTH',
+          currentUser,
+          portalUrl: portalUrl || 'https://api.qgenda.com/v2',
+          username: portalUser,
+          password: portalPass,
+          apiKey: portalApiKey,
+          companyKey: portalApiKey
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        let detailsText = `Authenticated Account: ${data.authenticatedEmail}`;
+        if (data.company?.name) {
+          detailsText += ` • Organization: ${data.company.name}`;
+          if (data.company.key) {
+            detailsText += ` (CompanyKey: ${data.company.key})`;
+          }
+        }
+        if (data.keyStatusNote) {
+          detailsText += ` • ${data.keyStatusNote}`;
+        }
+        setQgendaTestResult({
+          success: true,
+          message: data.message || 'Connected to QGenda REST API successfully!',
+          details: detailsText,
+          companies: data.availableCompanies
+        });
+        // Auto-fill company key if blank and returned by QGenda
+        if (!portalApiKey && data.company?.key) {
+          setPortalApiKey(data.company.key);
+        }
+      } else {
+        setQgendaTestResult({
+          success: false,
+          message: data.error || 'QGenda connection test failed. Please verify email and password.'
+        });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setQgendaTestResult({
+        success: false,
+        message: msg || 'Network error while testing QGenda connection'
+      });
+    } finally {
+      setIsTestingQgenda(false);
     }
   };
 
@@ -4077,19 +4152,28 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     onChange={e => {
                       const nextType = e.target.value as any;
                       setPortalType(nextType);
+                      setQgendaTestResult(null);
+                      setTestSyncError('');
                       if (nextType === 'oneusap') {
-                        if (!portalUrl || portalUrl.includes('qgenda') || portalUrl.includes('app.qgenda')) {
+                        if (!portalUrl || portalUrl.includes('qgenda') || portalUrl.includes('app.qgenda') || portalUrl.includes('api.')) {
                           setPortalUrl('https://www.oneusap.com/assignments');
                         }
                         if (!portalPass || portalPass.includes('•••')) {
                           setPortalPass('321usap');
+                        }
+                      } else if (nextType === 'qgenda') {
+                        if (!portalUrl || portalUrl.includes('oneusap')) {
+                          setPortalUrl('https://api.qgenda.com/v2');
+                        }
+                        if (portalPass === '321usap') {
+                          setPortalPass('');
                         }
                       }
                     }}
                     style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-light)', background: 'var(--surface-hover)' }}
                   >
                     <option value="oneusap">OneUSAP Scheduling (oneusap.com)</option>
-                    <option value="qgenda">QGenda Cloud Portal</option>
+                    <option value="qgenda">QGenda Cloud Portal (REST API)</option>
                     <option value="amion">Amion Scheduling System</option>
                     <option value="custom">Custom Hospital Portal URL</option>
                   </select>
@@ -4109,8 +4193,24 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   </div>
                 )}
 
+                {portalType === 'qgenda' && (
+                  <div style={{
+                    padding: '10px 14px',
+                    borderRadius: 6,
+                    background: 'rgba(99, 102, 241, 0.08)',
+                    border: '1px solid rgba(99, 102, 241, 0.25)',
+                    fontSize: 12,
+                    color: 'var(--text-primary)',
+                    lineHeight: 1.5
+                  }}>
+                    <strong>QGenda REST API Mode:</strong> Connects directly to QGenda&apos;s cloud API endpoint (<code>https://api.qgenda.com/v2</code>). Enter your QGenda account credentials and API Key below, then click <strong>&quot;Test QGenda Connection&quot;</strong> to verify authorization.
+                  </div>
+                )}
+
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Portal Login URL</label>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>
+                    {portalType === 'qgenda' ? 'QGenda REST API Base URL' : 'Portal Login URL'}
+                  </label>
                   <input
                     type="url"
                     value={portalUrl}
@@ -4118,6 +4218,11 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     required
                     style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}
                   />
+                  {portalType === 'qgenda' && (
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                      API Documentation: <code>restapi.qgenda.com</code> &bull; Live REST Endpoint: <code>https://api.qgenda.com/v2</code>
+                    </div>
+                  )}
                 </div>
 
                 {portalType === 'oneusap' ? (
@@ -4133,6 +4238,47 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     />
                     <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
                       OneUSAP only requires a passcode for access. Username is not required.
+                    </div>
+                  </div>
+                ) : portalType === 'qgenda' ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div className="admin-scraper-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Account Email / Username</label>
+                        <input
+                          type="text"
+                          value={portalUser}
+                          onChange={e => setPortalUser(e.target.value)}
+                          placeholder="e.g. user@usap.com"
+                          required
+                          style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Account Password</label>
+                        <input
+                          type="password"
+                          value={portalPass}
+                          onChange={e => setPortalPass(e.target.value)}
+                          placeholder="Enter QGenda password"
+                          required
+                          style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-light)' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>QGenda API Key / Company Key (GUID)</label>
+                      <input
+                        type="text"
+                        value={portalApiKey}
+                        onChange={e => setPortalApiKey(e.target.value)}
+                        placeholder="e.g. 00000000-0000-0000-0000-000000000000 (or leave blank to look up)"
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border-light)', fontFamily: 'monospace', fontSize: 12 }}
+                      />
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                        In QGenda, the API Key is the organization&apos;s Company Key (GUID). If left blank, testing connection will attempt to auto-discover your organization key.
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -4349,6 +4495,60 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   />
                 </div>
 
+                {/* QGenda Test Connection Result Banner */}
+                {portalType === 'qgenda' && qgendaTestResult && (
+                  <div style={{
+                    padding: '12px 14px',
+                    borderRadius: 6,
+                    background: qgendaTestResult.success ? 'rgba(5, 150, 105, 0.1)' : 'rgba(220, 38, 38, 0.1)',
+                    border: `1px solid ${qgendaTestResult.success ? 'rgba(5, 150, 105, 0.3)' : 'rgba(220, 38, 38, 0.3)'}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: qgendaTestResult.success ? '#059669' : '#dc2626'
+                    }}>
+                      {qgendaTestResult.success ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+                      <span>{qgendaTestResult.message}</span>
+                    </div>
+                    {qgendaTestResult.details && (
+                      <span style={{ fontSize: 11, color: 'var(--text-secondary)', paddingLeft: 24, lineHeight: 1.4 }}>
+                        {qgendaTestResult.details}
+                      </span>
+                    )}
+                    {qgendaTestResult.companies && qgendaTestResult.companies.length > 0 && (
+                      <div style={{ paddingLeft: 24, marginTop: 4, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>Organization:</span>
+                        {qgendaTestResult.companies.map(c => (
+                          <button
+                            key={c.key}
+                            type="button"
+                            onClick={() => setPortalApiKey(c.key)}
+                            style={{
+                              padding: '3px 8px',
+                              borderRadius: 4,
+                              background: portalApiKey === c.key ? '#059669' : 'var(--accent-primary)',
+                              color: '#fff',
+                              border: 'none',
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {c.name} {portalApiKey === c.key ? '✓' : `(Use: ${c.key.slice(0, 8)}...)`}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {testSyncError && (
                   <div style={{
                     padding: '8px 12px',
@@ -4366,7 +4566,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
                   <button
                     type="submit"
-                    disabled={scraperSaving || isTestSyncing}
+                    disabled={scraperSaving || isTestSyncing || isTestingQgenda}
                     style={{
                       flex: 1,
                       padding: '12px',
@@ -4378,32 +4578,58 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       cursor: 'pointer'
                     }}
                   >
-                    {scraperSaving ? 'Saving Portal Settings...' : 'Save Scraper Credentials'}
+                    {scraperSaving ? 'Saving...' : (portalType === 'qgenda' ? 'Save QGenda Credentials' : 'Save Scraper Credentials')}
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={handleTestSync}
-                    disabled={scraperSaving || isTestSyncing}
-                    style={{
-                      flex: 1,
-                      padding: '12px',
-                      borderRadius: 6,
-                      background: 'rgba(9, 105, 218, 0.12)',
-                      border: '1.5px solid var(--accent-primary)',
-                      color: 'var(--accent-primary)',
-                      fontWeight: 800,
-                      fontSize: 13,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 6,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <RefreshCw size={15} className={isTestSyncing ? 'animate-spin' : ''} />
-                    <span>{isTestSyncing ? 'Scraping OneUSAP...' : 'Test Sync (Preview Data)'}</span>
-                  </button>
+                  {portalType === 'qgenda' ? (
+                    <button
+                      type="button"
+                      onClick={handleTestQgendaConnection}
+                      disabled={scraperSaving || isTestingQgenda}
+                      style={{
+                        flex: 1,
+                        padding: '12px',
+                        borderRadius: 6,
+                        background: 'rgba(99, 102, 241, 0.12)',
+                        border: '1.5px solid #6366f1',
+                        color: '#6366f1',
+                        fontWeight: 800,
+                        fontSize: 13,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                        cursor: isTestingQgenda ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      <RefreshCw size={15} className={isTestingQgenda ? 'animate-spin' : ''} />
+                      <span>{isTestingQgenda ? 'Testing QGenda Auth...' : 'Test QGenda Connection'}</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleTestSync}
+                      disabled={scraperSaving || isTestSyncing}
+                      style={{
+                        flex: 1,
+                        padding: '12px',
+                        borderRadius: 6,
+                        background: 'rgba(9, 105, 218, 0.12)',
+                        border: '1.5px solid var(--accent-primary)',
+                        color: 'var(--accent-primary)',
+                        fontWeight: 800,
+                        fontSize: 13,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <RefreshCw size={15} className={isTestSyncing ? 'animate-spin' : ''} />
+                      <span>{isTestSyncing ? 'Scraping OneUSAP...' : 'Test Sync (Preview Data)'}</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </form>

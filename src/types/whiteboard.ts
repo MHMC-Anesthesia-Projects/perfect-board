@@ -183,6 +183,8 @@ export interface ScraperConfig {
   portalUrl: string;
   username: string;
   password: string;
+  apiKey?: string;
+  companyKey?: string;
   autoSyncIntervalMinutes: number;
   lastSyncTime?: string | null;
   lastSyncStatus?: 'idle' | 'success' | 'failed';

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { loadBoardState, saveBoardState, recordAuditLog } from '@/lib/storage';
 import { fetchAndScrapeOneUsap, getHoustonDateString, isTargetFacility } from '@/lib/oneusapScraper';
 import { loadPortalRules } from '@/lib/portalRulesStorage';
+import { testQgendaAuthentication } from '@/lib/qgendaClient';
 import { DepartureItem, LateShiftItem, CallTeamItem, Staff, UserRole } from '@/types/whiteboard';
 
 export async function POST(req: NextRequest) {
@@ -10,6 +11,23 @@ export async function POST(req: NextRequest) {
     const { action, config, currentUser, date } = body;
 
     const state = await loadBoardState();
+
+    // 0. TEST QGENDA REST API AUTHENTICATION & CONNECTION
+    if (action === 'TEST_QGENDA_AUTH') {
+      const email = body.username || config?.username || state.scraperConfig.username;
+      const pass = body.password || config?.password || state.scraperConfig.password;
+      const key = body.apiKey || body.companyKey || config?.apiKey || config?.companyKey || state.scraperConfig.apiKey || state.scraperConfig.companyKey;
+      const portalUrl = body.portalUrl || config?.portalUrl || state.scraperConfig.portalUrl;
+
+      const result = await testQgendaAuthentication({
+        email,
+        password: pass,
+        companyKey: key,
+        portalUrl
+      });
+
+      return NextResponse.json(result, { status: result.success ? 200 : 400 });
+    }
 
     // 1. UPDATE SCRAPER CONFIGURATION
     if (action === 'UPDATE_CONFIG') {
@@ -37,6 +55,38 @@ export async function POST(req: NextRequest) {
       const activePass = config?.password || state.scraperConfig.password || '321usap';
       const activeFacilities = config?.selectedFacilities || state.scraperConfig.selectedFacilities || ['MHMC', 'MHVIL-SC', 'HIVF-SC'];
       const targetDate = date || getHoustonDateString();
+
+      if (activeType === 'qgenda') {
+        const authResult = await testQgendaAuthentication({
+          email: config?.username || state.scraperConfig.username,
+          password: config?.password || state.scraperConfig.password,
+          companyKey: config?.apiKey || config?.companyKey || state.scraperConfig.apiKey || state.scraperConfig.companyKey,
+          portalUrl: activeUrl
+        });
+
+        if (!authResult.success) {
+          return NextResponse.json({
+            success: false,
+            error: authResult.error || 'QGenda authentication failed'
+          });
+        }
+
+        return NextResponse.json({
+          success: true,
+          preview: {
+            success: true,
+            portalType: 'qgenda',
+            sourceUrl: activeUrl,
+            timestamp: new Date().toISOString(),
+            facilities: activeFacilities,
+            selectedFacilities: activeFacilities,
+            workingStaff: [],
+            departureCandidates: [],
+            lateCandidates: [],
+            callTeamCandidates: []
+          }
+        });
+      }
 
       if (activeType === 'oneusap') {
         const { shiftRules, combinationRules } = await loadPortalRules('current');
