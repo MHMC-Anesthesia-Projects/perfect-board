@@ -15,20 +15,6 @@ const nextConfig: NextConfig = {
     'localhost:3000',
     'localhost:3001',
   ],
-  async redirects() {
-    return [
-      {
-        source: '/board',
-        destination: '/usap/mhmc',
-        permanent: false,
-      },
-      {
-        source: '/board/:path*',
-        destination: '/:path*',
-        permanent: false,
-      },
-    ];
-  },
 };
 
 export default nextConfig;
