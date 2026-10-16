@@ -15,8 +15,8 @@ export async function POST(req: NextRequest) {
     const { action, payload, user } = body;
 
     const state = await loadBoardState();
-    const currentUserRole: UserRole = user?.role || 'view_only';
-    const currentUserName = user?.displayName || 'Anonymous Staff';
+    const currentUserRole: UserRole = user?.role || body.userRole || body.currentUserRole || 'view_only';
+    const currentUserName = user?.displayName || body.displayName || (currentUserRole === 'admin' ? 'Admin' : currentUserRole === 'board_runner' ? 'Board Runner' : 'Anonymous Staff');
 
     if (currentUserRole === 'view_only') {
       return NextResponse.json({ error: 'View only access. Please log in to make changes.' }, { status: 403 });
@@ -186,6 +186,7 @@ export async function POST(req: NextRequest) {
           }
         });
 
+        broadcastStateChange();
         return NextResponse.json({ success: true, state });
       }
 
@@ -925,6 +926,10 @@ export async function POST(req: NextRequest) {
             slot.staffId = null;
             slot.breakfastDone = false;
             slot.lunchDone = false;
+            slot.dinnerDone = false;
+            slot.breakfastTime = null;
+            slot.lunchTime = null;
+            slot.dinnerTime = null;
           });
 
           dept.rooms.forEach(room => {
@@ -934,6 +939,10 @@ export async function POST(req: NextRequest) {
               staffId: null,
               breakfastDone: false,
               lunchDone: false,
+              dinnerDone: false,
+              breakfastTime: null,
+              lunchTime: null,
+              dinnerTime: null,
               notes: ''
             }];
             room.futureTime = null;
@@ -1984,20 +1993,25 @@ export async function POST(req: NextRequest) {
 
       // 9b. Update Break Display (Board Runner, Admin, and Superuser allowed)
       case 'UPDATE_BREAK_DISPLAY': {
-        if (currentUserRole !== 'admin' && currentUserRole !== 'superuser' && currentUserRole !== 'board_runner') {
+        const effectiveRole = user?.role || body.userRole || currentUserRole;
+        if (effectiveRole !== 'admin' && effectiveRole !== 'superuser' && effectiveRole !== 'board_runner') {
           return NextResponse.json({ error: 'Board Runner or Admin permission required.' }, { status: 403 });
+        }
+        const bDisplay = payload?.breakDisplay || body.breakDisplay;
+        if (!bDisplay) {
+          return NextResponse.json({ error: 'Missing breakDisplay configuration.' }, { status: 400 });
         }
         state.layoutConfig = {
           ...(state.layoutConfig || DEFAULT_LAYOUT_CONFIG),
-          breakDisplay: payload.breakDisplay
+          breakDisplay: bDisplay
         };
         await saveBoardState(state);
-        const b = payload.breakDisplay;
+        const b = bDisplay;
         const bList = [b?.showBreakfast && 'B', b?.showLunch && 'L', b?.showDinner && 'D'].filter(Boolean).join(', ');
         await recordAuditLog({
           actionType: 'LAYOUT_CHANGED',
           performedBy: currentUserName,
-          userRole: currentUserRole,
+          userRole: effectiveRole,
           details: `Updated break buttons: ${b?.enabled ? `Showing [${bList}]` : 'Hidden'}`
         });
         broadcastStateChange();

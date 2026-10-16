@@ -424,7 +424,18 @@ export default function WhiteboardPage() {
               return;
             }
             if (payload.new && (payload.new as any).state && (payload.new as any).state.departments) {
-              setBoardState((payload.new as any).state);
+              const incoming = (payload.new as any).state;
+              setBoardState({
+                ...incoming,
+                layoutConfig: {
+                  ...DEFAULT_LAYOUT_CONFIG,
+                  ...(incoming.layoutConfig || {}),
+                  breakDisplay: {
+                    ...(DEFAULT_LAYOUT_CONFIG.breakDisplay || { enabled: true, showBreakfast: true, showLunch: true, showDinner: false }),
+                    ...(incoming.layoutConfig?.breakDisplay || {})
+                  }
+                }
+              });
               setLoadError(null);
             } else {
               fetchBoardState(false);
@@ -560,7 +571,17 @@ export default function WhiteboardPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data && data.departments) {
-        setBoardState(data);
+        setBoardState({
+          ...data,
+          layoutConfig: {
+            ...DEFAULT_LAYOUT_CONFIG,
+            ...(data.layoutConfig || {}),
+            breakDisplay: {
+              ...(DEFAULT_LAYOUT_CONFIG.breakDisplay || { enabled: true, showBreakfast: true, showLunch: true, showDinner: false }),
+              ...(data.layoutConfig?.breakDisplay || {})
+            }
+          }
+        });
         setLoadError(null);
       } else {
         throw new Error('Incomplete data received');
@@ -868,17 +889,27 @@ export default function WhiteboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'UPDATE_BREAK_DISPLAY',
+          payload: { breakDisplay },
           breakDisplay,
+          user: currentUser || { role: currentUserRole, displayName: currentUserRole === 'admin' ? 'Admin' : 'Board Runner' },
           userRole: currentUserRole
         })
       });
 
       if (res.ok) {
-        const updated = await res.json();
-        setBoardState(updated);
+        const data = await res.json();
+        if (data.state) {
+          setBoardState(data.state);
+        } else if (data.departments) {
+          setBoardState(data);
+        }
+      } else {
+        console.error('Failed to update break display on server:', await res.text());
+        fetchBoardState(false);
       }
     } catch (err) {
       console.error('Failed to update break display:', err);
+      fetchBoardState(false);
     }
   };
 

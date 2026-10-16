@@ -1533,9 +1533,9 @@ export const StaffModal: React.FC<StaffModalProps> = ({
 
         {/* Break Management Status (Accessible to ALL users, including Basic User!) */}
         {allPlacements.length > 0 && (!breakDisplay || breakDisplay.enabled || isBreakfastDone || isLunchDone || isDinnerDone) && (() => {
-          const showB = !breakDisplay || (breakDisplay.enabled && breakDisplay.showBreakfast);
-          const showL = !breakDisplay || (breakDisplay.enabled && breakDisplay.showLunch);
-          const showD = breakDisplay ? (breakDisplay.enabled && breakDisplay.showDinner) : isDinnerDone;
+          const showB = (!breakDisplay || (breakDisplay.enabled && (breakDisplay.showBreakfast ?? true))) || Boolean(isBreakfastDone);
+          const showL = (!breakDisplay || (breakDisplay.enabled && (breakDisplay.showLunch ?? true))) || Boolean(isLunchDone);
+          const showD = (breakDisplay ? (breakDisplay.enabled && (breakDisplay.showDinner ?? false)) : false) || Boolean(isDinnerDone);
 
           const visibleCount = (showB ? 1 : 0) + (showL ? 1 : 0) + (showD ? 1 : 0);
           if (visibleCount === 0) return null;

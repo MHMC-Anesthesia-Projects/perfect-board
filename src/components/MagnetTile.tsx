@@ -65,9 +65,9 @@ export const MagnetTile: React.FC<MagnetTileProps> = ({
     : (currentUserRole === 'board_runner' || currentUserRole === 'admin' || currentUserRole === 'superuser'));
 
   const isBreaksConfigEnabled = breakDisplay ? (breakDisplay.enabled ?? true) : true;
-  const showB = breakDisplay ? (breakDisplay.showBreakfast ?? true) : true;
-  const showL = breakDisplay ? (breakDisplay.showLunch ?? true) : true;
-  const showD = breakDisplay ? (breakDisplay.showDinner ?? false) : false;
+  const showB = (breakDisplay ? (breakDisplay.showBreakfast ?? true) : true) || Boolean(breakfastDone);
+  const showL = (breakDisplay ? (breakDisplay.showLunch ?? true) : true) || Boolean(lunchDone);
+  const showD = (breakDisplay ? (breakDisplay.showDinner ?? false) : false) || Boolean(dinnerDone);
   const hasAnyBreakVisible = showB || showL || showD;
 
   const canShowBreaks = !hasPendingRelief && isBreaksConfigEnabled && hasAnyBreakVisible && (showBreaks !== undefined

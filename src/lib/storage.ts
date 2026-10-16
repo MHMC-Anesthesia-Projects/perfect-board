@@ -566,6 +566,10 @@ function sanitizeBoardState(loaded: BoardState): BoardState {
     loaded.layoutConfig = {
       ...DEFAULT_LAYOUT_CONFIG,
       ...loaded.layoutConfig,
+      breakDisplay: {
+        ...(DEFAULT_LAYOUT_CONFIG.breakDisplay || { enabled: true, showBreakfast: true, showLunch: true, showDinner: false }),
+        ...(loaded.layoutConfig.breakDisplay || {})
+      },
       manualDepartureConfig: loaded.layoutConfig.manualDepartureConfig || DEFAULT_LAYOUT_CONFIG.manualDepartureConfig,
       manualLateConfig: loaded.layoutConfig.manualLateConfig || DEFAULT_LAYOUT_CONFIG.manualLateConfig
     };
@@ -755,6 +759,7 @@ export function normalizeBoardState(state: BoardState): void {
 }
 
 export async function saveBoardState(state: BoardState, boardId: string = 'current'): Promise<void> {
+  sanitizeBoardState(state);
   normalizeBoardState(state);
   state.lastUpdated = new Date().toISOString();
 
