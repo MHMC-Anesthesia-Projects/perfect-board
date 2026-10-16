@@ -227,8 +227,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   const [draggedDepartureId, setDraggedDepartureId] = useState<string | null>(null);
   const [dragOverDepartureId, setDragOverDepartureId] = useState<string | null>(null);
 
-  // Helper to check standard late shift (3p, 4p, 5p, 7p, 8p, night, 7p-7a)
-  const isStandardLateTime = (t: string) => /^(?:3p|4p|5p|7p|8p|night|7p-7a|11a-11p)/i.test(t) ||
+  // Helper to check standard late shift (3p, 4p, 5p, 7p, 8p, night, 3p-7a, 7p-7a)
+  const isStandardLateTime = (t: string) => /^(?:3p|4p|5p|7p|8p|night|3p-7a|7p-7a|11a-11p)/i.test(t) ||
     t.includes('3p') || t.includes('4p') || t.includes('5p') || t.includes('7p') || t.includes('8p');
 
   // Helper to check atypical departure time (e.g. 2p, 1p, 1:30p)
@@ -414,8 +414,11 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
       }
       return 14 * 60; // 2:00 PM (before 3pm)
     }
+    if (cat === '3p-7a') {
+      return 24 * 60 + 1; // 3p-7a overnight shift
+    }
     if (cat === '7p-7a' || cat.includes('night')) {
-      return 19 * 60 + 1; // 7:01 PM night shift
+      return 24 * 60 + 2; // 7p-7a night shift
     }
     if (cat === '24h') {
       return 24 * 60 + 50; // 24-hour shift at bottom of late list
@@ -438,15 +441,15 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     return 9999;
   };
 
-  // Group lates by time category (Special at top, then 3p, 4p, 5p, 7p, 8p, 7p-7a, 24h)
-  const baseLateCategories = ['special', '3p', '4p', '5p', '7p', '8p', '7p-7a', '24h'];
+  // Group lates by time category (Special at top, then 3p, 4p, 5p, 7p, 8p, 3p-7a, 7p-7a, 24h)
+  const baseLateCategories = ['special', '3p', '4p', '5p', '7p', '8p', '3p-7a', '7p-7a', '24h'];
   const latesGrouped: Record<string, LateShiftItem[]> = {};
   baseLateCategories.forEach(cat => {
     latesGrouped[cat] = [];
   });
   
   // Standard late categories (>= 3pm)
-  const standardLateCats = ['3p', '4p', '5p', '7p', '8p', '7p-7a', '24h'];
+  const standardLateCats = ['3p', '4p', '5p', '7p', '8p', '3p-7a', '7p-7a', '24h'];
 
   // Group items: Any atypical time (like 2p, 1p, special) groups into 'special'
   latesList.forEach(item => {
@@ -1615,9 +1618,10 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             const items = latesGrouped[category] || [];
             const isSpecial = category.toLowerCase() === 'special';
             const is24h = category.toLowerCase() === '24h';
-            const isAtypicalTime = !['3p', '4p', '5p', '7p', '8p', '7p-7a', '24h'].includes(category.toLowerCase());
-            // Hide special, 24h, and custom atypical times if empty; keep standard late categories visible
-            if ((isSpecial || is24h || isAtypicalTime) && items.length === 0) return null;
+            const is3p7a = category.toLowerCase() === '3p-7a';
+            const isAtypicalTime = !['3p', '4p', '5p', '7p', '8p', '3p-7a', '7p-7a', '24h'].includes(category.toLowerCase());
+            // Hide special, 24h, 3p-7a, and custom atypical times if empty; keep standard late categories visible
+            if ((isSpecial || is24h || is3p7a || isAtypicalTime) && items.length === 0) return null;
 
             return (
               <div key={category} style={{ marginBottom: 4 }}>

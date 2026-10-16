@@ -773,8 +773,8 @@ export const SuperuserSandbox: React.FC<SuperuserSandboxProps> = ({ currentUser 
                           {row.lateItem ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <span style={{
-                                background: row.lateItem.timeCategory === '7p-7a' ? '#f3e8ff' : '#fef3c7',
-                                color: row.lateItem.timeCategory === '7p-7a' ? '#7e22ce' : '#b45309',
+                                background: (row.lateItem.timeCategory === '7p-7a' || row.lateItem.timeCategory === '3p-7a') ? '#f3e8ff' : row.lateItem.timeCategory === '24h' ? '#ffedd5' : '#fef3c7',
+                                color: (row.lateItem.timeCategory === '7p-7a' || row.lateItem.timeCategory === '3p-7a') ? '#7e22ce' : row.lateItem.timeCategory === '24h' ? '#c2410c' : '#b45309',
                                 padding: '2px 6px',
                                 borderRadius: 4,
                                 fontSize: 11,

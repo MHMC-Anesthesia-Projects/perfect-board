@@ -1483,6 +1483,7 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                       <option value="4p">4p Late</option>
                       <option value="5p">5p Late</option>
                       <option value="7p">7p Late</option>
+                      <option value="3p-7a">3p-7a</option>
                       <option value="7p-7a">7p-7a (Night Nocturnist)</option>
                       <option value="8p">8p Late</option>
                       <option value="24h">24h Shift</option>
@@ -1815,6 +1816,34 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                   >
                     💡 8h + OB: <code style={{ color: 'var(--accent-primary)' }}>8h*</code> + <code style={{ color: '#f59e0b' }}>*OB*</code>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditingCombRule(prev => ({
+                      ...prev,
+                      name: prev?.name || 'Continuous Shift: L1 (3p-7p) + OB Night Call (7p-7a) -> 3p-7a',
+                      primaryPattern: 'L1_MHMC',
+                      secondaryPattern: 'CIHOBPM_MHMC',
+                      lateCategory: '3p-7a',
+                      badgeNote: '3p-7a (L1 + OB)',
+                      departureCategory: 'none',
+                      boardStatus: 'include',
+                      roomAssignmentStrategy: 'scraped'
+                    }))}
+                    style={{
+                      fontSize: 10.5,
+                      padding: '3px 8px',
+                      borderRadius: 4,
+                      background: 'var(--surface-card)',
+                      border: '1px solid var(--border-light)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                    title="Fill 3p-7a combination preset (L1_MHMC + CIHOBPM_MHMC)"
+                  >
+                    💡 3p-7a Shift: <code style={{ color: 'var(--accent-primary)' }}>L1*</code> + <code style={{ color: '#f59e0b' }}>CIHOBPM*</code>
+                  </button>
                 </div>
               </div>
 
@@ -1952,6 +1981,7 @@ export const PortalRulesManager: React.FC<PortalRulesManagerProps> = ({
                       <option value="4p">4p Late</option>
                       <option value="5p">5p Late</option>
                       <option value="7p">7p Late</option>
+                      <option value="3p-7a">3p-7a</option>
                       <option value="7p-7a">7p-7a (Night Nocturnist)</option>
                       <option value="8p">8p Late</option>
                       <option value="24h">24h Shift</option>

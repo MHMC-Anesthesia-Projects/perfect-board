@@ -4894,7 +4894,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   {/* 3. Late Shift Candidates */}
                   {testSyncTab === 'lates' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      {['3p', '4p', '5p', '7p', '8p', '7p-7a'].map(timeCat => {
+                      {['3p', '4p', '5p', '7p', '8p', '3p-7a', '7p-7a', '24h'].map(timeCat => {
                         const inCat = testSyncResult.lateCandidates.filter(l => l.timeCategory === timeCat);
                         if (inCat.length === 0) return null;
                         return (
@@ -5281,7 +5281,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       Fixed Shift / Departure Time *
                     </label>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-                      {['2p', '3p', '4p', '5p', '7p', '8p', '7p-7a'].map(shiftPreset => {
+                      {['2p', '3p', '4p', '5p', '7p', '8p', '3p-7a', '7p-7a', '24h'].map(shiftPreset => {
                         const isSelected = ruleForm.fixedShift === shiftPreset;
                         const is2p = shiftPreset === '2p';
                         return (
@@ -5499,7 +5499,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         );
                       })
                       .map((rule) => {
-                        const isAtypical = /^\s*([1-9]|1[0-2])(?::[0-5][0-9])?\s*(?:a|p|am|pm)?\s*$/i.test(rule.fixedShift) && !/3p|4p|5p|7p|8p|night|7p-7a/i.test(rule.fixedShift);
+                        const isAtypical = /^\s*([1-9]|1[0-2])(?::[0-5][0-9])?\s*(?:a|p|am|pm)?\s*$/i.test(rule.fixedShift) && !/3p|4p|5p|7p|8p|night|3p-7a|7p-7a|24h/i.test(rule.fixedShift);
                         return (
                           <tr
                             key={rule.id}

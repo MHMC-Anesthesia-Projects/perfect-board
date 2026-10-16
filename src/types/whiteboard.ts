@@ -108,7 +108,7 @@ export interface DepartureItem {
 export interface LateShiftItem {
   id: string;
   name: string;
-  timeCategory: string; // e.g. "special", "3p", "4p", "5p", "7p", "8p", "7p-7a"
+  timeCategory: string; // e.g. "special", "3p", "4p", "5p", "7p", "8p", "3p-7a", "7p-7a"
   orderIndex: number;
   notes?: string;
   orderNumber?: number;
@@ -122,7 +122,7 @@ export interface UniqueScheduleRule {
   id: string;
   providerName: string;
   qgendaAbbr?: string;
-  fixedShift: string; // e.g. "5p", "4p", "3p", "2p", "7p-7a"
+  fixedShift: string; // e.g. "5p", "4p", "3p", "2p", "3p-7a", "7p-7a"
   role: 'MD' | 'CRNA' | 'ANY';
   facilityCondition?: string;
   active: boolean;
@@ -354,8 +354,9 @@ export const DEFAULT_LAYOUT_CONFIG: BoardLayoutConfig = {
       { id: 'late_5p', label: '5 PM', timeCategory: '5p', orderIndex: 2 },
       { id: 'late_7p', label: '7 PM', timeCategory: '7p', orderIndex: 3 },
       { id: 'late_8p', label: '8 PM', timeCategory: '8p', orderIndex: 4 },
-      { id: 'late_7p_7a', label: '7 PM - 7 AM (Nocturnist)', timeCategory: '7p-7a', orderIndex: 5 },
-      { id: 'late_24h', label: '24 Hours (L1 + OB)', timeCategory: '24h', orderIndex: 6 }
+      { id: 'late_3p_7a', label: '3 PM - 7 AM (Evening + OB)', timeCategory: '3p-7a', orderIndex: 5 },
+      { id: 'late_7p_7a', label: '7 PM - 7 AM (Nocturnist)', timeCategory: '7p-7a', orderIndex: 6 },
+      { id: 'late_24h', label: '24 Hours (L1 + OB)', timeCategory: '24h', orderIndex: 7 }
     ]
   }
 };
@@ -405,7 +406,7 @@ export interface BoardState {
 // -------------------------------------------------------------
 
 export type DepartureCategoryType = 'none' | 'post_call' | 'post_call_10a' | 'scheduled_time' | 'non_call_queue' | 'special';
-export type LateCategoryType = 'none' | '3p' | '4p' | '5p' | '7p' | '7p-7a' | '8p' | '24h';
+export type LateCategoryType = 'none' | '3p' | '4p' | '5p' | '7p' | '3p-7a' | '7p-7a' | '8p' | '24h';
 export type RoomAssignmentStrategy = 'scraped' | 'unassigned_pool' | 'runner';
 export type BoardInclusionStatus = 'include' | 'exclude';
 

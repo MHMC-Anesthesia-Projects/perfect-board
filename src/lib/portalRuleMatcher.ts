@@ -302,7 +302,7 @@ export function resolveProviderShiftPolicy(
 
     if (matchedUnique) {
       const fixedShift = matchedUnique.fixedShift.toLowerCase().trim();
-      const isLateTime = ['3p', '4p', '5p', '7p', '7p-7a', '8p', '24h'].includes(fixedShift);
+      const isLateTime = ['3p', '4p', '5p', '7p', '3p-7a', '7p-7a', '8p', '24h'].includes(fixedShift);
       return {
         matchedRuleId: matchedUnique.id,
         matchedPattern: `Unique Schedule: ${matchedUnique.providerName} (${matchedUnique.fixedShift})`,
@@ -348,7 +348,7 @@ export function resolveProviderShiftPolicy(
       roomAssignmentStrategy: action.roomAssignmentStrategy,
       departureCategory: isPostCallComb ? 'post_call' : action.departureCategory,
       departureTimeEstimate: isPostCallComb ? undefined : action.departureTimeEstimate,
-      badgeNote: action.badgeNote || (isPostCallComb ? 'postOB' : (action.lateCategory === '24h' ? '24h (L1 + OB)' : undefined)),
+      badgeNote: action.badgeNote || (isPostCallComb ? 'postOB' : (action.lateCategory === '3p-7a' ? '3p-7a (L1 + OB)' : (action.lateCategory === '24h' ? '24h (L1 + OB)' : undefined))),
       lateCategory: action.lateCategory,
       effectiveShift: isPostCallComb ? 'postOB' : (action.lateCategory !== 'none' ? action.lateCategory : 'Day'),
       isCombination: true,
@@ -460,10 +460,11 @@ export function resolveProviderShiftPolicy(
   // Preserve graceful behavior so an unmapped token doesn't crash or hide active staff
   const combinedRaw = `${shift} ${tasks} ${roomTag}`.toUpperCase();
   const isPostCall = combinedRaw.includes('POST') || combinedRaw.includes('OBPC');
-  const isLate = /3P|4P|5P|7P|8P|NOCT|NIGHT/i.test(combinedRaw);
+  const isLate = /3P|4P|5P|7P|8P|NOCT|NIGHT|3P-7A|7P-7A/i.test(combinedRaw);
 
   let fallbackLate: LateCategoryType = 'none';
-  if (combinedRaw.includes('7P-7A') || combinedRaw.includes('NOCT')) fallbackLate = '7p-7a';
+  if (combinedRaw.includes('3P-7A')) fallbackLate = '3p-7a';
+  else if (combinedRaw.includes('7P-7A') || combinedRaw.includes('NOCT')) fallbackLate = '7p-7a';
   else if (combinedRaw.includes('8P')) fallbackLate = '8p';
   else if (combinedRaw.includes('7P') || combinedRaw.includes('L1')) fallbackLate = '7p';
   else if (combinedRaw.includes('5P') || combinedRaw.includes('10H')) fallbackLate = '5p';
@@ -477,7 +478,7 @@ export function resolveProviderShiftPolicy(
 
   return {
     boardStatus: 'include',
-    roomAssignmentStrategy: fallbackLate === '7p-7a' ? 'unassigned_pool' : 'scraped',
+    roomAssignmentStrategy: (fallbackLate === '7p-7a' || fallbackLate === '3p-7a') ? 'unassigned_pool' : 'scraped',
     departureCategory: fallbackDep,
     departureTimeEstimate: fallbackLate !== 'none' ? fallbackLate : undefined,
     badgeNote: isPostCall ? 'postOB' : undefined,

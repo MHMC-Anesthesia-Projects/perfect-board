@@ -497,7 +497,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   const isAtypicalDepartureTime = (t?: string) => {
     if (!t) return false;
     const clean = t.toLowerCase().trim();
-    if (/3p|4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(clean)) return false;
+    if (/3p|4p|5p|7p|8p|night|3p-7a|7p-7a|11a-11p/i.test(clean)) return false;
     return /^\s*([1-9]|1[0-2])(?::[0-5][0-9])?\s*(?:a|p|am|pm)?\s*$/i.test(clean);
   };
 
@@ -533,7 +533,7 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
         );
         const staffShift = (matchedStaff?.shift || '').toLowerCase().trim();
         if (isAtypicalDepartureTime(timeEst) || isAtypicalDepartureTime(staffShift)) return false;
-        const isLate = /3p|4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(timeEst) || /3p|4p|5p|7p|8p|night|7p-7a|11a-11p/i.test(staffShift);
+        const isLate = /3p|4p|5p|7p|8p|night|3p-7a|7p-7a|11a-11p/i.test(timeEst) || /3p|4p|5p|7p|8p|night|3p-7a|7p-7a|11a-11p/i.test(staffShift);
         if (isLate) return false;
         return true;
       })
@@ -550,7 +550,8 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
       }
       return 14 * 60; // 2:00 PM (before 3pm)
     }
-    if (cat === '7p-7a' || cat.includes('night')) return 19 * 60 + 1;
+    if (cat === '3p-7a') return 24 * 60 + 1;
+    if (cat === '7p-7a' || cat.includes('night')) return 24 * 60 + 2;
     if (cat === '24h') return 24 * 60 + 50; // 24-hour shift at bottom of late list
     const match = cat.match(/(\d{1,2})(?::(\d{2}))?\s*(a|p|am|pm)?/i);
     if (match) {
@@ -571,11 +572,11 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
   // Lates grouped by shift category - chronologically sorted (times before 3pm appear at top)
   const latesGrouped = useMemo(() => {
     const grouped: Record<string, LateShiftItem[]> = {};
-    const baseCats = ['special', '3p', '4p', '5p', '7p', '8p', '7p-7a', '24h'];
+    const baseCats = ['special', '3p', '4p', '5p', '7p', '8p', '3p-7a', '7p-7a', '24h'];
     baseCats.forEach(cat => {
       grouped[cat] = [];
     });
-    const standardCats = ['3p', '4p', '5p', '7p', '8p', '7p-7a', '24h'];
+    const standardCats = ['3p', '4p', '5p', '7p', '8p', '3p-7a', '7p-7a', '24h'];
     (boardState.latesList || []).forEach(item => {
       const rawCat = (item.timeCategory || '').trim();
       const lowerCat = rawCat.toLowerCase();
@@ -2234,12 +2235,13 @@ export const MobileWhiteboardView: React.FC<MobileWhiteboardViewProps> = ({
                 const items = latesGrouped[cat] || [];
                 const isSpecial = cat === 'special';
                 const is24h = cat.toLowerCase() === '24h';
-                const isAtypical = !['3p', '4p', '5p', '7p', '8p', '7p-7a', '24h'].includes(cat.toLowerCase());
-                if ((isSpecial || is24h || isAtypical) && items.length === 0) return null;
+                const is3p7a = cat.toLowerCase() === '3p-7a';
+                const isAtypical = !['3p', '4p', '5p', '7p', '8p', '3p-7a', '7p-7a', '24h'].includes(cat.toLowerCase());
+                if ((isSpecial || is24h || is3p7a || isAtypical) && items.length === 0) return null;
                 return (
                   <div key={cat} className="mobile-card mobile-lates-group-card">
                     <div className="mobile-lates-header">
-                      <span className="mobile-lates-time-pill" style={(isSpecial || isAtypical) ? { background: '#2563eb', color: '#fff' } : is24h ? { background: '#ea580c', color: '#fff' } : undefined}>
+                      <span className="mobile-lates-time-pill" style={(isSpecial || isAtypical) ? { background: '#2563eb', color: '#fff' } : is24h ? { background: '#ea580c', color: '#fff' } : is3p7a ? { background: '#7c3aed', color: '#fff' } : undefined}>
                         {isSpecial ? 'SPECIAL SHIFT' : `${cat.toUpperCase()} SHIFT`}
                       </span>
                       <span className="mobile-lates-count">{items.length} Staff</span>

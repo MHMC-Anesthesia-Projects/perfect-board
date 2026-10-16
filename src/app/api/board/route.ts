@@ -1105,13 +1105,18 @@ export async function POST(req: NextRequest) {
           upperShift === 'CALL' || upperShift === 'CALL TEAM'
         );
 
-        const standardLateKeys = ['3P', '4P', '5P', '7P', '8P', '7P-7A', '11A-11P', '24H'];
+        const standardLateKeys = ['3P', '4P', '5P', '7P', '8P', '3P-7A', '7P-7A', '11A-11P', '24H'];
+        const isDaytime = upperShift.includes('8H') || upperShift.includes('10H') || upperShift.includes('3P') || upperShift.includes('7A-3P');
         const is24h = /24\s*-?\s*h/i.test(upperShift) || upperShift === '24H' ||
-          (upperShift.includes('L1') && (
-            upperShift.includes('8H') || upperShift.includes('10H') || upperShift.includes('3P') ||
+          (upperShift.includes('L1') && isDaytime && (
             upperShift.includes('OB') || upperShift.includes('CIHOB')
           ));
-        const isStandardLate = !isCallShift && !isPostCall && (is24h || isL1 || is10h || is8h || isWorWov || standardLateKeys.some(k => upperShift === k || upperShift.startsWith(k)));
+        const is3p7a = upperShift.includes('3P-7A') || (
+          upperShift.includes('L1') && !isDaytime && (
+            upperShift.includes('OB') || upperShift.includes('CIHOB')
+          )
+        );
+        const isStandardLate = !isCallShift && !isPostCall && (is24h || is3p7a || isL1 || is10h || is8h || isWorWov || standardLateKeys.some(k => upperShift === k || upperShift.startsWith(k)));
 
         const isAtypicalTime = !isCallShift && !isPostCall && (
           upperShift === 'SPECIAL' ||
@@ -1271,19 +1276,22 @@ export async function POST(req: NextRequest) {
         );
 
         const shouldBeInLates = !isCallShift && (isStandardLate || isAtypicalTime);
-        const lateCategory = is24h ? '24h' : (isL1 ? '7p' : (is10h ? '5p' : ((is8h || isWorWov) ? '3p' : (isStandardLate ? shift.toLowerCase() : (isAtypicalTime ? 'special' : '')))));
+        const lateCategory = is24h ? '24h' : (is3p7a ? '3p-7a' : (isL1 ? '7p' : (is10h ? '5p' : ((is8h || isWorWov) ? '3p' : (isStandardLate ? shift.toLowerCase() : (isAtypicalTime ? 'special' : ''))))));
 
         if (lateIdx !== -1) {
           if (shouldBeInLates) {
             state.latesList[lateIdx].timeCategory = lateCategory;
-            state.latesList[lateIdx].timeEstimate = is24h ? '24h' : effectiveTimeEstimate;
+            state.latesList[lateIdx].timeEstimate = is24h ? '24h' : is3p7a ? '3p-7a' : effectiveTimeEstimate;
             if (is24h) {
               state.latesList[lateIdx].role = 'CRNA';
               const has8h = upperShift.includes('8H') || upperShift.includes('3P');
               const has10h = upperShift.includes('10H');
               const hasL1 = upperShift.includes('L1');
               const hasOb = upperShift.includes('OB') || upperShift.includes('CIHOB') || upperShift.includes('OBPM') || upperShift.includes('CIHOBPM');
-              state.latesList[lateIdx].notes = (has8h && hasL1 && hasOb) ? '24h (8h+L1+OB)' : (has8h && hasL1) ? '8h + L1' : (has10h && hasL1) ? '10h + L1' : (hasL1 && hasOb) ? 'L1 + OB' : '24h (L1 + OB)';
+              state.latesList[lateIdx].notes = (has8h && hasL1 && hasOb) ? '24h (8h+L1+OB)' : (has8h && hasL1) ? '8h + L1' : (has10h && hasL1) ? '10h + L1' : '24h (8h+L1+OB)';
+            } else if (is3p7a) {
+              state.latesList[lateIdx].role = 'CRNA';
+              state.latesList[lateIdx].notes = '3p-7a (L1 + OB)';
             } else if (isL1) {
               state.latesList[lateIdx].role = 'CRNA';
               const hasPostCall = upperShift.includes('POSTOB') ? 'postOB' :
@@ -1314,14 +1322,16 @@ export async function POST(req: NextRequest) {
           const hasL1 = upperShift.includes('L1');
           const hasOb = upperShift.includes('OB') || upperShift.includes('CIHOB') || upperShift.includes('OBPM') || upperShift.includes('CIHOBPM');
           const lateNote = is24h
-            ? ((has8h && hasL1 && hasOb) ? '24h (8h+L1+OB)' : (has8h && hasL1) ? '8h + L1' : (has10h && hasL1) ? '10h + L1' : (hasL1 && hasOb) ? 'L1 + OB' : '24h (L1 + OB)')
-            : isL1
-              ? (hasPostCall ? `L1, ${hasPostCall}` : 'L1')
-              : is10h
-                ? (hasPostCall ? `10h, ${hasPostCall}` : '10h')
-                : isWorWov
-                  ? (upperShift.includes('WOV') ? 'WOV' : 'WOR')
-                  : undefined;
+            ? ((has8h && hasL1 && hasOb) ? '24h (8h+L1+OB)' : (has8h && hasL1) ? '8h + L1' : (has10h && hasL1) ? '10h + L1' : '24h (8h+L1+OB)')
+            : is3p7a
+              ? '3p-7a (L1 + OB)'
+              : isL1
+                ? (hasPostCall ? `L1, ${hasPostCall}` : 'L1')
+                : is10h
+                  ? (hasPostCall ? `10h, ${hasPostCall}` : '10h')
+                  : isWorWov
+                    ? (upperShift.includes('WOV') ? 'WOV' : 'WOR')
+                    : undefined;
 
           state.latesList.push({
             id: `late_${s.id}_${Date.now()}`,
