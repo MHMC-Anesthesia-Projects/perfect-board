@@ -1,4 +1,4 @@
-export const BASE_PATH = '/board';
+export const BASE_PATH = '';
 
 /**
  * Helper to ensure client-side fetch and EventSource URLs route cleanly

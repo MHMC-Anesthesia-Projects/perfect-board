@@ -218,7 +218,7 @@ export const PinPadModal: React.FC<PinPadModalProps> = ({ isOpen, onClose, onLog
               <KeyRound size={14} /> Or login with username & password
             </button>
             <a
-              href="/board/login"
+              href="/login"
               style={{
                 marginTop: 8,
                 fontSize: 11,

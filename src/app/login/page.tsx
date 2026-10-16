@@ -282,7 +282,11 @@ export default function LoginPage() {
         <div className={styles.footerSection}>
           <div className={styles.directLinks}>
             <Link href="/" className={styles.directLink}>
-              Live Whiteboard (/board)
+              Landing Page
+            </Link>
+            <span>•</span>
+            <Link href="/usap/mhmc" className={styles.directLink}>
+              MHMC Board (/usap/mhmc)
             </Link>
             <span>•</span>
             <Link href="/usap" className={styles.directLink}>
