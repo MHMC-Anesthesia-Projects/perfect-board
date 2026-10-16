@@ -284,8 +284,9 @@ export const Bullpen: React.FC<BullpenProps> = ({
     setHoveredBin(null);
     try {
       const data = extractDragData(e);
-      if (data) {
-        onDropToBullpen(data);
+      if (data && (data.staffId || data.id)) {
+        const staffId = data.staffId || data.id;
+        onDropToBullpen({ ...data, staffId });
       }
     } catch (err) {
       console.error('Error dropping to bullpen:', err);
@@ -313,14 +314,8 @@ export const Bullpen: React.FC<BullpenProps> = ({
       const data = extractDragData(e);
       if (data && (data.staffId || data.id)) {
         const staffId = data.staffId || data.id;
-        // Pass targetGroup explicitly so unassigning places staff in the targeted pool
+        // Pass targetGroup explicitly so unassigning places staff in the targeted pool atomically
         onDropToBullpen({ ...data, staffId, targetGroup: binKey });
-        // Also explicitly update infrequent status if moved to/from Infrequent
-        if (binKey === 'Infrequent') {
-          onSetStaffInfrequent?.(staffId, true);
-        } else if (binKey === 'MD' || binKey === 'CRNA') {
-          onSetStaffInfrequent?.(staffId, false);
-        }
       }
     } catch (err) {
       console.error('Error dropping to bin:', err);

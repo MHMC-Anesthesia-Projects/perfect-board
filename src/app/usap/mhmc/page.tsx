@@ -1158,23 +1158,48 @@ export default function WhiteboardPage() {
       updated.bullpenStaffIds = bullpenIds;
 
       if (updated.departments) {
-        updated.departments = updated.departments.map(dept => ({
-          ...dept,
-          runnerSlots: (dept.runnerSlots || []).map(r => {
+        updated.departments = updated.departments.map(dept => {
+          let runnerSlots = (dept.runnerSlots || []).map(r => {
             if (toType === 'runner_slot' && r.id === toId) return { ...r, staffId: targetStaffId };
             if (fromData.id ? r.id === fromData.id : r.staffId === targetStaffId) return { ...r, staffId: null };
             return r;
-          }),
-          rooms: dept.rooms.map(rm => ({
-            ...rm,
-            note: rm.id === targetRoomId ? '' : rm.note,
-            slots: rm.slots.map(s => {
-              if (toType === 'room_slot' && s.id === toId) return { ...s, staffId: targetStaffId };
-              if (fromData.id ? s.id === fromData.id : s.staffId === targetStaffId) return { ...s, staffId: null };
-              return s;
-            })
-          }))
-        }));
+          });
+
+          if (toType === 'runner_dept' && dept.id === toId) {
+            const alreadyRunner = runnerSlots.some(r => r.staffId === targetStaffId);
+            if (!alreadyRunner) {
+              const emptyIdx = runnerSlots.findIndex(r => !r.staffId);
+              if (emptyIdx !== -1) {
+                runnerSlots[emptyIdx] = { ...runnerSlots[emptyIdx], staffId: targetStaffId };
+              } else {
+                runnerSlots = [
+                  ...runnerSlots,
+                  {
+                    id: `runner_${dept.id}_${Date.now()}`,
+                    title: `Runner ${runnerSlots.length + 1}`,
+                    staffId: targetStaffId,
+                    breakfastDone: false,
+                    lunchDone: false
+                  }
+                ];
+              }
+            }
+          }
+
+          return {
+            ...dept,
+            runnerSlots: runnerSlots.filter(r => r.staffId || r.id === toId),
+            rooms: dept.rooms.map(rm => ({
+              ...rm,
+              note: rm.id === targetRoomId ? '' : rm.note,
+              slots: rm.slots.map(s => {
+                if (toType === 'room_slot' && s.id === toId) return { ...s, staffId: targetStaffId };
+                if (fromData.id ? s.id === fromData.id : s.staffId === targetStaffId) return { ...s, staffId: null };
+                return s;
+              })
+            }))
+          };
+        });
       }
       return updated;
     });
@@ -2342,7 +2367,7 @@ export default function WhiteboardPage() {
 
       const nextDepts = prev.departments.map(dept => ({
         ...dept,
-        runnerSlots: (dept.runnerSlots || []).filter(r => (fromData?.id ? r.id !== fromData.id : r.staffId !== staffId)),
+        runnerSlots: (dept.runnerSlots || []).filter(r => r.staffId !== staffId && (fromData?.id ? r.id !== fromData.id : true)),
         rooms: dept.rooms.map(rm => ({
           ...rm,
           slots: rm.slots.map(s => {
