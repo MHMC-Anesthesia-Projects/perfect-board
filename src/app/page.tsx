@@ -1,7 +1,7 @@
 'use client';
 
-import LandingPage from './landing/page';
+import WhiteboardPage from './usap/mhmc/page';
 
 export default function Page() {
-  return <LandingPage />;
+  return <WhiteboardPage />;
 }

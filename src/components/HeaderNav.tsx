@@ -271,7 +271,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
     }
     return (
       <a
-        href="/super"
+        href="/board/super"
         title="Open Superuser Control Center"
         style={{
           display: 'flex',
