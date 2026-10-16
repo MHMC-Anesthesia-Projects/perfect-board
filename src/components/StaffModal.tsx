@@ -121,13 +121,19 @@ export const StaffModal: React.FC<StaffModalProps> = ({
   const [magnetNoteDraft, setMagnetNoteDraft] = useState(currentMagnetNote);
   const [isNoteSaved, setIsNoteSaved] = useState(false);
 
+  const prevStaffIdForNoteRef = useRef<string | null>(null);
   useEffect(() => {
-    const note = (staff?.id && magnetNotes && magnetNotes[staff.id] !== undefined)
-      ? magnetNotes[staff.id]
-      : (staff?.magnetNote || '');
-    setMagnetNoteDraft(note);
-    setIsNoteSaved(false);
-  }, [staff, magnetNotes]);
+    if (staff?.id && staff.id !== prevStaffIdForNoteRef.current) {
+      prevStaffIdForNoteRef.current = staff.id;
+      const note = (magnetNotes && magnetNotes[staff.id] !== undefined)
+        ? magnetNotes[staff.id]
+        : (staff?.magnetNote || '');
+      setMagnetNoteDraft(note);
+      setIsNoteSaved(false);
+    } else if (!staff) {
+      prevStaffIdForNoteRef.current = null;
+    }
+  }, [staff?.id]);
 
   // --- Perfect Call Messaging State ---
   const [messagingEnabled, setMessagingEnabled] = useState(false);
@@ -243,8 +249,10 @@ export const StaffModal: React.FC<StaffModalProps> = ({
     }
   };
 
+  const prevStaffIdForShiftRef = useRef<string | null>(null);
   useEffect(() => {
-    if (staff) {
+    if (staff && staff.id !== prevStaffIdForShiftRef.current) {
+      prevStaffIdForShiftRef.current = staff.id;
       setCustomShift(staff.shift || 'Day');
       setIsEditingShift(false);
       setDisplayNameInput(staff.displayName || '');
@@ -253,8 +261,10 @@ export const StaffModal: React.FC<StaffModalProps> = ({
       setStudentNameInput(staff.studentName || '');
       setStudentSaveSuccess(false);
       fetchMessagingStatus(staff.phone);
+    } else if (!staff) {
+      prevStaffIdForShiftRef.current = null;
     }
-  }, [staff?.id, staff?.shift, staff?.displayName, staff?.phone, staff?.hasStudent, staff?.studentName]);
+  }, [staff?.id]);
 
   const handleSaveStudent = async (hasStudent: boolean, name?: string) => {
     if (!onUpdateStudent || !staff) return;

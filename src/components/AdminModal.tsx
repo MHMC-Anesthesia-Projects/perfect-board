@@ -1,7 +1,7 @@
 'use client';
 
 import { apiUrl } from '@/lib/api';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   User, Staff, Department, ScraperConfig, UserRole, StaffCredential, RunnerSlot, 
   ScraperPreviewResult, UniqueScheduleRule, MessagingConfig,
@@ -107,15 +107,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [messagingTestResult, setMessagingTestResult] = useState<{ success: boolean; message: string; details?: string } | null>(null);
   const [messagingStatusMsg, setMessagingStatusMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  useEffect(() => {
-    if (messagingConfig) {
-      setMessagingEnabled(messagingConfig.enabled);
-      setBoardRunnerEmail(messagingConfig.boardRunnerEmail || 'boardrunner@boardrunner.com');
-      setBoardRunnerPassword(messagingConfig.boardRunnerPassword || 'boardrunner@boardrunner.com');
-      setBoardRunnerName(messagingConfig.boardRunnerName || 'OR Board Runner');
-      setPushEndpoint(messagingConfig.pushEndpoint || 'https://pinecone-backend-7m1p.onrender.com/api/send-chat-push');
-    }
-  }, [messagingConfig]);
 
   const handleTestMessagingConnection = async () => {
     setIsTestingMessaging(true);
@@ -198,9 +189,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     }
   };
 
-  useEffect(() => {
-    setUniqueRules(uniqueSchedules || []);
-  }, [uniqueSchedules, isOpen]);
 
   const handleSaveUniqueRules = async (rulesToSave: UniqueScheduleRule[]) => {
     setIsSavingRules(true);
@@ -351,9 +339,12 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [boardLayoutConfig, setBoardLayoutConfig] = useState<BoardLayoutConfig>(DEFAULT_LAYOUT_CONFIG);
   const [layoutSubTab, setLayoutSubTab] = useState<'rooms' | 'features'>('rooms');
 
-  // Fetch users & initialize layout when opening modal
+  // Track modal open lifecycle: only initialize state when the modal transitions from closed to open
+  // This guarantees that background board polling or updates never wipe out active user edits or menu selections
+  const wasOpenRef = useRef(false);
+
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !wasOpenRef.current) {
       fetchUsers();
       const cloned = JSON.parse(JSON.stringify(departments));
       setLayoutDepts(cloned);
@@ -369,22 +360,31 @@ export const AdminModal: React.FC<AdminModalProps> = ({
         },
         enableUnassignedStaff: layoutConfig.enableUnassignedStaff ?? true
       } : DEFAULT_LAYOUT_CONFIG);
-    }
-  }, [isOpen, departments, layoutConfig]);
 
-  useEffect(() => {
-    if (scraperConfig) {
-      setPortalType(scraperConfig.portalType);
-      setPortalUrl(scraperConfig.portalUrl);
-      setPortalUser(scraperConfig.username);
-      setPortalPass(scraperConfig.password);
-      setAutoSyncMins(scraperConfig.autoSyncIntervalMinutes);
-      setMockMode(scraperConfig.mockMode);
-      if (scraperConfig.selectedFacilities) {
-        setSelectedFacilities(scraperConfig.selectedFacilities);
+      if (scraperConfig) {
+        setPortalType(scraperConfig.portalType);
+        setPortalUrl(scraperConfig.portalUrl);
+        setPortalUser(scraperConfig.username);
+        setPortalPass(scraperConfig.password);
+        setAutoSyncMins(scraperConfig.autoSyncIntervalMinutes);
+        setMockMode(scraperConfig.mockMode);
+        if (scraperConfig.selectedFacilities) {
+          setSelectedFacilities(scraperConfig.selectedFacilities);
+        }
       }
+
+      if (messagingConfig) {
+        setMessagingEnabled(messagingConfig.enabled);
+        setBoardRunnerEmail(messagingConfig.boardRunnerEmail || 'boardrunner@boardrunner.com');
+        setBoardRunnerPassword(messagingConfig.boardRunnerPassword || 'boardrunner@boardrunner.com');
+        setBoardRunnerName(messagingConfig.boardRunnerName || 'OR Board Runner');
+        setPushEndpoint(messagingConfig.pushEndpoint || 'https://pinecone-backend-7m1p.onrender.com/api/send-chat-push');
+      }
+
+      setUniqueRules(uniqueSchedules || []);
     }
-  }, [scraperConfig]);
+    wasOpenRef.current = isOpen;
+  }, [isOpen]);
 
   const handleSortStaff = (field: 'name' | 'displayName' | 'role' | 'phone' | 'shift') => {
     if (staffSortField === field) {

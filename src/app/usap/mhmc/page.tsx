@@ -121,6 +121,36 @@ export default function WhiteboardPage() {
   const [activeStampStickerId, setActiveStampStickerId] = useState<string | null>(null);
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
 
+  // Check if any admin modal, settings window, or editor is currently open
+  const isAnyModalOpen = Boolean(
+    isAdminModalOpen ||
+    isBreakManagementModalOpen ||
+    selectedStaff ||
+    voiceNoteTarget ||
+    slotAssignTarget ||
+    reliefTarget ||
+    isReliefTextModalOpen ||
+    isAuditDrawerOpen ||
+    isCleanBoardModalOpen ||
+    isRemoveAllMagnetsModalOpen ||
+    isCompleteReliefConfirmOpen ||
+    isSyncWarningOpen ||
+    unassignPromptTarget ||
+    pendingReliefMovePrompt ||
+    isLoginModalOpen
+  );
+  const isModalOpenRef = useRef(isAnyModalOpen);
+  isModalOpenRef.current = isAnyModalOpen;
+
+  // When an admin or settings window closes, catch up on the latest board state cleanly
+  const prevModalOpenRef = useRef(false);
+  useEffect(() => {
+    if (prevModalOpenRef.current && !isAnyModalOpen) {
+      fetchBoardState(false);
+    }
+    prevModalOpenRef.current = isAnyModalOpen;
+  }, [isAnyModalOpen]);
+
   // Track cursor position when a sticker magnet is selected so it hangs off the mouse pointer
   useEffect(() => {
     if (!activeStampStickerId) {
@@ -423,6 +453,9 @@ export default function WhiteboardPage() {
             if ((payload.new as any)?.id === 'system_users') {
               return;
             }
+            if (isModalOpenRef.current) {
+              return;
+            }
             if (payload.new && (payload.new as any).state && (payload.new as any).state.departments) {
               const incoming = (payload.new as any).state;
               setBoardState({
@@ -451,7 +484,7 @@ export default function WhiteboardPage() {
 
     // 2. Active tab / phone unlock re-sync: refresh whenever user returns to screen
     const handleVisibilitySync = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && !isModalOpenRef.current) {
         fetchBoardState(false);
       }
     };
@@ -459,8 +492,11 @@ export default function WhiteboardPage() {
     window.addEventListener('focus', handleVisibilitySync);
 
     // 3. Gentle 15-second background heartbeat to guarantee zero-drift sync
+    // Skipped automatically while any admin or settings window is open to protect active user editing
     const heartbeatInterval = setInterval(() => {
-      fetchBoardState(false);
+      if (!isModalOpenRef.current) {
+        fetchBoardState(false);
+      }
     }, 15000);
 
     // 4. Fallback to SSE listener when running locally without Supabase keys
@@ -471,7 +507,7 @@ export default function WhiteboardPage() {
         eventSource.onmessage = (event) => {
           try {
             const parsed = JSON.parse(event.data);
-            if (parsed.type === 'BOARD_UPDATED') {
+            if (parsed.type === 'BOARD_UPDATED' && !isModalOpenRef.current) {
               fetchBoardState(false);
             }
           } catch {}
@@ -564,7 +600,12 @@ export default function WhiteboardPage() {
     });
   };
 
-  const fetchBoardState = async (showLoading = true) => {
+  const fetchBoardState = async (showLoading = true, force = false) => {
+    // If this is a background sync and any modal or settings window is open, skip background refresh
+    // so active form inputs and menu selections are never interrupted or reverted.
+    if (!showLoading && !force && isModalOpenRef.current) {
+      return;
+    }
     if (showLoading) setLoading(true);
     try {
       const res = await fetch(apiUrl('/api/board'));
@@ -3374,7 +3415,7 @@ export default function WhiteboardPage() {
         onSaveDepartments={handleSaveDepartments}
         onResetToPhotoDefault={handleResetToPhotoDefault}
         onClearAllTextNotes={handleClearAllTextNotes}
-        onRefreshData={() => fetchBoardState(false)}
+        onRefreshData={() => fetchBoardState(false, true)}
         onUpdateCurrentUser={(updated) => setCurrentUser(prev => prev ? { ...prev, ...updated } : updated)}
       />
 

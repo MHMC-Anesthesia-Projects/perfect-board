@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BreakDisplayConfig, UserRole } from '@/types/whiteboard';
 import { X, Coffee, Check, ToggleLeft, ToggleRight, Sparkles, Clock, CalendarClock } from 'lucide-react';
 import { getAutomatedBreakDisplay } from '@/lib/dateUtils';
@@ -29,9 +29,10 @@ export const BreakManagementModal: React.FC<BreakManagementModalProps> = ({
   });
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !wasOpenRef.current) {
       setConfig({
         enabled: currentConfig?.enabled ?? true,
         showBreakfast: currentConfig?.showBreakfast ?? true,
@@ -42,7 +43,8 @@ export const BreakManagementModal: React.FC<BreakManagementModalProps> = ({
       setIsSaving(false);
       setSaveSuccess(false);
     }
-  }, [isOpen, currentConfig]);
+    wasOpenRef.current = isOpen;
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
